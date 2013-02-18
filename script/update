@@ -1,0 +1,41 @@
+#!/bin/sh
+
+set -e
+
+announce() {
+  echo
+  echo $@
+  echo
+}
+
+cd "$(dirname $0)/.."
+SOURCE_ROOT=$(pwd -P)
+VENDOR_DIR="${SOURCE_ROOT}/vendor"
+CHROMIUM_DIR="${VENDOR_DIR}/chromium"
+
+source VERSION
+
+export PATH="${SOURCE_ROOT}/depot_tools:${PATH}"
+
+if [ ! -d "${CHROMIUM_DIR}" ]; then
+  mkdir -p "$(dirname "${CHROMIUM_DIR}")"
+
+  CHROMIUM_TARBALL_BASE_URL="http://chromium-browser-source.commondatastorage.googleapis.com/"
+  CHROMIUM_TARBALL_FILENAME=$(curl --silent "${CHROMIUM_TARBALL_BASE_URL}chromium_tarball.html" | grep 'href=' | sed -E -e 's/.*href="([^"]+)".*/\1/')
+
+  TEMP_DIR=$(mktemp -d -t prebuilt-chromium-bootstrap)
+  trap "rm -rf \"${TEMP_DIR}\"" EXIT
+
+  announce "Downloading Chromium tarball..."
+  curl "${CHROMIUM_TARBALL_BASE_URL}${CHROMIUM_TARBALL_FILENAME}" | tar -xz -C "${TEMP_DIR}"
+  mv "${TEMP_DIR}/home/src_tarball/tarball/chromium" "${CHROMIUM_DIR}"
+
+  cd "${CHROMIUM_DIR}/src"
+  gclient sync --force --revision src@${CHROMIUM_REVISION}
+else
+  cd "${CHROMIUM_DIR}/src"
+  gclient sync --revision src@${CHROMIUM_REVISION}
+fi
+
+export GYP_GENERATORS=ninja
+./build/gyp_chromium

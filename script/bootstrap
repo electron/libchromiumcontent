@@ -1,0 +1,13 @@
+#!/bin/sh
+
+set -e
+
+cd "$(dirname $0)/.."
+SOURCE_ROOT=$(pwd -P)
+
+git submodule sync
+git submodule update --init --recursive
+
+"${SOURCE_ROOT}/ninja/bootstrap.py"
+
+"${SOURCE_ROOT}/script/update"
