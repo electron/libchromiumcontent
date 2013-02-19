@@ -4,10 +4,12 @@ set -e
 
 cd "$(dirname $0)/.."
 SOURCE_ROOT=$(pwd -P)
+VENDOR_DIR="${SOURCE_ROOT}/vendor"
+NINJA_DIR="${VENDOR_DIR}/ninja"
 
 git submodule sync
 git submodule update --init --recursive
 
-"${SOURCE_ROOT}/ninja/bootstrap.py"
+"${NINJA_DIR}/bootstrap.py"
 
 "${SOURCE_ROOT}/script/update"

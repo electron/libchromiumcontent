@@ -1,6 +1,6 @@
-[submodule "depot_tools"]
-	path = depot_tools
+[submodule "vendor/depot_tools"]
+	path = vendor/depot_tools
 	url = https://chromium.googlesource.com/chromium/tools/depot_tools.git
-[submodule "ninja"]
-	path = ninja
+[submodule "vendor/ninja"]
+	path = vendor/ninja
 	url = https://github.com/martine/ninja

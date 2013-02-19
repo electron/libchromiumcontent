@@ -15,7 +15,7 @@ CHROMIUM_DIR="${VENDOR_DIR}/chromium"
 
 source VERSION
 
-export PATH="${SOURCE_ROOT}/depot_tools:${PATH}"
+export PATH="${VENDOR_DIR}/depot_tools:${PATH}"
 
 if [ ! -d "${CHROMIUM_DIR}" ]; then
   mkdir -p "$(dirname "${CHROMIUM_DIR}")"
