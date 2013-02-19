@@ -38,4 +38,5 @@ else
 fi
 
 export GYP_GENERATORS=ninja
-./build/gyp_chromium
+cd "${SOURCE_ROOT}"
+"${CHROMIUM_DIR}/src/build/gyp_chromium" -I"chromium_content.gypi" --depth "${CHROMIUM_DIR}/src" chromium_content.gyp

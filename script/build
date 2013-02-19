@@ -8,5 +8,5 @@ NINJA_DIR="${SOURCE_ROOT}/ninja"
 VENDOR_DIR="${SOURCE_ROOT}/vendor"
 CHROMIUM_DIR="${VENDOR_DIR}/chromium"
 
-"${NINJA_DIR}/ninja" -C "${CHROMIUM_DIR}/src/out/Debug" content_shell
-"${NINJA_DIR}/ninja" -C "${CHROMIUM_DIR}/src/out/Release" content_shell
+"${NINJA_DIR}/ninja" -C "${CHROMIUM_DIR}/src/out/Debug" chromium_content
+#"${NINJA_DIR}/ninja" -C "${CHROMIUM_DIR}/src/out/Release" chromium_content
