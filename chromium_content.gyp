@@ -10,6 +10,7 @@
         'OTHER_LDFLAGS': [
           '-all_load',
         ],
+        'LD_DYLIB_INSTALL_NAME': '@rpath/libchromium_content.dylib',
       },
     },
   ],
