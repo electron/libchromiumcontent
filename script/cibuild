@@ -2,5 +2,5 @@
 
 set -ex
 
-script/update
+script/bootstrap
 script/build
