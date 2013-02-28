@@ -1,7 +1,7 @@
 {
   'targets': [
     {
-      'target_name': 'chromium_content',
+      'target_name': 'chromiumcontent',
       'type': 'shared_library',
       'dependencies': [
         'vendor/chromium/src/content/content.gyp:content',
@@ -11,7 +11,7 @@
         'OTHER_LDFLAGS': [
           '-all_load',
         ],
-        'LD_DYLIB_INSTALL_NAME': '@rpath/libchromium_content.dylib',
+        'LD_DYLIB_INSTALL_NAME': '@rpath/libchromiumcontent.dylib',
       },
     },
   ],

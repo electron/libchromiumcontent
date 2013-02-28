@@ -22,4 +22,4 @@ gclient sync --revision src@${CHROMIUM_REVISION}
 
 export GYP_GENERATORS=ninja
 cd "${SOURCE_ROOT}"
-"${CHROMIUM_DIR}/src/build/gyp_chromium" -I"chromium_content.gypi" --depth "${CHROMIUM_DIR}/src" chromium_content.gyp
+"${CHROMIUM_DIR}/src/build/gyp_chromium" -I"chromiumcontent.gypi" --depth "${CHROMIUM_DIR}/src" chromiumcontent.gyp
