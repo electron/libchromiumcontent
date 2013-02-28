@@ -5,6 +5,7 @@
       'type': 'shared_library',
       'dependencies': [
         'vendor/chromium/src/content/content.gyp:content',
+        'vendor/chromium/src/content/content.gyp:content_shell_pak',
       ], 
       'xcode_settings': {
         'OTHER_LDFLAGS': [
