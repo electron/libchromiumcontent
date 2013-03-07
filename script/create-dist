@@ -18,6 +18,16 @@ for configuration in Debug Release; do
   done
 done
 
+if [ out/Release/libchromiumcontent.dylib.dSYM/Contents/Resources/DWARF/libchromiumcontent.dylib -nt out/symbols/libchromiumcontent.dylib.dSYM/Contents/Resources/DWARF/libchromiumcontent.dylib ]; then
+  # Create the real dSYM file
+  echo "Creating dSYM..."
+  mkdir -p out/symbols
+  rm -rf out/symbols/libchromiumcontent.dylib.dSYM
+  dsymutil out/Release/libchromiumcontent.dylib.dSYM/Contents/Resources/DWARF/libchromiumcontent.dylib -o out/symbols/libchromiumcontent.dylib.dSYM
+fi
+
+cp -a out/symbols/libchromiumcontent.dylib.dSYM "${DIST}/Release"
+
 # Emperically determined to be required by client apps.
 INCLUDES=$(echo "
   base
@@ -47,10 +57,6 @@ find ${INCLUDES} -type f -name '*.h' | {
 # forcing client apps to set up their include path specially, we'll just copy
 # it to the top.
 cp third_party/skia/include/config/SkUserConfig.h "${DIST}/include/SkUserConfig.h"
-
-# Create the real dSYM file
-echo "Creating dSYM..."
-dsymutil out/Release/libchromiumcontent.dylib.dSYM/Contents/Resources/DWARF/libchromiumcontent.dylib -o "${DIST}/Release/libchromiumcontent.dylib.dSYM"
 
 cd "${DIST}"
 
