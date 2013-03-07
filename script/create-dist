@@ -18,7 +18,7 @@ cd vendor/chromium/src
 for configuration in Debug Release; do
   mkdir -p "${DIST}/${configuration}"
 
-  for file in content_shell.pak ffmpegsumo.so libchromiumcontent.dylib libchromiumcontent.dylib.dSYM; do
+  for file in content_shell.pak ffmpegsumo.so libchromiumcontent.dylib; do
     cp_newer "out/${configuration}/${file}" "${DIST}/${configuration}/${file}"
   done
 done
@@ -52,6 +52,9 @@ find ${INCLUDES} -type f -name '*.h' | {
 # forcing client apps to set up their include path specially, we'll just copy
 # it to the top.
 cp_newer third_party/skia/include/config/SkUserConfig.h "${DIST}/include/SkUserConfig.h"
+
+# Create the real dSYM file
+dsymutil out/Release/libchromiumcontent.dylib.dSYM/Contents/Resources/DWARF/libchromiumcontent.dylib -o "${DIST}/Release/libchromiumcontent.dylib.dSYM"
 
 cd "${DIST}"
 
