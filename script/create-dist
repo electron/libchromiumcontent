@@ -43,6 +43,7 @@ INCLUDES=$(echo "
   third_party/skia/include
   ui/base
   ui/gfx
+  webkit/user_agent
 " | tr -d '\n')
 
 find ${INCLUDES} -type f -name '*.h' | {
