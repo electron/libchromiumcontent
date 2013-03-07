@@ -54,6 +54,7 @@ find ${INCLUDES} -type f -name '*.h' | {
 cp_newer third_party/skia/include/config/SkUserConfig.h "${DIST}/include/SkUserConfig.h"
 
 # Create the real dSYM file
+echo "Creating dSYM..."
 dsymutil out/Release/libchromiumcontent.dylib.dSYM/Contents/Resources/DWARF/libchromiumcontent.dylib -o "${DIST}/Release/libchromiumcontent.dylib.dSYM"
 
 cd "${DIST}"
@@ -62,5 +63,6 @@ ZIP="${SOURCE_ROOT}/libchromiumcontent.zip"
 SYMBOLS_ZIP="${SOURCE_ROOT}/libchromiumcontent-symbols.zip"
 rm -f "${ZIP}" "${SYMBOLS_ZIP}"
 
+echo "Zipping distribution..."
 zip -r "${ZIP}" * --exclude '*.dSYM*'
 zip -r "${SYMBOLS_ZIP}" * --include '*.dSYM*'
