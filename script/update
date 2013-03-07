@@ -20,6 +20,9 @@ export PATH="${VENDOR_DIR}/depot_tools:${PATH}"
 cd "${CHROMIUM_DIR}"
 gclient sync --revision src@${CHROMIUM_REVISION}
 
+mkdir -p src/chromiumcontent
+cp "${SOURCE_ROOT}/chromiumcontent.gyp" src/chromiumcontent
+
 export GYP_GENERATORS=ninja
 cd "${SOURCE_ROOT}"
-"${CHROMIUM_DIR}/src/build/gyp_chromium" -I"chromiumcontent.gypi" --depth "${CHROMIUM_DIR}/src" chromiumcontent.gyp
+"${CHROMIUM_DIR}/src/build/gyp_chromium" -I"chromiumcontent.gypi" --depth "${CHROMIUM_DIR}/src" "${CHROMIUM_DIR}/src/chromiumcontent/chromiumcontent.gyp"

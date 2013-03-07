@@ -1,0 +1,63 @@
+#!/bin/sh
+
+set -e
+
+cd "$(dirname $0)/.."
+SOURCE_ROOT="$(pwd -P)"
+DIST="${SOURCE_ROOT}/dist"
+
+rm -rf "${DIST}"
+
+cd vendor/chromium/src
+
+for configuration in Debug Release; do
+  mkdir -p "${DIST}/${configuration}"
+
+  for file in content_shell.pak ffmpegsumo.so libchromiumcontent.dylib; do
+    cp "out/${configuration}/${file}" "${DIST}/${configuration}/${file}"
+  done
+done
+
+# Emperically determined to be required by client apps.
+INCLUDES=$(echo "
+  base
+  build
+  content/common/content_export.h
+  content/public
+  googleurl/src
+  ipc
+  net
+  testing/gtest/include
+  third_party/WebKit/Source/Platform/chromium/public
+  third_party/WebKit/Source/WebKit/chromium/public
+  third_party/skia/include
+  ui/base
+  ui/gfx
+" | tr -d '\n')
+
+find ${INCLUDES} -type f -name '*.h' | {
+  while read file; do
+    dest="${DIST}/include/${file}"
+    mkdir -p "$(dirname "${dest}")"
+    cp "${file}" "${dest}"
+  done
+}
+
+# Some headers assume this file is at the top of the include path. Rather than
+# forcing client apps to set up their include path specially, we'll just copy
+# it to the top.
+cp third_party/skia/include/config/SkUserConfig.h "${DIST}/include/SkUserConfig.h"
+
+# Create the real dSYM file
+echo "Creating dSYM..."
+dsymutil out/Release/libchromiumcontent.dylib.dSYM/Contents/Resources/DWARF/libchromiumcontent.dylib -o "${DIST}/Release/libchromiumcontent.dylib.dSYM"
+
+cd "${DIST}"
+
+ZIP="${SOURCE_ROOT}/libchromiumcontent.zip"
+SYMBOLS_ZIP="${SOURCE_ROOT}/libchromiumcontent-symbols.zip"
+rm -f "${ZIP}" "${SYMBOLS_ZIP}"
+
+echo "Zipping distribution..."
+zip -r "${ZIP}" * --exclude '*.dSYM*'
+zip -r "${SYMBOLS_ZIP}" * --include '*.dSYM*'
