@@ -2,12 +2,6 @@
 
 set -e
 
-announce() {
-  echo
-  echo $@
-  echo
-}
-
 (
   test -z "${LIBCHROMIUMCONTENT_S3_BUCKET}" ||
   test -z "${LIBCHROMIUMCONTENT_S3_ACCESS_KEY}" ||
@@ -17,30 +11,22 @@ announce() {
   exit 1
 }
 
+s3put --help | grep multipart > /dev/null 2>&1 || {
+  echo >&2 "Error: Please install boto and filechunkio"
+  exit 1
+}
+
 cd "$(dirname $0)/.."
 SOURCE_ROOT=$(pwd -P)
-VENDOR_DIR="${SOURCE_ROOT}/vendor"
-
-S3CMD_VERSION=1.0.1
-S3CMD_DIR="${VENDOR_DIR}/s3cmd-${S3CMD_VERSION}"
-S3CMD="${S3CMD_DIR}/s3cmd"
-S3CMD_URL="http://downloads.sourceforge.net/project/s3tools/s3cmd/1.0.1/s3cmd-${S3CMD_VERSION}.tar.gz"
-
-if [ ! -x "${S3CMD}" ]; then
-  announce "Downloading s3cmd..."
-  rm -rf "${S3CMD_DIR}"
-  curl --progress-bar --location ${S3CMD_URL} | tar -xz -C "$(dirname "${S3CMD_DIR}")"
-fi
-
-CONFIG_FILE=$(mktemp -t libchromiumcontent-upload.XXXXXX)
-trap "rm -f \"${CONFIG_FILE}\"" EXIT
-
-cat > "${CONFIG_FILE}" <<EOF
-[default]
-access_key = ${LIBCHROMIUMCONTENT_S3_ACCESS_KEY}
-secret_key = ${LIBCHROMIUMCONTENT_S3_SECRET_KEY}
-EOF
 
 COMMIT=$(git rev-parse HEAD)
 
-"${S3CMD}" --config "${CONFIG_FILE}" put --acl-public libchromiumcontent*.zip s3://${LIBCHROMIUMCONTENT_S3_BUCKET}/libchromiumcontent/${COMMIT}/
+s3put \
+  --bucket "${LIBCHROMIUMCONTENT_S3_BUCKET}" \
+  --access_key "${LIBCHROMIUMCONTENT_S3_ACCESS_KEY}" \
+  --secret_key "${LIBCHROMIUMCONTENT_S3_SECRET_KEY}" \
+  --prefix "${SOURCE_ROOT}" \
+  --key_prefix libchromiumcontent/${COMMIT} \
+  --grant public-read \
+  --multipart \
+  libchromiumcontent*.zip
