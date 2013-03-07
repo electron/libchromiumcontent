@@ -10,7 +10,9 @@ cp_newer() {
 }
 
 cd "$(dirname $0)/.."
-DIST="$(pwd)/dist"
+SOURCE_ROOT="$(pwd -P)"
+DIST="${SOURCE_ROOT}/dist"
+
 cd vendor/chromium/src
 
 for configuration in Debug Release; do
@@ -50,3 +52,12 @@ find ${INCLUDES} -type f -name '*.h' | {
 # forcing client apps to set up their include path specially, we'll just copy
 # it to the top.
 cp_newer third_party/skia/include/config/SkUserConfig.h "${DIST}/include/SkUserConfig.h"
+
+cd "${DIST}"
+
+ZIP="${SOURCE_ROOT}/libchromiumcontent.zip"
+SYMBOLS_ZIP="${SOURCE_ROOT}/libchromiumcontent-symbols.zip"
+rm -f "${ZIP}" "${SYMBOLS_ZIP}"
+
+zip -r "${ZIP}" * --exclude '*.dSYM*'
+zip -r "${SYMBOLS_ZIP}" * --include '*.dSYM*'
