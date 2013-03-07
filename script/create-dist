@@ -62,8 +62,12 @@ cd "${DIST}"
 
 ZIP="${SOURCE_ROOT}/libchromiumcontent.zip"
 SYMBOLS_ZIP="${SOURCE_ROOT}/libchromiumcontent-symbols.zip"
-rm -f "${ZIP}" "${SYMBOLS_ZIP}"
 
 echo "Zipping distribution..."
+rm -f "${ZIP}"
 zip -r "${ZIP}" * --exclude '*.dSYM*'
-zip -r "${SYMBOLS_ZIP}" * --include '*.dSYM*'
+
+if [ Release/libchromiumcontent.dylib.dSYM/Contents/Resources/DWARF/libchromiumcontent.dylib -nt "${SYMBOLS_ZIP}" ]; then
+  rm -f "${SYMBOLS_ZIP}"
+  zip -r "${SYMBOLS_ZIP}" * --include '*.dSYM*'
+fi
