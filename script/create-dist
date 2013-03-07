@@ -2,16 +2,11 @@
 
 set -e
 
-cp_newer() {
-  if [ "${1}" -nt "${2}" ]; then
-    echo cp "${1}" "${2}"
-    cp -a "${1}" "${2}"
-  fi
-}
-
 cd "$(dirname $0)/.."
 SOURCE_ROOT="$(pwd -P)"
 DIST="${SOURCE_ROOT}/dist"
+
+rm -rf "${DIST}"
 
 cd vendor/chromium/src
 
@@ -19,7 +14,7 @@ for configuration in Debug Release; do
   mkdir -p "${DIST}/${configuration}"
 
   for file in content_shell.pak ffmpegsumo.so libchromiumcontent.dylib; do
-    cp_newer "out/${configuration}/${file}" "${DIST}/${configuration}/${file}"
+    cp "out/${configuration}/${file}" "${DIST}/${configuration}/${file}"
   done
 done
 
@@ -44,14 +39,14 @@ find ${INCLUDES} -type f -name '*.h' | {
   while read file; do
     dest="${DIST}/include/${file}"
     mkdir -p "$(dirname "${dest}")"
-    cp_newer "${file}" "${dest}"
+    cp "${file}" "${dest}"
   done
 }
 
 # Some headers assume this file is at the top of the include path. Rather than
 # forcing client apps to set up their include path specially, we'll just copy
 # it to the top.
-cp_newer third_party/skia/include/config/SkUserConfig.h "${DIST}/include/SkUserConfig.h"
+cp third_party/skia/include/config/SkUserConfig.h "${DIST}/include/SkUserConfig.h"
 
 # Create the real dSYM file
 echo "Creating dSYM..."
