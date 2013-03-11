@@ -44,6 +44,7 @@ INCLUDES=$(echo "
   ui/base
   ui/gfx
   v8/include
+  webkit/glue
   webkit/user_agent
 " | tr -d '\n')
 
