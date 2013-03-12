@@ -1,0 +1,80 @@
+#!/bin/sh
+#/ Usage: download [-f] [-s] https://base.url.com/from/script/upload path/for/extraction
+#/ Download and extract libchromiumcontent.
+#/
+#/ Options:
+#/   -f            Overwrite path/for/extraction if it already exists.
+#/   -s            Download debugging symbols as well.
+#/   -h            Show this message.
+
+set -e
+
+usage() {
+  grep '^#/' <"$0"| cut -c4-
+}
+
+while getopts ":fsh" OPTION; do
+  case ${OPTION} in
+    f)
+      FORCE=1
+      ;;
+    s)
+      SYMBOLS=1
+      ;;
+    h)
+      usage
+      exit 0
+      ;;
+    ?)
+      echo "Unknown option -${OPTARG}"
+      usage
+      exit 1
+      ;;
+  esac
+done
+
+shift $((OPTIND-1))
+
+BASE_URL="${1}"
+DESTINATION="${2}"
+
+if [ -z "${BASE_URL}" ] || [ -z "${DESTINATION}" ]; then
+  usage
+  exit 1
+fi
+
+VERSION_FILE="${DESTINATION}/.version"
+COMMIT="$(git rev-parse HEAD)"
+
+TEMP_DIR=$(mktemp -d -t libchromiumcontent-download.XXXXXX)
+trap "rm -rf \"${TEMP_DIR}\"" EXIT
+
+# See if we've already downloaded this version.
+test "${COMMIT}" = "$(cat "${VERSION_FILE}" 2>/dev/null)" || {
+  if [ -e "${DESTINATION}" ] && [ "${FORCE}" != "1" ]; then
+    echo >&2 "Error: ${DESTINATION} already exists. Pass -f if you want to overwrite it."
+    exit 1
+  fi
+
+  echo "Downloading libchromiumcontent ${COMMIT}..."
+  curl --progress-bar "${BASE_URL}/${COMMIT}/libchromiumcontent.zip" > "${TEMP_DIR}/libchromiumcontent.zip"
+
+  echo "Extracting libchromiumcontent ${COMMIT}..."
+  mkdir -p "${TEMP_DIR}/extracted"
+  unzip -q "${TEMP_DIR}/libchromiumcontent.zip" -d "${TEMP_DIR}/extracted"
+
+  # Move it into place.
+  rm -rf "${DESTINATION}"
+  mkdir -p "${DESTINATION}"
+  mv "${TEMP_DIR}"/extracted/* "${DESTINATION}"
+  echo "${COMMIT}" > "${VERSION_FILE}"
+}
+
+if [ "${SYMBOLS}" != "1" ]; then
+  exit 0
+fi
+
+echo "Downloading symbols for libchromiumcontent ${COMMIT}..."
+curl --progress-bar "${BASE_URL}/${COMMIT}/libchromiumcontent-symbols.zip" > "${TEMP_DIR}/libchromiumcontent-symbols.zip"
+echo "Extracting symbols for libchromiumcontent ${COMMIT}..."
+unzip -q "${TEMP_DIR}/libchromiumcontent-symbols.zip" -d "${DESTINATION}"
