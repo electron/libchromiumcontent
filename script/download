@@ -44,7 +44,8 @@ if [ -z "${BASE_URL}" ] || [ -z "${DESTINATION}" ]; then
 fi
 
 VERSION_FILE="${DESTINATION}/.version"
-COMMIT="$(git rev-parse HEAD)"
+SOURCE_ROOT="$(cd "$(dirname "$0")/.." && pwd -P)"
+COMMIT="$(git --git-dir "${SOURCE_ROOT}/.git" rev-parse HEAD)"
 
 TEMP_DIR=$(mktemp -d -t libchromiumcontent-download.XXXXXX)
 trap "rm -rf \"${TEMP_DIR}\"" EXIT
