@@ -47,6 +47,7 @@ INCLUDES=$(echo "
   ui/surface
   v8/include
   webkit/glue
+  webkit/plugins
   webkit/user_agent
 " | tr -d '\n')
 
