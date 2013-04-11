@@ -6,12 +6,9 @@ cd "$(dirname $0)/.."
 SOURCE_ROOT=$(pwd -P)
 VENDOR_DIR="${SOURCE_ROOT}/vendor"
 DEPOT_TOOLS_DIR="${VENDOR_DIR}/depot_tools"
-NINJA_DIR="${VENDOR_DIR}/ninja"
 
 git submodule sync
 git submodule update --init --recursive
 test -d "${DEPOT_TOOLS_DIR}" || git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git "${DEPOT_TOOLS_DIR}"
-
-"${NINJA_DIR}/bootstrap.py"
 
 "${SOURCE_ROOT}/script/update"
