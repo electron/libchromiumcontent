@@ -5,8 +5,9 @@ set -e
 cd "$(dirname $0)/.."
 SOURCE_ROOT=$(pwd -P)
 VENDOR_DIR="${SOURCE_ROOT}/vendor"
-NINJA_DIR="${VENDOR_DIR}/ninja"
+DEPOT_TOOLS_DIR="${VENDOR_DIR}/depot_tools"
+NINJA="${DEPOT_TOOLS_DIR}/ninja"
 CHROMIUM_DIR="${VENDOR_DIR}/chromium"
 
-"${NINJA_DIR}/ninja" -C "${CHROMIUM_DIR}/src/out/Debug" chromiumcontent
-"${NINJA_DIR}/ninja" -C "${CHROMIUM_DIR}/src/out/Release" chromiumcontent
+"${NINJA}" -C "${CHROMIUM_DIR}/src/out/Debug" chromiumcontent
+"${NINJA}" -C "${CHROMIUM_DIR}/src/out/Release" chromiumcontent
