@@ -32,7 +32,6 @@ cp -a out/symbols/libchromiumcontent.dylib.dSYM "${DIST}/Release"
 INCLUDES=$(echo "
   base
   build
-  chrome/browser/net/sqlite_persistent_cookie_store.h
   content/common/content_export.h
   content/public
   googleurl/src
