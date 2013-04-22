@@ -5,8 +5,8 @@
 # specify custom dependencies (via the "custom_deps" property) that
 # override or augment the dependencies specified by the DEPS file.
 solutions = [
-  { "name"        : "src",
-    "url"         : "http://src.chromium.org/svn/trunk/src",
+  { "name"        : "27.0.1453.110",
+    "url"         : "http://src.chromium.org/chrome/releases/27.0.1453.110",
     "custom_deps" : {
       # To use the trunk of a component instead of what's in DEPS:
       #"component": "https://svnserver/component/trunk/",

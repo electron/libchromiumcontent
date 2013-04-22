@@ -42,8 +42,7 @@ def gclient_sync():
     ensure_nacl_disabled()
     gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.py')
     os.chdir(CHROMIUM_DIR)
-    subprocess.check_call([sys.executable, gclient, 'sync', '--revision',
-                           'src@{0}'.format(chromium_revision())])
+    subprocess.check_call([sys.executable, gclient, 'sync'])
 
 
 def ensure_nacl_disabled():
@@ -52,13 +51,6 @@ def ensure_nacl_disabled():
     if 'disable_nacl=1' in os.environ.get('GYP_DEFINES', ''):
         return
     os.environ['GYP_DEFINES'] = ' '.join(['disable_nacl=1', os.environ.get('GYP_DEFINES', '')])
-
-
-def chromium_revision():
-    with open(os.path.join(SOURCE_ROOT, 'VERSION'), 'r') as f:
-        [key, value] = f.readline().strip().split('=')
-        assert key == 'CHROMIUM_REVISION'
-        return value
 
 
 def install_win_toolchain():
