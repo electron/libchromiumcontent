@@ -13,7 +13,7 @@ cd vendor/chromium/src
 for configuration in Debug Release; do
   mkdir -p "${DIST}/${configuration}"
 
-  for file in content_shell.pak ffmpegsumo.so libchromiumcontent.dylib libgtest.a; do
+  for file in content_shell.pak ffmpegsumo.so libchromiumcontent.dylib libtest_support_chromiumcontent.a; do
     cp "out/${configuration}/${file}" "${DIST}/${configuration}/${file}"
   done
 done

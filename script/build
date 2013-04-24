@@ -9,7 +9,7 @@ DEPOT_TOOLS_DIR="${VENDOR_DIR}/depot_tools"
 NINJA="${DEPOT_TOOLS_DIR}/ninja"
 CHROMIUM_DIR="${VENDOR_DIR}/chromium"
 
-TARGETS="chromiumcontent gtest"
+TARGETS="chromiumcontent test_support_chromiumcontent"
 
 "${NINJA}" -C "${CHROMIUM_DIR}/src/out/Debug" ${TARGETS}
 "${NINJA}" -C "${CHROMIUM_DIR}/src/out/Release" ${TARGETS}
