@@ -19,7 +19,7 @@ def main():
         subprocess.check_call(['git', 'clone',
                                DEPOT_TOOLS_URL, DEPOT_TOOLS_DIR])
     update = os.path.join(SOURCE_ROOT, 'script', 'update')
-    subprocess.check_call(['sh', update])
+    subprocess.check_call(['python', update])
 
 
 if __name__ == '__main__':
