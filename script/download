@@ -1,81 +1,150 @@
-#!/bin/sh
-#/ Usage: download [-f] [-s] https://base.url.com/from/script/upload path/for/extraction
-#/ Download and extract libchromiumcontent.
-#/
-#/ Options:
-#/   -f            Overwrite path/for/extraction if it already exists.
-#/   -s            Download debugging symbols as well.
-#/   -h            Show this message.
+#!/usr/bin/env python
 
-set -e
+import argparse
+import contextlib
+import errno
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+import urllib2
+import zipfile
 
-usage() {
-  grep '^#/' <"$0"| cut -c4-
-}
 
-while getopts ":fsh" OPTION; do
-  case ${OPTION} in
-    f)
-      FORCE=1
-      ;;
-    s)
-      SYMBOLS=1
-      ;;
-    h)
-      usage
-      exit 0
-      ;;
-    ?)
-      echo "Unknown option -${OPTARG}"
-      usage
-      exit 1
-      ;;
-  esac
-done
+SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
-shift $((OPTIND-1))
 
-BASE_URL="${1}"
-DESTINATION="${2}"
+class ProgramError(Exception):
+    pass
 
-if [ -z "${BASE_URL}" ] || [ -z "${DESTINATION}" ]; then
-  usage
-  exit 1
-fi
 
-VERSION_FILE="${DESTINATION}/.version"
-SOURCE_ROOT="$(cd "$(dirname "$0")/.." && pwd -P)"
-COMMIT="$(git --git-dir "${SOURCE_ROOT}/.git" rev-parse HEAD)"
+def main():
+    try:
+        args = parse_args()
+        commit = head_commit()
+        download_if_needed(args.path, args.url, commit, force=args.force)
+        if not args.symbols:
+            return
+        download_symbols(args.path, args.url, commit)
+    except ProgramError as e:
+        return e.message
 
-TEMP_DIR=$(mktemp -d -t libchromiumcontent-download.XXXXXX)
-trap "rm -rf \"${TEMP_DIR}\"" EXIT
 
-# See if we've already downloaded this version.
-test "${COMMIT}" = "$(cat "${VERSION_FILE}" 2>/dev/null)" || {
-  if [ -e "${DESTINATION}" ] && [ "${FORCE}" != "1" ]; then
-    echo >&2 "Error: ${DESTINATION} already exists. Pass -f if you want to overwrite it."
-    exit 1
-  fi
+def parse_args():
+    parser = argparse.ArgumentParser(description='Download and extract '
+                                     'libchromiumcontent')
+    parser.add_argument('-f', '--force', action='store_true',
+                        help='Overwrite destination if it already exists.')
+    parser.add_argument('-s', '--symbols', action='store_true',
+                        help='Download debugging symbols as well.')
+    parser.add_argument('url', help='The base URL from which to download '
+                        '(i.e., the URL you passed to script/upload)')
+    parser.add_argument('path', help='The path to extract to')
+    return parser.parse_args()
 
-  echo "Downloading libchromiumcontent ${COMMIT}..."
-  curl --progress-bar "${BASE_URL}/${COMMIT}/libchromiumcontent.zip" > "${TEMP_DIR}/libchromiumcontent.zip"
 
-  echo "Extracting libchromiumcontent ${COMMIT}..."
-  mkdir -p "${TEMP_DIR}/extracted"
-  unzip -q "${TEMP_DIR}/libchromiumcontent.zip" -d "${TEMP_DIR}/extracted"
+def head_commit():
+    args = [
+        'git',
+        '--git-dir',
+        os.path.join(SOURCE_ROOT, '.git'),
+        'rev-parse',
+        'HEAD',
+    ]
+    return subprocess.check_output(args).strip()
 
-  # Move it into place.
-  rm -rf "${DESTINATION}"
-  mkdir -p "${DESTINATION}"
-  mv "${TEMP_DIR}"/extracted/* "${DESTINATION}"
-  echo "${COMMIT}" > "${VERSION_FILE}"
-}
 
-if [ "${SYMBOLS}" != "1" ]; then
-  exit 0
-fi
+def download_if_needed(destination, base_url, commit, force):
+    version_file = os.path.join(destination, '.version')
+    existing_version = ''
+    try:
+        with open(version_file, 'r') as f:
+            existing_version = f.readline().strip()
+    except IOError as e:
+        if e.errno != errno.ENOENT:
+            raise
+    if existing_version == commit:
+        return
 
-echo "Downloading symbols for libchromiumcontent ${COMMIT}..."
-curl --progress-bar "${BASE_URL}/${COMMIT}/libchromiumcontent-symbols.zip" > "${TEMP_DIR}/libchromiumcontent-symbols.zip"
-echo "Extracting symbols for libchromiumcontent ${COMMIT}..."
-unzip -q "${TEMP_DIR}/libchromiumcontent-symbols.zip" -d "${DESTINATION}"
+    if force:
+        rm_rf(destination)
+    elif os.path.exists(destination):
+        raise ProgramError('Error: {0} already exists. Pass --force if you '
+                           'want to overwrite it.'.format(destination))
+    sys.stderr.write('Downloading libchromiumcontent {0}...\n'.format(commit))
+    sys.stderr.flush()
+    download_and_extract(destination, '{0}/{1}/libchromiumcontent.zip'.format(base_url, commit))
+    with open(version_file, 'w') as f:
+        f.write('{0}\n'.format(commit))
+
+
+def download_symbols(destination, base_url, commit):
+    sys.stderr.write('Downloading symbols for libchromiumcontent {0}...\n'.format(commit))
+    sys.stderr.flush()
+    download_and_extract(destination, '{0}/{1}/libchromiumcontent-symbols.zip'.format(base_url, commit))
+
+
+def download_and_extract(destination, url):
+    print url
+    with tempfile.TemporaryFile() as t:
+        with contextlib.closing(urllib2.urlopen(url)) as u:
+            while True:
+                chunk = u.read(1024*1024)
+                if not len(chunk):
+                    break
+                sys.stderr.write('.')
+                sys.stderr.flush()
+                t.write(chunk)
+        sys.stderr.write('\nExtracting...\n')
+        sys.stderr.flush()
+        with zipfile.ZipFile(t) as z:
+            z.extractall(destination)
+
+
+def rm_rf(path):
+    try:
+        shutil.rmtree(path)
+    except OSError as e:
+        if e.errno != errno.ENOENT:
+            raise
+
+
+if __name__ == '__main__':
+    sys.exit(main())
+
+
+#VERSION_FILE="${DESTINATION}/.version"
+#
+#TEMP_DIR=$(mktemp -d -t libchromiumcontent-download.XXXXXX)
+#trap "rm -rf \"${TEMP_DIR}\"" EXIT
+#
+## See if we've already downloaded this version.
+#test "${COMMIT}" = "$(cat "${VERSION_FILE}" 2>/dev/null)" || {
+#  if [ -e "${DESTINATION}" ] && [ "${FORCE}" != "1" ]; then
+#    echo >&2 "Error: ${DESTINATION} already exists. Pass -f if you want to overwrite it."
+#    exit 1
+#  fi
+#
+#  echo "Downloading libchromiumcontent ${COMMIT}..."
+#  curl --progress-bar "${BASE_URL}/${COMMIT}/libchromiumcontent.zip" > "${TEMP_DIR}/libchromiumcontent.zip"
+#
+#  echo "Extracting libchromiumcontent ${COMMIT}..."
+#  mkdir -p "${TEMP_DIR}/extracted"
+#  unzip -q "${TEMP_DIR}/libchromiumcontent.zip" -d "${TEMP_DIR}/extracted"
+#
+#  # Move it into place.
+#  rm -rf "${DESTINATION}"
+#  mkdir -p "${DESTINATION}"
+#  mv "${TEMP_DIR}"/extracted/* "${DESTINATION}"
+#  echo "${COMMIT}" > "${VERSION_FILE}"
+#}
+#
+#if [ "${SYMBOLS}" != "1" ]; then
+#  exit 0
+#fi
+#
+#echo "Downloading symbols for libchromiumcontent ${COMMIT}..."
+#curl --progress-bar "${BASE_URL}/${COMMIT}/libchromiumcontent-symbols.zip" > "${TEMP_DIR}/libchromiumcontent-symbols.zip"
+#echo "Extracting symbols for libchromiumcontent ${COMMIT}..."
+#unzip -q "${TEMP_DIR}/libchromiumcontent-symbols.zip" -d "${DESTINATION}"
