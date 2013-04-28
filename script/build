@@ -1,15 +1,23 @@
-#!/bin/sh
+#!/usr/bin/env python
 
-set -e
+import os
+import subprocess
 
-cd "$(dirname $0)/.."
-SOURCE_ROOT=$(pwd -P)
-VENDOR_DIR="${SOURCE_ROOT}/vendor"
-DEPOT_TOOLS_DIR="${VENDOR_DIR}/depot_tools"
-NINJA="${DEPOT_TOOLS_DIR}/ninja"
-CHROMIUM_DIR="${VENDOR_DIR}/chromium"
 
-TARGETS="chromiumcontent test_support_chromiumcontent"
+SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
+NINJA = os.path.join(VENDOR_DIR, 'depot_tools', 'ninja')
+OUT_DIR = os.path.join(VENDOR_DIR, 'chromium', 'src', 'out')
+TARGETS = ['chromiumcontent', 'test_support_chromiumcontent']
+CONFIGURATIONS = ['Debug', 'Release']
 
-"${NINJA}" -C "${CHROMIUM_DIR}/src/out/Debug" ${TARGETS}
-"${NINJA}" -C "${CHROMIUM_DIR}/src/out/Release" ${TARGETS}
+
+def main():
+    for config in CONFIGURATIONS:
+        config_dir = os.path.join(OUT_DIR, config)
+        subprocess.check_call([NINJA, '-C', config_dir] + TARGETS)
+
+
+if __name__ == '__main__':
+    import sys
+    sys.exit(main())

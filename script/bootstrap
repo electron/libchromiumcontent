@@ -1,14 +1,27 @@
-#!/bin/sh
+#!/usr/bin/env python
 
-set -e
+import os
+import subprocess
 
-cd "$(dirname $0)/.."
-SOURCE_ROOT=$(pwd -P)
-VENDOR_DIR="${SOURCE_ROOT}/vendor"
-DEPOT_TOOLS_DIR="${VENDOR_DIR}/depot_tools"
 
-git submodule sync
-git submodule update --init --recursive
-test -d "${DEPOT_TOOLS_DIR}" || git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git "${DEPOT_TOOLS_DIR}"
+SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+DEPOT_TOOLS_DIR = os.path.join(SOURCE_ROOT, 'vendor', 'depot_tools')
+DEPOT_TOOLS_URL = \
+    'https://chromium.googlesource.com/chromium/tools/depot_tools.git'
 
-"${SOURCE_ROOT}/script/update"
+
+def main():
+    os.chdir(SOURCE_ROOT)
+    subprocess.check_call(['git', 'submodule', 'sync'])
+    subprocess.check_call(['git', 'submodule', 'update',
+                           '--init', '--recursive'])
+    if not os.path.isdir(DEPOT_TOOLS_DIR):
+        subprocess.check_call(['git', 'clone',
+                               DEPOT_TOOLS_URL, DEPOT_TOOLS_DIR])
+    update = os.path.join(SOURCE_ROOT, 'script', 'update')
+    subprocess.check_call(['python', update])
+
+
+if __name__ == '__main__':
+    import sys
+    sys.exit(main())

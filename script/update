@@ -1,28 +1,59 @@
-#!/bin/sh
+#!/usr/bin/env python
 
-set -e
+import errno
+import os
+import shutil
+import subprocess
 
-announce() {
-  echo
-  echo $@
-  echo
-}
 
-cd "$(dirname $0)/.."
-SOURCE_ROOT=$(pwd -P)
-VENDOR_DIR="${SOURCE_ROOT}/vendor"
-CHROMIUM_DIR="${VENDOR_DIR}/chromium"
+SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
+DEPOT_TOOLS_DIR = os.path.join(VENDOR_DIR, 'depot_tools')
+CHROMIUM_DIR = os.path.join(VENDOR_DIR, 'chromium')
+SRC_DIR = os.path.join(CHROMIUM_DIR, 'src')
+CHROMIUMCONTENT_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
 
-source VERSION
 
-export PATH="${VENDOR_DIR}/depot_tools:${PATH}"
+def main():
+    gclient_sync()
+    copy_gyp_files()
+    run_gyp()
 
-cd "${CHROMIUM_DIR}"
-gclient sync --revision src@${CHROMIUM_REVISION}
 
-mkdir -p src/chromiumcontent
-cp "${SOURCE_ROOT}/chromiumcontent.gyp" src/chromiumcontent
+def gclient_sync():
+    gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.py')
+    os.chdir(CHROMIUM_DIR)
+    subprocess.check_call(['python', gclient, 'sync', '--revision',
+                           'src@{0}'.format(chromium_revision())])
 
-export GYP_GENERATORS=ninja
-cd "${SOURCE_ROOT}"
-"${CHROMIUM_DIR}/src/build/gyp_chromium" -I"chromiumcontent.gypi" --depth "${CHROMIUM_DIR}/src" "${CHROMIUM_DIR}/src/chromiumcontent/chromiumcontent.gyp"
+
+def chromium_revision():
+    with open(os.path.join(SOURCE_ROOT, 'VERSION'), 'r') as f:
+        [key, value] = f.readline().strip().split('=')
+        assert key == 'CHROMIUM_REVISION'
+        return value
+
+
+def copy_gyp_files():
+    try:
+        os.makedirs(CHROMIUMCONTENT_DIR)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
+    shutil.copyfile(os.path.join(SOURCE_ROOT, 'chromiumcontent.gyp'),
+                    os.path.join(CHROMIUMCONTENT_DIR, 'chromiumcontent.gyp'))
+
+
+def run_gyp():
+    os.environ['GYP_GENERATORS'] = 'ninja'
+    os.chdir(SOURCE_ROOT)
+    gyp = os.path.join(SRC_DIR, 'build', 'gyp_chromium')
+    subprocess.check_call(['python', gyp, '-Ichromiumcontent.gypi',
+                           '--depth', SRC_DIR,
+                           os.path.join(CHROMIUMCONTENT_DIR,
+                                        'chromiumcontent.gyp')])
+
+
+if __name__ == '__main__':
+    import sys
+    sys.exit(main())

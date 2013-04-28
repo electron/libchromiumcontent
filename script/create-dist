@@ -1,79 +1,173 @@
-#!/bin/sh
+#!/usr/bin/env python
 
-set -e
+import errno
+import os
+import shutil
 
-cd "$(dirname $0)/.."
-SOURCE_ROOT="$(pwd -P)"
-DIST="${SOURCE_ROOT}/dist"
 
-rm -rf "${DIST}"
+SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+DIST_DIR = os.path.join(SOURCE_ROOT, 'dist')
+SRC_DIR = os.path.join(SOURCE_ROOT, 'vendor', 'chromium', 'src')
+OUT_DIR = os.path.join(SRC_DIR, 'out')
+SYMBOLS_INTERMEDIATE_DIR = os.path.join(OUT_DIR, 'symbols')
+DSYM_DYLIB_PATH = os.path.join('libchromiumcontent.dylib.dSYM', 'Contents',
+                               'Resources', 'DWARF',
+                               'libchromiumcontent.dylib')
 
-cd vendor/chromium/src
+# Almost everything goes into the main zip file...
+MAIN_DIR = os.path.join(DIST_DIR, 'main')
+INCLUDE_DIR = os.path.join(MAIN_DIR, 'include')
+# ...except symbols, which are so huge we want to be able to download them
+# separately.
+SYMBOLS_DIR = os.path.join(DIST_DIR, 'symbols')
 
-for configuration in Debug Release; do
-  mkdir -p "${DIST}/${configuration}"
-
-  for file in content_shell.pak ffmpegsumo.so libchromiumcontent.dylib libtest_support_chromiumcontent.a; do
-    cp "out/${configuration}/${file}" "${DIST}/${configuration}/${file}"
-  done
-done
-
-if [ out/Release/libchromiumcontent.dylib.dSYM/Contents/Resources/DWARF/libchromiumcontent.dylib -nt out/symbols/libchromiumcontent.dylib.dSYM/Contents/Resources/DWARF/libchromiumcontent.dylib ]; then
-  # Create the real dSYM file
-  echo "Creating dSYM..."
-  mkdir -p out/symbols
-  rm -rf out/symbols/libchromiumcontent.dylib.dSYM
-  dsymutil out/Release/libchromiumcontent.dylib.dSYM/Contents/Resources/DWARF/libchromiumcontent.dylib -o out/symbols/libchromiumcontent.dylib.dSYM
-fi
-
-cp -a out/symbols/libchromiumcontent.dylib.dSYM "${DIST}/Release"
+BINARIES = [
+    'content_shell.pak',
+    'ffmpegsumo.so',
+    'libchromiumcontent.dylib',
+    'libtest_support_chromiumcontent.a',
+]
 
 # Emperically determined to be required by client apps.
-INCLUDES=$(echo "
-  base
-  build
-  content/common/content_export.h
-  content/public
-  googleurl/src
-  ipc
-  net
-  skia/ext
-  testing/gtest/include
-  third_party/WebKit/Source/Platform/chromium/public
-  third_party/WebKit/Source/WebKit/chromium/public
-  third_party/skia/include
-  ui/base
-  ui/gfx
-  ui/surface
-  v8/include
-  webkit/glue
-  webkit/plugins
-  webkit/user_agent
-" | tr -d '\n')
+INCLUDE_DIRS = [
+    'base',
+    'build',
+    'content/public',
+    'googleurl/src',
+    'ipc',
+    'net',
+    'skia/ext',
+    'testing/gtest/include',
+    'third_party/WebKit/Source/Platform/chromium/public',
+    'third_party/WebKit/Source/WebKit/chromium/public',
+    'third_party/skia/include',
+    'ui/base',
+    'ui/gfx',
+    'ui/surface',
+    'v8/include',
+    'webkit/glue',
+    'webkit/plugins',
+    'webkit/user_agent',
+]
+OTHER_HEADERS = [
+    'content/common/content_export.h',
+]
 
-find ${INCLUDES} -type f -name '*.h' | {
-  while read file; do
-    dest="${DIST}/include/${file}"
-    mkdir -p "$(dirname "${dest}")"
-    cp "${file}" "${dest}"
-  done
-}
 
-# Some headers assume this file is at the top of the include path. Rather than
-# forcing client apps to set up their include path specially, we'll just copy
-# it to the top.
-cp third_party/skia/include/config/SkUserConfig.h "${DIST}/include/SkUserConfig.h"
+def main():
+    rm_rf(DIST_DIR)
+    os.makedirs(DIST_DIR)
 
-cd "${DIST}"
+    copy_binaries()
+    create_dsym()
+    copy_dsym()
+    copy_headers()
+    create_zip()
 
-ZIP="${SOURCE_ROOT}/libchromiumcontent.zip"
-SYMBOLS_ZIP="${SOURCE_ROOT}/libchromiumcontent-symbols.zip"
 
-echo "Zipping distribution..."
-rm -f "${ZIP}"
-zip -r "${ZIP}" * --exclude '*.dSYM*'
+def copy_binaries():
+    CONFIGURATIONS = ['Debug', 'Release']
 
-if [ Release/libchromiumcontent.dylib.dSYM/Contents/Resources/DWARF/libchromiumcontent.dylib -nt "${SYMBOLS_ZIP}" ]; then
-  rm -f "${SYMBOLS_ZIP}"
-  zip -r "${SYMBOLS_ZIP}" * --include '*.dSYM*'
-fi
+    for config in CONFIGURATIONS:
+        config_dir = os.path.join(MAIN_DIR, config)
+        os.makedirs(config_dir)
+
+        for binary in BINARIES:
+            shutil.copy2(os.path.join(OUT_DIR, config, binary), config_dir)
+
+
+def create_dsym():
+    source = os.path.join(OUT_DIR, 'Release', DSYM_DYLIB_PATH)
+    destination = os.path.join(SYMBOLS_INTERMEDIATE_DIR, DSYM_DYLIB_PATH)
+
+    if is_newer(destination, source):
+        return
+
+    print "Creating dSYM..."
+    mkdir_p(SYMBOLS_INTERMEDIATE_DIR)
+    destination_dsym = os.path.join(SYMBOLS_INTERMEDIATE_DIR,
+                                    'libchromiumcontent.dylib.dSYM')
+    rm_rf(destination_dsyms)
+    subprocess.check_call(['dsymutil', source, '-o', destination_dsym])
+
+
+def copy_dsym():
+    dsym = os.path.join(SYMBOLS_INTERMEDIATE_DIR,
+                        'libchromiumcontent.dylib.dSYM')
+    destination = os.path.join(SYMBOLS_DIR, 'Release', os.path.basename(dsym))
+    rm_rf(destination)
+    mkdir_p(os.path.basename(destination))
+    shutil.copytree(dsym, destination)
+
+
+def copy_headers():
+    for include_path in INCLUDE_DIRS:
+        abs_path = os.path.join(SRC_DIR, include_path)
+        for dirpath, dirnames, filenames in os.walk(abs_path):
+            for filename in filenames:
+                if os.path.splitext(filename)[1] != '.h':
+                    continue
+                copy_header(os.path.join(dirpath, filename))
+
+    for header in OTHER_HEADERS:
+        copy_header(os.path.join(SRC_DIR, header))
+
+    # Some headers assume this file is at the top of the include path. Rather
+    # than forcing client apps to set up their include path specially, we'll
+    # just copy it to the top.
+    sk_user_config = os.path.join(SRC_DIR, 'third_party', 'skia', 'include',
+                                  'config', 'SkUserConfig.h')
+    shutil.copy2(sk_user_config, INCLUDE_DIR)
+
+
+def copy_header(source):
+    relative = os.path.relpath(source, start=SRC_DIR)
+    destination = os.path.join(INCLUDE_DIR, relative)
+    mkdir_p(os.path.dirname(destination))
+    shutil.copy2(source, destination)
+
+
+def create_zip():
+    print "Zipping distribution..."
+    zip_file = os.path.join(SOURCE_ROOT, 'libchromiumcontent.zip')
+    os.unlink(zip_file)
+    shutil.make_archive(os.path.splitext(zip_file)[0], 'zip',
+                        root_dir=MAIN_DIR)
+
+    # Since it takes so long to zip symbols, first see if symbols have changed
+    # since last time.
+    symbols_zip_file = os.path.join(SOURCE_ROOT,
+                                    'libchromiumcontent-symbols.zip')
+    dsym_dylib = os.path.join(SYMBOLS_DIR, 'Release', DSYM_DYLIB_PATH)
+    if is_newer(symbols_zip_file, dsym_dylib):
+        return
+
+    os.unlink(symbols_zip_file)
+    shutil.make_archive(os.path.splitext(symbols_zip_file)[0], 'zip',
+                        root_dir=SYMBOLS_DIR)
+
+
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
+
+
+def rm_rf(path):
+    try:
+        shutil.rmtree(path)
+    except OSError as e:
+        if e.errno != errno.ENOENT:
+            raise
+
+
+def is_newer(destination, source):
+    return os.path.exists(destination) and \
+        os.path.getmtime(destination) > os.path.getmtime(source)
+
+
+if __name__ == '__main__':
+    import sys
+    sys.exit(main())
