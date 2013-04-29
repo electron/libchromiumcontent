@@ -87,7 +87,7 @@ def create_dsym():
     mkdir_p(SYMBOLS_INTERMEDIATE_DIR)
     destination_dsym = os.path.join(SYMBOLS_INTERMEDIATE_DIR,
                                     'libchromiumcontent.dylib.dSYM')
-    rm_rf(destination_dsyms)
+    rm_rf(destination_dsym)
     subprocess.check_call(['dsymutil', source, '-o', destination_dsym])
 
 
