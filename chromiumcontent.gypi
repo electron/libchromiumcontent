@@ -53,6 +53,11 @@
     'defines!': [
       'U_STATIC_IMPLEMENTATION',
     ],
+    'msvs_disabled_warnings': [
+        # class 'std::xx' needs to have dll-interface. Chrome turns this off
+        # for component builds, and we need to too.
+        4251,
+    ],
     'target_conditions': [
       # If WebKit were like all other modules, we'd define both WEBKIT_DLL and
       # WEBKIT_IMPLEMENTATION everywhere so that all symbols would be marked
