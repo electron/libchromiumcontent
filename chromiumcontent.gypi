@@ -71,5 +71,17 @@
         ],
       }],
     ],
+    'target_conditions': [
+      ['_target_name=="base"', {
+        # This file doesn't work inside a shared library, and won't compile at
+        # all when COMPONENT_BUILD is defined.
+        # We can't use sources! here because that generates path names relative
+        # to this .gypi file, which won't match the relative path names in
+        # base.gyp.
+        'sources/': [
+          ['exclude', 'debug/debug_on_start_win\.cc$'],
+        ],
+      }],
+    ],
   },
 }
