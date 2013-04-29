@@ -14,6 +14,13 @@
         ],
         'LD_DYLIB_INSTALL_NAME': '@rpath/libchromiumcontent.dylib',
       },
+      'conditions': [
+        ['OS=="win"', {
+          'sources': [
+            'dll_main.cc',
+          ],
+        }],
+      ],
     },
     {
       'target_name': 'test_support_chromiumcontent',
