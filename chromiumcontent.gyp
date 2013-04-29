@@ -1,6 +1,20 @@
 {
   'targets': [
     {
+      'target_name': 'chromiumcontent_all',
+      'type': 'none',
+      'dependencies': [
+        'chromiumcontent',
+      ],
+      'conditions': [
+        ['OS!="win"', {
+          'dependencies': [
+            'test_support_chromiumcontent',
+          ],
+        }],
+      ],
+    },
+    {
       'target_name': 'chromiumcontent',
       'type': 'shared_library',
       'dependencies': [
