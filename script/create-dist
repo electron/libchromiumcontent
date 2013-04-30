@@ -43,6 +43,7 @@ INCLUDE_DIRS = [
     'third_party/skia/include',
     'ui/base',
     'ui/gfx',
+    'ui/shell_dialogs',
     'ui/surface',
     'v8/include',
     'webkit/glue',
