@@ -3,6 +3,7 @@
 import errno
 import os
 import shutil
+import subprocess
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -43,6 +44,7 @@ INCLUDE_DIRS = [
     'third_party/skia/include',
     'ui/base',
     'ui/gfx',
+    'ui/shell_dialogs',
     'ui/surface',
     'v8/include',
     'webkit/glue',
