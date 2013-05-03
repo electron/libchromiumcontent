@@ -1,0 +1,68 @@
+#!/usr/bin/env python
+
+import os
+import subprocess
+
+
+WIN_TOOL = os.path.abspath(os.path.join(os.path.dirname(__file__), 'gyp-win-tool-original'))
+
+
+def main(args):
+	# When invoked directly from ninja, our command line will contain many
+	# subcommands joined by &&. If that has happened, lets reinvoke ourselves
+	# via those subcommands so we can handle each one individually.
+	if '&&' in args:
+		return subprocess.call(['python'] + args, shell=True)
+
+	args = args[1:]
+
+	with open('commands.txt', 'a') as f:
+		f.write('{0}{1}'.format(args, os.linesep))
+
+	if '@chromiumcontent.dll.rsp' in args:
+		add_definition_file(args)
+	return subprocess.call(['python', WIN_TOOL] + args)
+
+
+def add_definition_file(args):
+	rsp = [arg for arg in args if arg.endswith('.rsp')][0][1:]
+	libs = libs_from_rsp(rsp)
+	exports = exports_from_libs(libs)
+	lines = [
+		'LIBRARY chromiumcontent',
+		'EXPORTS',
+	] + exports
+	with open('chromiumcontent.def', 'w') as f:
+		for line in lines:
+			f.write('{0}{1}'.format(line, os.linesep))
+	with open(rsp, 'a') as r:
+		r.write('{0}/DEF:chromiumcontent.def{0}'.format(os.linesep))
+
+
+def libs_from_rsp(rsp):
+	libs = []
+	with open(rsp, 'r') as r:
+		for line in r:
+			words = line.split()
+			libs.extend(w for w in words if w.startswith('obj\\') and w.endswith('.lib'))
+	return libs
+
+
+def exports_from_libs(libs):
+	exports = {}
+	for lib in libs:
+		if lib.endswith('translator_glsl.lib'):
+			continue
+		process = subprocess.Popen(['dumpbin.exe', '/directives', lib], stdout=subprocess.PIPE)
+		for line in process.stdout:
+			stripped = line.strip()
+			if stripped.startswith('/EXPORT:'):
+				export = stripped[len('/EXPORT:'):].replace(',', ' ')
+				exports[export] = True
+		process.wait()
+	return exports.keys()
+
+
+if __name__ == '__main__':
+    import sys
+    sys.exit(main(sys.argv))
