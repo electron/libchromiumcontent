@@ -1,4 +1,7 @@
 {
+  'variables': {
+    'win_use_allocator_shim': 0,
+  },
   'target_defaults': {
     'defines': [
       'BASE_I18N_IMPLEMENTATION',
