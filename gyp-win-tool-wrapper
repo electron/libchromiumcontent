@@ -51,7 +51,7 @@ def libs_from_rsp(rsp):
 def exports_from_libs(libs):
 	exports = {}
 	for lib in libs:
-		if lib.endswith('translator_glsl.lib'):
+		if lib.endswith('translator_glsl.lib') or lib.endswith('gles2_c_lib.lib') or lib.endswith('icuuc.lib') or lib.endswith('icui18n.lib'):
 			continue
 		process = subprocess.Popen(['dumpbin.exe', '/directives', lib], stdout=subprocess.PIPE)
 		for line in process.stdout:
