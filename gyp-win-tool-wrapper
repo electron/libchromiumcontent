@@ -31,7 +31,7 @@ def add_definition_file(args):
 	lines = [
 		'LIBRARY chromiumcontent',
 		'EXPORTS',
-	] + exports
+	] + sorted(exports)
 	with open('chromiumcontent.def', 'w') as f:
 		for line in lines:
 			f.write('{0}{1}'.format(line, os.linesep))
