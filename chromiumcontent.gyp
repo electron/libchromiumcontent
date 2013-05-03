@@ -28,6 +28,17 @@
           'sources': [
             '<(DEPTH)/base/win/dllmain.cc',
           ],
+          'configurations': {
+            'Debug_Base': {
+              'msvs_settings': {
+                'VCLinkerTool': {
+                  # We're too big to link incrementally. chrome.dll turns this
+                  # off in (most? all?) cases, too.
+                  'LinkIncremental': '1',
+                },
+              },
+            },
+          },
         }],
         ['OS=="mac"', {
           'dependencies': [
