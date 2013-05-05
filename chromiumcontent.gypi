@@ -41,6 +41,7 @@
       'WEBKIT_GPU_IMPLEMENTATION',
       'WEBKIT_PLUGINS_IMPLEMENTATION',
       'WEBKIT_STORAGE_IMPLEMENTATION',
+      'WEBKIT_USER_AGENT_IMPLEMENTATION',
     ],
     'msvs_disabled_warnings': [
         4251,
