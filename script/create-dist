@@ -52,6 +52,8 @@ INCLUDE_DIRS = [
     'webkit/user_agent',
 ]
 OTHER_HEADERS = [
+    'chrome/browser/ui/cocoa/event_utils.h',
+    'chrome/browser/ui/cocoa/menu_controller.h',
     'content/common/content_export.h',
 ]
 

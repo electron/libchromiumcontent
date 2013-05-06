@@ -7,12 +7,43 @@
         '<(DEPTH)/base/base.gyp:base_prefs',
         '<(DEPTH)/content/content.gyp:content',
         '<(DEPTH)/content/content.gyp:content_shell_pak',
+        'chrome_browser_ui',
       ], 
       'xcode_settings': {
         'OTHER_LDFLAGS': [
           '-all_load',
         ],
         'LD_DYLIB_INSTALL_NAME': '@rpath/libchromiumcontent.dylib',
+      },
+    },
+    {
+      'target_name': 'chrome_browser_ui',
+      'type': 'static_library',
+      'conditions': [
+        ['OS=="mac"', {
+          'sources': [
+            '<(DEPTH)/chrome/browser/ui/cocoa/event_utils.h',
+            '<(DEPTH)/chrome/browser/ui/cocoa/event_utils.mm',
+            '<(DEPTH)/chrome/browser/ui/cocoa/menu_controller.h',
+            '<(DEPTH)/chrome/browser/ui/cocoa/menu_controller.mm',
+          ],
+          'dependencies': [
+            # Import Skia's include_dirs for finding the SkUserConfig.h,
+            '<(DEPTH)/skia/skia.gyp:skia',
+            # and ICU for unicode/*.h.
+            '<(DEPTH)/third_party/icu/icu.gyp:icui18n',
+            '<(DEPTH)/third_party/icu/icu.gyp:icuuc',
+          ],
+        }],
+      ],
+      'include_dirs': [
+        '<(DEPTH)'
+      ],
+      'xcode_settings': {
+        # Export all symbols from this static library even though they aren't
+        # specified to be exported in the source code.
+        'GCC_INLINES_ARE_PRIVATE_EXTERN': 'NO',
+        'GCC_SYMBOLS_PRIVATE_EXTERN': 'NO',
       },
     },
     {
