@@ -52,6 +52,8 @@ INCLUDE_DIRS = [
     'webkit/user_agent',
 ]
 OTHER_HEADERS = [
+    'chrome/browser/ui/cocoa/event_utils.h',
+    'chrome/browser/ui/cocoa/menu_controller.h',
     'content/common/content_export.h',
 ]
 
@@ -132,7 +134,7 @@ def copy_header(source):
 def create_zip():
     print "Zipping distribution..."
     zip_file = os.path.join(SOURCE_ROOT, 'libchromiumcontent.zip')
-    os.unlink(zip_file)
+    safe_unlink(zip_file)
     shutil.make_archive(os.path.splitext(zip_file)[0], 'zip',
                         root_dir=MAIN_DIR)
 
@@ -144,7 +146,7 @@ def create_zip():
     if is_newer(symbols_zip_file, dsym_dylib):
         return
 
-    os.unlink(symbols_zip_file)
+    safe_unlink(symbols_zip_file)
     shutil.make_archive(os.path.splitext(symbols_zip_file)[0], 'zip',
                         root_dir=SYMBOLS_DIR)
 
@@ -160,6 +162,14 @@ def mkdir_p(path):
 def rm_rf(path):
     try:
         shutil.rmtree(path)
+    except OSError as e:
+        if e.errno != errno.ENOENT:
+            raise
+
+
+def safe_unlink(path):
+    try:
+        os.unlink(path)
     except OSError as e:
         if e.errno != errno.ENOENT:
             raise
