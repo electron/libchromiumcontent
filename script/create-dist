@@ -134,7 +134,8 @@ def copy_header(source):
 def create_zip():
     print "Zipping distribution..."
     zip_file = os.path.join(SOURCE_ROOT, 'libchromiumcontent.zip')
-    os.unlink(zip_file)
+    if os.access(zip_file, os.R_OK):
+        os.unlink(zip_file)
     shutil.make_archive(os.path.splitext(zip_file)[0], 'zip',
                         root_dir=MAIN_DIR)
 
@@ -146,7 +147,8 @@ def create_zip():
     if is_newer(symbols_zip_file, dsym_dylib):
         return
 
-    os.unlink(symbols_zip_file)
+    if os.access(symbols_zip_file, os.R_OK):
+        os.unlink(symbols_zip_file)
     shutil.make_archive(os.path.splitext(symbols_zip_file)[0], 'zip',
                         root_dir=SYMBOLS_DIR)
 
