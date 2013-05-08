@@ -4,9 +4,15 @@ import errno
 import glob
 import os
 import subprocess
+import sys
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+
+PLATFORM_KEY = {
+    'darwin': 'osx',
+    'win32': 'win',
+}[sys.platform]
 
 
 def main():
@@ -38,7 +44,7 @@ def upload():
         '--access_key', access_key,
         '--secret_key', secret_key,
         '--prefix', SOURCE_ROOT,
-        '--key_prefix', 'libchromiumcontent/{0}'.format(commit),
+        '--key_prefix', 'libchromiumcontent/{0}/{1}'.format(PLATFORM_KEY, commit),
         '--grant', 'public-read',
         '--multipart'
     ] + glob.glob('libchromiumcontent*.zip')
@@ -58,5 +64,4 @@ def s3_config():
 
 
 if __name__ == '__main__':
-    import sys
     sys.exit(main())

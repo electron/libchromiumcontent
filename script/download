@@ -14,6 +14,11 @@ import zipfile
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
+PLATFORM_KEY = {
+    'darwin': 'osx',
+    'win32': 'win',
+}[sys.platform]
+
 
 class ProgramError(Exception):
     pass
@@ -23,10 +28,11 @@ def main():
     try:
         args = parse_args()
         commit = head_commit()
-        download_if_needed(args.path, args.url, commit, force=args.force)
+        base_url = '{0}/{1}'.format(args.url, PLATFORM_KEY)
+        download_if_needed(args.path, base_url, commit, force=args.force)
         if not args.symbols:
             return
-        download_symbols(args.path, args.url, commit)
+        download_symbols(args.path, base_url, commit)
     except ProgramError as e:
         return e.message
 
