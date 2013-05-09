@@ -21,10 +21,19 @@ def main():
 
 
 def gclient_sync():
+    ensure_nacl_disabled()
     gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.py')
     os.chdir(CHROMIUM_DIR)
     subprocess.check_call([sys.executable, gclient, 'sync', '--revision',
                            'src@{0}'.format(chromium_revision())])
+
+
+def ensure_nacl_disabled():
+    # Disable NaCl. We don't need it, and it requires some very long filepaths
+    # which often overrun the Windows file path limit.
+    if 'disable_nacl=1' in os.environ.get('GYP_DEFINES', ''):
+        return
+    os.environ['GYP_DEFINES'] = ' '.join(['disable_nacl=1', os.environ.get('GYP_DEFINES', '')])
 
 
 def chromium_revision():
@@ -45,7 +54,9 @@ def copy_gyp_files():
 
 
 def run_gyp():
+    ensure_nacl_disabled()
     os.environ['GYP_GENERATORS'] = 'ninja'
+
     os.chdir(SOURCE_ROOT)
     gyp = os.path.join(SRC_DIR, 'build', 'gyp_chromium')
     subprocess.check_call([sys.executable, gyp, '-Ichromiumcontent.gypi',
