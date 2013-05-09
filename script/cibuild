@@ -35,7 +35,7 @@ def run_script(script):
     script = os.path.join('script', script)
     sys.stderr.write('+ {0}\n'.format(script))
     sys.stderr.flush()
-    subprocess.check_call([script])
+    subprocess.check_call(['python', script])
 
 
 if __name__ == '__main__':
