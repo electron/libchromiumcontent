@@ -37,7 +37,7 @@ def chromium_revision():
 
 
 def install_win_toolchain():
-    if sys.platform != 'windows':
+    if sys.platform != 'win32':
         return
     target_dir = os.path.join(SOURCE_ROOT, 'win_toolchain')
     if os.path.isdir(target_dir):
@@ -69,7 +69,7 @@ def run_gyp():
 
 
 def install_win_tool_wrapper():
-    if sys.platform != 'windows':
+    if sys.platform != 'win32':
         return
     for config in ['Debug', 'Release']:
         config_dir = os.path.join(SRC_DIR, 'out', config)
