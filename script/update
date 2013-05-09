@@ -16,6 +16,7 @@ CHROMIUMCONTENT_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
 
 def main():
     gclient_sync()
+    install_win_toolchain()
     copy_gyp_files()
     run_gyp()
     install_win_tool_wrapper()
@@ -33,6 +34,14 @@ def chromium_revision():
         [key, value] = f.readline().strip().split('=')
         assert key == 'CHROMIUM_REVISION'
         return value
+
+
+def install_win_toolchain():
+    if sys.platform != 'windows':
+        return
+    if os.path.isdir(os.path.join(SOURCE_ROOT, 'win_toolchain')):
+        return
+    subprocess.check_call(['python', os.path.join(SRC_DIR, 'tools', 'win', 'toolchain', 'toolchain.py')])
 
 
 def copy_gyp_files():
@@ -56,6 +65,8 @@ def run_gyp():
 
 
 def install_win_tool_wrapper():
+    if sys.platform != 'windows':
+        return
     for config in ['Debug', 'Release']:
         config_dir = os.path.join(SRC_DIR, 'out', config)
         win_tool = os.path.join(config_dir, 'gyp-win-tool')
