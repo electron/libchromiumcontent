@@ -82,9 +82,7 @@ def run_gyp():
 
     # Disable NaCl. We don't need it, and it requires some very long filepaths
     # which often overrun the Windows file path limit.
-    defines = ['disable_nacl=1']
-    if os.environ.get('GYP_DEFINES'):
-        defines == os.environ['GYP_DEFINES']
+    defines = ['disable_nacl=1', os.environ.get('GYP_DEFINES', '')]
     os.environ['GYP_DEFINES'] = ' '.join(defines)
 
     os.chdir(SOURCE_ROOT)
