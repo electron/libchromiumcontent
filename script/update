@@ -29,6 +29,7 @@ def gclient_sync():
     os.chdir(CHROMIUM_DIR)
     subprocess.check_call([sys.executable, gclient, 'sync', '--revision',
                            'src@{0}'.format(chromium_revision())])
+    subprocess.check_call([sys.executable, gclient, 'runhooks'])
 
 
 def ensure_nacl_disabled():
