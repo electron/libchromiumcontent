@@ -39,9 +39,13 @@ def chromium_revision():
 def install_win_toolchain():
     if sys.platform != 'windows':
         return
-    if os.path.isdir(os.path.join(SOURCE_ROOT, 'win_toolchain')):
+    target_dir = os.path.join(SOURCE_ROOT, 'win_toolchain')
+    if os.path.isdir(target_dir):
         return
-    subprocess.check_call(['python', os.path.join(SRC_DIR, 'tools', 'win', 'toolchain', 'toolchain.py')])
+    subprocess.check_call(['python',
+                           os.path.join(SRC_DIR, 'tools', 'win',
+                                        'toolchain', 'toolchain.py'),
+                           '--target-dir', target_dir])
 
 
 def copy_gyp_files():
