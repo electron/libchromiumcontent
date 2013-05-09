@@ -20,7 +20,6 @@ def main():
     import_win_environment()
     copy_gyp_files()
     run_gyp()
-    install_win_tool_wrapper()
 
 
 def gclient_sync():
@@ -97,16 +96,6 @@ def run_gyp():
                            '--depth', SRC_DIR,
                            os.path.join(CHROMIUMCONTENT_DIR,
                                         'chromiumcontent.gyp')])
-
-
-def install_win_tool_wrapper():
-    if sys.platform != 'win32':
-        return
-    for config in ['Debug', 'Release']:
-        config_dir = os.path.join(SRC_DIR, 'out', config)
-        win_tool = os.path.join(config_dir, 'gyp-win-tool')
-        shutil.move(win_tool, '{0}-original'.format(win_tool))
-        shutil.copy(os.path.join(SOURCE_ROOT, 'gyp-win-tool-wrapper'), win_tool)
 
 
 if __name__ == '__main__':
