@@ -79,6 +79,14 @@ def copy_gyp_files():
 
 def run_gyp():
     os.environ['GYP_GENERATORS'] = 'ninja'
+
+    # Disable NaCl. We don't need it, and it requires some very long filepaths
+    # which often overrun the Windows file path limit.
+    defines = ['disable_nacl=1']
+    if os.environ.get('GYP_DEFINES'):
+        defines == os.environ['GYP_DEFINES']
+    os.environ['GYP_DEFINES'] = ' '.join(defines)
+
     os.chdir(SOURCE_ROOT)
     gyp = os.path.join(SRC_DIR, 'build', 'gyp_chromium')
     subprocess.check_call([sys.executable, gyp, '-Ichromiumcontent.gypi',
