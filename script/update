@@ -23,7 +23,7 @@ def main():
 def gclient_sync():
     gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.py')
     os.chdir(CHROMIUM_DIR)
-    subprocess.check_call(['python', gclient, 'sync', '--revision',
+    subprocess.check_call([sys.executable, gclient, 'sync', '--revision',
                            'src@{0}'.format(chromium_revision())])
 
 
@@ -48,7 +48,7 @@ def run_gyp():
     os.environ['GYP_GENERATORS'] = 'ninja'
     os.chdir(SOURCE_ROOT)
     gyp = os.path.join(SRC_DIR, 'build', 'gyp_chromium')
-    subprocess.check_call(['python', gyp, '-Ichromiumcontent.gypi',
+    subprocess.check_call([sys.executable, gyp, '-Ichromiumcontent.gypi',
                            '--depth', SRC_DIR,
                            os.path.join(CHROMIUMCONTENT_DIR,
                                         'chromiumcontent.gyp')])

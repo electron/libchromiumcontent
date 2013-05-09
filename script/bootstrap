@@ -2,6 +2,7 @@
 
 import os
 import subprocess
+import sys
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -19,9 +20,8 @@ def main():
         subprocess.check_call(['git', 'clone',
                                DEPOT_TOOLS_URL, DEPOT_TOOLS_DIR])
     update = os.path.join(SOURCE_ROOT, 'script', 'update')
-    subprocess.check_call(['python', update])
+    subprocess.check_call([sys.executable, update])
 
 
 if __name__ == '__main__':
-    import sys
     sys.exit(main())
