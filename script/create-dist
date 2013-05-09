@@ -90,6 +90,9 @@ def copy_binaries():
 
 
 def create_dsym():
+    if sys.platform != 'darwin':
+        return
+
     source = os.path.join(OUT_DIR, 'Release', DSYM_DYLIB_PATH)
     destination = os.path.join(SYMBOLS_INTERMEDIATE_DIR, DSYM_DYLIB_PATH)
 
@@ -105,6 +108,9 @@ def create_dsym():
 
 
 def copy_dsym():
+    if sys.platform != 'darwin':
+        return
+
     dsym = os.path.join(SYMBOLS_INTERMEDIATE_DIR,
                         'libchromiumcontent.dylib.dSYM')
     destination = os.path.join(SYMBOLS_DIR, 'Release', os.path.basename(dsym))
@@ -146,6 +152,10 @@ def create_zip():
     safe_unlink(zip_file)
     shutil.make_archive(os.path.splitext(zip_file)[0], 'zip',
                         root_dir=MAIN_DIR)
+
+    # FIXME: We should upload symbols on Windows, too.
+    if sys.platform != 'darwin':
+        return
 
     # Since it takes so long to zip symbols, first see if symbols have changed
     # since last time.
