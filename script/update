@@ -45,7 +45,7 @@ def install_win_toolchain():
     subprocess.check_call(['python',
                            os.path.join(SRC_DIR, 'tools', 'win',
                                         'toolchain', 'toolchain.py'),
-                           '--target-dir', target_dir])
+                           '--targetdir', target_dir])
 
 
 def copy_gyp_files():
