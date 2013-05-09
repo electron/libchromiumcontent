@@ -17,6 +17,7 @@ CHROMIUMCONTENT_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
 def main():
     gclient_sync()
     install_win_toolchain()
+    import_win_environment()
     copy_gyp_files()
     run_gyp()
     install_win_tool_wrapper()
@@ -46,6 +47,24 @@ def install_win_toolchain():
                            os.path.join(SRC_DIR, 'tools', 'win',
                                         'toolchain', 'toolchain.py'),
                            '--targetdir', target_dir])
+
+
+def import_win_environment():
+    if sys.platform != 'win32':
+        return
+
+    env_bat = os.path.join(SOURCE_ROOT, 'win_toolchain', 'env.bat')
+    with open(env_bat) as f:
+        for line in f:
+            if not line.startswith('set '):
+                continue
+            key, value = line[4:].strip().split('=', 1)
+            os.environ[key] = value
+
+    # env.bat sets component=shared_library in the environment. We don't want
+    # that.
+    os.environ['GYP_DEFINES'] = \
+        'windows_sdk_path="{0}"'.format(os.environ['WindowsSDKDir'])
 
 
 def copy_gyp_files():
