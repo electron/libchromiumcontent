@@ -2,6 +2,7 @@
 
 import os
 import subprocess
+import sys
 
 
 WIN_TOOL = os.path.abspath(os.path.join(os.path.dirname(__file__), 'gyp-win-tool-original'))
@@ -12,7 +13,7 @@ def main(args):
 	# subcommands joined by &&. If that has happened, lets reinvoke ourselves
 	# via those subcommands so we can handle each one individually.
 	if '&&' in args:
-		return subprocess.call(['python'] + args, shell=True)
+		return subprocess.call([sys.executable] + args, shell=True)
 
 	args = args[1:]
 
@@ -21,7 +22,7 @@ def main(args):
 
 	if '@chromiumcontent.dll.rsp' in args:
 		add_definition_file(args)
-	return subprocess.call(['python', WIN_TOOL] + args)
+	return subprocess.call([sys.executable, WIN_TOOL] + args)
 
 
 def add_definition_file(args):
@@ -66,5 +67,4 @@ def exports_from_libs(libs):
 
 
 if __name__ == '__main__':
-    import sys
     sys.exit(main(sys.argv))
