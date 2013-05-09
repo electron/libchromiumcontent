@@ -19,7 +19,7 @@ if sys.platform == 'win32':
 def main():
     for config in CONFIGURATIONS:
         config_dir = os.path.join(OUT_DIR, config)
-        subprocess.check_call([NINJA, '-C', config_dir] + TARGETS)
+        subprocess.check_call([NINJA, '-v', '-C', config_dir] + TARGETS)
 
 
 if __name__ == '__main__':
