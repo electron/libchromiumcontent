@@ -82,7 +82,19 @@ def copy_gyp_files():
         if e.errno != errno.EEXIST:
             raise
     for file in ['chromiumcontent.gyp', 'dll_main.cc']:
-        shutil.copy(os.path.join(SOURCE_ROOT, file), CHROMIUMCONTENT_DIR)
+        copy_if_newer(os.path.join(SOURCE_ROOT, file), os.path.join(CHROMIUMCONTENT_DIR, file))
+
+
+def copy_if_newer(source, destination):
+    mtime = 0
+    try:
+        mtime = os.path.getmtime(destination)
+    except OSError as e:
+        if e.errno != errno.ENOENT:
+            raise
+    if os.path.getmtime(source) <= mtime:
+        return
+    shutil.copy(source, destination)
 
 
 def run_gyp():
