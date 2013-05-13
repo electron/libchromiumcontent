@@ -8,6 +8,11 @@ import sys
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+S3PUT = {
+    'darwin': ['s3put'],
+    'win32': [sys.executable, os.path.join(os.path.dirname(sys.executable),
+                                           'Scripts', 's3put')],
+}[sys.platform]
 
 PLATFORM_KEY = {
     'darwin': 'osx',
@@ -26,7 +31,7 @@ def main():
 def ensure_s3put():
     output = ''
     try:
-        output = subprocess.check_output(['s3put', '--help'])
+        output = subprocess.check_output(S3PUT + ['--help'])
     except OSError as e:
         if e.errno != errno.ENOENT:
             raise
@@ -38,8 +43,7 @@ def upload():
     bucket, access_key, secret_key = s3_config()
     commit = subprocess.check_output(['git', 'rev-parse', 'HEAD']).strip()
 
-    args = [
-        's3put',
+    args = S3PUT + [
         '--bucket', bucket,
         '--access_key', access_key,
         '--secret_key', secret_key,
