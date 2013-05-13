@@ -68,6 +68,7 @@
       ['_type=="static_library"', {
         'defines': [
           'U_COMBINED_IMPLEMENTATION',
+          'U_UTF8_IMPL',
         ],
         'defines!': [
           'U_STATIC_IMPLEMENTATION',
