@@ -59,6 +59,7 @@ def exports_from_libs(libs):
             lib.endswith('icui18n.lib')):
             continue
         process = subprocess.Popen(['dumpbin.exe', '/directives', lib],
+                                   env=get_env('environment.x86'),
                                    stdout=subprocess.PIPE)
         for line in process.stdout:
             stripped = line.strip()
@@ -69,6 +70,16 @@ def exports_from_libs(libs):
                 exports[export] = True
         process.wait()
     return exports.keys()
+
+
+def get_env(arch):
+  """Gets the saved environment from a file for a given architecture."""
+  # The environment is saved as an "environment block" (see CreateProcess
+  # and msvs_emulation for details). We convert to a dict here.
+  # Drop last 2 NULs, one for list terminator, one for trailing vs. separator.
+  pairs = open(arch).read()[:-2].split('\0')
+  kvs = [item.split('=', 1) for item in pairs]
+  return dict(kvs)
 
 
 if __name__ == '__main__':
