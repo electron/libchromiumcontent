@@ -65,7 +65,7 @@
           'WEBKIT_DLL',
         ],
       }],
-      ['_type=="static_library" and _target_name!="sqlite3', {
+      ['_type=="static_library" and _target_name!="sqlite3"', {
         'defines': [
           'U_COMBINED_IMPLEMENTATION',
         ],
