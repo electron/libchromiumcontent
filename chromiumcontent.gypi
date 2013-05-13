@@ -35,6 +35,7 @@
       'SNAPSHOT_IMPLEMENTATION',
       'SQL_IMPLEMENTATION',
       'SURFACE_IMPLEMENTATION',
+      'U_NO_GLOBAL_NEW_DELETE',
       'UI_IMPLEMENTATION',
       'V8_SHARED',
       'WEBKIT_BASE_IMPLEMENTATION',
@@ -63,11 +64,6 @@
       ['_target_name in ["webcore_prerequisites", "webkit_platform", "webkit", "webkit_wtf_support"]', {
         'defines': [
           'WEBKIT_DLL',
-        ],
-      }],
-      ['_target_name in ["icuuc", "icui18n"]', {
-        'defines': [
-          'U_OVERRIDE_CXX_ALLOCATION=0',
         ],
       }],
       ['_type=="static_library" and _target_name!="sqlite"', {
