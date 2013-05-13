@@ -19,6 +19,7 @@ def main():
     install_win_toolchain()
     import_win_environment()
     copy_gyp_files()
+    apply_patches()
     run_gyp()
     install_win_tool_wrapper()
 
@@ -96,6 +97,10 @@ def copy_if_newer(source, destination):
     if os.path.getmtime(source) <= mtime:
         return
     shutil.copy(source, destination)
+
+
+def apply_patches():
+  subprocess.check_call([sys.executable, os.path.join(SOURCE_ROOT, 'script', 'apply-patches')])
 
 
 def run_gyp():
