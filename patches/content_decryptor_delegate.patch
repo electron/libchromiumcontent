@@ -1,0 +1,26 @@
+Index: webkit/plugins/ppapi/content_decryptor_delegate.cc
+===================================================================
+--- webkit/plugins/ppapi/content_decryptor_delegate.cc	(revision 194718)
++++ webkit/plugins/ppapi/content_decryptor_delegate.cc	(working copy)
+@@ -285,6 +285,9 @@
+       weak_this_(weak_ptr_factory_.GetWeakPtr()) {
+ }
+ 
++ContentDecryptorDelegate::~ContentDecryptorDelegate() {
++}
++
+ void ContentDecryptorDelegate::SetKeyEventCallbacks(
+     const media::KeyAddedCB& key_added_cb,
+     const media::KeyErrorCB& key_error_cb,
+Index: webkit/plugins/ppapi/content_decryptor_delegate.h
+===================================================================
+--- webkit/plugins/ppapi/content_decryptor_delegate.h	(revision 194718)
++++ webkit/plugins/ppapi/content_decryptor_delegate.h	(working copy)
+@@ -37,6 +37,7 @@
+   ContentDecryptorDelegate(
+       PP_Instance pp_instance,
+       const PPP_ContentDecryptor_Private* plugin_decryption_interface);
++  ~ContentDecryptorDelegate();
+ 
+   void SetKeyEventCallbacks(const media::KeyAddedCB& key_added_cb,
+                             const media::KeyErrorCB& key_error_cb,
