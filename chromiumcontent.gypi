@@ -65,6 +65,11 @@
           'WEBKIT_DLL',
         ],
       }],
+      ['_target_name in ["icuuc", "icui18n"]', {
+        'defines': [
+          'U_DEFAULT_SHOW_DRAFT=0',
+        ],
+      }],
       ['_type=="static_library" and _target_name!="sqlite"', {
         'defines': [
           'U_COMBINED_IMPLEMENTATION',
