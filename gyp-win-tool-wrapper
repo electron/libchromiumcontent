@@ -60,6 +60,7 @@ def exports_from_libs(libs):
             continue
         process = subprocess.Popen(['dumpbin.exe', '/directives', lib],
                                    env=get_env('environment.x86'),
+                                   shell=True,
                                    stdout=subprocess.PIPE)
         for line in process.stdout:
             stripped = line.strip()
