@@ -54,8 +54,6 @@ def libs_from_rsp(rsp):
 def exports_from_libs(libs):
     exports = {}
     for lib in libs:
-        if lib.endswith('icuuc.lib') or lib.endswith('icui18n.lib'):
-            continue
         process = subprocess.Popen(['dumpbin.exe', '/directives', lib],
                                    env=get_env('environment.x86'),
                                    shell=True,
