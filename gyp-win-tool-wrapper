@@ -62,8 +62,6 @@ def exports_from_libs(libs):
             stripped = line.strip()
             if stripped.startswith('/EXPORT:'):
                 export = stripped[len('/EXPORT:'):].replace(',', ' ')
-                if export.startswith('_kLogEventId'):
-                    continue
                 exports[export] = True
         process.wait()
     return exports.keys()
