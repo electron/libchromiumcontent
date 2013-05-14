@@ -46,7 +46,7 @@ INCLUDE_DIRS = [
     'googleurl/src',
     'ipc',
     'net',
-    'skia/ext',
+    'skia',
     'testing/gtest/include',
     'third_party/WebKit/Source/Platform/chromium/public',
     'third_party/WebKit/Source/WebKit/chromium/public',
@@ -130,13 +130,6 @@ def copy_headers():
 
     for header in OTHER_HEADERS:
         copy_header(os.path.join(SRC_DIR, header))
-
-    # Some headers assume this file is at the top of the include path. Rather
-    # than forcing client apps to set up their include path specially, we'll
-    # just copy it to the top.
-    sk_user_config = os.path.join(SRC_DIR, 'third_party', 'skia', 'include',
-                                  'config', 'SkUserConfig.h')
-    shutil.copy2(sk_user_config, INCLUDE_DIR)
 
 
 def copy_header(source):
