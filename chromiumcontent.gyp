@@ -29,6 +29,15 @@
         ],
         'LD_DYLIB_INSTALL_NAME': '@rpath/libchromiumcontent.dylib',
       },
+      'configurations': {
+        'Debug_Base': {
+          'msvs_settings': {
+            'VCLinkerTool': {
+              'LinkIncremental': '1',
+            },
+          },
+        },
+      },
       'conditions': [
         ['OS=="win"', {
           'sources': [
