@@ -5,10 +5,11 @@
       'type': 'none',
       'dependencies': [
         'chromiumcontent',
+        'test_support_chromiumcontent',
       ],
       'conditions': [
-        ['OS!="win"', {
-          'dependencies': [
+        ['OS=="win"', {
+          'dependencies!': [
             'test_support_chromiumcontent',
           ],
         }],
