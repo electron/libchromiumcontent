@@ -51,14 +51,13 @@ def parse_args():
 
 
 def head_commit():
-    args = [
-        'git',
-        '--git-dir',
-        os.path.join(SOURCE_ROOT, '.git'),
-        'rev-parse',
-        'HEAD',
-    ]
-    return subprocess.check_output(args).strip()
+    cwd = os.getcwd()
+    os.chdir(SOURCE_ROOT)
+    try:
+        args = ['git', 'rev-parse', 'HEAD']
+        return subprocess.check_output(args).strip()
+    finally:
+        os.chdir(cwd)
 
 
 def download_if_needed(destination, base_url, commit, force):
