@@ -9,6 +9,7 @@
       'BASE_PREFS_IMPLEMENTATION',
       'BUILDING_V8_SHARED',
       'CC_IMPLEMENTATION',
+      'COMPILER_IMPLEMENTATION',
       'COMPONENT_BUILD',
       'CRYPTO_IMPLEMENTATION',
       'GL_IMPLEMENTATION',
@@ -54,11 +55,6 @@
         # We can't use sources! here because that generates path names relative to this .gypi file, which won't match the relative path names in base.gyp.
         'sources/': [
           ['exclude', 'debug/debug_on_start_win\.cc$'],
-        ],
-      }],
-      ['_target_name in ["libEGL", "libGLESv2"]', {
-        'defines': [
-          'COMPILER_IMPLEMENTATION',
         ],
       }],
       ['_target_name in ["webcore_prerequisites", "webkit_platform", "webkit", "webkit_wtf_support"]', {
