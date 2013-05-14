@@ -62,6 +62,8 @@ def exports_from_libs(libs):
             stripped = line.strip()
             if stripped.startswith('/EXPORT:'):
                 export = stripped[len('/EXPORT:'):].replace(',', ' ')
+                if export[0] == '_':
+                    export = export[1:]
                 exports[export] = True
         process.wait()
     return exports.keys()
