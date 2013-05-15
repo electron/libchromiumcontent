@@ -29,6 +29,15 @@
             '<(DEPTH)/base/win/dllmain.cc',
           ],
           'configurations': {
+            'Common_Base': {
+              'msvs_settings': {
+                'VCLinkerTool': {
+                  'AdditionalOptions': [
+                    '/WX', # Warnings as errors
+                  ],
+                },
+              },
+            },
             'Debug_Base': {
               'msvs_settings': {
                 'VCLinkerTool': {
