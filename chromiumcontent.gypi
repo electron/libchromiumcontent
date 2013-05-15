@@ -41,6 +41,7 @@
       'V8_SHARED',
       'WEBKIT_BASE_IMPLEMENTATION',
       'WEBKIT_COMPOSITOR_BINDINGS_IMPLEMENTATION',
+      'WEBKIT_DLL',
       'WEBKIT_GLUE_IMPLEMENTATION',
       'WEBKIT_GPU_IMPLEMENTATION',
       'WEBKIT_PLUGINS_IMPLEMENTATION',
@@ -55,11 +56,6 @@
         # We can't use sources! here because that generates path names relative to this .gypi file, which won't match the relative path names in base.gyp.
         'sources/': [
           ['exclude', 'debug/debug_on_start_win\.cc$'],
-        ],
-      }],
-      ['_target_name in ["webcore_prerequisites", "webkit_platform", "webkit", "webkit_wtf_support"]', {
-        'defines': [
-          'WEBKIT_DLL',
         ],
       }],
       ['_type=="static_library" and _target_name!="sqlite"', {
