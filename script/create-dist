@@ -4,6 +4,7 @@ import errno
 import os
 import shutil
 import subprocess
+import sys
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -22,12 +23,20 @@ INCLUDE_DIR = os.path.join(MAIN_DIR, 'include')
 # separately.
 SYMBOLS_DIR = os.path.join(DIST_DIR, 'symbols')
 
-BINARIES = [
-    'content_shell.pak',
-    'ffmpegsumo.so',
-    'libchromiumcontent.dylib',
-    'libtest_support_chromiumcontent.a',
-]
+BINARIES = {
+    'all': [
+        'content_shell.pak',
+    ],
+    'darwin': [
+        'ffmpegsumo.so',
+        'libchromiumcontent.dylib',
+        'libtest_support_chromiumcontent.a',
+    ],
+    'win32': [
+        'ffmpegsumo.dll',
+        'chromiumcontent.dll',
+    ],
+}
 
 # Emperically determined to be required by client apps.
 INCLUDE_DIRS = [
@@ -76,11 +85,14 @@ def copy_binaries():
         config_dir = os.path.join(MAIN_DIR, config)
         os.makedirs(config_dir)
 
-        for binary in BINARIES:
+        for binary in BINARIES['all'] + BINARIES[sys.platform]:
             shutil.copy2(os.path.join(OUT_DIR, config, binary), config_dir)
 
 
 def create_dsym():
+    if sys.platform != 'darwin':
+        return
+
     source = os.path.join(OUT_DIR, 'Release', DSYM_DYLIB_PATH)
     destination = os.path.join(SYMBOLS_INTERMEDIATE_DIR, DSYM_DYLIB_PATH)
 
@@ -96,6 +108,9 @@ def create_dsym():
 
 
 def copy_dsym():
+    if sys.platform != 'darwin':
+        return
+
     dsym = os.path.join(SYMBOLS_INTERMEDIATE_DIR,
                         'libchromiumcontent.dylib.dSYM')
     destination = os.path.join(SYMBOLS_DIR, 'Release', os.path.basename(dsym))
@@ -137,6 +152,10 @@ def create_zip():
     safe_unlink(zip_file)
     shutil.make_archive(os.path.splitext(zip_file)[0], 'zip',
                         root_dir=MAIN_DIR)
+
+    # FIXME: We should upload symbols on Windows, too.
+    if sys.platform != 'darwin':
+        return
 
     # Since it takes so long to zip symbols, first see if symbols have changed
     # since last time.
@@ -181,5 +200,4 @@ def is_newer(destination, source):
 
 
 if __name__ == '__main__':
-    import sys
     sys.exit(main())
