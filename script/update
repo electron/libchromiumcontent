@@ -16,15 +16,28 @@ CHROMIUMCONTENT_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
 
 def main():
     gclient_sync()
+    install_win_toolchain()
+    import_win_environment()
     copy_gyp_files()
+    apply_patches()
     run_gyp()
+    install_win_tool_wrapper()
 
 
 def gclient_sync():
+    ensure_nacl_disabled()
     gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.py')
     os.chdir(CHROMIUM_DIR)
-    subprocess.check_call(['python', gclient, 'sync', '--revision',
+    subprocess.check_call([sys.executable, gclient, 'sync', '--revision',
                            'src@{0}'.format(chromium_revision())])
+
+
+def ensure_nacl_disabled():
+    # Disable NaCl. We don't need it, and it requires some very long filepaths
+    # which often overrun the Windows file path limit.
+    if 'disable_nacl=1' in os.environ.get('GYP_DEFINES', ''):
+        return
+    os.environ['GYP_DEFINES'] = ' '.join(['disable_nacl=1', os.environ.get('GYP_DEFINES', '')])
 
 
 def chromium_revision():
@@ -34,24 +47,82 @@ def chromium_revision():
         return value
 
 
+def install_win_toolchain():
+    if sys.platform != 'win32':
+        return
+    target_dir = os.path.join(SOURCE_ROOT, 'win_toolchain')
+    if os.path.isdir(target_dir):
+        return
+    subprocess.check_call([sys.executable,
+                           os.path.join(SRC_DIR, 'tools', 'win',
+                                        'toolchain', 'toolchain.py'),
+                           '--targetdir', target_dir])
+
+
+def import_win_environment():
+    if sys.platform != 'win32':
+        return
+
+    env_bat = os.path.join(SOURCE_ROOT, 'win_toolchain', 'env.bat')
+    with open(env_bat) as f:
+        for line in f:
+            if not line.startswith('set '):
+                continue
+            key, value = line[4:].strip().split('=', 1)
+            os.environ[key] = value
+
+    # env.bat sets component=shared_library in the environment. We don't want
+    # that.
+    os.environ['GYP_DEFINES'] = \
+        'windows_sdk_path="{0}"'.format(os.environ['WindowsSDKDir'])
+
+
 def copy_gyp_files():
     try:
         os.makedirs(CHROMIUMCONTENT_DIR)
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise
-    shutil.copyfile(os.path.join(SOURCE_ROOT, 'chromiumcontent.gyp'),
-                    os.path.join(CHROMIUMCONTENT_DIR, 'chromiumcontent.gyp'))
+    for file in ['chromiumcontent.gyp', 'dll_main.cc']:
+        copy_if_newer(os.path.join(SOURCE_ROOT, file), os.path.join(CHROMIUMCONTENT_DIR, file))
+
+
+def copy_if_newer(source, destination):
+    mtime = 0
+    try:
+        mtime = os.path.getmtime(destination)
+    except OSError as e:
+        if e.errno != errno.ENOENT:
+            raise
+    if os.path.getmtime(source) <= mtime:
+        return
+    shutil.copy(source, destination)
+
+
+def apply_patches():
+  subprocess.check_call([sys.executable, os.path.join(SOURCE_ROOT, 'script', 'apply-patches')])
 
 
 def run_gyp():
+    ensure_nacl_disabled()
     os.environ['GYP_GENERATORS'] = 'ninja'
+
     os.chdir(SOURCE_ROOT)
     gyp = os.path.join(SRC_DIR, 'build', 'gyp_chromium')
-    subprocess.check_call(['python', gyp, '-Ichromiumcontent.gypi',
+    subprocess.check_call([sys.executable, gyp, '-Ichromiumcontent.gypi',
                            '--depth', SRC_DIR,
                            os.path.join(CHROMIUMCONTENT_DIR,
                                         'chromiumcontent.gyp')])
+
+
+def install_win_tool_wrapper():
+    if sys.platform != 'win32':
+        return
+    for config in ['Debug', 'Release']:
+        config_dir = os.path.join(SRC_DIR, 'out', config)
+        win_tool = os.path.join(config_dir, 'gyp-win-tool')
+        shutil.move(win_tool, '{0}-original'.format(win_tool))
+        shutil.copy(os.path.join(SOURCE_ROOT, 'gyp-win-tool-wrapper'), win_tool)
 
 
 if __name__ == '__main__':

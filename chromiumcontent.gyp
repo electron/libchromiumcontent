@@ -1,20 +1,55 @@
 {
   'targets': [
     {
+      'target_name': 'chromiumcontent_all',
+      'type': 'none',
+      'dependencies': [
+        'chromiumcontent',
+        'test_support_chromiumcontent',
+      ],
+      'conditions': [
+        ['OS=="win"', {
+          'dependencies!': [
+            'test_support_chromiumcontent',
+          ],
+        }],
+      ],
+    },
+    {
       'target_name': 'chromiumcontent',
       'type': 'shared_library',
       'dependencies': [
         '<(DEPTH)/base/base.gyp:base_prefs',
         '<(DEPTH)/content/content.gyp:content',
         '<(DEPTH)/content/content.gyp:content_shell_pak',
-        'chrome_browser_ui',
-      ], 
+      ],
       'xcode_settings': {
         'OTHER_LDFLAGS': [
           '-all_load',
         ],
         'LD_DYLIB_INSTALL_NAME': '@rpath/libchromiumcontent.dylib',
       },
+      'configurations': {
+        'Debug_Base': {
+          'msvs_settings': {
+            'VCLinkerTool': {
+              'LinkIncremental': '1',
+            },
+          },
+        },
+      },
+      'conditions': [
+        ['OS=="win"', {
+          'sources': [
+            'dll_main.cc',
+          ],
+        }],
+        ['OS=="mac"', {
+          'dependencies': [
+            'chrome_browser_ui',
+          ],
+        }],
+      ],
     },
     {
       'target_name': 'chrome_browser_ui',
