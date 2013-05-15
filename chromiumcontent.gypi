@@ -1,4 +1,10 @@
 {
+  'variables': {
+    # Chrome turns this off for component builds, and we need to too. Leaving
+    # it on would result in both the Debug and Release CRTs being included in
+    # the library.
+    'win_use_allocator_shim': 0,
+  },
   'target_defaults': {
     'defines': [
       'BASE_I18N_IMPLEMENTATION',
