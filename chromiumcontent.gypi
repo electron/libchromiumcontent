@@ -62,7 +62,7 @@
           ['exclude', 'debug/debug_on_start_win\.cc$'],
         ],
       }],
-      ['"WEBKIT_IMPLEMENTATION" in _defines', {
+      ['_target_name in ["webcore_prerequisites", "webkit_platform", "webkit", "webkit_wtf_support"]', {
         'defines': [
           'WEBKIT_DLL',
         ],
