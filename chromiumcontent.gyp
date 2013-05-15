@@ -39,11 +39,6 @@
         },
       },
       'conditions': [
-        ['OS=="win"', {
-          'sources': [
-            'dll_main.cc',
-          ],
-        }],
         ['OS=="mac"', {
           'dependencies': [
             'chrome_browser_ui',

@@ -83,8 +83,8 @@ def copy_gyp_files():
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise
-    for file in ['chromiumcontent.gyp', 'dll_main.cc']:
-        copy_if_newer(os.path.join(SOURCE_ROOT, file), os.path.join(CHROMIUMCONTENT_DIR, file))
+    shutil.copyfile(os.path.join(SOURCE_ROOT, 'chromiumcontent.gyp'),
+                    os.path.join(CHROMIUMCONTENT_DIR, 'chromiumcontent.gyp'))
 
 
 def copy_if_newer(source, destination):
