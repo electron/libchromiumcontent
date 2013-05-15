@@ -51,6 +51,11 @@
     'msvs_disabled_warnings': [
         4251,
     ],
+    'msvs_settings': {
+      'VCLinkerTool': {
+        'TreatLinkerWarningAsErrors': 'true',
+      },
+    },
     'target_conditions': [
       ['_target_name=="base"', {
         # We can't use sources! here because that generates path names relative to this .gypi file, which won't match the relative path names in base.gyp.
