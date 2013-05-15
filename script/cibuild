@@ -6,7 +6,9 @@ import sys
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-S3_CREDENTIALS_FILE = '/var/lib/jenkins/config/s3credentials'
+# We're in JENKINS_ROOT/workspace/libchromiumcontent. Walk up to JENKINS_ROOT.
+JENKINS_ROOT = os.path.dirname(os.path.dirname(SOURCE_ROOT))
+S3_CREDENTIALS_FILE = os.path.join(JENKINS_ROOT, 'config', 's3credentials')
 
 
 def main():
@@ -33,7 +35,7 @@ def run_script(script):
     script = os.path.join('script', script)
     sys.stderr.write('+ {0}\n'.format(script))
     sys.stderr.flush()
-    subprocess.check_call([script])
+    subprocess.check_call([sys.executable, script])
 
 
 if __name__ == '__main__':

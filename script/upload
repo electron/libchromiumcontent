@@ -4,15 +4,27 @@ import errno
 import glob
 import os
 import subprocess
+import sys
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+S3PUT = {
+    'darwin': ['s3put'],
+    'win32': [sys.executable, os.path.join(os.path.dirname(sys.executable),
+                                           'Scripts', 's3put')],
+}[sys.platform]
+
+PLATFORM_KEY = {
+    'darwin': 'osx',
+    'win32': 'win',
+}[sys.platform]
 
 
 def main():
     try:
         ensure_s3put()
         upload()
+        clean_up()
     except AssertionError as e:
         return e.message
 
@@ -20,11 +32,21 @@ def main():
 def ensure_s3put():
     output = ''
     try:
-        output = subprocess.check_output(['s3put', '--help'])
+        output = subprocess.check_output(S3PUT + ['--help'])
     except OSError as e:
         if e.errno != errno.ENOENT:
             raise
     assert 'multipart' in output, 'Error: Please install boto and filechunkio'
+
+    if sys.platform != 'win32':
+        return
+    # multiprocessing on Windows requires that __main__ be discoverable via
+    # imp.find_module(), which means it needs to end in a .py extension.
+    import tempfile
+    with tempfile.NamedTemporaryFile(suffix='.py', delete=False) as temp:
+        with open(S3PUT[1]) as f:
+            temp.write(f.read())
+        S3PUT[1] = temp.name
 
 
 def upload():
@@ -32,13 +54,12 @@ def upload():
     bucket, access_key, secret_key = s3_config()
     commit = subprocess.check_output(['git', 'rev-parse', 'HEAD']).strip()
 
-    args = [
-        's3put',
+    args = S3PUT + [
         '--bucket', bucket,
         '--access_key', access_key,
         '--secret_key', secret_key,
         '--prefix', SOURCE_ROOT,
-        '--key_prefix', 'libchromiumcontent/{0}'.format(commit),
+        '--key_prefix', 'libchromiumcontent/{0}/{1}'.format(PLATFORM_KEY, commit),
         '--grant', 'public-read',
         '--multipart'
     ] + glob.glob('libchromiumcontent*.zip')
@@ -57,6 +78,13 @@ def s3_config():
     return config
 
 
+def clean_up():
+    if sys.platform != 'win32':
+        return
+
+    # Clean up the temporary file we created in ensure_s3put().
+    os.unlink(S3PUT[1])
+
+
 if __name__ == '__main__':
-    import sys
     sys.exit(main())
