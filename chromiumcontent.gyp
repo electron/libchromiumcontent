@@ -24,6 +24,11 @@
         '<(DEPTH)/content/content.gyp:content_shell_pak',
       ],
       'conditions': [
+        ['OS=="win"', {
+          'sources': [
+            '<(DEPTH)/base/win/dllmain.cc',
+          ],
+        }],
         ['OS=="mac"', {
           'dependencies': [
             'chrome_browser_ui',
