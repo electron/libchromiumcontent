@@ -18,6 +18,7 @@ def main():
     gclient_sync()
     install_win_toolchain()
     import_win_environment()
+    apply_patches()
     copy_gyp_files()
     run_gyp()
 
@@ -83,6 +84,14 @@ def copy_gyp_files():
             raise
     shutil.copyfile(os.path.join(SOURCE_ROOT, 'chromiumcontent.gyp'),
                     os.path.join(CHROMIUMCONTENT_DIR, 'chromiumcontent.gyp'))
+
+
+def apply_patches():
+  # Applying patches can invoke gclient, which in turn can invoke gyp, so make
+  # sure we have our gyp environment set.
+  ensure_nacl_disabled()
+
+  subprocess.check_call([sys.executable, os.path.join(SOURCE_ROOT, 'script', 'apply-patches')])
 
 
 def run_gyp():

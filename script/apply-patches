@@ -1,0 +1,48 @@
+#!/usr/bin/env python
+
+import glob
+import os
+import subprocess
+import sys
+
+
+SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+PATCHES_DIR = os.path.join(SOURCE_ROOT, 'patches')
+VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
+DEPOT_TOOLS_DIR = os.path.join(VENDOR_DIR, 'depot_tools')
+CHROMIUM_DIR = os.path.join(VENDOR_DIR, 'chromium')
+SRC_DIR = os.path.join(CHROMIUM_DIR, 'src')
+PATCH_PY = os.path.join(VENDOR_DIR, 'python-patch', 'patch.py')
+
+
+def main():
+    if apply_patches():
+        return
+    sys.stderr.write('Patches failed to apply. '
+                     'Reverting changes and trying again.\n')
+    sys.stderr.flush()
+    revert_changes()
+    apply_patches()
+
+
+def apply_patches():
+    args = [sys.executable, PATCH_PY, '--directory', SRC_DIR, '--quiet']
+    for patch in glob.glob(os.path.join(PATCHES_DIR, '*.patch')):
+        retcode = subprocess.call(args + [patch])
+        if retcode:
+            return False
+    return True
+
+
+def revert_changes():
+    gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.py')
+    cwd = os.getcwd()
+    os.chdir(CHROMIUM_DIR)
+    try:
+        subprocess.check_call([sys.executable, gclient, 'revert'])
+    finally:
+        os.chdir(cwd)
+
+
+if __name__ == '__main__':
+    sys.exit(main())
