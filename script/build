@@ -8,7 +8,7 @@ import sys
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
 OUT_DIR = os.path.join(VENDOR_DIR, 'chromium', 'src', 'out')
-TARGETS = ['chromiumcontent', 'test_support_chromiumcontent']
+TARGETS = ['chromiumcontent_all']
 CONFIGURATIONS = ['Debug', 'Release']
 
 NINJA = os.path.join(VENDOR_DIR, 'depot_tools', 'ninja')

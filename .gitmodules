@@ -1,0 +1,3 @@
+[submodule "vendor/python-patch"]
+	path = vendor/python-patch
+	url = https://github.com/svn2github/python-patch

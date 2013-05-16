@@ -1,50 +1,66 @@
 {
   'targets': [
     {
+      'target_name': 'chromiumcontent_all',
+      'type': 'none',
+      'dependencies': [
+        'chromiumcontent',
+        'test_support_chromiumcontent',
+      ],
+      'conditions': [
+        ['OS=="win"', {
+          'dependencies!': [
+            'test_support_chromiumcontent',
+          ],
+        }],
+      ],
+    },
+    {
       'target_name': 'chromiumcontent',
       'type': 'shared_library',
       'dependencies': [
         '<(DEPTH)/base/base.gyp:base_prefs',
         '<(DEPTH)/content/content.gyp:content',
         '<(DEPTH)/content/content.gyp:content_shell_pak',
-        'chrome_browser_ui',
-      ], 
-      'xcode_settings': {
-        'OTHER_LDFLAGS': [
-          '-all_load',
-        ],
-        'LD_DYLIB_INSTALL_NAME': '@rpath/libchromiumcontent.dylib',
-      },
-    },
-    {
-      'target_name': 'chrome_browser_ui',
-      'type': 'static_library',
+      ],
       'conditions': [
-        ['OS=="mac"', {
+        ['OS=="win"', {
           'sources': [
-            '<(DEPTH)/chrome/browser/ui/cocoa/event_utils.h',
-            '<(DEPTH)/chrome/browser/ui/cocoa/event_utils.mm',
-            '<(DEPTH)/chrome/browser/ui/cocoa/menu_controller.h',
-            '<(DEPTH)/chrome/browser/ui/cocoa/menu_controller.mm',
+            '<(DEPTH)/base/win/dllmain.cc',
           ],
+          'configurations': {
+            'Common_Base': {
+              'msvs_settings': {
+                'VCLinkerTool': {
+                  'AdditionalOptions': [
+                    '/WX', # Warnings as errors
+                  ],
+                },
+              },
+            },
+            'Debug_Base': {
+              'msvs_settings': {
+                'VCLinkerTool': {
+                  # We're too big to link incrementally. chrome.dll turns this
+                  # off in (most? all?) cases, too.
+                  'LinkIncremental': '1',
+                },
+              },
+            },
+          },
+        }],
+        ['OS=="mac"', {
           'dependencies': [
-            # Import Skia's include_dirs for finding the SkUserConfig.h,
-            '<(DEPTH)/skia/skia.gyp:skia',
-            # and ICU for unicode/*.h.
-            '<(DEPTH)/third_party/icu/icu.gyp:icui18n',
-            '<(DEPTH)/third_party/icu/icu.gyp:icuuc',
+            'chrome_browser_ui',
           ],
+          'xcode_settings': {
+            'OTHER_LDFLAGS': [
+              '-all_load',
+            ],
+            'LD_DYLIB_INSTALL_NAME': '@rpath/libchromiumcontent.dylib',
+          },
         }],
       ],
-      'include_dirs': [
-        '<(DEPTH)'
-      ],
-      'xcode_settings': {
-        # Export all symbols from this static library even though they aren't
-        # specified to be exported in the source code.
-        'GCC_INLINES_ARE_PRIVATE_EXTERN': 'NO',
-        'GCC_SYMBOLS_PRIVATE_EXTERN': 'NO',
-      },
     },
     {
       'target_name': 'test_support_chromiumcontent',
@@ -78,5 +94,37 @@
         },
       ],
     },
+  ],
+  'conditions': [
+    ['OS=="mac"', {
+      'targets': [
+        {
+          'target_name': 'chrome_browser_ui',
+          'type': 'static_library',
+          'sources': [
+            '<(DEPTH)/chrome/browser/ui/cocoa/event_utils.h',
+            '<(DEPTH)/chrome/browser/ui/cocoa/event_utils.mm',
+            '<(DEPTH)/chrome/browser/ui/cocoa/menu_controller.h',
+            '<(DEPTH)/chrome/browser/ui/cocoa/menu_controller.mm',
+          ],
+          'dependencies': [
+            # Import Skia's include_dirs for finding the SkUserConfig.h,
+            '<(DEPTH)/skia/skia.gyp:skia',
+            # and ICU for unicode/*.h.
+            '<(DEPTH)/third_party/icu/icu.gyp:icui18n',
+            '<(DEPTH)/third_party/icu/icu.gyp:icuuc',
+          ],
+          'include_dirs': [
+            '<(DEPTH)'
+          ],
+          'xcode_settings': {
+            # Export all symbols from this static library even though they aren't
+            # specified to be exported in the source code.
+            'GCC_INLINES_ARE_PRIVATE_EXTERN': 'NO',
+            'GCC_SYMBOLS_PRIVATE_EXTERN': 'NO',
+          },
+        },
+      ],
+    }],
   ],
 }

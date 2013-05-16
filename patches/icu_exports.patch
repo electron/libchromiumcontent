@@ -1,0 +1,49 @@
+Index: third_party/icu/public/common/unicode/utf8.h
+===================================================================
+--- third_party/icu/public/common/unicode/utf8.h	(revision 192960)
++++ third_party/icu/public/common/unicode/utf8.h	(working copy)
+@@ -53,7 +53,7 @@
+  * @internal
+  */
+ #ifdef U_UTF8_IMPL
+-U_EXPORT const uint8_t 
++U_CFUNC U_EXPORT const uint8_t 
+ #elif defined(U_STATIC_IMPLEMENTATION) || defined(U_COMMON_IMPLEMENTATION)
+ U_CFUNC const uint8_t
+ #else
+Index: third_party/icu/public/common/unicode/utypes.h
+===================================================================
+--- third_party/icu/public/common/unicode/utypes.h	(revision 192960)
++++ third_party/icu/public/common/unicode/utypes.h	(working copy)
+@@ -374,6 +374,14 @@
+  */
+ 
+ /*
++ * \def U_COMBINED_IMPLEMENTATION_EXCEPT_DATA
++ * Set to export library symbols from inside the ICU library
++ * when all of ICU except the stubdata library is in a single library.
++ * This can be set as a compiler option while building ICU, and it
++ * needs to be the first one tested to override U_COMMON_API, U_I18N_API, etc.
++ */
++
++/*
+  * \def U_COMBINED_IMPLEMENTATION
+  * Set to export library symbols from inside the ICU library
+  * when all of ICU is in a single library.
+@@ -431,7 +439,15 @@
+  * @stable ICU 3.4
+  */
+ 
+-#if defined(U_COMBINED_IMPLEMENTATION)
++#if defined(U_COMBINED_IMPLEMENTATION_EXCEPT_DATA)
++#define U_DATA_API
++#define U_COMMON_API   U_EXPORT
++#define U_I18N_API     U_EXPORT
++#define U_LAYOUT_API   U_EXPORT
++#define U_LAYOUTEX_API U_EXPORT
++#define U_IO_API       U_EXPORT
++#define U_TOOLUTIL_API U_EXPORT
++#elif defined(U_COMBINED_IMPLEMENTATION)
+ #define U_DATA_API     U_EXPORT
+ #define U_COMMON_API   U_EXPORT
+ #define U_I18N_API     U_EXPORT
