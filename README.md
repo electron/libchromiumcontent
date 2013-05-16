@@ -10,6 +10,10 @@ TODO
 
 ## Development
 
+### Prerequisites
+
+* Python 2.7
+
 ### One-time setup
 
     $ script/bootstrap
