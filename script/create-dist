@@ -46,6 +46,7 @@ INCLUDE_DIRS = [
     'googleurl/src',
     'ipc',
     'net',
+    'sandbox',
     'skia/ext',
     'testing/gtest/include',
     'third_party/WebKit/Source/Platform/chromium/public',
