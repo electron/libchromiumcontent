@@ -18,8 +18,10 @@ def main():
     gclient_sync()
     install_win_toolchain()
     import_win_environment()
+    apply_patches()
     copy_gyp_files()
     run_gyp()
+    install_win_tool_wrapper()
 
 
 def gclient_sync():
@@ -85,6 +87,14 @@ def copy_gyp_files():
                     os.path.join(CHROMIUMCONTENT_DIR, 'chromiumcontent.gyp'))
 
 
+def apply_patches():
+  # Applying patches can invoke gclient, which in turn can invoke gyp, so make
+  # sure we have our gyp environment set.
+  ensure_nacl_disabled()
+
+  subprocess.check_call([sys.executable, os.path.join(SOURCE_ROOT, 'script', 'apply-patches')])
+
+
 def run_gyp():
     ensure_nacl_disabled()
     os.environ['GYP_GENERATORS'] = 'ninja'
@@ -95,6 +105,16 @@ def run_gyp():
                            '--depth', SRC_DIR,
                            os.path.join(CHROMIUMCONTENT_DIR,
                                         'chromiumcontent.gyp')])
+
+
+def install_win_tool_wrapper():
+    if sys.platform != 'win32':
+        return
+    for config in ['Debug', 'Release']:
+        config_dir = os.path.join(SRC_DIR, 'out', config)
+        win_tool = os.path.join(config_dir, 'gyp-win-tool')
+        shutil.move(win_tool, '{0}-original'.format(win_tool))
+        shutil.copy(os.path.join(SOURCE_ROOT, 'gyp-win-tool-wrapper'), win_tool)
 
 
 if __name__ == '__main__':

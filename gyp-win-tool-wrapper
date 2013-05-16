@@ -1,0 +1,135 @@
+#!/usr/bin/env python
+
+import errno
+import os
+import subprocess
+import sys
+
+
+WIN_TOOL = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                        'gyp-win-tool-original'))
+
+
+def main(args):
+    # When invoked directly from ninja, our command line will contain many
+    # subcommands joined by &&. If that has happened, lets reinvoke ourselves
+    # via those subcommands so we can handle each one individually.
+    if '&&' in args:
+        return subprocess.call([sys.executable] + args, shell=True)
+
+    args = args[1:]
+
+    if 'lib.exe' in args:
+        retcode = subprocess.call([sys.executable, WIN_TOOL] + args)
+        if retcode == 0:
+            save_exports(args)
+        return retcode
+
+    if '@chromiumcontent.dll.rsp' in args:
+        add_definition_file(args)
+    return subprocess.call([sys.executable, WIN_TOOL] + args)
+
+
+def save_exports(args):
+    out_args = [arg for arg in args if arg.startswith('/OUT:')]
+    if len(out_args) != 1:
+        return
+    lib = out_args[0][len('/OUT:'):]
+    save_exports_for_lib(lib)
+
+
+def save_exports_for_lib(lib):
+    exports = exports_from_lib(lib)
+    with open(exports_file_for_lib(lib), 'w') as f:
+        for export in exports:
+            f.write(export)
+            f.write(os.linesep)
+
+
+def exports_from_lib(lib):
+    exports = {}
+    process = subprocess.Popen(['dumpbin.exe', '/directives', lib],
+                               env=get_env('environment.x86'),
+                               shell=True,
+                               stdout=subprocess.PIPE)
+    for line in process.stdout:
+        stripped = line.strip()
+        if stripped.startswith('/EXPORT:'):
+            export = stripped[len('/EXPORT:'):].replace(',', ' ')
+            if export[0] == '_':
+                export = export[1:]
+            exports[export] = True
+    process.wait()
+    return exports.keys()
+
+
+def exports_file_for_lib(lib):
+    return '{0}.exports'.format(lib)
+
+
+def add_definition_file(args):
+    rsp = [arg for arg in args if arg.endswith('.rsp')][0][1:]
+    libs = libs_from_rsp(rsp)
+    exports = read_saved_exports_from_libs(libs)
+    lines = ['EXPORTS'] + sorted(exports)
+    with open('chromiumcontent.def', 'w') as f:
+        for line in lines:
+            f.write('{0}{1}'.format(line, os.linesep))
+    with open(rsp, 'a') as r:
+        r.write('{0}/DEF:chromiumcontent.def{0}'.format(os.linesep))
+
+
+def libs_from_rsp(rsp):
+    libs = []
+    with open(rsp, 'r') as r:
+        for line in r:
+            words = line.split()
+            libs.extend(w for w in words if w.startswith('obj\\') and
+                        w.endswith('.lib'))
+    return libs
+
+
+def read_saved_exports_from_libs(libs):
+    exports = {}
+    for lib in libs:
+        for export in read_saved_exports_from_one_lib(lib):
+            exports[export] = True
+    return exports.keys()
+
+
+def read_saved_exports_from_one_lib(lib):
+    exports = {}
+
+    # Each .lib gets two chances. If the first chance fails, we'll save the
+    # exports and try again. If the second chance fails, we're done.
+    for attempt in range(2):
+        try:
+            with open(exports_file_for_lib(lib)) as f:
+                for line in f:
+                    exports[line.strip()] = True
+            break
+        except IOError as e:
+            if e.errno != errno.ENOENT:
+                raise
+            if attempt > 0:
+                raise
+            # There's no .exports file for this .lib. Let's save the
+            # exports and try again.
+            save_exports_for_lib(lib)
+
+    return exports.keys()
+
+
+def get_env(arch):
+    """Gets the saved environment from a file for a given architecture."""
+    # The environment is saved as an "environment block" (see CreateProcess
+    # and msvs_emulation for details). We convert to a dict here.
+    # Drop last 2 NULs, one for list terminator, one for trailing vs.
+    # separator.
+    pairs = open(arch).read()[:-2].split('\0')
+    kvs = [item.split('=', 1) for item in pairs]
+    return dict(kvs)
+
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv))
