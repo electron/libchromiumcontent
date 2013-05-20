@@ -67,6 +67,9 @@ OTHER_HEADERS = [
     'chrome/browser/ui/cocoa/menu_controller.h',
     'content/common/content_export.h',
 ]
+OTHER_SOURCES = [
+    'content/app/startup_helper_win.cc',
+]
 
 
 def main():
@@ -130,8 +133,8 @@ def copy_sources():
                     continue
                 copy_source_file(os.path.join(dirpath, filename))
 
-    for header in OTHER_HEADERS:
-        copy_source_file(os.path.join(SRC_DIR, header))
+    for path in OTHER_HEADERS + OTHER_SOURCES:
+        copy_source_file(os.path.join(SRC_DIR, path))
 
     # Some headers assume this file is at the top of the include path. Rather
     # than forcing client apps to set up their include path specially, we'll
