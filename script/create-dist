@@ -18,7 +18,7 @@ DSYM_DYLIB_PATH = os.path.join('libchromiumcontent.dylib.dSYM', 'Contents',
 
 # Almost everything goes into the main zip file...
 MAIN_DIR = os.path.join(DIST_DIR, 'main')
-INCLUDE_DIR = os.path.join(MAIN_DIR, 'include')
+DIST_SRC_DIR = os.path.join(MAIN_DIR, 'src')
 # ...except symbols, which are so huge we want to be able to download them
 # separately.
 SYMBOLS_DIR = os.path.join(DIST_DIR, 'symbols')
@@ -76,7 +76,7 @@ def main():
     copy_binaries()
     create_dsym()
     copy_dsym()
-    copy_headers()
+    copy_sources()
     create_zip()
 
 
@@ -121,29 +121,29 @@ def copy_dsym():
     shutil.copytree(dsym, destination)
 
 
-def copy_headers():
+def copy_sources():
     for include_path in INCLUDE_DIRS:
         abs_path = os.path.join(SRC_DIR, include_path)
         for dirpath, dirnames, filenames in os.walk(abs_path):
             for filename in filenames:
                 if os.path.splitext(filename)[1] != '.h':
                     continue
-                copy_header(os.path.join(dirpath, filename))
+                copy_source_file(os.path.join(dirpath, filename))
 
     for header in OTHER_HEADERS:
-        copy_header(os.path.join(SRC_DIR, header))
+        copy_source_file(os.path.join(SRC_DIR, header))
 
     # Some headers assume this file is at the top of the include path. Rather
     # than forcing client apps to set up their include path specially, we'll
     # just copy it to the top.
     sk_user_config = os.path.join(SRC_DIR, 'third_party', 'skia', 'include',
                                   'config', 'SkUserConfig.h')
-    shutil.copy2(sk_user_config, INCLUDE_DIR)
+    shutil.copy2(sk_user_config, DIST_SRC_DIR)
 
 
-def copy_header(source):
+def copy_source_file(source):
     relative = os.path.relpath(source, start=SRC_DIR)
-    destination = os.path.join(INCLUDE_DIR, relative)
+    destination = os.path.join(DIST_SRC_DIR, relative)
     mkdir_p(os.path.dirname(destination))
     shutil.copy2(source, destination)
 
