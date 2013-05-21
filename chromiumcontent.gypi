@@ -89,6 +89,13 @@
           ['exclude', 'debug/debug_on_start_win\.cc$'],
         ],
       }],
+      # sandbox_static.lib gets linked directly into client applications, so
+      # needs to see symbols decorated with __declspec(dllimport).
+      ['_target_name=="sandbox_static"', {
+        'defines!': [
+          'BASE_IMPLEMENTATION',
+        ],
+      }],
     ],
   },
 }
