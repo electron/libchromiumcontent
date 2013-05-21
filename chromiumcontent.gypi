@@ -77,8 +77,6 @@
           'WEBKIT_DLL',
         ],
       }],
-    ],
-    'target_conditions': [
       ['_target_name=="base"', {
         # This file doesn't work inside a shared library, and won't compile at
         # all when COMPONENT_BUILD is defined.
