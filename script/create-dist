@@ -36,6 +36,7 @@ BINARIES = {
         'ffmpegsumo.dll',
         'chromiumcontent.dll',
         'chromiumcontent.dll.lib',
+        os.path.join('obj', 'base', 'base_static.lib'),
         os.path.join('obj', 'sandbox', 'sandbox_static.lib'),
     ],
 }
