@@ -23,6 +23,7 @@ DIST_SRC_DIR = os.path.join(MAIN_DIR, 'src')
 # separately.
 SYMBOLS_DIR = os.path.join(DIST_DIR, 'symbols')
 
+CONFIGURATIONS = ['Debug', 'Release']
 BINARIES = {
     'all': [
         'content_shell.pak',
@@ -37,7 +38,21 @@ BINARIES = {
         'chromiumcontent.dll',
         'chromiumcontent.dll.lib',
         os.path.join('obj', 'base', 'base_static.lib'),
+        os.path.join('obj', 'base', 'base_static.pdb'),
         os.path.join('obj', 'sandbox', 'sandbox_static.lib'),
+        os.path.join('obj', 'sandbox', 'sandbox_static.pdb'),
+    ],
+}
+
+SYMBOLS = {
+    'darwin': [
+        # OS X has a more complicated symbol creation process. See
+        # create_dsym() and copy_symbols().
+    ],
+    'win32': [
+        'ffmpegsumo.dll.pdb',
+        'chromiumcontent.dll.pdb',
+        'libGLESv2.dll.pdb',
     ],
 }
 
@@ -80,17 +95,15 @@ def main():
 
     copy_binaries()
     create_dsym()
-    copy_dsym()
+    copy_symbols()
     copy_sources()
     create_zip()
 
 
 def copy_binaries():
-    CONFIGURATIONS = ['Debug', 'Release']
-
     for config in CONFIGURATIONS:
         config_dir = os.path.join(MAIN_DIR, config)
-        os.makedirs(config_dir)
+        mkdir_p(config_dir)
 
         for binary in BINARIES['all'] + BINARIES[sys.platform]:
             shutil.copy2(os.path.join(OUT_DIR, config, binary), config_dir)
@@ -99,6 +112,9 @@ def copy_binaries():
 def create_dsym():
     if sys.platform != 'darwin':
         return
+
+    # FIXME: We should probably do this as part of the build, not as part of
+    # create-dist.
 
     source = os.path.join(OUT_DIR, 'Release', DSYM_DYLIB_PATH)
     destination = os.path.join(SYMBOLS_INTERMEDIATE_DIR, DSYM_DYLIB_PATH)
@@ -114,7 +130,14 @@ def create_dsym():
     subprocess.check_call(['dsymutil', source, '-o', destination_dsym])
 
 
-def copy_dsym():
+def copy_symbols():
+    for config in CONFIGURATIONS:
+        config_dir = os.path.join(SYMBOLS_DIR, config)
+        mkdir_p(config_dir)
+
+        for path in SYMBOLS[sys.platform]:
+            shutil.copy2(os.path.join(OUT_DIR, config, path), config_dir)
+
     if sys.platform != 'darwin':
         return
 
@@ -160,17 +183,15 @@ def create_zip():
     shutil.make_archive(os.path.splitext(zip_file)[0], 'zip',
                         root_dir=MAIN_DIR)
 
-    # FIXME: We should upload symbols on Windows, too.
-    if sys.platform != 'darwin':
-        return
-
-    # Since it takes so long to zip symbols, first see if symbols have changed
-    # since last time.
     symbols_zip_file = os.path.join(SOURCE_ROOT,
                                     'libchromiumcontent-symbols.zip')
-    dsym_dylib = os.path.join(SYMBOLS_DIR, 'Release', DSYM_DYLIB_PATH)
-    if is_newer(symbols_zip_file, dsym_dylib):
-        return
+
+    if sys.platform == 'darwin':
+        # Since it takes so long to zip symbols, first see if symbols have changed
+        # since last time.
+        dsym_dylib = os.path.join(SYMBOLS_DIR, 'Release', DSYM_DYLIB_PATH)
+        if is_newer(symbols_zip_file, dsym_dylib):
+            return
 
     safe_unlink(symbols_zip_file)
     shutil.make_archive(os.path.splitext(symbols_zip_file)[0], 'zip',
