@@ -4,6 +4,9 @@
     # it on would result in both the Debug and Release CRTs being included in
     # the library.
     'win_use_allocator_shim': 0,
+
+    'win_release_RuntimeLibrary': '2', # 2 = /MD (nondebug DLL)
+    'win_debug_RuntimeLibrary': '3',   # 3 = /MDd (debug DLL)
   },
   'target_defaults': {
     'defines': [
@@ -53,6 +56,7 @@
       'WEBKIT_USER_AGENT_IMPLEMENTATION',
     ],
     'defines!': [
+      '_HAS_EXCEPTIONS=0',
       'U_STATIC_IMPLEMENTATION',
     ],
     'msvs_disabled_warnings': [
@@ -60,6 +64,11 @@
         # for component builds, and we need to too.
         4251,
     ],
+    'msvs_settings': {
+      'VCCLCompilerTool': {
+        'ExceptionHandling': '1',  # /EHsc
+      },
+    },
     'target_conditions': [
       # If WebKit were like all other modules, we'd define both WEBKIT_DLL and
       # WEBKIT_IMPLEMENTATION everywhere so that all symbols would be marked
@@ -77,8 +86,6 @@
           'WEBKIT_DLL',
         ],
       }],
-    ],
-    'target_conditions': [
       ['_target_name=="base"', {
         # This file doesn't work inside a shared library, and won't compile at
         # all when COMPONENT_BUILD is defined.
@@ -88,6 +95,32 @@
         'sources/': [
           ['exclude', 'debug/debug_on_start_win\.cc$'],
         ],
+      }],
+      # sandbox_static.lib gets linked directly into client applications, so
+      # needs to see symbols decorated with __declspec(dllimport).
+      ['_target_name=="sandbox_static"', {
+        'defines!': [
+          'BASE_IMPLEMENTATION',
+        ],
+      }],
+      ['_target_name in ["v8", "v8_snapshot", "v8_nosnapshot", "v8_base", "mksnapshot", "v8_shell", "preparser_lib"]', {
+        # Override src/v8/build/common.gypi's RuntimeLibrary setting.
+        'configurations': {
+          'Debug': {
+            'msvs_settings': {
+              'VCCLCompilerTool': {
+                'RuntimeLibrary': '<(win_debug_RuntimeLibrary)',
+              },
+            },
+          },
+          'Release': {
+            'msvs_settings': {
+              'VCCLCompilerTool': {
+                'RuntimeLibrary': '<(win_release_RuntimeLibrary)',
+              },
+            },
+          },
+        },
       }],
     ],
   },

@@ -9,6 +9,9 @@
       ],
       'conditions': [
         ['OS=="win"', {
+          'dependencies': [
+            '<(DEPTH)/sandbox/sandbox.gyp:sandbox_static',
+          ],
           'dependencies!': [
             'test_support_chromiumcontent',
           ],
