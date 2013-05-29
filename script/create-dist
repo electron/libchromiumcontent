@@ -39,10 +39,13 @@ BINARIES = {
         'chromiumcontent.dll.lib',
         'icudt.dll',
         'libGLESv2.dll',
+        'test_support_chromiumcontent.lib',
         os.path.join('obj', 'base', 'base_static.lib'),
         os.path.join('obj', 'base', 'base_static.pdb'),
+        os.path.join('obj', 'net', 'net_test_support.pdb'),
         os.path.join('obj', 'sandbox', 'sandbox_static.lib'),
         os.path.join('obj', 'sandbox', 'sandbox_static.pdb'),
+        os.path.join('obj', 'testing', 'gtest.pdb'),
     ],
 }
 

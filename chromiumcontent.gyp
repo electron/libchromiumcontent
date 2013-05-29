@@ -12,9 +12,6 @@
           'dependencies': [
             '<(DEPTH)/sandbox/sandbox.gyp:sandbox_static',
           ],
-          'dependencies!': [
-            'test_support_chromiumcontent',
-          ],
         }],
       ],
     },
@@ -72,29 +69,61 @@
         '<(DEPTH)/base/base.gyp:base_prefs_test_support',
         '<(DEPTH)/content/content.gyp:test_support_content',
       ],
-      'actions': [
-        {
-          'action_name': 'Create libtest_support_chromiumcontent.a',
-          'inputs': [
-            '<(PRODUCT_DIR)/libbase_prefs_test_support.a',
-            '<(PRODUCT_DIR)/libgmock.a',
-            '<(PRODUCT_DIR)/libgtest.a',
-            '<(PRODUCT_DIR)/libnet_test_support.a',
-            '<(PRODUCT_DIR)/libtest_support_base.a',
-            '<(PRODUCT_DIR)/libtest_support_content.a',
-            '<(PRODUCT_DIR)/libui_test_support.a',
+      'conditions': [
+        ['OS=="mac"', {
+          'actions': [
+            {
+              'action_name': 'Create libtest_support_chromiumcontent.a',
+              'inputs': [
+                '<(PRODUCT_DIR)/libbase_prefs_test_support.a',
+                '<(PRODUCT_DIR)/libgmock.a',
+                '<(PRODUCT_DIR)/libgtest.a',
+                '<(PRODUCT_DIR)/libnet_test_support.a',
+                '<(PRODUCT_DIR)/libtest_support_base.a',
+                '<(PRODUCT_DIR)/libtest_support_content.a',
+                '<(PRODUCT_DIR)/libui_test_support.a',
+              ],
+              'outputs': [
+                '<(PRODUCT_DIR)/libtest_support_chromiumcontent.a',
+              ],
+              'action': [
+                '/usr/bin/libtool',
+                '-static',
+                '-o',
+                '<@(_outputs)',
+                '<@(_inputs)',
+              ],
+            },
           ],
-          'outputs': [
-            '<(PRODUCT_DIR)/libtest_support_chromiumcontent.a',
+        }],
+        ['OS=="win"', {
+          'actions': [
+            {
+              'action_name': 'Create test_support_chromiumcontent.lib',
+              'inputs': [
+                '<(PRODUCT_DIR)\\obj\\base\\base_prefs_test_support.lib',
+                '<(PRODUCT_DIR)\\obj\\base\\test_support_base.lib',
+                '<(PRODUCT_DIR)\\obj\\content\\test_support_content.lib',
+                '<(PRODUCT_DIR)\\obj\\net\\net_test_support.lib',
+                '<(PRODUCT_DIR)\\obj\\testing\\gmock.lib',
+                '<(PRODUCT_DIR)\\obj\\testing\\gtest.lib',
+                '<(PRODUCT_DIR)\\obj\\ui\\ui_test_support.lib',
+              ],
+              'outputs': [
+                '<(PRODUCT_DIR)\\test_support_chromiumcontent.lib',
+              ],
+              'action': [
+                'lib.exe',
+                '/nologo',
+                # We can't use <(_outputs) here because that escapes the
+                # backslash in the path, which confuses lib.exe.
+                '/OUT:<(PRODUCT_DIR)\\test_support_chromiumcontent.lib',
+                '<@(_inputs)',
+              ],
+              'msvs_cygwin_shell': 0,
+            },
           ],
-          'action': [
-            '/usr/bin/libtool',
-            '-static',
-            '-o',
-            '<@(_outputs)',
-            '<@(_inputs)',
-          ],
-        },
+        }],
       ],
     },
   ],
