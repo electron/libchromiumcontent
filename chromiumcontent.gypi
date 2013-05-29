@@ -96,11 +96,13 @@
           ['exclude', 'debug/debug_on_start_win\.cc$'],
         ],
       }],
-      # sandbox_static.lib gets linked directly into client applications, so
-      # needs to see symbols decorated with __declspec(dllimport).
-      ['_target_name=="sandbox_static"', {
+      # These targets get linked directly into client applications, so need
+      # to see symbols decorated with __declspec(dllimport).
+      ['_target_name in ["net_test_support", "sandbox_static", "test_support_content"]', {
         'defines!': [
           'BASE_IMPLEMENTATION',
+          'CONTENT_IMPLEMENTATION',
+          'NET_IMPLEMENTATION',
         ],
       }],
       ['_target_name in ["v8", "v8_snapshot", "v8_nosnapshot", "v8_base", "mksnapshot", "v8_shell", "preparser_lib"]', {
