@@ -96,6 +96,34 @@
             },
           ],
         }],
+        ['OS=="win"', {
+          'actions': [
+            {
+              'action_name': 'Create test_support_chromiumcontent.lib',
+              'inputs': [
+                '<(PRODUCT_DIR)\\obj\\base\\base_prefs_test_support.lib',
+                '<(PRODUCT_DIR)\\obj\\base\\test_support_base.lib',
+                '<(PRODUCT_DIR)\\obj\\content\\test_support_content.lib',
+                '<(PRODUCT_DIR)\\obj\\net\\net_test_support.lib',
+                '<(PRODUCT_DIR)\\obj\\testing\\gmock.lib',
+                '<(PRODUCT_DIR)\\obj\\testing\\gtest.lib',
+                '<(PRODUCT_DIR)\\obj\\ui\\ui_test_support.lib',
+              ],
+              'outputs': [
+                '<(PRODUCT_DIR)\\test_support_chromiumcontent.lib',
+              ],
+              'action': [
+                'lib.exe',
+                '/nologo',
+                # We can't use <(_outputs) here because that escapes the
+                # backslash in the path, which confuses lib.exe.
+                '/OUT:<(PRODUCT_DIR)\\test_support_chromiumcontent.lib',
+                '<@(_inputs)',
+              ],
+              'msvs_cygwin_shell': 0,
+            },
+          ],
+        }],
       ],
     },
   ],
