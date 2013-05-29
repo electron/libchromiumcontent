@@ -105,7 +105,7 @@
           'NET_IMPLEMENTATION',
         ],
       }],
-      ['_target_name in ["v8", "v8_snapshot", "v8_nosnapshot", "v8_base", "mksnapshot", "v8_shell", "preparser_lib"]', {
+      ['_target_name in ["v8", "v8_snapshot", "v8_shell", "preparser_lib"] or "v8_nosnapshot." in _target_name or "v8_base." in _target_name or "mksnapshot." in _target_name', {
         # Override src/v8/build/common.gypi's RuntimeLibrary setting.
         'configurations': {
           'Debug': {
