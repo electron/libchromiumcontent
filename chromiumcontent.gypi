@@ -100,7 +100,7 @@
       }],
       # These targets get linked directly into client applications, so need
       # to see symbols decorated with __declspec(dllimport).
-      ['_target_name in ["base_prefs_test_support", "net_test_support", "sandbox_static", "test_support_content"]', {
+      ['_target_name in ["base_prefs_test_support", "net_test_support", "sandbox_static", "test_support_base", "test_support_content"]', {
         'defines!': [
           'BASE_IMPLEMENTATION',
           'CONTENT_IMPLEMENTATION',
