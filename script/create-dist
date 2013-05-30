@@ -74,6 +74,7 @@ INCLUDE_DIRS = [
     'testing/gtest/include',
     'third_party/WebKit/Source/Platform/chromium/public',
     'third_party/WebKit/Source/WebKit/chromium/public',
+    'third_party/WebKit/public',
     'third_party/skia/include',
     'ui/base',
     'ui/gfx',
