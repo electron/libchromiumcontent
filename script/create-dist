@@ -74,15 +74,11 @@ INCLUDE_DIRS = [
     'testing/gtest/include',
     'third_party/WebKit/Source/Platform/chromium/public',
     'third_party/WebKit/Source/WebKit/chromium/public',
+    'third_party/WebKit/public',
     'third_party/skia/include',
-    'ui/base',
-    'ui/gfx',
-    'ui/shell_dialogs',
-    'ui/surface',
+    'ui',
     'v8/include',
-    'webkit/glue',
-    'webkit/plugins',
-    'webkit/user_agent',
+    'webkit',
 ]
 OTHER_HEADERS = [
     'chrome/browser/ui/cocoa/event_utils.h',
