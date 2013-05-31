@@ -67,6 +67,7 @@ SYMBOLS = {
 INCLUDE_DIRS = [
     'base',
     'build',
+    'cc',
     'content/public',
     'googleurl/src',
     'ipc',
