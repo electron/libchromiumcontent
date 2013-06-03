@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import contextlib
 import glob
 import os
 import subprocess
@@ -16,30 +17,93 @@ PATCH_PY = os.path.join(VENDOR_DIR, 'python-patch', 'patch.py')
 
 
 def main():
-    if apply_patches():
+    error, check_clean = apply_patches()
+    if error:
+        return error
+    if not check_clean:
         return
+    return ensure_clean_tree()
+
+
+def apply_patches():
+    """Returns a 2-tuple (error, check_clean). Error is truthy if an error
+    occurred. check_clean is truthy if applying patches succeeded but the tree
+    should be checked to ensure no other files are modified."""
+
+    error = do_apply_patches()
+    if not error:
+        return False, True
+
     sys.stderr.write('Patches failed to apply. '
                      'Reverting changes and trying again.\n')
     sys.stderr.flush()
     revert_changes()
-    apply_patches()
+    return do_apply_patches(), False
 
 
-def apply_patches():
+def do_apply_patches():
     args = [sys.executable, PATCH_PY, '--directory', SRC_DIR, '--quiet']
     for patch in glob.glob(os.path.join(PATCHES_DIR, '*.patch')):
-        retcode = subprocess.call(args + [patch])
-        if retcode:
-            return False
-    return True
+        if subprocess.call(args + [patch]):
+            return '{0} failed to apply'.format(os.path.basename(patch))
 
 
 def revert_changes():
     gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.py')
-    cwd = os.getcwd()
-    os.chdir(CHROMIUM_DIR)
-    try:
+    with scoped_cwd(CHROMIUM_DIR):
         subprocess.check_call([sys.executable, gclient, 'revert'])
+
+
+def ensure_clean_tree():
+    error = do_ensure_clean_tree()
+    if not error:
+        return
+    sys.stderr.write(error)
+    sys.stderr.write('\nReverting changes and trying again.\n')
+    sys.stderr.flush()
+    revert_changes()
+    return do_apply_patches()
+
+
+def do_ensure_clean_tree():
+    expected = list(paths_affected_by_patches())
+    for modified_path in modified_paths():
+        # The paths we get back from modified_paths() might be relative to a
+        # subdirectory of SRC_DIR, while the paths from
+        # paths_affected_by_patches() are relative to SRC_DIR itself. So we can
+        # only check for a .endswith() relationship rather than checking for
+        # equality.
+        if any(p for p in expected if p.endswith(modified_path)):
+            continue
+        return "{0} is modified but shouldn't be".format(modified_path)
+
+
+def modified_paths():
+    gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.py')
+    with scoped_cwd(SRC_DIR):
+        output = subprocess.check_output([sys.executable, gclient, 'status'])
+    for line in output.splitlines():
+        if '>M' not in line:
+            continue
+        # The modified path is the last space-separated token on the line.
+        yield line.strip().split()[-1].replace(os.path.sep, '/')
+
+
+def paths_affected_by_patches():
+    for patch in glob.glob(os.path.join(PATCHES_DIR, '*.patch')):
+        with open(patch) as f:
+            for line in f:
+                if not line.startswith('+++ '):
+                    continue
+                yield line.split()[1]
+
+
+@contextlib.contextmanager
+def scoped_cwd(path):
+    cwd = os.getcwd()
+    os.chdir(path)
+    try:
+        yield
     finally:
         os.chdir(cwd)
 
