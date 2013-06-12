@@ -101,11 +101,11 @@ def copy_gyp_files():
 
 
 def apply_patches():
-  # Applying patches can invoke gclient, which in turn can invoke gyp, so make
-  # sure we have our gyp environment set.
-  ensure_nacl_disabled()
+    # Applying patches can invoke gclient, which in turn can invoke gyp, so make
+    # sure we have our gyp environment set.
+    ensure_nacl_disabled()
 
-  subprocess.check_call([sys.executable, os.path.join(SOURCE_ROOT, 'script', 'apply-patches')])
+    subprocess.check_call([sys.executable, os.path.join(SOURCE_ROOT, 'script', 'apply-patches')])
 
 
 def run_gyp():
