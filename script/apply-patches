@@ -81,7 +81,8 @@ def do_ensure_clean_tree():
 def modified_paths():
     gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.py')
     with scoped_cwd(SRC_DIR):
-        output = subprocess.check_output([sys.executable, gclient, 'status'])
+        output = subprocess.Popen([sys.executable, gclient, 'status'],
+                                  stdout=subprocess.PIPE).communicate()[0]
     for line in output.splitlines():
         if '>M' not in line:
             continue
