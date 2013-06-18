@@ -94,6 +94,7 @@ INCLUDE_DIRS = [
     'webkit',
 ]
 OTHER_HEADERS = [
+    'chrome/browser/net/sqlite_persistent_cookie_store.h',
     'chrome/browser/ui/cocoa/event_utils.h',
     'chrome/browser/ui/cocoa/menu_controller.h',
     'content/common/content_export.h',
