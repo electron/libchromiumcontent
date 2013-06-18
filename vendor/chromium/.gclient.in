@@ -12,13 +12,12 @@ solutions = [
       #"component": "https://svnserver/component/trunk/",
       # To exclude a component from your working copy:
       #"data/really_large_component": None,
-      "src/third_party/WebKit/LayoutTests": None,
-      "src/chrome_frame/tools/test/reference_build/chrome_win": None,
-      "src/chrome/test/data/perf/canvas_bench": None,
-      "src/chrome/test/data/perf/frame_rate/content": None,
-      "src/chrome/tools/test/reference_build/chrome_mac": None,
+      "src/content/test/data/layout_tests/LayoutTests": None,
       "src/chrome/tools/test/reference_build/chrome_win": None,
+      "src/chrome_frame/tools/test/reference_build/chrome_win": None,
       "src/chrome/tools/test/reference_build/chrome_linux": None,
-    }
-  }
+      "src/chrome/tools/test/reference_build/chrome_mac": None,
+      "src/third_party/hunspell_dictionaries": None,
+    },
+  },
 ]
