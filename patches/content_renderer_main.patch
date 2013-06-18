@@ -1,0 +1,13 @@
+diff --git a/content/renderer/renderer_main.cc b/content/renderer/renderer_main.cc
+index e82712c..887b3ed 100644
+--- a/content/renderer/renderer_main.cc
++++ b/content/renderer/renderer_main.cc
+@@ -208,7 +208,7 @@ int RendererMain(const MainFunctionParams& parameters) {
+     if (!no_sandbox) {
+       run_loop = platform.EnableSandbox();
+     } else {
+-      LOG(ERROR) << "Running without renderer sandbox";
++      LOG(INFO) << "Renderer process started";
+ #ifndef NDEBUG
+       // For convenience, we print the stack traces for crashes.  When sandbox
+       // is enabled, the in-process stack dumping is enabled as part of the
