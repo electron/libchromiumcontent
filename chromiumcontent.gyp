@@ -67,6 +67,9 @@
     {
       'target_name': 'browser_net',
       'type': 'static_library',
+      'defines': [
+        'CONTENT_IMPLEMENTATION',
+      ],
       'sources': [
         '<(DEPTH)/chrome/browser/net/clear_on_exit_policy.cc',
         '<(DEPTH)/chrome/browser/net/clear_on_exit_policy.h',
