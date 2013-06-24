@@ -126,6 +126,11 @@
           },
         },
       }],
+      ['_target_name in ["skia_opts", "skia_opts_ssse3"]', {
+        'defines': [
+          'SK_ENABLE_INST_COUNT=0',
+        ],
+      }],
     ],
   },
 }
