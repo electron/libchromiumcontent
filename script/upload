@@ -12,11 +12,13 @@ S3PUT = {
     'darwin': ['s3put'],
     'win32': [sys.executable, os.path.join(os.path.dirname(sys.executable),
                                            'Scripts', 's3put')],
+    'cygwin': ['s3put'],
 }[sys.platform]
 
 PLATFORM_KEY = {
     'darwin': 'osx',
     'win32': 'win',
+    'cygwin': 'win',
 }[sys.platform]
 
 

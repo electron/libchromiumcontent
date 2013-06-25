@@ -81,7 +81,7 @@ def do_ensure_clean_tree():
 def modified_paths():
     gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.py')
     with scoped_cwd(SRC_DIR):
-        output = subprocess.check_output([sys.executable, gclient, 'status'])
+        output = check_output([sys.executable, gclient, 'status'])
     for line in output.splitlines():
         if '>M' not in line:
             continue
@@ -106,6 +106,21 @@ def scoped_cwd(path):
         yield
     finally:
         os.chdir(cwd)
+
+
+def check_output(*popenargs, **kwargs):
+    """Resembles subprocess.check_output but can work under python2.6."""
+
+    process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
+    output = process.communicate()[0]
+    if process.returncode:
+        cmd = kwargs.get("args")
+        if cmd is None:
+            cmd = popenargs[0]
+        error = subprocess.CalledProcessError(process.returncode, cmd)
+        error.output = output
+        raise error
+    return output
 
 
 if __name__ == '__main__':
