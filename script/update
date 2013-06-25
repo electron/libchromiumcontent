@@ -15,9 +15,10 @@ CHROMIUMCONTENT_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
 
 
 def main():
-    # When running under cygwin, we force running this script under standard
-    # win32 console by executing the script with the python binary shipped with
-    # Chromium (this tip comes from gyp_chromium script).
+    # When running under cygwin, we force executing this script with the
+    # standard win32 python binary shipped with Chromium, so it could run under
+    # Windows console environment, which is required for installing and using
+    # Windows toolchains (this tip comes from gyp_chromium script).
     if sys.platform == 'cygwin':
         python_dir = os.path.join(SRC_DIR, 'third_party', 'python_26')
         env = os.environ.copy()
