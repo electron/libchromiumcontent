@@ -17,8 +17,9 @@ if sys.platform == 'win32':
 
 
 def main():
+    os.chdir(SOURCE_ROOT)
     for config in CONFIGURATIONS:
-        config_dir = os.path.join(OUT_DIR, config)
+        config_dir = os.path.relpath(os.path.join(OUT_DIR, config))
         subprocess.check_call([NINJA, '-C', config_dir] + TARGETS)
 
 

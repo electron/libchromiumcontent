@@ -15,6 +15,20 @@ CHROMIUMCONTENT_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
 
 
 def main():
+    # When running under cygwin, we force executing this script with the
+    # standard win32 python binary shipped with Chromium, so it could run under
+    # Windows console environment, which is required for installing and using
+    # Windows toolchains (this tip comes from gyp_chromium script).
+    if sys.platform == 'cygwin':
+        python_dir = os.path.join(SRC_DIR, 'third_party', 'python_26')
+        env = os.environ.copy()
+        env['PATH'] = python_dir + os.pathsep + env.get('PATH', '')
+        p = subprocess.Popen(
+           [os.path.join(python_dir, 'python.exe')] + sys.argv,
+           env=env, shell=False)
+        p.communicate()
+        return p.returncode
+
     gclient_sync()
     install_win_toolchain()
     import_win_environment()
@@ -88,11 +102,11 @@ def copy_gyp_files():
 
 
 def apply_patches():
-  # Applying patches can invoke gclient, which in turn can invoke gyp, so make
-  # sure we have our gyp environment set.
-  ensure_nacl_disabled()
+    # Applying patches can invoke gclient, which in turn can invoke gyp, so make
+    # sure we have our gyp environment set.
+    ensure_nacl_disabled()
 
-  subprocess.check_call([sys.executable, os.path.join(SOURCE_ROOT, 'script', 'apply-patches')])
+    subprocess.check_call([sys.executable, os.path.join(SOURCE_ROOT, 'script', 'apply-patches')])
 
 
 def run_gyp():
