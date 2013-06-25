@@ -23,7 +23,7 @@ DIST_SRC_DIR = os.path.join(MAIN_DIR, 'src')
 # separately.
 SYMBOLS_DIR = os.path.join(DIST_DIR, 'symbols')
 
-PLATFORM = {
+TARGET_PLATFORM = {
     'darwin': 'darwin',
     'win32': 'win32',
     'cygwin': 'win32',
@@ -116,7 +116,7 @@ def copy_binaries():
         config_dir = os.path.join(MAIN_DIR, config)
         mkdir_p(config_dir)
 
-        for binary in BINARIES['all'] + BINARIES[PLATFORM]:
+        for binary in BINARIES['all'] + BINARIES[TARGET_PLATFORM]:
             shutil.copy2(os.path.join(OUT_DIR, config, binary), config_dir)
 
 
@@ -146,7 +146,7 @@ def copy_symbols():
         config_dir = os.path.join(SYMBOLS_DIR, config)
         mkdir_p(config_dir)
 
-        for path in SYMBOLS[PLATFORM]:
+        for path in SYMBOLS[TARGET_PLATFORM]:
             shutil.copy2(os.path.join(OUT_DIR, config, path), config_dir)
 
     if sys.platform != 'darwin':
