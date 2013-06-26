@@ -10,6 +10,7 @@
       'conditions': [
         ['OS=="win"', {
           'dependencies': [
+            '<(DEPTH)/components/components.gyp:encryptor',
             '<(DEPTH)/sandbox/sandbox.gyp:sandbox_static',
           ],
         }],
