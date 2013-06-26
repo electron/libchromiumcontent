@@ -85,6 +85,15 @@
         'GCC_INLINES_ARE_PRIVATE_EXTERN': 'NO',
         'GCC_SYMBOLS_PRIVATE_EXTERN': 'NO',
       },
+      'link_settings': {
+        'msvs_settings': {
+          'VCLinkerTool': {
+            'AdditionalOptions': [
+              '/EXPORT:??0SQLitePersistentCookieStore@@QAE@ABVFilePath@base@@ABV?$$scoped_refptr@VSequencedTaskRunner@base@@@@1_NPAVClearOnExitPolicy@@@Z',
+            ],
+          },
+        },
+      },
     },
     {
       'target_name': 'test_support_chromiumcontent',
