@@ -29,6 +29,7 @@ def main():
         p.communicate()
         return p.returncode
 
+    write_dot_gclient()
     gclient_sync()
     install_win_toolchain()
     import_win_environment()
@@ -36,6 +37,21 @@ def main():
     copy_gyp_files()
     run_gyp()
     install_win_tool_wrapper()
+
+
+def write_dot_gclient():
+    template = os.path.join(CHROMIUM_DIR, '.gclient.in')
+    destination = os.path.join(CHROMIUM_DIR, '.gclient')
+    version = chromium_version()
+    with open(template) as t:
+        with open(destination, 'w') as d:
+            for line in t:
+                d.write(line.replace('{{VERSION}}', version))
+
+
+def chromium_version():
+    with open(os.path.join(SOURCE_ROOT, 'VERSION')) as f:
+        return f.readline().strip()
 
 
 def gclient_sync():
