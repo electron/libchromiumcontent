@@ -29,6 +29,7 @@ def main():
         p.communicate()
         return p.returncode
 
+    write_dot_gclient()
     gclient_sync()
     install_win_toolchain()
     import_win_environment()
@@ -38,12 +39,26 @@ def main():
     install_win_tool_wrapper()
 
 
+def write_dot_gclient():
+    template = os.path.join(CHROMIUM_DIR, '.gclient.in')
+    destination = os.path.join(CHROMIUM_DIR, '.gclient')
+    version = chromium_version()
+    with open(template) as t:
+        with open(destination, 'w') as d:
+            for line in t:
+                d.write(line.replace('{{VERSION}}', version))
+
+
+def chromium_version():
+    with open(os.path.join(SOURCE_ROOT, 'VERSION')) as f:
+        return f.readline().strip()
+
+
 def gclient_sync():
     ensure_nacl_disabled()
     gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.py')
     os.chdir(CHROMIUM_DIR)
-    subprocess.check_call([sys.executable, gclient, 'sync', '--revision',
-                           'src@{0}'.format(chromium_revision())])
+    subprocess.check_call([sys.executable, gclient, 'sync'])
 
 
 def ensure_nacl_disabled():
@@ -52,13 +67,6 @@ def ensure_nacl_disabled():
     if 'disable_nacl=1' in os.environ.get('GYP_DEFINES', ''):
         return
     os.environ['GYP_DEFINES'] = ' '.join(['disable_nacl=1', os.environ.get('GYP_DEFINES', '')])
-
-
-def chromium_revision():
-    with open(os.path.join(SOURCE_ROOT, 'VERSION'), 'r') as f:
-        [key, value] = f.readline().strip().split('=')
-        assert key == 'CHROMIUM_REVISION'
-        return value
 
 
 def install_win_toolchain():
