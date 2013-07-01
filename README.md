@@ -24,7 +24,7 @@ TODO
 
 ### Updating project files
 
-If you change `VERSION` to point to a different Chromium revision, or modify
+If you change `VERSION` to point to a different Chromium release, or modify
 `chromiumcontent.gyp{,i}`, you should run:
 
     $ script/update
