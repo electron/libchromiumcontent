@@ -29,6 +29,9 @@
           'sources': [
             '<(DEPTH)/base/win/dllmain.cc',
           ],
+          'dependencies': [
+            '<(DEPTH)/ui/views/views.gyp:views',
+          ],
           'configurations': {
             'Common_Base': {
               'msvs_settings': {
