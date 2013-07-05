@@ -31,6 +31,7 @@
           ],
           'dependencies': [
             '<(DEPTH)/ui/views/views.gyp:views',
+            '<(DEPTH)/ui/views/controls/webview/webview.gyp:webview',
           ],
           'configurations': {
             'Common_Base': {
