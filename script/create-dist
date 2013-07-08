@@ -83,7 +83,7 @@ INCLUDE_DIRS = [
     'net',
     'sandbox',
     'skia/ext',
-    'testing/gtest/include',
+    'testing',
     'third_party/WebKit/Source/Platform/chromium/public',
     'third_party/WebKit/Source/WebKit/chromium/public',
     'third_party/WebKit/public',
