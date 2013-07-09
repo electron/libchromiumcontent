@@ -17,7 +17,6 @@
       'CC_IMPLEMENTATION',
       'COMPILER_IMPLEMENTATION',
       'COMPONENT_BUILD',
-      'COMPOSITOR_IMPLEMENTATION',
       'CONTENT_IMPLEMENTATION',
       'CRYPTO_IMPLEMENTATION',
       'GL_IMPLEMENTATION',
@@ -49,8 +48,6 @@
       'U_UTF8_IMPL',
       'UI_IMPLEMENTATION',
       'V8_SHARED',
-      'VIEWS_IMPLEMENTATION',
-      'WEB_DIALOGS_IMPLEMENTATION',
       'WEBKIT_BASE_IMPLEMENTATION',
       'WEBKIT_COMPOSITOR_BINDINGS_IMPLEMENTATION',
       'WEBKIT_GLUE_IMPLEMENTATION',
@@ -59,7 +56,6 @@
       'WEBKIT_STORAGE_IMPLEMENTATION',
       'WEBKIT_USER_AGENT_IMPLEMENTATION',
       'WEBORIGIN_IMPLEMENTATION',
-      'WEBVIEW_IMPLEMENTATION',
       'WTF_IMPLEMENTATION',
     ],
     'defines!': [
@@ -113,6 +109,12 @@
         ],
       }],
       ['_target_name in ["compositor", "views", "webview", "web_dialogs"]', {
+        'defines': [
+          'COMPOSITOR_IMPLEMENTATION',
+          'VIEWS_IMPLEMENTATION',
+          'WEBVIEW_IMPLEMENTATION',
+          'WEB_DIALOGS_IMPLEMENTATION',
+        ],
         'defines!': [
           'BASE_IMPLEMENTATION',
           'CC_IMPLEMENTATION',
