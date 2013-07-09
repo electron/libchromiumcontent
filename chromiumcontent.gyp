@@ -10,7 +10,7 @@
       'conditions': [
         ['OS=="win"', {
           'dependencies': [
-            'views_chromiumcontent',
+            'chromiumviews',
             '<(DEPTH)/components/components.gyp:encryptor',
             '<(DEPTH)/sandbox/sandbox.gyp:sandbox_static',
           ],
@@ -133,7 +133,7 @@
     ['OS=="win"', {
       'targets': [
         {
-          'target_name': 'views_chromiumcontent',
+          'target_name': 'chromiumviews',
           'type': 'none',
           'dependencies': [
             '<(DEPTH)/ui/views/controls/webview/webview.gyp:webview',
@@ -141,7 +141,7 @@
           ],
           'actions': [
             {
-              'action_name': 'Create views_chromiumcontent.lib',
+              'action_name': 'Create chromiumviews.lib',
               'inputs': [
                 '<(PRODUCT_DIR)\\obj\\third_party\\iaccessible2\\iaccessible2.lib',
                 '<(PRODUCT_DIR)\\obj\\ui\\compositor\\compositor.lib',
@@ -150,14 +150,14 @@
                 '<(PRODUCT_DIR)\\obj\\ui\\web_dialogs\\web_dialogs.lib',
               ],
               'outputs': [
-                '<(PRODUCT_DIR)\\views_chromiumcontent.lib',
+                '<(PRODUCT_DIR)\\chromiumviews.lib',
               ],
               'action': [
                 'lib.exe',
                 '/nologo',
                 # We can't use <(_outputs) here because that escapes the
                 # backslash in the path, which confuses lib.exe.
-                '/OUT:<(PRODUCT_DIR)\\views_chromiumcontent.lib',
+                '/OUT:<(PRODUCT_DIR)\\chromiumviews.lib',
                 '<@(_inputs)',
               ],
               'msvs_cygwin_shell': 0,

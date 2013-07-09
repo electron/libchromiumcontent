@@ -42,11 +42,11 @@ BINARIES = {
     'win32': [
         'chromiumcontent.dll',
         'chromiumcontent.dll.lib',
+        'chromiumviews.lib',
         'ffmpegsumo.dll',
         'icudt.dll',
         'libGLESv2.dll',
         'test_support_chromiumcontent.lib',
-        'views_chromiumcontent.lib',
         os.path.join('obj', 'base', 'base_static.lib'),
         os.path.join('obj', 'base', 'base_static.pdb'),
         os.path.join('obj', 'base', 'test_support_base.pdb'),
