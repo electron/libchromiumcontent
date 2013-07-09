@@ -42,6 +42,7 @@ BINARIES = {
     'win32': [
         'chromiumcontent.dll',
         'chromiumcontent.dll.lib',
+        'chromiumviews.lib',
         'ffmpegsumo.dll',
         'icudt.dll',
         'libGLESv2.dll',
