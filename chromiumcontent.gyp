@@ -10,6 +10,7 @@
       'conditions': [
         ['OS=="win"', {
           'dependencies': [
+            'views_chromiumcontent',
             '<(DEPTH)/components/components.gyp:encryptor',
             '<(DEPTH)/sandbox/sandbox.gyp:sandbox_static',
           ],
@@ -28,10 +29,6 @@
         ['OS=="win"', {
           'sources': [
             '<(DEPTH)/base/win/dllmain.cc',
-          ],
-          'dependencies': [
-            '<(DEPTH)/ui/views/views.gyp:views',
-            '<(DEPTH)/ui/views/controls/webview/webview.gyp:webview',
           ],
           'configurations': {
             'Common_Base': {
@@ -133,6 +130,42 @@
     },
   ],
   'conditions': [
+    ['OS=="win"', {
+      'targets': [
+        {
+          'target_name': 'views_chromiumcontent',
+          'type': 'none',
+          'dependencies': [
+            '<(DEPTH)/ui/views/controls/webview/webview.gyp:webview',
+            '<(DEPTH)/ui/views/views.gyp:views',
+          ],
+          'actions': [
+            {
+              'action_name': 'Create views_chromiumcontent.lib',
+              'inputs': [
+                '<(PRODUCT_DIR)\\obj\\third_party\\iaccessible2\\iaccessible2.lib',
+                '<(PRODUCT_DIR)\\obj\\ui\\compositor\\compositor.lib',
+                '<(PRODUCT_DIR)\\obj\\ui\\views\\views.lib',
+                '<(PRODUCT_DIR)\\obj\\ui\\views\\controls\\webview\\webview.lib',
+                '<(PRODUCT_DIR)\\obj\\ui\\web_dialogs\\web_dialogs.lib',
+              ],
+              'outputs': [
+                '<(PRODUCT_DIR)\\views_chromiumcontent.lib',
+              ],
+              'action': [
+                'lib.exe',
+                '/nologo',
+                # We can't use <(_outputs) here because that escapes the
+                # backslash in the path, which confuses lib.exe.
+                '/OUT:<(PRODUCT_DIR)\\views_chromiumcontent.lib',
+                '<@(_inputs)',
+              ],
+              'msvs_cygwin_shell': 0,
+            },
+          ],
+        },
+      ],
+    }],
     ['OS=="mac"', {
       'targets': [
         {
