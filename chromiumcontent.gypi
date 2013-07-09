@@ -17,6 +17,7 @@
       'CC_IMPLEMENTATION',
       'COMPILER_IMPLEMENTATION',
       'COMPONENT_BUILD',
+      'CONTENT_IMPLEMENTATION',
       'CRYPTO_IMPLEMENTATION',
       'GL_IMPLEMENTATION',
       'GLES2_C_LIB_IMPLEMENTATION',
@@ -105,6 +106,23 @@
           'BASE_IMPLEMENTATION',
           'CONTENT_IMPLEMENTATION',
           'NET_IMPLEMENTATION',
+        ],
+      }],
+      ['_target_name in ["compositor", "views", "webview", "web_dialogs"]', {
+        'defines': [
+          'COMPOSITOR_IMPLEMENTATION',
+          'VIEWS_IMPLEMENTATION',
+          'WEBVIEW_IMPLEMENTATION',
+          'WEB_DIALOGS_IMPLEMENTATION',
+        ],
+        'defines!': [
+          'BASE_IMPLEMENTATION',
+          'CC_IMPLEMENTATION',
+          'CONTENT_IMPLEMENTATION',
+          'GL_IMPLEMENTATION',
+          'IPC_IMPLEMENTATION',
+          'SKIA_IMPLEMENTATION',
+          'UI_IMPLEMENTATION',
         ],
       }],
       ['_target_name in ["v8", "v8_snapshot", "v8_shell", "preparser_lib"] or "v8_nosnapshot." in _target_name or "v8_base." in _target_name or "mksnapshot." in _target_name', {
