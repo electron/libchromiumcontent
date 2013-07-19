@@ -56,7 +56,7 @@ def ensure_nacl_disabled():
 
 
 def install_win_toolchain():
-    if sys.platform != 'win32' and sys.platform != 'cygwin':
+    if sys.platform not in ['win32', 'cygwin']:
         return
 
     target_dir = os.path.join(SOURCE_ROOT, 'win_toolchain')
@@ -76,7 +76,7 @@ def install_win_toolchain():
 
 
 def import_win_environment():
-    if sys.platform != 'win32' and sys.platform != 'cygwin':
+    if sys.platform not in ['win32', 'cygwin']:
         return
 
     env_bat = os.path.join(SOURCE_ROOT, 'win_toolchain', 'env.bat')
@@ -130,7 +130,7 @@ def run_gyp():
 
 
 def install_win_tool_wrapper():
-    if sys.platform != 'win32' and sys.platform != 'cygwin':
+    if sys.platform not in ['win32', 'cygwin']:
         return
     for config in ['Debug', 'Release']:
         config_dir = os.path.join(SRC_DIR, 'out', config)
