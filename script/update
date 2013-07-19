@@ -63,16 +63,10 @@ def install_win_toolchain():
     if os.path.isdir(target_dir):
         return
 
-    python = sys.executable
-    if sys.platform == 'cygwin':
-      # toolchain.py doesn't support running under cygwin, execute it with win32
-      # python.
-      python = os.path.join(SRC_DIR, 'third_party', 'python_26', 'python.exe')
-
-    subprocess.check_call([python,
+    subprocess.check_call([chromium_python_path(),
                            os.path.join(os.path.relpath(SRC_DIR), 'tools',
                                         'win', 'toolchain', 'toolchain.py'),
-                           '--targetdir', target_dir])
+                           '--targetdir', os.path.relpath(target_dir)])
 
 
 def import_win_environment():
@@ -119,11 +113,15 @@ def run_gyp():
     REL_SRC_DIR = os.path.relpath(SRC_DIR)
     REL_CHROMIUMCONTENT_DIR = os.path.relpath(CHROMIUMCONTENT_DIR)
 
+    python = sys.executable
+    if sys.platform in ['win32', 'cygwin']:
+      python = chromium_python_path()
+
     # gyp_chromium is executed with win32 python shipped by chromium, so it can
     # not understand POSIX-style paths, to make it work we pass must relative
     # paths to it.
     gyp = os.path.join(REL_SRC_DIR, 'build', 'gyp_chromium')
-    subprocess.check_call([sys.executable, gyp, '-Ichromiumcontent.gypi',
+    subprocess.check_call([python, gyp, '-Ichromiumcontent.gypi',
                            '--depth', REL_SRC_DIR,
                            os.path.join(REL_CHROMIUMCONTENT_DIR,
                                         'chromiumcontent.gyp')])
@@ -137,6 +135,12 @@ def install_win_tool_wrapper():
         win_tool = os.path.join(config_dir, 'gyp-win-tool')
         shutil.move(win_tool, '{0}-original'.format(win_tool))
         shutil.copy(os.path.join(SOURCE_ROOT, 'gyp-win-tool-wrapper'), win_tool)
+
+
+def chromium_python_path():
+    """Returns the win32 python shipped by Chromium."""
+
+    return os.path.join(SRC_DIR, 'third_party', 'python_26', 'python.exe')
 
 
 if __name__ == '__main__':
