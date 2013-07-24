@@ -44,6 +44,11 @@ def gclient_sync():
     ensure_nacl_disabled()
     gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.py')
     os.chdir(CHROMIUM_DIR)
+    if subprocess.call([sys.executable, gclient, 'sync']) == 0:
+      return
+    sys.stderr.write('gclient sync failed. Reverting changes and trying again.\n')
+    sys.stderr.flush()
+    subprocess.check_call([sys.executable, gclient, 'revert'])
     subprocess.check_call([sys.executable, gclient, 'sync'])
 
 
