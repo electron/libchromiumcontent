@@ -1,13 +1,17 @@
 {
   'variables': {
-    # Chrome turns this off for component builds, and we need to too. Leaving
-    # it on would result in both the Debug and Release CRTs being included in
-    # the library.
-    'win_use_allocator_shim': 0,
+    'conditions': [
+      ['OS=="win"', {
+        # Chrome turns this off for component builds, and we need to too. Leaving
+        # it on would result in both the Debug and Release CRTs being included in
+        # the library.
+        'win_use_allocator_shim': 0,
 
-    'win_release_RuntimeLibrary': '2', # 2 = /MD (nondebug DLL)
-    'win_debug_RuntimeLibrary': '3',   # 3 = /MDd (debug DLL)
-  },
+        'win_release_RuntimeLibrary': '2', # 2 = /MD (nondebug DLL)
+        'win_debug_RuntimeLibrary': '3',   # 3 = /MDd (debug DLL)
+      }],
+    ],
+  }
   'target_defaults': {
     'defines': [
       'BASE_I18N_IMPLEMENTATION',
