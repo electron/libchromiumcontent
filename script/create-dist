@@ -74,6 +74,9 @@ SYMBOLS = {
         # OS X has a more complicated symbol creation process. See
         # create_dsym() and copy_symbols().
     ],
+    'linux': [
+        # We don't generate symbols on Linux yet.
+    ],
     'win32': [
         'ffmpegsumo.dll.pdb',
         'chromiumcontent.dll.pdb',
