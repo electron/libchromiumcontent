@@ -24,9 +24,10 @@ DIST_SRC_DIR = os.path.join(MAIN_DIR, 'src')
 SYMBOLS_DIR = os.path.join(DIST_DIR, 'symbols')
 
 TARGET_PLATFORM = {
-    'darwin': 'darwin',
-    'win32': 'win32',
     'cygwin': 'win32',
+    'darwin': 'darwin',
+    'linux2': 'linux',
+    'win32': 'win32',
 }[sys.platform]
 
 CONFIGURATIONS = ['Debug', 'Release']
@@ -38,6 +39,10 @@ BINARIES = {
         'ffmpegsumo.so',
         'libchromiumcontent.dylib',
         'libtest_support_chromiumcontent.a',
+    ],
+    'linux': [
+        'libffmpegsumo.so',
+        os.path.join('lib', 'libchromiumcontent.so'),
     ],
     'win32': [
         'chromiumcontent.dll',
