@@ -11,7 +11,7 @@
         'win_debug_RuntimeLibrary': '3',   # 3 = /MDd (debug DLL)
       }],
     ],
-  }
+  },
   'target_defaults': {
     'defines': [
       'BASE_I18N_IMPLEMENTATION',
