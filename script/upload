@@ -65,6 +65,7 @@ def upload():
         args = [
             's3cmd',
             'put',
+            '--config', '/dev/null',
             '--access_key', access_key,
             '--secret_key', secret_key,
             '--acl-public',
