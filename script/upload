@@ -39,7 +39,7 @@ def ensure_s3put():
 
     output = ''
     try:
-        output = subprocess.check_output(S3PUT + ['--help'])
+        output = command_output(S3PUT + ['--help'])
     except OSError as e:
         if e.errno != errno.ENOENT:
             raise
@@ -59,7 +59,7 @@ def ensure_s3put():
 def upload():
     os.chdir(SOURCE_ROOT)
     bucket, access_key, secret_key = s3_config()
-    commit = subprocess.check_output(['git', 'rev-parse', 'HEAD']).strip()
+    commit = command_output(['git', 'rev-parse', 'HEAD']).strip()
 
     if sys.platform == 'linux2':
         args = [
@@ -94,6 +94,14 @@ def s3_config():
                '$LIBCHROMIUMCONTENT_S3_SECRET_KEY environment variables')
     assert all(len(c) for c in config), message
     return config
+
+
+def command_output(args):
+    process = subprocess.Popen(args, stdout=subprocess.PIPE)
+    output = process.communicate()[0]
+    if process.returncode != 0:
+        raise subprocess.CalledProcessError(process.returncode, args)
+    return output
 
 
 def clean_up():
