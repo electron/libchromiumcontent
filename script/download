@@ -119,39 +119,3 @@ def rm_rf(path):
 
 if __name__ == '__main__':
     sys.exit(main())
-
-
-#VERSION_FILE="${DESTINATION}/.version"
-#
-#TEMP_DIR=$(mktemp -d -t libchromiumcontent-download.XXXXXX)
-#trap "rm -rf \"${TEMP_DIR}\"" EXIT
-#
-## See if we've already downloaded this version.
-#test "${COMMIT}" = "$(cat "${VERSION_FILE}" 2>/dev/null)" || {
-#  if [ -e "${DESTINATION}" ] && [ "${FORCE}" != "1" ]; then
-#    echo >&2 "Error: ${DESTINATION} already exists. Pass -f if you want to overwrite it."
-#    exit 1
-#  fi
-#
-#  echo "Downloading libchromiumcontent ${COMMIT}..."
-#  curl --progress-bar "${BASE_URL}/${COMMIT}/libchromiumcontent.zip" > "${TEMP_DIR}/libchromiumcontent.zip"
-#
-#  echo "Extracting libchromiumcontent ${COMMIT}..."
-#  mkdir -p "${TEMP_DIR}/extracted"
-#  unzip -q "${TEMP_DIR}/libchromiumcontent.zip" -d "${TEMP_DIR}/extracted"
-#
-#  # Move it into place.
-#  rm -rf "${DESTINATION}"
-#  mkdir -p "${DESTINATION}"
-#  mv "${TEMP_DIR}"/extracted/* "${DESTINATION}"
-#  echo "${COMMIT}" > "${VERSION_FILE}"
-#}
-#
-#if [ "${SYMBOLS}" != "1" ]; then
-#  exit 0
-#fi
-#
-#echo "Downloading symbols for libchromiumcontent ${COMMIT}..."
-#curl --progress-bar "${BASE_URL}/${COMMIT}/libchromiumcontent-symbols.zip" > "${TEMP_DIR}/libchromiumcontent-symbols.zip"
-#echo "Extracting symbols for libchromiumcontent ${COMMIT}..."
-#unzip -q "${TEMP_DIR}/libchromiumcontent-symbols.zip" -d "${DESTINATION}"
