@@ -9,12 +9,9 @@ import sys
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 S3PUT = {
-    'cygwin': ['s3put'],
-    'darwin': ['s3put'],
-    'linux2': [], # We don't use s3put on Linux.
     'win32': [sys.executable, os.path.join(os.path.dirname(sys.executable),
                                            'Scripts', 's3put')],
-}[sys.platform]
+}.get(sys.platform, ['s3put'])
 
 PLATFORM_KEY = {
     'cygwin': 'win',
@@ -61,27 +58,15 @@ def upload():
     bucket, access_key, secret_key = s3_config()
     commit = command_output(['git', 'rev-parse', 'HEAD']).strip()
 
-    if sys.platform == 'linux2':
-        args = [
-            's3cmd',
-            'put',
-            '--config', '/dev/null',
-            '--access_key', access_key,
-            '--secret_key', secret_key,
-            '--acl-public',
-        ] + glob.glob('libchromiumcontent*.zip') + [
-            's3://{0}/libchromiumcontent/{1}/{2}/'.format(bucket, PLATFORM_KEY, commit),
-        ]
-    else:
-        args = S3PUT + [
-            '--bucket', bucket,
-            '--access_key', access_key,
-            '--secret_key', secret_key,
-            '--prefix', SOURCE_ROOT,
-            '--key_prefix', 'libchromiumcontent/{0}/{1}'.format(PLATFORM_KEY, commit),
-            '--grant', 'public-read',
-            '--multipart'
-        ] + glob.glob('libchromiumcontent*.zip')
+    args = S3PUT + [
+        '--bucket', bucket,
+        '--access_key', access_key,
+        '--secret_key', secret_key,
+        '--prefix', SOURCE_ROOT,
+        '--key_prefix', 'libchromiumcontent/{0}/{1}'.format(PLATFORM_KEY, commit),
+        '--grant', 'public-read',
+        '--multipart'
+    ] + glob.glob('libchromiumcontent*.zip')
 
     subprocess.check_call(args)
 
