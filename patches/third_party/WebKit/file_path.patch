@@ -1,0 +1,12 @@
+diff --git a/Source/core/fileapi/File.idl b/Source/core/fileapi/File.idl
+index c338fa2..446fd31 100644
+--- a/Source/core/fileapi/File.idl
++++ b/Source/core/fileapi/File.idl
+@@ -28,6 +28,7 @@
+     Exposed=(Window,Worker),
+ ] interface File : Blob {
+     readonly attribute DOMString name;
++    readonly attribute DOMString path;
+     [MeasureAs=FileGetLastModifiedDate] readonly attribute Date lastModifiedDate;
+     readonly attribute long long lastModified;
+     [MeasureAs=PrefixedFileRelativePath] readonly attribute DOMString webkitRelativePath;
