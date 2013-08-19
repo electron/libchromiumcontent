@@ -1,0 +1,12 @@
+diff --git a/third_party/WebKit/Source/core/fileapi/File.idl b/third_party/WebKit/Source/core/fileapi/File.idl
+index 666b073..afc7de8 100644
+--- a/third_party/WebKit/Source/core/fileapi/File.idl
++++ b/third_party/WebKit/Source/core/fileapi/File.idl
+@@ -33,6 +33,7 @@
+     Exposed=(Window,Worker),
+ ] interface File : Blob {
+     readonly attribute DOMString name;
++    readonly attribute DOMString path;
+     readonly attribute long long lastModified;
+ 
+     // Non-standard APIs
