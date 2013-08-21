@@ -15,14 +15,14 @@ CHROMIUMCONTENT_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
 
 
 def main():
-    write_dot_gclient()
-    gclient_sync()
-    install_win_toolchain()
-    import_win_environment()
-    apply_patches()
-    copy_gyp_files()
-    run_gyp()
-    install_win_tool_wrapper()
+    return (write_dot_gclient() or
+            gclient_sync() or
+            install_win_toolchain() or
+            import_win_environment() or
+            apply_patches() or
+            copy_gyp_files() or
+            run_gyp() or
+            install_win_tool_wrapper())
 
 
 def write_dot_gclient():
@@ -48,8 +48,8 @@ def gclient_sync():
       return
     sys.stderr.write('gclient sync failed. Reverting changes and trying again.\n')
     sys.stderr.flush()
-    subprocess.check_call([sys.executable, gclient, 'revert'])
-    subprocess.check_call([sys.executable, gclient, 'sync'])
+    return (subprocess.call([sys.executable, gclient, 'revert']) or
+            subprocess.call([sys.executable, gclient, 'sync']))
 
 
 def ensure_nacl_disabled():
@@ -68,10 +68,10 @@ def install_win_toolchain():
     if os.path.isdir(target_dir):
         return
 
-    subprocess.check_call([chromium_python_path(),
-                           os.path.join(os.path.relpath(SRC_DIR), 'tools',
-                                        'win', 'toolchain', 'toolchain.py'),
-                           '--targetdir', os.path.relpath(target_dir)])
+    return subprocess.call([chromium_python_path(),
+                            os.path.join(os.path.relpath(SRC_DIR), 'tools',
+                                         'win', 'toolchain', 'toolchain.py'),
+                            '--targetdir', os.path.relpath(target_dir)])
 
 
 def import_win_environment():
@@ -107,7 +107,7 @@ def apply_patches():
     # sure we have our gyp environment set.
     ensure_nacl_disabled()
 
-    subprocess.check_call([sys.executable, os.path.join(SOURCE_ROOT, 'script', 'apply-patches')])
+    return subprocess.call([sys.executable, os.path.join(SOURCE_ROOT, 'script', 'apply-patches')])
 
 
 def run_gyp():
@@ -126,10 +126,10 @@ def run_gyp():
     # not understand POSIX-style paths, to make it work we pass must relative
     # paths to it.
     gyp = os.path.join(REL_SRC_DIR, 'build', 'gyp_chromium')
-    subprocess.check_call([python, gyp, '-Ichromiumcontent.gypi',
-                           '--depth', REL_SRC_DIR,
-                           os.path.join(REL_CHROMIUMCONTENT_DIR,
-                                        'chromiumcontent.gyp')])
+    return subprocess.call([python, gyp, '-Ichromiumcontent.gypi',
+                            '--depth', REL_SRC_DIR,
+                            os.path.join(REL_CHROMIUMCONTENT_DIR,
+                                         'chromiumcontent.gyp')])
 
 
 def install_win_tool_wrapper():
