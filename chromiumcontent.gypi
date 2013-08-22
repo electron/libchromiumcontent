@@ -126,6 +126,7 @@
           'IPC_IMPLEMENTATION',
           'SKIA_IMPLEMENTATION',
           'UI_IMPLEMENTATION',
+          'URL_IMPLEMENTATION',
         ],
       }],
       ['_target_name in ["v8", "v8_snapshot", "v8_shell", "preparser_lib"] or "v8_nosnapshot." in _target_name or "v8_base." in _target_name or "mksnapshot." in _target_name', {
