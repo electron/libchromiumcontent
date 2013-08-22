@@ -2,25 +2,25 @@ Index: v8/include/v8.h
 ===================================================================
 --- v8/include/v8.h	(revision 14861)
 +++ v8/include/v8.h	(working copy)
-@@ -4118,7 +4118,7 @@
+@@ -4168,7 +4168,7 @@
   * be performed.
   */
  class V8EXPORT AssertNoGCScope {
 -#ifndef DEBUG
 +#ifdef NDEBUG
-   V8_INLINE(AssertNoGCScope(Isolate* isolate)) {}
+   // TODO(yangguo): remove isolate argument.
+   V8_INLINE(AssertNoGCScope(Isolate* isolate)) { }
  #else
-   AssertNoGCScope(Isolate* isolate);
 Index: v8/src/api.cc
 ===================================================================
 --- v8/src/api.cc	(revision 14861)
 +++ v8/src/api.cc	(working copy)
-@@ -6279,7 +6279,7 @@
+@@ -6411,7 +6411,7 @@
  }
  
  
 -#ifdef DEBUG
 +#ifndef NDEBUG
- v8::AssertNoGCScope::AssertNoGCScope(v8::Isolate* isolate)
-   : isolate_(isolate),
-     last_state_(i::EnterAllocationScope(
+ v8::AssertNoGCScope::AssertNoGCScope(v8::Isolate* isolate) {
+   disallow_heap_allocation_ = new i::DisallowHeapAllocation();
+ }
