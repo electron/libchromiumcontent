@@ -9,18 +9,19 @@ Index: webkit/plugins/ppapi/content_decryptor_delegate.cc
 +ContentDecryptorDelegate::~ContentDecryptorDelegate() {
 +}
 +
- void ContentDecryptorDelegate::SetKeyEventCallbacks(
-     const media::KeyAddedCB& key_added_cb,
-     const media::KeyErrorCB& key_error_cb,
+ void ContentDecryptorDelegate::Initialize(const std::string& key_system) {
+   // TODO(ddorwin): Add an Initialize method to PPP_ContentDecryptor_Private.
+   DCHECK(!key_system.empty());
+   key_system_ = key_system;
 Index: webkit/plugins/ppapi/content_decryptor_delegate.h
 ===================================================================
 --- webkit/plugins/ppapi/content_decryptor_delegate.h	(revision 194718)
 +++ webkit/plugins/ppapi/content_decryptor_delegate.h	(working copy)
-@@ -37,6 +37,7 @@
+@@ -38,6 +38,7 @@
    ContentDecryptorDelegate(
        PP_Instance pp_instance,
        const PPP_ContentDecryptor_Private* plugin_decryption_interface);
 +  ~ContentDecryptorDelegate();
  
-   void SetKeyEventCallbacks(const media::KeyAddedCB& key_added_cb,
-                             const media::KeyErrorCB& key_error_cb,
+   void Initialize(const std::string& key_system);
+

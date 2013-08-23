@@ -106,12 +106,11 @@ INCLUDE_DIRS = [
     'third_party/skia/include',
     'third_party/wtl/include',
     'ui',
+    'url',
     'v8/include',
     'webkit',
 ]
 OTHER_HEADERS = [
-    'chrome/browser/ui/cocoa/event_utils.h',
-    'chrome/browser/ui/cocoa/menu_controller.h',
     'content/common/content_export.h',
 ]
 OTHER_SOURCES = [

@@ -86,7 +86,13 @@ def modified_paths():
         if '>M' not in line:
             continue
         # The modified path is the last space-separated token on the line.
-        yield line.strip().split()[-1].replace(os.path.sep, '/')
+        path = line.strip().split()[-1].replace(os.path.sep, '/')
+
+        # Hack our way around http://crbug.com/278135.
+        if path == 'src/common/version.h' or path.startswith('src/libGLESv2/'):
+          continue
+
+        yield path
 
 
 def paths_affected_by_patches():

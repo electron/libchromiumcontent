@@ -12,7 +12,7 @@ Index: cc/resources/resource_update.h
  #include "ui/gfx/vector2d.h"
  
  class SkBitmap;
- class SkPicture;
 -class SkCanvas;
  
  namespace cc {
+
