@@ -101,6 +101,7 @@
           'BASE_IMPLEMENTATION',
           'CONTENT_IMPLEMENTATION',
           'NET_IMPLEMENTATION',
+          'URL_IMPLEMENTATION',
         ],
       }],
       ['_target_name in ["compositor", "views", "webview", "web_dialogs"]', {
