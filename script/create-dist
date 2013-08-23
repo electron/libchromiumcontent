@@ -93,7 +93,6 @@ INCLUDE_DIRS = [
     'cc',
     'components/webdata/encryptor',
     'content/public',
-    'googleurl/src',
     'ipc',
     'net',
     'sandbox',
@@ -106,6 +105,7 @@ INCLUDE_DIRS = [
     'third_party/skia/include',
     'third_party/wtl/include',
     'ui',
+    'url',
     'v8/include',
     'webkit',
 ]
