@@ -1,0 +1,12 @@
+diff --git a/net/url_request/url_request_job.h b/net/url_request/url_request_job.h
+index ceb71f5..0cfe1cc 100644
+--- a/net/url_request/url_request_job.h
++++ b/net/url_request/url_request_job.h
+@@ -291,6 +291,7 @@ class NET_EXPORT URLRequestJob
+   void OnCallToDelegate();
+   void OnCallToDelegateComplete();
+ 
++ public:
+   // Called to read raw (pre-filtered) data from this Job.
+   // If returning true, data was read from the job.  buf will contain
+   // the data, and bytes_read will receive the number of bytes read.
