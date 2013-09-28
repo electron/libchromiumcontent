@@ -48,6 +48,7 @@
         '<(DEPTH)/content/content.gyp:content',
         '<(DEPTH)/content/content.gyp:content_app_both',
         '<(DEPTH)/content/content.gyp:content_shell_pak',
+        '<(DEPTH)/net/net.gyp:net_with_v8',
       ],
       'sources': [
         'empty.cc',
