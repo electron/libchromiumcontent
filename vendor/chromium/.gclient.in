@@ -19,8 +19,5 @@ solutions = [
       "src/chrome/tools/test/reference_build/chrome_mac": None,
       "src/third_party/hunspell_dictionaries": None,
     },
-    "custom_vars" : {
-      "jsoncpp": "http://svn.code.sf.net/p/jsoncpp/code",
-    },
   },
 ]
