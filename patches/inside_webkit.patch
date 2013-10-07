@@ -1218,6 +1218,19 @@ Index: third_party/WebKit/public/web/WebArrayBufferView.h
      WebArrayBufferView(const WTF::PassRefPtr<WTF::ArrayBufferView>&);
      WebArrayBufferView& operator=(const WTF::PassRefPtr<WTF::ArrayBufferView>&);
      operator WTF::PassRefPtr<WTF::ArrayBufferView>() const;
+Index: third_party/WebKit/public/platform/WebArrayBuffer.h
+===================================================================
+--- third_party/WebKit/public/platform/WebArrayBuffer.h	(revision 155959)
++++ third_party/WebKit/public/platform/WebArrayBuffer.h	(working copy)
+@@ -67,7 +67,7 @@
+     WEBKIT_EXPORT v8::Handle<v8::Value> toV8Value();
+     WEBKIT_EXPORT static WebArrayBuffer* createFromV8Value(v8::Handle<v8::Value>);
+ 
+-#if WEBKIT_IMPLEMENTATION
++#if INSIDE_WEBKIT
+     WebArrayBuffer(const WTF::PassRefPtr<WTF::ArrayBuffer>&);
+     WebArrayBuffer& operator=(const PassRefPtr<WTF::ArrayBuffer>&);
+     operator WTF::PassRefPtr<WTF::ArrayBuffer>() const;
 Index: third_party/WebKit/public/web/WebSecurityOrigin.h
 ===================================================================
 --- third_party/WebKit/public/web/WebSecurityOrigin.h	(revision 155959)
