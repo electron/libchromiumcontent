@@ -1,7 +1,7 @@
-Index: third_party/icu/public/common/unicode/utf8.h
+Index: third_party/icu/source/common/unicode/utf8.h
 ===================================================================
---- third_party/icu/public/common/unicode/utf8.h	(revision 192960)
-+++ third_party/icu/public/common/unicode/utf8.h	(working copy)
+--- third_party/icu/source/common/unicode/utf8.h	(revision 192960)
++++ third_party/icu/source/common/unicode/utf8.h	(working copy)
 @@ -53,7 +53,7 @@
   * @internal
   */
@@ -11,10 +11,10 @@ Index: third_party/icu/public/common/unicode/utf8.h
  #elif defined(U_STATIC_IMPLEMENTATION) || defined(U_COMMON_IMPLEMENTATION)
  U_CFUNC const uint8_t
  #else
-Index: third_party/icu/public/common/unicode/utypes.h
+Index: third_party/icu/source/common/unicode/utypes.h
 ===================================================================
---- third_party/icu/public/common/unicode/utypes.h	(revision 192960)
-+++ third_party/icu/public/common/unicode/utypes.h	(working copy)
+--- third_party/icu/source/common/unicode/utypes.h	(revision 192960)
++++ third_party/icu/source/common/unicode/utypes.h	(working copy)
 @@ -374,6 +374,14 @@
   */
  
