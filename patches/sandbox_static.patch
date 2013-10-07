@@ -2,8 +2,8 @@ Index: sandbox/win/sandbox_win.gypi
 ===================================================================
 --- sandbox/win/sandbox_win.gypi	(revision 194718)
 +++ sandbox/win/sandbox_win.gypi	(working copy)
-@@ -200,6 +200,21 @@
-       },
+@@ -204,6 +204,21 @@
+       ],
      },
      {
 +      'target_name': 'sandbox_static',
