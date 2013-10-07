@@ -68,6 +68,37 @@ Index: third_party/WebKit/public/platform/WebIDBKeyPath.h
      WebIDBKeyPath(const WebCore::IDBKeyPath&);
      WebIDBKeyPath& operator=(const WebCore::IDBKeyPath&);
      operator const WebCore::IDBKeyPath&() const;
+Index: third_party/WebKit/public/platform/WebCryptoAlgorithm.h
+===================================================================
+--- third_party/WebKit/public/platform/WebCryptoAlgorithm.h	(revision 158213)
++++ third_party/WebKit/public/platform/WebCryptoAlgorithm.h	(working copy)
+@@ -34,7 +34,7 @@
+ #include "WebCommon.h"
+ #include "WebPrivatePtr.h"
+ 
+-#if WEBKIT_IMPLEMENTATION
++#if INSIDE_WEBKIT
+ #include "wtf/PassOwnPtr.h"
+ #endif
+ 
+@@ -49,7 +49,7 @@
+     WebCryptoAlgorithmIdSha256,
+     WebCryptoAlgorithmIdSha384,
+     WebCryptoAlgorithmIdSha512,
+-#if WEBKIT_IMPLEMENTATION
++#if INSIDE_WEBKIT
+     NumberOfWebCryptoAlgorithmId,
+ #endif
+ };
+@@ -78,7 +78,7 @@
+ //   * Copiable (cheaply)
+ class WebCryptoAlgorithm {
+ public:
+-#if WEBKIT_IMPLEMENTATION
++#if INSIDE_WEBKIT
+     WebCryptoAlgorithm() { }
+     WebCryptoAlgorithm(WebCryptoAlgorithmId, const char* name, PassOwnPtr<WebCryptoAlgorithmParams>);
+ #endif
 Index: third_party/WebKit/public/platform/WebWorkerRunLoop.h
 ===================================================================
 --- third_party/WebKit/public/platform/WebWorkerRunLoop.h	(revision 155959)
@@ -391,6 +422,19 @@ Index: third_party/WebKit/public/platform/WebRTCSessionDescription.h
      WebRTCSessionDescription(WebString type, WebString sdp)
      {
          this->initialize(type, sdp);
+Index: third_party/WebKit/public/platform/WebDeviceOrientationData.h
+===================================================================
+--- third_party/WebKit/public/platform/WebDeviceOrientationData.h	(revision 158213)
++++ third_party/WebKit/public/platform/WebDeviceOrientationData.h	(working copy)
+@@ -56,7 +56,7 @@
+     bool allAvailableSensorsAreActive : 1;
+ };
+ 
+-#if WEBKIT_IMPLEMENTATION
++#if INSIDE_WEBKIT
+ #include "wtf/Assertions.h"
+ 
+ COMPILE_ASSERT(sizeof(WebDeviceOrientationData) == (3 * sizeof(double) + 1 * sizeof(char)), WebDeviceOrientationData_has_wrong_size);
 Index: third_party/WebKit/public/platform/WebIDBKey.h
 ===================================================================
 --- third_party/WebKit/public/platform/WebIDBKey.h	(revision 155959)
@@ -1676,6 +1720,19 @@ Index: third_party/WebKit/public/web/WebSelectElement.h
      WebSelectElement(const WTF::PassRefPtr<WebCore::HTMLSelectElement>&);
      WebSelectElement& operator=(const WTF::PassRefPtr<WebCore::HTMLSelectElement>&);
      operator WTF::PassRefPtr<WebCore::HTMLSelectElement>() const;
+Index: third_party/WebKit/public/web/WebMIDIPermissionRequest.h
+===================================================================
+--- third_party/WebKit/public/web/WebMIDIPermissionRequest.h	(revision 158213)
++++ third_party/WebKit/public/web/WebMIDIPermissionRequest.h	(working copy)
+@@ -59,7 +59,7 @@
+     WEBKIT_EXPORT void assign(const WebMIDIPermissionRequest&);
+     WEBKIT_EXPORT bool equals(const WebMIDIPermissionRequest&) const;
+ 
+-#if WEBKIT_IMPLEMENTATION
++#if INSIDE_WEBKIT
+     explicit WebMIDIPermissionRequest(const PassRefPtr<WebCore::MIDIAccess>&);
+     explicit WebMIDIPermissionRequest(WebCore::MIDIAccess*);
+ #endif
 Index: third_party/WebKit/public/web/WebWindowFeatures.h
 ===================================================================
 --- third_party/WebKit/public/web/WebWindowFeatures.h	(revision 155959)
