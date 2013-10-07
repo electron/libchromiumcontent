@@ -59,7 +59,7 @@ Index: third_party/WebKit/public/platform/WebIDBKeyPath.h
 ===================================================================
 --- third_party/WebKit/public/platform/WebIDBKeyPath.h	(revision 155959)
 +++ third_party/WebKit/public/platform/WebIDBKeyPath.h	(working copy)
-@@ -63,7 +63,7 @@
+@@ -58,7 +58,7 @@
      WEBKIT_EXPORT WebVector<WebString> array() const; // Only valid for ArrayType.
      WEBKIT_EXPORT WebString string() const; // Only valid for StringType.
  
@@ -68,11 +68,42 @@ Index: third_party/WebKit/public/platform/WebIDBKeyPath.h
      WebIDBKeyPath(const WebCore::IDBKeyPath&);
      WebIDBKeyPath& operator=(const WebCore::IDBKeyPath&);
      operator const WebCore::IDBKeyPath&() const;
+Index: third_party/WebKit/public/platform/WebCryptoAlgorithm.h
+===================================================================
+--- third_party/WebKit/public/platform/WebCryptoAlgorithm.h	(revision 158213)
++++ third_party/WebKit/public/platform/WebCryptoAlgorithm.h	(working copy)
+@@ -34,7 +34,7 @@
+ #include "WebCommon.h"
+ #include "WebPrivatePtr.h"
+ 
+-#if WEBKIT_IMPLEMENTATION
++#if INSIDE_WEBKIT
+ #include "wtf/PassOwnPtr.h"
+ #endif
+ 
+@@ -49,7 +49,7 @@
+     WebCryptoAlgorithmIdSha256,
+     WebCryptoAlgorithmIdSha384,
+     WebCryptoAlgorithmIdSha512,
+-#if WEBKIT_IMPLEMENTATION
++#if INSIDE_WEBKIT
+     NumberOfWebCryptoAlgorithmId,
+ #endif
+ };
+@@ -78,7 +78,7 @@
+ //   * Copiable (cheaply)
+ class WebCryptoAlgorithm {
+ public:
+-#if WEBKIT_IMPLEMENTATION
++#if INSIDE_WEBKIT
+     WebCryptoAlgorithm() { }
+     WebCryptoAlgorithm(WebCryptoAlgorithmId, const char* name, PassOwnPtr<WebCryptoAlgorithmParams>);
+ #endif
 Index: third_party/WebKit/public/platform/WebWorkerRunLoop.h
 ===================================================================
 --- third_party/WebKit/public/platform/WebWorkerRunLoop.h	(revision 155959)
 +++ third_party/WebKit/public/platform/WebWorkerRunLoop.h	(working copy)
-@@ -44,7 +44,7 @@
+@@ -46,7 +46,7 @@
      WEBKIT_EXPORT bool equals(const WebWorkerRunLoop&) const;
      WEBKIT_EXPORT bool lessThan(const WebWorkerRunLoop&) const;
  
@@ -91,7 +122,7 @@ Index: third_party/WebKit/public/platform/WebScrollbarThemePainter.h
  
 -#if WEBKIT_IMPLEMENTATION
 +#if INSIDE_WEBKIT
-     WebScrollbarThemePainter(WebCore::ScrollbarThemeComposite*, WebCore::Scrollbar*);
+     WebScrollbarThemePainter(WebCore::ScrollbarTheme*, WebCore::Scrollbar*);
  #endif
  
 Index: third_party/WebKit/public/platform/WebHTTPLoadInfo.h
@@ -183,7 +214,7 @@ Index: third_party/WebKit/public/platform/WebImage.h
 +++ third_party/WebKit/public/platform/WebImage.h	(working copy)
 @@ -36,7 +36,7 @@
  
- #include <SkBitmap.h>
+ #include "third_party/skia/include/core/SkBitmap.h"
  
 -#if WEBKIT_IMPLEMENTATION
 +#if INSIDE_WEBKIT
@@ -216,26 +247,13 @@ Index: third_party/WebKit/public/platform/WebIDBDatabaseError.h
 ===================================================================
 --- third_party/WebKit/public/platform/WebIDBDatabaseError.h	(revision 155959)
 +++ third_party/WebKit/public/platform/WebIDBDatabaseError.h	(working copy)
-@@ -57,7 +57,7 @@
-     WEBKIT_EXPORT unsigned short code() const;
-     WEBKIT_EXPORT WebString message() const;
+@@ -54,7 +54,7 @@
+     WEBKIT_EXPORT void assign(const WebIDBDatabaseError&);
+     WEBKIT_EXPORT void reset();
  
 -#if WEBKIT_IMPLEMENTATION
 +#if INSIDE_WEBKIT
-     WebIDBDatabaseError(const WTF::PassRefPtr<WebCore::IDBDatabaseError>&);
-     WebIDBDatabaseError& operator=(const WTF::PassRefPtr<WebCore::IDBDatabaseError>&);
-     operator WTF::PassRefPtr<WebCore::IDBDatabaseError>() const;
-Index: third_party/WebKit/public/platform/WebMediaStreamSourcesRequest.h
-===================================================================
---- third_party/WebKit/public/platform/WebMediaStreamSourcesRequest.h	(revision 155959)
-+++ third_party/WebKit/public/platform/WebMediaStreamSourcesRequest.h	(working copy)
-@@ -55,7 +55,7 @@
- 
-     WEBKIT_EXPORT void didCompleteQuery(const WebVector<WebMediaStreamSource>& audioSources, const WebVector<WebMediaStreamSource>& videoSources) const;
- 
--#if WEBKIT_IMPLEMENTATION
-+#if INSIDE_WEBKIT
-     WebMediaStreamSourcesRequest(const WTF::PassRefPtr<WebCore::MediaStreamSourcesQueryClient>&);
+     operator WTF::PassRefPtr<WebCore::DOMError>() const;
  #endif
  
 Index: third_party/WebKit/public/platform/WebSize.h
@@ -299,7 +317,7 @@ Index: third_party/WebKit/public/platform/WebMediaStream.h
 ===================================================================
 --- third_party/WebKit/public/platform/WebMediaStream.h	(revision 155959)
 +++ third_party/WebKit/public/platform/WebMediaStream.h	(working copy)
-@@ -90,7 +90,7 @@
+@@ -80,7 +80,7 @@
      WEBKIT_EXPORT ExtraData* extraData() const;
      WEBKIT_EXPORT void setExtraData(ExtraData*);
  
@@ -404,11 +422,24 @@ Index: third_party/WebKit/public/platform/WebRTCSessionDescription.h
      WebRTCSessionDescription(WebString type, WebString sdp)
      {
          this->initialize(type, sdp);
+Index: third_party/WebKit/public/platform/WebDeviceOrientationData.h
+===================================================================
+--- third_party/WebKit/public/platform/WebDeviceOrientationData.h	(revision 158213)
++++ third_party/WebKit/public/platform/WebDeviceOrientationData.h	(working copy)
+@@ -56,7 +56,7 @@
+     bool allAvailableSensorsAreActive : 1;
+ };
+ 
+-#if WEBKIT_IMPLEMENTATION
++#if INSIDE_WEBKIT
+ #include "wtf/Assertions.h"
+ 
+ COMPILE_ASSERT(sizeof(WebDeviceOrientationData) == (3 * sizeof(double) + 1 * sizeof(char)), WebDeviceOrientationData_has_wrong_size);
 Index: third_party/WebKit/public/platform/WebIDBKey.h
 ===================================================================
 --- third_party/WebKit/public/platform/WebIDBKey.h	(revision 155959)
 +++ third_party/WebKit/public/platform/WebIDBKey.h	(working copy)
-@@ -81,7 +81,7 @@
+@@ -72,7 +72,7 @@
      WEBKIT_EXPORT double date() const; // Only valid for DateType.
      WEBKIT_EXPORT double number() const; // Only valid for NumberType.
  
@@ -429,8 +460,8 @@ Index: third_party/WebKit/public/platform/WebData.h
 +#if INSIDE_WEBKIT
  namespace WebCore { class SharedBuffer; }
  namespace WTF { template <typename T> class PassRefPtr; }
- #endif
-@@ -81,7 +81,7 @@
+ namespace WTF { template <typename T> class RefPtr; }
+@@ -82,7 +82,7 @@
      bool isEmpty() const { return !size(); }
      bool isNull() const { return !m_private; }
  
@@ -693,8 +724,8 @@ Index: third_party/WebKit/public/platform/WebURL.h
 ===================================================================
 --- third_party/WebKit/public/platform/WebURL.h	(revision 155959)
 +++ third_party/WebKit/public/platform/WebURL.h	(working copy)
-@@ -34,7 +34,7 @@
- #include "WebCString.h"
+@@ -35,7 +35,7 @@
+ #include "WebString.h"
  #include <url/url_parse.h>
  
 -#if WEBKIT_IMPLEMENTATION
@@ -702,8 +733,8 @@ Index: third_party/WebKit/public/platform/WebURL.h
  namespace WebCore { class KURL; }
  #else
  #include <url/gurl.h>
-@@ -106,7 +106,7 @@
-         return m_spec.isEmpty();
+@@ -101,7 +101,7 @@
+         return m_string.isEmpty();
      }
  
 -#if WEBKIT_IMPLEMENTATION
@@ -725,7 +756,7 @@ Index: third_party/WebKit/public/platform/WebAudioBus.h
  #endif
  
 @@ -62,7 +62,7 @@
-     
+ 
      WEBKIT_EXPORT float* channelData(unsigned channelIndex);
  
 -#if WEBKIT_IMPLEMENTATION
@@ -737,7 +768,7 @@ Index: third_party/WebKit/public/platform/WebCommon.h
 ===================================================================
 --- third_party/WebKit/public/platform/WebCommon.h	(revision 155959)
 +++ third_party/WebKit/public/platform/WebCommon.h	(working copy)
-@@ -100,7 +100,7 @@
+@@ -106,7 +106,7 @@
  
  } // namespace WebKit
  
@@ -863,15 +894,15 @@ Index: third_party/WebKit/public/platform/WebDeviceMotionData.h
 ===================================================================
 --- third_party/WebKit/public/platform/WebDeviceMotionData.h	(revision 155959)
 +++ third_party/WebKit/public/platform/WebDeviceMotionData.h	(working copy)
-@@ -69,7 +69,7 @@
-     bool hasRotationRateGamma : 1;
+@@ -71,7 +71,7 @@
+     bool allAvailableSensorsAreActive : 1;
  };
  
 -#if WEBKIT_IMPLEMENTATION
 +#if INSIDE_WEBKIT
- COMPILE_ASSERT(sizeof(WebDeviceMotionData) == (10 * sizeof(double) + 2 * sizeof(char)), WebDeviceMotionData_has_wrong_size);
- #endif
+ #include "wtf/Assertions.h"
  
+ COMPILE_ASSERT(sizeof(WebDeviceMotionData) == (10 * sizeof(double) + 2 * sizeof(char)), WebDeviceMotionData_has_wrong_size);
 Index: third_party/WebKit/public/platform/WebFloatQuad.h
 ===================================================================
 --- third_party/WebKit/public/platform/WebFloatQuad.h	(revision 155959)
@@ -1056,28 +1087,6 @@ Index: third_party/WebKit/public/web/WebDOMEventListener.h
      void notifyEventListenerDeleted(EventListenerWrapper*);
      EventListenerWrapper* createEventListenerWrapper(const WebString& eventType, bool useCapture, WebCore::EventTarget*);
      EventListenerWrapper* getEventListenerWrapper(const WebString& eventType, bool useCapture, WebCore::EventTarget*);
-Index: third_party/WebKit/public/web/WebTextFieldDecoratorClient.h
-===================================================================
---- third_party/WebKit/public/web/WebTextFieldDecoratorClient.h	(revision 155959)
-+++ third_party/WebKit/public/web/WebTextFieldDecoratorClient.h	(working copy)
-@@ -33,7 +33,7 @@
- 
- #include "../platform/WebCString.h"
- 
--#if WEBKIT_IMPLEMENTATION
-+#if INSIDE_WEBKIT
- namespace WebCore { class TextFieldDecorator; }
- #endif
- 
-@@ -73,7 +73,7 @@
-     // state of WebKit objects.
-     virtual void willDetach(const WebInputElement&) = 0;
- 
--#if WEBKIT_IMPLEMENTATION
-+#if INSIDE_WEBKIT
-     bool isClientFor(WebCore::TextFieldDecorator*);
- #endif
- 
 Index: third_party/WebKit/public/web/WebDOMMutationEvent.h
 ===================================================================
 --- third_party/WebKit/public/web/WebDOMMutationEvent.h	(revision 155959)
@@ -1101,7 +1110,7 @@ Index: third_party/WebKit/public/web/WebCachedURLRequest.h
  
 -#if WEBKIT_IMPLEMENTATION
 +#if INSIDE_WEBKIT
-     explicit WebCachedURLRequest(WebCore::CachedResourceRequest*);
+     explicit WebCachedURLRequest(WebCore::FetchRequest*);
  #endif
  
 Index: third_party/WebKit/public/web/WebDatabase.h
@@ -1156,7 +1165,7 @@ Index: third_party/WebKit/public/web/WebDocument.h
 ===================================================================
 --- third_party/WebKit/public/web/WebDocument.h	(revision 155959)
 +++ third_party/WebKit/public/web/WebDocument.h	(working copy)
-@@ -37,7 +37,7 @@
+@@ -38,7 +38,7 @@
  #include "WebNode.h"
  #include "WebSecurityOrigin.h"
  
@@ -1165,9 +1174,9 @@ Index: third_party/WebKit/public/web/WebDocument.h
  namespace WebCore {
  class Document;
  class DocumentType;
-@@ -125,7 +125,7 @@
+@@ -138,7 +138,7 @@
  
-     WEBKIT_EXPORT WebVector<WebDraggableRegion> draggableRegions() const;
+     WEBKIT_EXPORT v8::Handle<v8::Value> registerEmbedderCustomElement(const WebString& name, v8::Handle<v8::Value> options, WebExceptionCode&);
  
 -#if WEBKIT_IMPLEMENTATION
 +#if INSIDE_WEBKIT
@@ -1253,10 +1262,10 @@ Index: third_party/WebKit/public/web/WebArrayBufferView.h
      WebArrayBufferView(const WTF::PassRefPtr<WTF::ArrayBufferView>&);
      WebArrayBufferView& operator=(const WTF::PassRefPtr<WTF::ArrayBufferView>&);
      operator WTF::PassRefPtr<WTF::ArrayBufferView>() const;
-Index: third_party/WebKit/public/web/WebArrayBuffer.h
+Index: third_party/WebKit/public/platform/WebArrayBuffer.h
 ===================================================================
---- third_party/WebKit/public/web/WebArrayBuffer.h	(revision 155959)
-+++ third_party/WebKit/public/web/WebArrayBuffer.h	(working copy)
+--- third_party/WebKit/public/platform/WebArrayBuffer.h	(revision 155959)
++++ third_party/WebKit/public/platform/WebArrayBuffer.h	(working copy)
 @@ -67,7 +67,7 @@
      WEBKIT_EXPORT v8::Handle<v8::Value> toV8Value();
      WEBKIT_EXPORT static WebArrayBuffer* createFromV8Value(v8::Handle<v8::Value>);
@@ -1340,8 +1349,8 @@ Index: third_party/WebKit/public/web/WebElement.h
 ===================================================================
 --- third_party/WebKit/public/web/WebElement.h	(revision 155959)
 +++ third_party/WebKit/public/web/WebElement.h	(working copy)
-@@ -33,7 +33,7 @@
- 
+@@ -34,7 +34,7 @@
+ #include "../platform/WebImage.h"
  #include "WebNode.h"
  
 -#if WEBKIT_IMPLEMENTATION
@@ -1349,9 +1358,9 @@ Index: third_party/WebKit/public/web/WebElement.h
  namespace WebCore { class Element; }
  #endif
  
-@@ -84,7 +84,7 @@
-         // This function will update the layout if required.
-         WEBKIT_EXPORT WebRect boundsInViewportSpace();
+@@ -89,7 +89,7 @@
+         // if there isn't any.
+         WEBKIT_EXPORT WebImage imageContents();
  
 -#if WEBKIT_IMPLEMENTATION
 +#if INSIDE_WEBKIT
@@ -1384,8 +1393,8 @@ Index: third_party/WebKit/public/web/WebUserGestureToken.h
 ===================================================================
 --- third_party/WebKit/public/web/WebUserGestureToken.h	(revision 155959)
 +++ third_party/WebKit/public/web/WebUserGestureToken.h	(working copy)
-@@ -56,7 +56,7 @@
-     WEBKIT_EXPORT bool hasGestures() const;
+@@ -58,7 +58,7 @@
+     WEBKIT_EXPORT void setJavascriptPrompt();
      bool isNull() const { return m_token.isNull(); }
  
 -#if WEBKIT_IMPLEMENTATION
@@ -1546,9 +1555,9 @@ Index: third_party/WebKit/public/web/WebInputElement.h
  namespace WebCore { class HTMLInputElement; }
  #endif
  
-@@ -116,7 +116,7 @@
-         // Return the decoration added by the specified decorator if one exists.
-         WEBKIT_EXPORT WebElement decorationElementFor(WebTextFieldDecoratorClient*);
+@@ -115,7 +115,7 @@
+         WEBKIT_EXPORT WebElement decorationElementFor(void*);
+         WEBKIT_EXPORT WebElement passwordGeneratorButtonElement() const;
  
 -#if WEBKIT_IMPLEMENTATION
 +#if INSIDE_WEBKIT
@@ -1673,7 +1682,7 @@ Index: third_party/WebKit/public/web/WebNode.h
 ===================================================================
 --- third_party/WebKit/public/web/WebNode.h	(revision 155959)
 +++ third_party/WebKit/public/web/WebNode.h	(working copy)
-@@ -138,13 +138,13 @@
+@@ -137,13 +137,13 @@
          return res;
      }
  
@@ -1711,6 +1720,19 @@ Index: third_party/WebKit/public/web/WebSelectElement.h
      WebSelectElement(const WTF::PassRefPtr<WebCore::HTMLSelectElement>&);
      WebSelectElement& operator=(const WTF::PassRefPtr<WebCore::HTMLSelectElement>&);
      operator WTF::PassRefPtr<WebCore::HTMLSelectElement>() const;
+Index: third_party/WebKit/public/web/WebMIDIPermissionRequest.h
+===================================================================
+--- third_party/WebKit/public/web/WebMIDIPermissionRequest.h	(revision 158213)
++++ third_party/WebKit/public/web/WebMIDIPermissionRequest.h	(working copy)
+@@ -59,7 +59,7 @@
+     WEBKIT_EXPORT void assign(const WebMIDIPermissionRequest&);
+     WEBKIT_EXPORT bool equals(const WebMIDIPermissionRequest&) const;
+ 
+-#if WEBKIT_IMPLEMENTATION
++#if INSIDE_WEBKIT
+     explicit WebMIDIPermissionRequest(const PassRefPtr<WebCore::MIDIAccess>&);
+     explicit WebMIDIPermissionRequest(WebCore::MIDIAccess*);
+ #endif
 Index: third_party/WebKit/public/web/WebWindowFeatures.h
 ===================================================================
 --- third_party/WebKit/public/web/WebWindowFeatures.h	(revision 155959)
