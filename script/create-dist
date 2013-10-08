@@ -93,7 +93,6 @@ INCLUDE_DIRS = [
     'cc',
     'components/webdata/encryptor',
     'content/public',
-    'googleurl/src',
     'ipc',
     'net',
     'sandbox',
