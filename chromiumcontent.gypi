@@ -1,5 +1,7 @@
 {
   'variables': {
+    # We're not using Chromium's clang, so we can't use their plugins either.
+    'clang_use_chrome_plugins': 0,
     'conditions': [
       ['OS=="win"', {
         # Chrome turns this off for component builds, and we need to too. Leaving
@@ -82,6 +84,12 @@
       'VCCLCompilerTool': {
         'ExceptionHandling': '1',  # /EHsc
       },
+    },
+    'xcode_settings': {
+      'WARNING_CFLAGS!': [
+        # Xcode 5 doesn't support -Wno-deprecated-register.
+        '-Wno-deprecated-register',
+      ],
     },
     'target_conditions': [
       ['_target_name=="base"', {
