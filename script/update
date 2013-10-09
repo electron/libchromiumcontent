@@ -114,6 +114,13 @@ def run_gyp():
     ensure_nacl_disabled()
     os.environ['GYP_GENERATORS'] = 'ninja'
 
+    if sys.platform == 'darwin':
+        # Use Xcode's own clang instead of Chromium's. This matches what embedding
+        # applications will use, reducing the risk of bugs due to version
+        # mismatches.
+        os.environ['CC_target'] = 'clang'
+        os.environ['CXX_target'] = 'clang++'
+
     os.chdir(SOURCE_ROOT)
     REL_SRC_DIR = os.path.relpath(SRC_DIR)
     REL_CHROMIUMCONTENT_DIR = os.path.relpath(CHROMIUMCONTENT_DIR)
