@@ -1,0 +1,19 @@
+diff --git a/content/browser/frame_host/render_frame_host_manager.cc b/content/browser/frame_host/render_frame_host_manager.cc
+index 51c9c24..ee13e37 100644
+--- a/content/browser/frame_host/render_frame_host_manager.cc
++++ b/content/browser/frame_host/render_frame_host_manager.cc
+@@ -999,6 +999,14 @@ SiteInstance* RenderFrameHostManager::GetSiteInstanceForURL(
+   // the last time we visited it.)
+   const GURL& current_url =
+       GetCurrentURLForSiteInstance(current_instance, current_entry);
++
++  // The user wants a restart of renderer process.
++  if (GetContentClient()->browser()->ShouldSwapBrowsingInstancesForNavigation(
++          render_frame_host_->GetSiteInstance(),
++          current_url, dest_url)) {
++    return SiteInstance::CreateForURL(browser_context, dest_url);
++  }
++
+   if (SiteInstance::IsSameWebSite(browser_context, current_url, dest_url) &&
+       !current_site_instance->HasWrongProcessForURL(dest_url)) {
+     return current_instance;
