@@ -1,0 +1,20 @@
+diff --git a/content/browser/web_contents/web_contents_impl.cc b/content/browser/web_contents/web_contents_impl.cc
+index d3e8b13..35cc4cf 100644
+--- a/content/browser/web_contents/web_contents_impl.cc
++++ b/content/browser/web_contents/web_contents_impl.cc
+@@ -3937,6 +3937,7 @@ void WebContentsImpl::RendererUnresponsive(RenderViewHost* render_view_host) {
+ 
+   if (rfhi->is_waiting_for_beforeunload_ack() ||
+       rfhi->IsWaitingForUnloadACK()) {
++#if 0
+     // Hang occurred while firing the beforeunload/unload handler.
+     // Pretend the handler fired so tab closing continues as if it had.
+     rvhi->set_sudden_termination_allowed(true);
+@@ -3956,6 +3957,7 @@ void WebContentsImpl::RendererUnresponsive(RenderViewHost* render_view_host) {
+     }
+     if (close)
+       Close(rvhi);
++#endif
+     return;
+   }
+ 
