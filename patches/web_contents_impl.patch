@@ -1,0 +1,30 @@
+diff --git a/content/browser/web_contents/web_contents_impl.cc b/content/browser/web_contents/web_contents_impl.cc
+index 09e47af..0c59c19 100644
+--- a/content/browser/web_contents/web_contents_impl.cc
++++ b/content/browser/web_contents/web_contents_impl.cc
+@@ -3963,7 +3963,9 @@ void WebContentsImpl::RendererUnresponsive(RenderViewHost* rvh,
+   if (rvh != GetRenderViewHost())
+     return;
+ 
++#if 0
+   RenderViewHostImpl* rvhi = static_cast<RenderViewHostImpl*>(rvh);
++#endif
+ 
+   // Ignore renderer unresponsive event if debugger is attached to the tab
+   // since the event may be a result of the renderer sitting on a breakpoint.
+@@ -3972,6 +3974,7 @@ void WebContentsImpl::RendererUnresponsive(RenderViewHost* rvh,
+     return;
+ 
+   if (is_during_beforeunload || is_during_unload) {
++#if 0
+     // Hang occurred while firing the beforeunload/unload handler.
+     // Pretend the handler fired so tab closing continues as if it had.
+     rvhi->set_sudden_termination_allowed(true);
+@@ -3991,6 +3994,7 @@ void WebContentsImpl::RendererUnresponsive(RenderViewHost* rvh,
+     }
+     if (close)
+       Close(rvh);
++#endif
+     return;
+   }
+ 
