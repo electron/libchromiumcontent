@@ -1,0 +1,39 @@
+diff --git a/content/browser/frame_host/render_frame_host_manager.cc b/content/browser/frame_host/render_frame_host_manager.cc
+index 79a477d..0007bf2 100644
+--- a/content/browser/frame_host/render_frame_host_manager.cc
++++ b/content/browser/frame_host/render_frame_host_manager.cc
+@@ -1292,6 +1292,16 @@ SiteInstance* RenderFrameHostManager::GetSiteInstanceForNavigation(
+     bool dest_is_view_source_mode) {
+   SiteInstance* current_instance = render_frame_host_->GetSiteInstance();
+ 
++  // Gives user a chance to pass a custom side instance.
++  SiteInstance* client_custom_instance = current_instance;
++  GetContentClient()->browser()->OverrideSiteInstanceForNavigation(
++      delegate_->GetControllerForRenderManager().GetBrowserContext(),
++      current_instance,
++      dest_url,
++      &client_custom_instance);
++  if (client_custom_instance != current_instance)
++    return client_custom_instance;
++
+   // We do not currently swap processes for navigations in webview tag guests.
+   if (current_instance->GetSiteURL().SchemeIs(kGuestScheme))
+     return current_instance;
+diff --git a/content/public/browser/content_browser_client.h b/content/public/browser/content_browser_client.h
+index d01fe15..50da25e 100644
+--- a/content/public/browser/content_browser_client.h
++++ b/content/public/browser/content_browser_client.h
+@@ -140,6 +140,13 @@ class CONTENT_EXPORT ContentBrowserClient {
+  public:
+   virtual ~ContentBrowserClient() {}
+ 
++  // Electron: Allows overriding the SiteInstance when navigating.
++  virtual void OverrideSiteInstanceForNavigation(
++      BrowserContext* browser_context,
++      SiteInstance* current_instance,
++      const GURL& dest_url,
++      SiteInstance** new_instance) {}
++
+   // Allows the embedder to set any number of custom BrowserMainParts
+   // implementations for the browser startup code. See comments in
+   // browser_main_parts.h.
