@@ -2,6 +2,11 @@
   'variables': {
     # We're not using Chromium's clang, so we can't use their plugins either.
     'clang_use_chrome_plugins': 0,
+    # The Linux build of libchromiumcontent.so depends on, but doesn't
+    # provide, tcmalloc by default.  Disabling tcmalloc here also prevents
+    # any conflicts when linking to binaries or libraries that don't use
+    # tcmalloc.
+    'linux_use_tcmalloc': 0,
     'conditions': [
       ['OS=="win"', {
         # Chrome turns this off for component builds, and we need to too. Leaving
