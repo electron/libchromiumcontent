@@ -8,6 +8,11 @@
         'test_support_chromiumcontent',
       ],
       'conditions': [
+        ['OS=="linux"', {
+          'dependencies': [
+            '<(DEPTH)/sandbox/sandbox.gyp:chrome_sandbox',
+          ],
+        }],
         ['OS=="win"', {
           'dependencies': [
             'chromiumviews',
