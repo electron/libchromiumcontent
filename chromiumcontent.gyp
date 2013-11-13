@@ -11,6 +11,8 @@
         ['OS=="linux"', {
           'dependencies': [
             '<(DEPTH)/sandbox/sandbox.gyp:chrome_sandbox',
+            '<(DEPTH)/testing/gtest.gyp:gtest',
+            '<(DEPTH)/components/components.gyp:encryptor',
           ],
         }],
         ['OS=="win"', {
