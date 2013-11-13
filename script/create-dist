@@ -48,6 +48,7 @@ BINARIES = {
         os.path.join('lib', 'libchromiumcontent.so'),
         'libencryptor.a',
         'libgtest.a',
+        'libnet_test_support.a',
     ],
     'win32': [
         'chromiumcontent.dll',

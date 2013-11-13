@@ -12,6 +12,7 @@
           'dependencies': [
             '<(DEPTH)/sandbox/sandbox.gyp:chrome_sandbox',
             '<(DEPTH)/testing/gtest.gyp:gtest',
+            '<(DEPTH)/net/net.gyp:net_test_support',
             '<(DEPTH)/components/components.gyp:encryptor',
           ],
         }],
