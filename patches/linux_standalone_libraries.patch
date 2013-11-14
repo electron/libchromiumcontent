@@ -26,3 +26,17 @@ Index: testing/gtest.gyp
          ['OS == "mac" or OS == "ios"', {
            'sources': [
              'gtest_mac.h',
+Index: net/net.gyp
+===================================================================
+--- net/net.gyp	(revision 226629)
++++ net/net.gyp	(working copy)
+@@ -2270,6 +2270,9 @@
+         'url_request/url_request_test_util.h',
+       ],
+       'conditions': [
++        ['OS == "linux"', {
++          'standalone_static_library': 1,
++        }],
+         ['OS != "ios"', {
+           'dependencies': [
+             '../third_party/protobuf/protobuf.gyp:py_proto',
