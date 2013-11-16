@@ -87,8 +87,8 @@
               'inputs': [
                 '<(PRODUCT_DIR)/obj/base/libbase_prefs_test_support.a',
                 '<(PRODUCT_DIR)/obj/testing/libgmock.a',
-                '<(PRODUCT_DIR)/libgtest.a',
-                '<(PRODUCT_DIR)/libnet_test_support.a',
+                '<(PRODUCT_DIR)/obj/testing/libgtest.a',
+                '<(PRODUCT_DIR)/obj/net/libnet_test_support.a',
                 '<(PRODUCT_DIR)/obj/base/libtest_support_base.a',
                 '<(PRODUCT_DIR)/obj/content/libtest_support_content.a',
                 '<(PRODUCT_DIR)/obj/ui/libui_test_support.a',
