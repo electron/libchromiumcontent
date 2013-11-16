@@ -18,6 +18,23 @@
             '<(DEPTH)/components/components.gyp:encryptor',
             '<(DEPTH)/ui/ui.gyp:ui_test_support',
           ],
+          'actions': [
+            {
+              'action_name': 'Flatten libencryptor.a',
+              'inputs': [
+                '<(PRODUCT_DIR)/obj/components/libencryptor.a',
+              ],
+              'outputs': [
+                '<(PRODUCT_DIR)/libencryptor.a',
+              ],
+              'action': [
+                '<(DEPTH)/../../../tools/linux/ar-combine.sh',
+                '-o',
+                '<@(_outputs)',
+                '<@(_inputs)',
+              ],
+            },
+          ],
         }],
         ['OS=="win"', {
           'dependencies': [
@@ -95,23 +112,6 @@
               ],
               'outputs': [
                 '<(PRODUCT_DIR)/libtest_support_chromiumcontent.a',
-              ],
-              'action': [
-                '<(DEPTH)/../../../tools/linux/ar-combine.sh',
-                '-o',
-                '<@(_outputs)',
-                '<@(_inputs)',
-              ],
-            },
-          ],
-          'actions': [
-            {
-              'action_name': 'Flatten libencryptor.a',
-              'inputs': [
-                '<(PRODUCT_DIR)/obj/components/libencryptor.a',
-              ],
-              'outputs': [
-                '<(PRODUCT_DIR)/libencryptor.a',
               ],
               'action': [
                 '<(DEPTH)/../../../tools/linux/ar-combine.sh',
