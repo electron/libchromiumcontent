@@ -11,12 +11,7 @@
         ['OS=="linux"', {
           'dependencies': [
             '<(DEPTH)/sandbox/sandbox.gyp:chrome_sandbox',
-            '<(DEPTH)/testing/gtest.gyp:gtest',
-            '<(DEPTH)/testing/gmock.gyp:gmock',
-            '<(DEPTH)/base/base.gyp:test_support_base',
-            '<(DEPTH)/net/net.gyp:net_test_support',
             '<(DEPTH)/components/components.gyp:encryptor',
-            '<(DEPTH)/ui/ui.gyp:ui_test_support',
           ],
           'actions': [
             {
