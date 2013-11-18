@@ -46,6 +46,8 @@ BINARIES = {
         'chrome_sandbox',
         'libffmpegsumo.so',
         os.path.join('lib', 'libchromiumcontent.so'),
+        'libencryptor.a',
+        'libtest_support_chromiumcontent.a',
     ],
     'win32': [
         'chromiumcontent.dll',

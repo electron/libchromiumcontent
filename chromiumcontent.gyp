@@ -11,6 +11,24 @@
         ['OS=="linux"', {
           'dependencies': [
             '<(DEPTH)/sandbox/sandbox.gyp:chrome_sandbox',
+            '<(DEPTH)/components/components.gyp:encryptor',
+          ],
+          'actions': [
+            {
+              'action_name': 'Flatten libencryptor.a',
+              'inputs': [
+                '<(PRODUCT_DIR)/obj/components/libencryptor.a',
+              ],
+              'outputs': [
+                '<(PRODUCT_DIR)/libencryptor.a',
+              ],
+              'action': [
+                '<(DEPTH)/../../../tools/linux/ar-combine.sh',
+                '-o',
+                '<@(_outputs)',
+                '<@(_inputs)',
+              ],
+            },
           ],
         }],
         ['OS=="win"', {
@@ -74,6 +92,31 @@
         '<(DEPTH)/content/content.gyp:test_support_content',
       ],
       'conditions': [
+        ['OS=="linux"', {
+          'actions': [
+            {
+              'action_name': 'Create libtest_support_chromiumcontent.a',
+              'inputs': [
+                '<(PRODUCT_DIR)/obj/base/libbase_prefs_test_support.a',
+                '<(PRODUCT_DIR)/obj/testing/libgmock.a',
+                '<(PRODUCT_DIR)/obj/testing/libgtest.a',
+                '<(PRODUCT_DIR)/obj/net/libnet_test_support.a',
+                '<(PRODUCT_DIR)/obj/base/libtest_support_base.a',
+                '<(PRODUCT_DIR)/obj/content/libtest_support_content.a',
+                '<(PRODUCT_DIR)/obj/ui/libui_test_support.a',
+              ],
+              'outputs': [
+                '<(PRODUCT_DIR)/libtest_support_chromiumcontent.a',
+              ],
+              'action': [
+                '<(DEPTH)/../../../tools/linux/ar-combine.sh',
+                '-o',
+                '<@(_outputs)',
+                '<@(_inputs)',
+              ],
+            },
+          ],
+        }],
         ['OS=="mac"', {
           'actions': [
             {
