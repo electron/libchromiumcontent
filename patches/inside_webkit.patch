@@ -1512,7 +1512,7 @@ Index: third_party/WebKit/public/web/WebMIDIPermissionRequest.h
 ===================================================================
 --- third_party/WebKit/public/web/WebMIDIPermissionRequest.h	(revision 161986)
 +++ third_party/WebKit/public/web/WebMIDIPermissionRequest.h	(working copy)
-@@ -59,10 +59,10 @@
+@@ -59,7 +59,7 @@
      WEBKIT_EXPORT void assign(const WebMIDIPermissionRequest&);
      WEBKIT_EXPORT bool equals(const WebMIDIPermissionRequest&) const;
  
@@ -1520,10 +1520,6 @@ Index: third_party/WebKit/public/web/WebMIDIPermissionRequest.h
 +#if INSIDE_WEBKIT
      explicit WebMIDIPermissionRequest(const PassRefPtr<WebCore::MIDIAccess>&);
      explicit WebMIDIPermissionRequest(WebCore::MIDIAccess*);
--
-+#endif
-     WebCore::MIDIAccess* midiAccess() const { return m_private.get(); }
- #endif
  
 Index: third_party/WebKit/public/web/WebNode.h
 ===================================================================
