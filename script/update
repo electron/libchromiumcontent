@@ -124,6 +124,9 @@ def run_gyp():
     os.environ['GYP_GENERATORS'] = 'ninja'
 
     if sys.platform == 'darwin':
+        # Build 64-bit
+        os.environ['GYP_DEFINES'] = ' '.join(['host_arch=x64 target_arch=x64', os.environ.get('GYP_DEFINES', '')])
+
         # Use Xcode's own clang instead of Chromium's. This matches what embedding
         # applications will use, reducing the risk of bugs due to version
         # mismatches.
