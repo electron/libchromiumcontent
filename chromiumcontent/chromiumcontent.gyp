@@ -48,6 +48,9 @@
         '<(DEPTH)/content/content.gyp:content',
         '<(DEPTH)/content/content.gyp:content_shell_pak',
       ],
+      'sources': [
+        'empty.cc',
+      ],
       'conditions': [
         ['OS=="win"', {
           'sources': [
