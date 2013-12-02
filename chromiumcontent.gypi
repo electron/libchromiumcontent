@@ -8,11 +8,6 @@
     # tcmalloc.
     'linux_use_tcmalloc': 0,
     'conditions': [
-      ['OS=="mac"', {
-        # Build 64-bit.
-        'host_arch': 'x64',
-        'target_arch': 'x64',
-      }],
       ['OS=="win"', {
         # Chrome turns this off for component builds, and we need to too. Leaving
         # it on would result in both the Debug and Release CRTs being included in
