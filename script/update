@@ -11,7 +11,8 @@ VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
 DEPOT_TOOLS_DIR = os.path.join(VENDOR_DIR, 'depot_tools')
 CHROMIUM_DIR = os.path.join(VENDOR_DIR, 'chromium')
 SRC_DIR = os.path.join(CHROMIUM_DIR, 'src')
-CHROMIUMCONTENT_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
+CHROMIUMCONTENT_SOURCE_DIR = os.path.join(SOURCE_ROOT, 'chromiumcontent')
+CHROMIUMCONTENT_DESTINATION_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
 
 
 def main():
@@ -94,12 +95,12 @@ def import_win_environment():
 
 def copy_gyp_files():
     try:
-        os.makedirs(CHROMIUMCONTENT_DIR)
+        os.makedirs(CHROMIUMCONTENT_DESTINATION_DIR)
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise
-    shutil.copyfile(os.path.join(SOURCE_ROOT, 'chromiumcontent.gyp'),
-                    os.path.join(CHROMIUMCONTENT_DIR, 'chromiumcontent.gyp'))
+    shutil.copyfile(os.path.join(CHROMIUMCONTENT_SOURCE_DIR, 'chromiumcontent.gyp'),
+                    os.path.join(CHROMIUMCONTENT_DESTINATION_DIR, 'chromiumcontent.gyp'))
 
 
 def apply_patches():
