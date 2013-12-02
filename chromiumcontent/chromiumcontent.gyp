@@ -46,6 +46,7 @@
       'dependencies': [
         '<(DEPTH)/base/base.gyp:base_prefs',
         '<(DEPTH)/content/content.gyp:content',
+        '<(DEPTH)/content/content.gyp:content_app_both',
         '<(DEPTH)/content/content.gyp:content_shell_pak',
       ],
       'sources': [
