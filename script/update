@@ -11,7 +11,8 @@ VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
 DEPOT_TOOLS_DIR = os.path.join(VENDOR_DIR, 'depot_tools')
 CHROMIUM_DIR = os.path.join(VENDOR_DIR, 'chromium')
 SRC_DIR = os.path.join(CHROMIUM_DIR, 'src')
-CHROMIUMCONTENT_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
+CHROMIUMCONTENT_SOURCE_DIR = os.path.join(SOURCE_ROOT, 'chromiumcontent')
+CHROMIUMCONTENT_DESTINATION_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
 
 
 def main():
@@ -20,7 +21,7 @@ def main():
             install_win_toolchain() or
             import_win_environment() or
             apply_patches() or
-            copy_gyp_files() or
+            copy_chromiumcontent_files() or
             run_gyp() or
             install_win_tool_wrapper())
 
@@ -92,14 +93,22 @@ def import_win_environment():
         'windows_sdk_path="{0}"'.format(os.environ['WindowsSDKDir'])
 
 
-def copy_gyp_files():
+def copy_chromiumcontent_files():
     try:
-        os.makedirs(CHROMIUMCONTENT_DIR)
+        os.makedirs(CHROMIUMCONTENT_DESTINATION_DIR)
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise
-    shutil.copyfile(os.path.join(SOURCE_ROOT, 'chromiumcontent.gyp'),
-                    os.path.join(CHROMIUMCONTENT_DIR, 'chromiumcontent.gyp'))
+    for dirpath, dirnames, filenames in os.walk(CHROMIUMCONTENT_SOURCE_DIR):
+        for dirname in dirnames:
+            mkdir_p(os.path.join(dirpath, dirname))
+        for filename in filenames:
+            source = os.path.join(dirpath, filename)
+            relative = os.path.relpath(source, start=CHROMIUMCONTENT_SOURCE_DIR)
+            destination = os.path.join(CHROMIUMCONTENT_DESTINATION_DIR, relative)
+            if is_newer(destination, source):
+                continue
+            shutil.copy2(source, destination)
 
 
 def apply_patches():
@@ -123,7 +132,7 @@ def run_gyp():
 
     os.chdir(SOURCE_ROOT)
     REL_SRC_DIR = os.path.relpath(SRC_DIR)
-    REL_CHROMIUMCONTENT_DIR = os.path.relpath(CHROMIUMCONTENT_DIR)
+    REL_CHROMIUMCONTENT_DESTINATION_DIR = os.path.relpath(CHROMIUMCONTENT_DESTINATION_DIR)
 
     python = sys.executable
     if sys.platform in ['win32', 'cygwin']:
@@ -135,7 +144,7 @@ def run_gyp():
     gyp = os.path.join(REL_SRC_DIR, 'build', 'gyp_chromium')
     return subprocess.call([python, gyp, '-Ichromiumcontent.gypi',
                             '--depth', REL_SRC_DIR,
-                            os.path.join(REL_CHROMIUMCONTENT_DIR,
+                            os.path.join(REL_CHROMIUMCONTENT_DESTINATION_DIR,
                                          'chromiumcontent.gyp')])
 
 
@@ -153,6 +162,19 @@ def chromium_python_path():
     """Returns the win32 python shipped by Chromium."""
 
     return os.path.join(SRC_DIR, 'third_party', 'python_26', 'python.exe')
+
+
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
+
+
+def is_newer(destination, source):
+    return os.path.exists(destination) and \
+        os.path.getmtime(destination) > os.path.getmtime(source)
 
 
 if __name__ == '__main__':
