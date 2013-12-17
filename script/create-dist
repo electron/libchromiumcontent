@@ -99,6 +99,7 @@ INCLUDE_DIRS = [
     'components/webdata/encryptor',
     'content/public',
     'ipc',
+    'gpu',
     'net',
     'sandbox',
     'skia/ext',
