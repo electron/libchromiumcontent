@@ -94,6 +94,7 @@
       'type': 'none',
       'dependencies': [
         '<(DEPTH)/base/base.gyp:base_prefs_test_support',
+        '<(DEPTH)/base/base.gyp:test_support_base',
         '<(DEPTH)/content/content.gyp:test_support_content',
       ],
       'conditions': [
