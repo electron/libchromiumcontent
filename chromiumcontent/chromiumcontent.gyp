@@ -103,6 +103,7 @@
               'action_name': 'Create libtest_support_chromiumcontent.a',
               'inputs': [
                 '<(PRODUCT_DIR)/obj/base/libbase_prefs_test_support.a',
+                '<(PRODUCT_DIR)/obj/base/libbase_static.a',
                 '<(PRODUCT_DIR)/obj/base/libtest_support_base.a',
                 '<(PRODUCT_DIR)/obj/content/libtest_support_content.a',
                 '<(PRODUCT_DIR)/obj/net/libnet_test_support.a',
@@ -130,6 +131,7 @@
               'action_name': 'Create libtest_support_chromiumcontent.a',
               'inputs': [
                 '<(PRODUCT_DIR)/libbase_prefs_test_support.a',
+                '<(PRODUCT_DIR)/libbase_static.a',
                 '<(PRODUCT_DIR)/libchrome_zlib.a',
                 '<(PRODUCT_DIR)/libgmock.a',
                 '<(PRODUCT_DIR)/libgtest.a',
@@ -158,6 +160,7 @@
               'action_name': 'Create test_support_chromiumcontent.lib',
               'inputs': [
                 '<(PRODUCT_DIR)\\obj\\base\\base_prefs_test_support.lib',
+                '<(PRODUCT_DIR)\\obj\\base\\base_static.lib',
                 '<(PRODUCT_DIR)\\obj\\base\\test_support_base.lib',
                 '<(PRODUCT_DIR)\\obj\\content\\test_support_content.lib',
                 '<(PRODUCT_DIR)\\obj\\net\\net_test_support.lib',
