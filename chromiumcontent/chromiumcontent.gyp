@@ -103,11 +103,12 @@
               'action_name': 'Create libtest_support_chromiumcontent.a',
               'inputs': [
                 '<(PRODUCT_DIR)/obj/base/libbase_prefs_test_support.a',
-                '<(PRODUCT_DIR)/obj/testing/libgmock.a',
-                '<(PRODUCT_DIR)/obj/testing/libgtest.a',
-                '<(PRODUCT_DIR)/obj/net/libnet_test_support.a',
                 '<(PRODUCT_DIR)/obj/base/libtest_support_base.a',
                 '<(PRODUCT_DIR)/obj/content/libtest_support_content.a',
+                '<(PRODUCT_DIR)/obj/net/libnet_test_support.a',
+                '<(PRODUCT_DIR)/obj/testing/libgmock.a',
+                '<(PRODUCT_DIR)/obj/testing/libgtest.a',
+                '<(PRODUCT_DIR)/obj/third_party/libxml/libxml2.a',
                 '<(PRODUCT_DIR)/obj/ui/libui_test_support.a',
               ],
               'outputs': [
@@ -134,6 +135,7 @@
                 '<(PRODUCT_DIR)/libtest_support_base.a',
                 '<(PRODUCT_DIR)/libtest_support_content.a',
                 '<(PRODUCT_DIR)/libui_test_support.a',
+                '<(PRODUCT_DIR)/libxml2.a',
               ],
               'outputs': [
                 '<(PRODUCT_DIR)/libtest_support_chromiumcontent.a',
@@ -159,6 +161,7 @@
                 '<(PRODUCT_DIR)\\obj\\net\\net_test_support.lib',
                 '<(PRODUCT_DIR)\\obj\\testing\\gmock.lib',
                 '<(PRODUCT_DIR)\\obj\\testing\\gtest.lib',
+                '<(PRODUCT_DIR)\\obj\\third_party\\libxml\\libxml2.lib',
                 '<(PRODUCT_DIR)\\obj\\ui\\ui_test_support.lib',
               ],
               'outputs': [

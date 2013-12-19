@@ -68,6 +68,7 @@ BINARIES = {
         os.path.join('obj', 'sandbox', 'sandbox_static.pdb'),
         os.path.join('obj', 'testing', 'gtest.pdb'),
         os.path.join('obj', 'third_party', 'iaccessible2', 'iaccessible2.pdb'),
+        os.path.join('obj', 'third_party', 'libxml', 'libxml.pdb'),
         os.path.join('obj', 'ui', 'compositor', 'compositor.pdb'),
         os.path.join('obj', 'ui', 'views', 'controls', 'webview', 'webview.pdb'),
         os.path.join('obj', 'ui', 'web_dialogs', 'web_dialogs.pdb'),
