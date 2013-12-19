@@ -109,6 +109,7 @@
                 '<(PRODUCT_DIR)/obj/testing/libgmock.a',
                 '<(PRODUCT_DIR)/obj/testing/libgtest.a',
                 '<(PRODUCT_DIR)/obj/third_party/libxml/libxml2.a',
+                '<(PRODUCT_DIR)/obj/third_party/zlib/libchrome_zlib.a',
                 '<(PRODUCT_DIR)/obj/ui/libui_test_support.a',
               ],
               'outputs': [
@@ -129,6 +130,7 @@
               'action_name': 'Create libtest_support_chromiumcontent.a',
               'inputs': [
                 '<(PRODUCT_DIR)/libbase_prefs_test_support.a',
+                '<(PRODUCT_DIR)/libchrome_zlib.a',
                 '<(PRODUCT_DIR)/libgmock.a',
                 '<(PRODUCT_DIR)/libgtest.a',
                 '<(PRODUCT_DIR)/libnet_test_support.a',
@@ -162,6 +164,7 @@
                 '<(PRODUCT_DIR)\\obj\\testing\\gmock.lib',
                 '<(PRODUCT_DIR)\\obj\\testing\\gtest.lib',
                 '<(PRODUCT_DIR)\\obj\\third_party\\libxml\\libxml2.lib',
+                '<(PRODUCT_DIR)\\obj\\third_party\\zlib\\zlib.lib',
                 '<(PRODUCT_DIR)\\obj\\ui\\ui_test_support.lib',
               ],
               'outputs': [
