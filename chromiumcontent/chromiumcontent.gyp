@@ -103,11 +103,14 @@
               'action_name': 'Create libtest_support_chromiumcontent.a',
               'inputs': [
                 '<(PRODUCT_DIR)/obj/base/libbase_prefs_test_support.a',
-                '<(PRODUCT_DIR)/obj/testing/libgmock.a',
-                '<(PRODUCT_DIR)/obj/testing/libgtest.a',
-                '<(PRODUCT_DIR)/obj/net/libnet_test_support.a',
+                '<(PRODUCT_DIR)/obj/base/libbase_static.a',
                 '<(PRODUCT_DIR)/obj/base/libtest_support_base.a',
                 '<(PRODUCT_DIR)/obj/content/libtest_support_content.a',
+                '<(PRODUCT_DIR)/obj/net/libnet_test_support.a',
+                '<(PRODUCT_DIR)/obj/testing/libgmock.a',
+                '<(PRODUCT_DIR)/obj/testing/libgtest.a',
+                '<(PRODUCT_DIR)/obj/third_party/libxml/libxml2.a',
+                '<(PRODUCT_DIR)/obj/third_party/zlib/libchrome_zlib.a',
                 '<(PRODUCT_DIR)/obj/ui/libui_test_support.a',
               ],
               'outputs': [
@@ -128,12 +131,15 @@
               'action_name': 'Create libtest_support_chromiumcontent.a',
               'inputs': [
                 '<(PRODUCT_DIR)/libbase_prefs_test_support.a',
+                '<(PRODUCT_DIR)/libbase_static.a',
+                '<(PRODUCT_DIR)/libchrome_zlib.a',
                 '<(PRODUCT_DIR)/libgmock.a',
                 '<(PRODUCT_DIR)/libgtest.a',
                 '<(PRODUCT_DIR)/libnet_test_support.a',
                 '<(PRODUCT_DIR)/libtest_support_base.a',
                 '<(PRODUCT_DIR)/libtest_support_content.a',
                 '<(PRODUCT_DIR)/libui_test_support.a',
+                '<(PRODUCT_DIR)/libxml2.a',
               ],
               'outputs': [
                 '<(PRODUCT_DIR)/libtest_support_chromiumcontent.a',
@@ -154,11 +160,14 @@
               'action_name': 'Create test_support_chromiumcontent.lib',
               'inputs': [
                 '<(PRODUCT_DIR)\\obj\\base\\base_prefs_test_support.lib',
+                '<(PRODUCT_DIR)\\obj\\base\\base_static.lib',
                 '<(PRODUCT_DIR)\\obj\\base\\test_support_base.lib',
                 '<(PRODUCT_DIR)\\obj\\content\\test_support_content.lib',
                 '<(PRODUCT_DIR)\\obj\\net\\net_test_support.lib',
                 '<(PRODUCT_DIR)\\obj\\testing\\gmock.lib',
                 '<(PRODUCT_DIR)\\obj\\testing\\gtest.lib',
+                '<(PRODUCT_DIR)\\obj\\third_party\\libxml\\libxml2.lib',
+                '<(PRODUCT_DIR)\\obj\\third_party\\zlib\\zlib.lib',
                 '<(PRODUCT_DIR)\\obj\\ui\\ui_test_support.lib',
               ],
               'outputs': [
