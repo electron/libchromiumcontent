@@ -13,14 +13,20 @@ DEPOT_TOOLS_URL = \
 
 def main():
     os.chdir(SOURCE_ROOT)
-    subprocess.check_call(['git', 'submodule', 'sync'])
-    subprocess.check_call(['git', 'submodule', 'update',
-                           '--init', '--recursive'])
+    result = (subprocess.call(['git', 'submodule', 'sync']) or
+              subprocess.call(['git', 'submodule', 'update',
+                               '--init', '--recursive']))
+    if result:
+        return result
+
     if not os.path.isdir(DEPOT_TOOLS_DIR):
-        subprocess.check_call(['git', 'clone',
-                               DEPOT_TOOLS_URL, DEPOT_TOOLS_DIR])
+        result = subprocess.call(['git', 'clone',
+                                  DEPOT_TOOLS_URL, DEPOT_TOOLS_DIR])
+        if result:
+            return result
+
     update = os.path.join(SOURCE_ROOT, 'script', 'update')
-    subprocess.check_call([sys.executable, update])
+    return subprocess.call([sys.executable, update])
 
 
 if __name__ == '__main__':
