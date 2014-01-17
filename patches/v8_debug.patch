@@ -1,8 +1,8 @@
 Index: v8/include/v8.h
 ===================================================================
---- v8/include/v8.h	(revision 17714)
+--- v8/include/v8.h	(revision 18417)
 +++ v8/include/v8.h	(working copy)
-@@ -4254,7 +4254,7 @@
+@@ -4347,7 +4347,7 @@
   * be performed.
   */
  class V8_EXPORT AssertNoGCScope {
@@ -13,9 +13,9 @@ Index: v8/include/v8.h
  #else
 Index: v8/src/api.cc
 ===================================================================
---- v8/src/api.cc	(revision 17714)
+--- v8/src/api.cc	(revision 18417)
 +++ v8/src/api.cc	(working copy)
-@@ -6519,7 +6519,7 @@
+@@ -6210,7 +6210,7 @@
  }
  
  
