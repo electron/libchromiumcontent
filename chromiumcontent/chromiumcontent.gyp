@@ -47,7 +47,7 @@
         '<(DEPTH)/base/base.gyp:base_prefs',
         '<(DEPTH)/content/content.gyp:content',
         '<(DEPTH)/content/content.gyp:content_app_both',
-        '<(DEPTH)/content/content.gyp:content_shell_pak',
+        '<(DEPTH)/content/content_shell_and_tests.gyp:content_shell_pak',
         '<(DEPTH)/net/net.gyp:net_with_v8',
       ],
       'sources': [
@@ -94,7 +94,7 @@
       'type': 'none',
       'dependencies': [
         '<(DEPTH)/base/base.gyp:base_prefs_test_support',
-        '<(DEPTH)/content/content.gyp:test_support_content',
+        '<(DEPTH)/content/content_shell_and_tests.gyp:test_support_content',
       ],
       'conditions': [
         ['OS=="linux"', {
