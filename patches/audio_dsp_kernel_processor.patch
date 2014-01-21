@@ -1,0 +1,12 @@
+Index: third_party/WebKit/Source/platform/audio/AudioDSPKernelProcessor.h
+===================================================================
+--- third_party/WebKit/Source/platform/audio/AudioDSPKernelProcessor.h	(revision 164518)
++++ third_party/WebKit/Source/platform/audio/AudioDSPKernelProcessor.h	(working copy)
+@@ -32,6 +32,7 @@
+ #define AudioDSPKernelProcessor_h
+ 
+ #include "platform/audio/AudioBus.h"
++#include "platform/audio/AudioDSPKernel.h"
+ #include "platform/audio/AudioProcessor.h"
+ #include "wtf/OwnPtr.h"
+ #include "wtf/PassOwnPtr.h"
