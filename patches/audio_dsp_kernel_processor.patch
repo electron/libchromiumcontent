@@ -23,12 +23,13 @@ Index: third_party/WebKit/Source/platform/audio/AudioDSPKernel.h
 ===================================================================
 --- third_party/WebKit/Source/platform/audio/AudioDSPKernel.h	(revision 164518)
 +++ third_party/WebKit/Source/platform/audio/AudioDSPKernel.h	(working copy)
-@@ -31,19 +31,15 @@
+@@ -31,19 +31,17 @@
  #ifndef AudioDSPKernel_h
  #define AudioDSPKernel_h
  
 -#include "platform/audio/AudioDSPKernelProcessor.h"
--
++#include "platform/PlatformExport.h"
+ 
  namespace WebCore {
  
 +class AudioDSPKernelProcessor;
