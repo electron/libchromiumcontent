@@ -122,7 +122,7 @@
           'URL_IMPLEMENTATION',
         ],
       }],
-      ['_target_name in ["compositor", "views", "webview", "web_dialogs"]', {
+      ['_target_name in ["views", "webview", "web_dialogs"]', {
         'defines': [
           'VIEWS_IMPLEMENTATION',
           'WEBVIEW_IMPLEMENTATION',
