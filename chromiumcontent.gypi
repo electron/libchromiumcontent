@@ -22,6 +22,7 @@
   'target_defaults': {
     'defines': [
       'ANGLE_TRANSLATOR_IMPLEMENTATION',
+      'AURA_IMPLEMENTATION',
       'BASE_I18N_IMPLEMENTATION',
       'BASE_IMPLEMENTATION',
       'BASE_PREFS_IMPLEMENTATION',
