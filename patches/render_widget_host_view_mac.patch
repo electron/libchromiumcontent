@@ -1,0 +1,96 @@
+diff --git a/content/browser/renderer_host/render_widget_host_view_mac.mm b/content/browser/renderer_host/render_widget_host_view_mac.mm
+index 537e7c3..c1cd8b4 100644
+--- a/content/browser/renderer_host/render_widget_host_view_mac.mm
++++ b/content/browser/renderer_host/render_widget_host_view_mac.mm
+@@ -77,6 +77,7 @@
+ #include "ui/gfx/geometry/size_conversions.h"
+ #include "ui/gfx/scoped_ns_graphics_context_save_gstate_mac.h"
+ #include "ui/gfx/screen.h"
++#include "ui/gl/gpu_switching_manager.h"
+ #include "ui/gl/gl_switches.h"
+ 
+ using content::BrowserAccessibility;
+@@ -109,6 +110,11 @@ BOOL EventIsReservedBySystem(NSEvent* event) {
+ 
+ }  // namespace
+ 
++@interface NSWindow (AtomCustomMethods)
++- (BOOL)acceptsFirstMouse;
++- (BOOL)disableAutoHideCursor;
++@end
++
+ // These are not documented, so use only after checking -respondsToSelector:.
+ @interface NSApplication (UndocumentedSpeechMethods)
+ - (void)speakString:(NSString*)string;
+@@ -545,9 +551,11 @@ RenderWidgetHostViewMac::RenderWidgetHostViewMac(RenderWidgetHost* widget,
+   // Paint this view host with |background_color_| when there is no content
+   // ready to draw.
+   background_layer_.reset([[CALayer alloc] init]);
++  if ([cocoa_view() isOpaque]) {
+   base::ScopedCFTypeRef<CGColorRef> background(
+       gfx::CGColorCreateFromSkColor(background_color_));
+   [background_layer_ setBackgroundColor:background];
++  }
+   [cocoa_view_ setLayer:background_layer_];
+   [cocoa_view_ setWantsLayer:YES];
+ 
+@@ -626,6 +634,9 @@ void RenderWidgetHostViewMac::EnsureBrowserCompositorView() {
+     browser_compositor_->Unsuspend();
+     browser_compositor_state_ = BrowserCompositorActive;
+   }
++
++  if (![cocoa_view() isOpaque])
++    root_layer_->GetCompositor()->SetHostHasTransparentBackground(true);
+ }
+ 
+ void RenderWidgetHostViewMac::SuspendBrowserCompositorView() {
+@@ -1824,6 +1835,9 @@ void RenderWidgetHostViewMac::OnDisplayMetricsChanged(
+ }
+ 
+ - (BOOL)acceptsFirstMouse:(NSEvent*)theEvent {
++  if ([self.window respondsToSelector:@selector(acceptsFirstMouse)] &&
++      [self.window acceptsFirstMouse])
++    return YES;
+   return [self acceptsMouseEventsWhenInactive];
+ }
+ 
+@@ -1951,6 +1965,7 @@ void RenderWidgetHostViewMac::OnDisplayMetricsChanged(
+   if (EventIsReservedBySystem(theEvent))
+     return NO;
+ 
++#if 0
+   // If we return |NO| from this function, cocoa will send the key event to
+   // the menu and only if the menu does not process the event to |keyDown:|. We
+   // want to send the event to a renderer _before_ sending it to the menu, so
+@@ -1964,6 +1979,7 @@ void RenderWidgetHostViewMac::OnDisplayMetricsChanged(
+     DCHECK(![[NSApp mainMenu] performKeyEquivalent:theEvent]);
+     return NO;
+   }
++#endif
+ 
+   // Command key combinations are sent via performKeyEquivalent rather than
+   // keyDown:. We just forward this on and if WebCore doesn't want to handle
+@@ -2630,6 +2646,9 @@ void RenderWidgetHostViewMac::OnDisplayMetricsChanged(
+ // move) for the given event. Customize here to be more selective about which
+ // key presses to autohide on.
+ + (BOOL)shouldAutohideCursorForEvent:(NSEvent*)event {
++  if ([event.window respondsToSelector:@selector(disableAutoHideCursor)] &&
++      [event.window disableAutoHideCursor])
++    return NO;
+   return ([event type] == NSKeyDown &&
+              !([event modifierFlags] & NSCommandKeyMask)) ? YES : NO;
+ }
+@@ -3465,7 +3484,12 @@ extern NSString *NSTextInputReplacementRangeAttributeName;
+ }
+ 
+ - (BOOL)isOpaque {
+-  return opaque_;
++  bool wantsTransparent = ui::GpuSwitchingManager::UseTransparent() ||
++                          (self.window && ![self.window isOpaque]);
++  if (wantsTransparent)
++    return NO;
++  else
++    return opaque_;
+ }
+ 
+ // "-webkit-app-region: drag | no-drag" is implemented on Mac by excluding
