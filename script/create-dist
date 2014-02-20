@@ -32,7 +32,7 @@ TARGET_PLATFORM = {
     'win32': 'win32',
 }[sys.platform]
 
-CONFIGURATIONS = ['Debug', 'Release']
+CONFIGURATIONS = ['Release']
 BINARIES = {
     'all': [
         'content_shell.pak',
