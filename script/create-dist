@@ -82,7 +82,11 @@ SYMBOLS = {
         # create_dsym() and copy_symbols().
     ],
     'linux': [
-        # We don't generate symbols on Linux yet.
+        'chrome_sandbox.dbg',
+        'libchromiumcontent.so.dbg',
+        'libffmpegsumo.so.dbg',
+        'libencryptor.a.dbg',
+        'libtest_support_chromiumcontent.a.dbg',
     ],
     'win32': [
         'ffmpegsumo.dll.pdb',
@@ -128,6 +132,7 @@ def main():
     os.makedirs(DIST_DIR)
 
     copy_binaries()
+    objcopy_with_debug_info()
     create_dsym()
     copy_symbols()
     copy_sources()
@@ -141,6 +146,13 @@ def copy_binaries():
 
         for binary in BINARIES['all'] + BINARIES[TARGET_PLATFORM]:
             shutil.copy2(os.path.join(OUT_DIR, config, binary), config_dir)
+
+        # Strip the copied binaries on Linux since they contain quite large
+        # debug info.
+        if TARGET_PLATFORM == 'linux':
+            for binary in BINARIES[TARGET_PLATFORM]:
+                binary_path = os.path.join(config_dir, os.path.basename(binary))
+                subprocess.check_call(['strip', binary_path])
 
 
 def create_dsym():
@@ -162,6 +174,20 @@ def create_dsym():
                                     'libchromiumcontent.dylib.dSYM')
     rm_rf(destination_dsym)
     subprocess.check_call(['dsymutil', source, '-o', destination_dsym])
+
+
+def objcopy_with_debug_info():
+    if TARGET_PLATFORM != 'linux':
+        return
+
+    for config in CONFIGURATIONS:
+        for binary in BINARIES[TARGET_PLATFORM]:
+            source = os.path.join(OUT_DIR, config, binary)
+            destination = os.path.join(OUT_DIR, config,
+                                       os.path.basename(binary) + ".dbg")
+            safe_unlink(destination)
+            subprocess.check_call(['objcopy', '--only-keep-debug', source,
+                                   destination])
 
 
 def copy_symbols():
