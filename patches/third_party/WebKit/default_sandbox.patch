@@ -1,0 +1,43 @@
+diff --git a/Source/core/dom/SandboxFlags.cpp b/Source/core/dom/SandboxFlags.cpp
+index 8d8e01c..65fa06f 100644
+--- a/Source/core/dom/SandboxFlags.cpp
++++ b/Source/core/dom/SandboxFlags.cpp
+@@ -67,6 +67,8 @@ SandboxFlags parseSandboxPolicy(const String& policy, String& invalidTokensError
+             flags &= ~SandboxPointerLock;
+         } else if (equalIgnoringCase(sandboxToken, "allow-orientation-lock")) {
+             flags &= ~SandboxOrientationLock;
++        } else if (equalIgnoringCase(sandboxToken, "none")) {
++            flags = SandboxNone;
+         } else {
+             if (numberOfTokenErrors)
+                 tokenErrors.appendLiteral(", '");
+diff --git a/Source/core/html/HTMLFrameOwnerElement.cpp b/Source/core/html/HTMLFrameOwnerElement.cpp
+index 02986c5..4e65279 100644
+--- a/Source/core/html/HTMLFrameOwnerElement.cpp
++++ b/Source/core/html/HTMLFrameOwnerElement.cpp
+@@ -27,7 +27,9 @@
+ #include "core/dom/ExceptionCode.h"
+ #include "core/events/Event.h"
+ #include "core/frame/FrameView.h"
++#include "core/frame/LocalDOMWindow.h"
+ #include "core/frame/LocalFrame.h"
++#include "core/frame/Location.h"
+ #include "core/loader/FrameLoader.h"
+ #include "core/loader/FrameLoaderClient.h"
+ #include "core/rendering/RenderLayer.h"
+@@ -102,6 +104,15 @@ HTMLFrameOwnerElement::HTMLFrameOwnerElement(const QualifiedName& tagName, Docum
+     , m_widget(nullptr)
+     , m_sandboxFlags(SandboxNone)
+ {
++  String host = document.location()->host();
++  String protocol = document.location()->protocol();
++  if (host == "localhost")
++      return;
++  if (protocol != "http:" && protocol != "https:" && protocol != "file:")
++      return;
++  if (document.domWindow()->parent()->frameElement() != NULL)
++      return;
++  m_sandboxFlags = SandboxOrigin;
+ }
+ 
+ RenderPart* HTMLFrameOwnerElement::renderPart() const
