@@ -92,12 +92,6 @@
         'ExceptionHandling': '1',  # /EHsc
       },
     },
-    'xcode_settings': {
-      'WARNING_CFLAGS!': [
-        # Xcode 5 doesn't support -Wno-deprecated-register.
-        '-Wno-deprecated-register',
-      ],
-    },
     'target_conditions': [
       ['_target_name=="base"', {
         # This file doesn't work inside a shared library, and won't compile at
