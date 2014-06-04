@@ -3,6 +3,7 @@
 import errno
 import glob
 import os
+import platform
 import subprocess
 import sys
 
@@ -12,6 +13,13 @@ S3PUT = {
     'win32': [sys.executable, os.path.join(os.path.dirname(sys.executable),
                                            'Scripts', 's3put')],
 }.get(sys.platform, ['s3put'])
+
+ARCH = {
+    'cygwin': '32bit',
+    'darwin': '64bit',
+    'linux2': platform.architecture()[0],
+    'win32': '32bit',
+}[sys.platform]
 
 PLATFORM_KEY = {
     'cygwin': 'win',
@@ -63,7 +71,8 @@ def upload():
         '--access_key', access_key,
         '--secret_key', secret_key,
         '--prefix', SOURCE_ROOT,
-        '--key_prefix', 'libchromiumcontent/{0}/{1}'.format(PLATFORM_KEY, commit),
+        '--key_prefix', 'libchromiumcontent/{0}/{1}/{2}'.format(PLATFORM_KEY, ARCH,
+                                                                commit),
         '--grant', 'public-read',
         '--multipart'
     ] + glob.glob('libchromiumcontent*.zip')
