@@ -97,8 +97,9 @@
     },
     'xcode_settings': {
       'WARNING_CFLAGS!': [
-        # Xcode 5.1 doesn't support -Wno-absolute-value.
+        # Xcode 5.1 doesn't support these flags.
         '-Wno-absolute-value',
+        '-Wno-tautological-pointer-compare',
       ],
     },
     'target_conditions': [
