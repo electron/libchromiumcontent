@@ -1,6 +1,6 @@
 Index: third_party/WebKit/public/platform/WebAnimation.h
 ===================================================================
---- third_party/WebKit/public/platform/WebAnimation.h	(revision 164518)
+--- third_party/WebKit/public/platform/WebAnimation.h	(revision 175075)
 +++ third_party/WebKit/public/platform/WebAnimation.h	(working copy)
 @@ -29,7 +29,7 @@
  #include "WebNonCopyable.h"
@@ -11,132 +11,22 @@ Index: third_party/WebKit/public/platform/WebAnimation.h
  #include "wtf/Forward.h"
  #endif
  
-Index: third_party/WebKit/public/platform/WebArrayBuffer.h
-===================================================================
---- third_party/WebKit/public/platform/WebArrayBuffer.h	(revision 164518)
-+++ third_party/WebKit/public/platform/WebArrayBuffer.h	(working copy)
-@@ -67,7 +67,7 @@
-     BLINK_EXPORT v8::Handle<v8::Value> toV8Value();
-     BLINK_EXPORT static WebArrayBuffer* createFromV8Value(v8::Handle<v8::Value>);
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
-     WebArrayBuffer(const WTF::PassRefPtr<WTF::ArrayBuffer>&);
-     WebArrayBuffer& operator=(const PassRefPtr<WTF::ArrayBuffer>&);
-     operator WTF::PassRefPtr<WTF::ArrayBuffer>() const;
-Index: third_party/WebKit/public/platform/WebCrypto.h
-===================================================================
---- third_party/WebKit/public/platform/WebCrypto.h	(revision 164518)
-+++ third_party/WebKit/public/platform/WebCrypto.h	(working copy)
-@@ -37,7 +37,7 @@
- 
- namespace WebCore { class CryptoResult; }
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
- namespace WTF { template <typename T> class PassRefPtr; }
- #endif
- 
-@@ -70,7 +70,7 @@
-     BLINK_EXPORT void completeWithKey(const WebCryptoKey&);
-     BLINK_EXPORT void completeWithKeyPair(const WebCryptoKey& publicKey, const WebCryptoKey& privateKey);
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
-     explicit WebCryptoResult(const WTF::PassRefPtr<WebCore::CryptoResult>&);
- #endif
- 
-Index: third_party/WebKit/public/platform/WebCursorInfo.h
-===================================================================
---- third_party/WebKit/public/platform/WebCursorInfo.h	(revision 164518)
-+++ third_party/WebKit/public/platform/WebCursorInfo.h	(working copy)
-@@ -34,7 +34,7 @@
- #include "WebImage.h"
- #include "WebPoint.h"
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
- namespace WebCore { class Cursor; }
- #endif
- 
-@@ -115,7 +115,7 @@
- #endif
-     }
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
-     explicit WebCursorInfo(const WebCore::Cursor&);
- #endif
- };
 Index: third_party/WebKit/public/platform/WebDragData.h
 ===================================================================
---- third_party/WebKit/public/platform/WebDragData.h	(revision 164518)
+--- third_party/WebKit/public/platform/WebDragData.h	(revision 175075)
 +++ third_party/WebKit/public/platform/WebDragData.h	(working copy)
-@@ -36,7 +36,7 @@
- #include "WebString.h"
- #include "WebURL.h"
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
- namespace WebCore { class ChromiumDataObject; }
- namespace WTF { template <typename T> class PassRefPtr; }
- #endif
-@@ -106,7 +106,7 @@
+@@ -102,7 +102,7 @@
      BLINK_EXPORT WebString filesystemId() const;
      BLINK_EXPORT void setFilesystemId(const WebString&);
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
-     WebDragData(const WTF::PassRefPtr<WebCore::ChromiumDataObject>&);
-     WebDragData& operator=(const WTF::PassRefPtr<WebCore::ChromiumDataObject>&);
-     operator WTF::PassRefPtr<WebCore::ChromiumDataObject>() const;
-Index: third_party/WebKit/public/platform/WebFloatRect.h
-===================================================================
---- third_party/WebKit/public/platform/WebFloatRect.h	(revision 164518)
-+++ third_party/WebKit/public/platform/WebFloatRect.h	(working copy)
-@@ -33,7 +33,7 @@
- 
- #include "WebCommon.h"
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
- #include "platform/geometry/FloatRect.h"
- #else
- #include <algorithm>
-@@ -67,7 +67,7 @@
-     {
-     }
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
-     WebFloatRect(const WebCore::FloatRect& r)
-         : x(r.x())
-         , y(r.y())
-Index: third_party/WebKit/public/platform/WebFloatSize.h
-===================================================================
---- third_party/WebKit/public/platform/WebFloatSize.h	(revision 164518)
-+++ third_party/WebKit/public/platform/WebFloatSize.h	(working copy)
-@@ -35,7 +35,7 @@
- 
- #include <algorithm>
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
- #include "platform/geometry/FloatSize.h"
- #else
- #include <cmath>
-@@ -63,7 +63,7 @@
-     {
-     }
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
-     WebFloatSize(const WebCore::FloatSize& s)
-         : width(s.width())
-         , height(s.height())
+     explicit WebDragData(const PassRefPtrWillBeRawPtr<WebCore::DataObject>&);
+     WebDragData& operator=(const PassRefPtrWillBeRawPtr<WebCore::DataObject>&);
+     WebCore::DataObject* getValue() const;
 Index: third_party/WebKit/public/platform/WebGamepad.h
 ===================================================================
---- third_party/WebKit/public/platform/WebGamepad.h	(revision 164518)
+--- third_party/WebKit/public/platform/WebGamepad.h	(revision 175075)
 +++ third_party/WebKit/public/platform/WebGamepad.h	(working copy)
 @@ -26,7 +26,7 @@
  
@@ -147,18 +37,18 @@ Index: third_party/WebKit/public/platform/WebGamepad.h
  #include "wtf/Assertions.h"
  #endif
  
-@@ -75,7 +75,7 @@
-     float buttons[buttonsLengthCap];
+@@ -96,7 +96,7 @@
+     WebUChar mapping[mappingLengthCap];
  };
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
- COMPILE_ASSERT(sizeof(WebGamepad) == 465, WebGamepad_has_wrong_size);
+ COMPILE_ASSERT(sizeof(WebGamepad) == 529, WebGamepad_has_wrong_size);
  #endif
  
 Index: third_party/WebKit/public/platform/WebGamepads.h
 ===================================================================
---- third_party/WebKit/public/platform/WebGamepads.h	(revision 164518)
+--- third_party/WebKit/public/platform/WebGamepads.h	(revision 175075)
 +++ third_party/WebKit/public/platform/WebGamepads.h	(working copy)
 @@ -26,7 +26,7 @@
  
@@ -175,12 +65,12 @@ Index: third_party/WebKit/public/platform/WebGamepads.h
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
- COMPILE_ASSERT(sizeof(WebGamepads) == 1864, WebGamepads_has_wrong_size);
+ COMPILE_ASSERT(sizeof(WebGamepads) == 2120, WebGamepads_has_wrong_size);
  #endif
  
 Index: third_party/WebKit/public/platform/WebIDBDatabaseError.h
 ===================================================================
---- third_party/WebKit/public/platform/WebIDBDatabaseError.h	(revision 164518)
+--- third_party/WebKit/public/platform/WebIDBDatabaseError.h	(revision 175075)
 +++ third_party/WebKit/public/platform/WebIDBDatabaseError.h	(working copy)
 @@ -54,7 +54,7 @@
      BLINK_EXPORT void assign(const WebIDBDatabaseError&);
@@ -188,14 +78,14 @@ Index: third_party/WebKit/public/platform/WebIDBDatabaseError.h
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
-     operator WTF::PassRefPtr<WebCore::DOMError>() const;
+     operator PassRefPtrWillBeRawPtr<WebCore::DOMError>() const;
  #endif
  
 Index: third_party/WebKit/public/platform/WebIDBKey.h
 ===================================================================
---- third_party/WebKit/public/platform/WebIDBKey.h	(revision 164518)
+--- third_party/WebKit/public/platform/WebIDBKey.h	(revision 175075)
 +++ third_party/WebKit/public/platform/WebIDBKey.h	(working copy)
-@@ -72,7 +72,7 @@
+@@ -76,7 +76,7 @@
      BLINK_EXPORT double date() const; // Only valid for DateType.
      BLINK_EXPORT double number() const; // Only valid for NumberType.
  
@@ -206,7 +96,7 @@ Index: third_party/WebKit/public/platform/WebIDBKey.h
      operator WTF::PassRefPtr<WebCore::IDBKey>() const;
 Index: third_party/WebKit/public/platform/WebIDBKeyPath.h
 ===================================================================
---- third_party/WebKit/public/platform/WebIDBKeyPath.h	(revision 164518)
+--- third_party/WebKit/public/platform/WebIDBKeyPath.h	(revision 175075)
 +++ third_party/WebKit/public/platform/WebIDBKeyPath.h	(working copy)
 @@ -58,7 +58,7 @@
      BLINK_EXPORT WebVector<WebString> array() const; // Only valid for ArrayType.
@@ -219,7 +109,7 @@ Index: third_party/WebKit/public/platform/WebIDBKeyPath.h
      operator const WebCore::IDBKeyPath&() const;
 Index: third_party/WebKit/public/platform/WebIDBKeyRange.h
 ===================================================================
---- third_party/WebKit/public/platform/WebIDBKeyRange.h	(revision 164518)
+--- third_party/WebKit/public/platform/WebIDBKeyRange.h	(revision 175075)
 +++ third_party/WebKit/public/platform/WebIDBKeyRange.h	(working copy)
 @@ -52,7 +52,7 @@
      BLINK_EXPORT void assign(const WebIDBKey& lower, const WebIDBKey& upper, bool lowerOpen, bool upperOpen);
@@ -232,7 +122,7 @@ Index: third_party/WebKit/public/platform/WebIDBKeyRange.h
      operator WTF::PassRefPtr<WebCore::IDBKeyRange>() const;
 Index: third_party/WebKit/public/platform/WebIDBMetadata.h
 ===================================================================
---- third_party/WebKit/public/platform/WebIDBMetadata.h	(revision 164518)
+--- third_party/WebKit/public/platform/WebIDBMetadata.h	(revision 175075)
 +++ third_party/WebKit/public/platform/WebIDBMetadata.h	(working copy)
 @@ -80,7 +80,7 @@
              , multiEntry(false) { }
@@ -243,192 +133,22 @@ Index: third_party/WebKit/public/platform/WebIDBMetadata.h
      WebIDBMetadata(const WebCore::IDBDatabaseMetadata&);
      operator WebCore::IDBDatabaseMetadata() const;
  #endif
-Index: third_party/WebKit/public/platform/WebImage.h
-===================================================================
---- third_party/WebKit/public/platform/WebImage.h	(revision 164518)
-+++ third_party/WebKit/public/platform/WebImage.h	(working copy)
-@@ -36,7 +36,7 @@
- 
- #include "third_party/skia/include/core/SkBitmap.h"
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
- namespace WebCore { class Image; }
- namespace WTF { template <typename T> class PassRefPtr; }
- #endif
-@@ -79,7 +79,7 @@
-     BLINK_EXPORT bool isNull() const;
-     BLINK_EXPORT WebSize size() const;
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
-     WebImage(const WTF::PassRefPtr<WebCore::Image>&);
-     WebImage& operator=(const WTF::PassRefPtr<WebCore::Image>&);
- #endif
-Index: third_party/WebKit/public/platform/WebMediaConstraints.h
-===================================================================
---- third_party/WebKit/public/platform/WebMediaConstraints.h	(revision 164518)
-+++ third_party/WebKit/public/platform/WebMediaConstraints.h	(working copy)
-@@ -55,7 +55,7 @@
-     {
-     }
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
-     WebMediaConstraint(const WebCore::MediaConstraint&);
- #endif
- 
-@@ -86,7 +86,7 @@
-     BLINK_EXPORT bool getMandatoryConstraintValue(const WebString& name, WebString& value) const;
-     BLINK_EXPORT bool getOptionalConstraintValue(const WebString& name, WebString& value) const;
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
-     WebMediaConstraints(const WTF::PassRefPtr<WebCore::MediaConstraints>&);
-     WebMediaConstraints(WebCore::MediaConstraints*);
- #endif
-Index: third_party/WebKit/public/platform/WebMediaStream.h
-===================================================================
---- third_party/WebKit/public/platform/WebMediaStream.h	(revision 164518)
-+++ third_party/WebKit/public/platform/WebMediaStream.h	(working copy)
-@@ -80,7 +80,7 @@
-     BLINK_EXPORT ExtraData* extraData() const;
-     BLINK_EXPORT void setExtraData(ExtraData*);
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
-     WebMediaStream(WebCore::MediaStreamDescriptor*);
-     WebMediaStream(const WTF::PassRefPtr<WebCore::MediaStreamDescriptor>&);
-     operator WTF::PassRefPtr<WebCore::MediaStreamDescriptor>() const;
-Index: third_party/WebKit/public/platform/WebMediaStreamSource.h
-===================================================================
---- third_party/WebKit/public/platform/WebMediaStreamSource.h	(revision 164518)
-+++ third_party/WebKit/public/platform/WebMediaStreamSource.h	(working copy)
-@@ -54,7 +54,7 @@
- 
-         BLINK_EXPORT WebMediaStreamSource owner();
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
-         void setOwner(WebCore::MediaStreamSource*);
- #endif
- 
-@@ -115,7 +115,7 @@
-     BLINK_EXPORT void addAudioConsumer(WebAudioDestinationConsumer*);
-     BLINK_EXPORT bool removeAudioConsumer(WebAudioDestinationConsumer*);
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
-     WebMediaStreamSource(const WTF::PassRefPtr<WebCore::MediaStreamSource>&);
-     WebMediaStreamSource& operator=(WebCore::MediaStreamSource*);
-     operator WTF::PassRefPtr<WebCore::MediaStreamSource>() const;
-Index: third_party/WebKit/public/platform/WebMediaStreamTrack.h
-===================================================================
---- third_party/WebKit/public/platform/WebMediaStreamTrack.h	(revision 164518)
-+++ third_party/WebKit/public/platform/WebMediaStreamTrack.h	(working copy)
-@@ -81,7 +81,7 @@
-     // setSourceProvider(0) before the WebMediaStreamTrack is going away.
-     BLINK_EXPORT void setSourceProvider(WebAudioSourceProvider*);
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
-     WebMediaStreamTrack(PassRefPtr<WebCore::MediaStreamComponent>);
-     WebMediaStreamTrack(WebCore::MediaStreamComponent*);
-     WebMediaStreamTrack& operator=(WebCore::MediaStreamComponent*);
-Index: third_party/WebKit/public/platform/WebMediaStreamTrackSourcesRequest.h
-===================================================================
---- third_party/WebKit/public/platform/WebMediaStreamTrackSourcesRequest.h	(revision 164518)
-+++ third_party/WebKit/public/platform/WebMediaStreamTrackSourcesRequest.h	(working copy)
-@@ -71,7 +71,7 @@
-     BLINK_EXPORT ExtraData* extraData() const;
-     BLINK_EXPORT void setExtraData(ExtraData*);
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
-     WebMediaStreamTrackSourcesRequest(const WTF::PassRefPtr<WebCore::MediaStreamTrackSourcesRequest>&);
- #endif
- 
 Index: third_party/WebKit/public/platform/WebRTCSessionDescription.h
 ===================================================================
---- third_party/WebKit/public/platform/WebRTCSessionDescription.h	(revision 164518)
+--- third_party/WebKit/public/platform/WebRTCSessionDescription.h	(revision 175075)
 +++ third_party/WebKit/public/platform/WebRTCSessionDescription.h	(working copy)
 @@ -75,7 +75,7 @@
-     BLINK_EXPORT WebString sdp() const;
-     BLINK_EXPORT void setSDP(const WebString&);
+     BLINK_PLATFORM_EXPORT WebString sdp() const;
+     BLINK_PLATFORM_EXPORT void setSDP(const WebString&);
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
      WebRTCSessionDescription(WebString type, WebString sdp)
      {
          this->initialize(type, sdp);
-Index: third_party/WebKit/public/platform/WebRTCSessionDescriptionRequest.h
-===================================================================
---- third_party/WebKit/public/platform/WebRTCSessionDescriptionRequest.h	(revision 164518)
-+++ third_party/WebKit/public/platform/WebRTCSessionDescriptionRequest.h	(working copy)
-@@ -75,7 +75,7 @@
-     BLINK_EXPORT ExtraData* extraData() const;
-     BLINK_EXPORT void setExtraData(ExtraData*);
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
-     WebRTCSessionDescriptionRequest(const WTF::PassRefPtr<WebCore::RTCSessionDescriptionRequest>&);
- #endif
- 
-Index: third_party/WebKit/public/platform/WebRTCStatsRequest.h
-===================================================================
---- third_party/WebKit/public/platform/WebRTCStatsRequest.h	(revision 164518)
-+++ third_party/WebKit/public/platform/WebRTCStatsRequest.h	(working copy)
-@@ -96,7 +96,7 @@
- 
-     BLINK_EXPORT WebRTCStatsResponse createResponse() const;
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
-     WebRTCStatsRequest(const WTF::PassRefPtr<WebCore::RTCStatsRequest>&);
- #endif
- 
-Index: third_party/WebKit/public/platform/WebRTCStatsResponse.h
-===================================================================
---- third_party/WebKit/public/platform/WebRTCStatsResponse.h	(revision 164518)
-+++ third_party/WebKit/public/platform/WebRTCStatsResponse.h	(working copy)
-@@ -54,7 +54,7 @@
-     BLINK_EXPORT size_t addReport(WebString id, WebString type, double timestamp);
-     BLINK_EXPORT void addStatistic(size_t report, WebString name, WebString value);
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
-     WebRTCStatsResponse(const WTF::PassRefPtr<WebCore::RTCStatsResponseBase>&);
- 
-     operator WTF::PassRefPtr<WebCore::RTCStatsResponseBase>() const;
-Index: third_party/WebKit/public/platform/WebRTCVoidRequest.h
-===================================================================
---- third_party/WebKit/public/platform/WebRTCVoidRequest.h	(revision 164518)
-+++ third_party/WebKit/public/platform/WebRTCVoidRequest.h	(working copy)
-@@ -74,7 +74,7 @@
-     BLINK_EXPORT ExtraData* extraData() const;
-     BLINK_EXPORT void setExtraData(ExtraData*);
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
-     WebRTCVoidRequest(const WTF::PassRefPtr<WebCore::RTCVoidRequest>&);
- #endif
- 
-Index: third_party/WebKit/public/platform/WebScrollbar.h
-===================================================================
---- third_party/WebKit/public/platform/WebScrollbar.h	(revision 164518)
-+++ third_party/WebKit/public/platform/WebScrollbar.h	(working copy)
-@@ -29,7 +29,7 @@
- #include "WebRect.h"
- #include "WebSize.h"
- #include "WebVector.h"
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
- #include "wtf/PassOwnPtr.h"
- #endif
- 
 Index: third_party/WebKit/public/platform/WebScrollbarThemePainter.h
 ===================================================================
---- third_party/WebKit/public/platform/WebScrollbarThemePainter.h	(revision 164518)
+--- third_party/WebKit/public/platform/WebScrollbarThemePainter.h	(revision 175075)
 +++ third_party/WebKit/public/platform/WebScrollbarThemePainter.h	(working copy)
 @@ -62,7 +62,7 @@
      BLINK_EXPORT void paintTickmarks(WebCanvas*, const WebRect&);
@@ -439,57 +159,9 @@ Index: third_party/WebKit/public/platform/WebScrollbarThemePainter.h
      WebScrollbarThemePainter(WebCore::ScrollbarTheme*, WebCore::Scrollbar*);
  #endif
  
-Index: third_party/WebKit/public/platform/WebSize.h
-===================================================================
---- third_party/WebKit/public/platform/WebSize.h	(revision 164518)
-+++ third_party/WebKit/public/platform/WebSize.h	(working copy)
-@@ -33,7 +33,7 @@
- 
- #include "WebCommon.h"
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
- #include "platform/geometry/IntSize.h"
- #else
- #include <algorithm>
-@@ -62,7 +62,7 @@
-     {
-     }
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
-     WebSize(const WebCore::IntSize& s)
-         : width(s.width())
-         , height(s.height())
-Index: third_party/WebKit/public/platform/WebSpeechSynthesisUtterance.h
-===================================================================
---- third_party/WebKit/public/platform/WebSpeechSynthesisUtterance.h	(revision 164518)
-+++ third_party/WebKit/public/platform/WebSpeechSynthesisUtterance.h	(working copy)
-@@ -61,7 +61,7 @@
- 
-     BLINK_EXPORT double startTime() const; // In seconds.
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
-     WebSpeechSynthesisUtterance(const PassRefPtr<WebCore::PlatformSpeechSynthesisUtterance>&);
-     WebSpeechSynthesisUtterance& operator=(WebCore::PlatformSpeechSynthesisUtterance*);
-     operator PassRefPtr<WebCore::PlatformSpeechSynthesisUtterance>() const;
-Index: third_party/WebKit/public/platform/WebSpeechSynthesisVoice.h
-===================================================================
---- third_party/WebKit/public/platform/WebSpeechSynthesisVoice.h	(revision 164518)
-+++ third_party/WebKit/public/platform/WebSpeechSynthesisVoice.h	(working copy)
-@@ -57,7 +57,7 @@
-     BLINK_EXPORT void setIsLocalService(bool);
-     BLINK_EXPORT void setIsDefault(bool);
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
-     operator WTF::PassRefPtr<WebCore::PlatformSpeechSynthesisVoice>() const;
- #endif
- 
 Index: third_party/WebKit/public/platform/WebWorkerRunLoop.h
 ===================================================================
---- third_party/WebKit/public/platform/WebWorkerRunLoop.h	(revision 164518)
+--- third_party/WebKit/public/platform/WebWorkerRunLoop.h	(revision 175075)
 +++ third_party/WebKit/public/platform/WebWorkerRunLoop.h	(working copy)
 @@ -46,7 +46,7 @@
      BLINK_EXPORT bool equals(const WebWorkerRunLoop&) const;
@@ -502,20 +174,20 @@ Index: third_party/WebKit/public/platform/WebWorkerRunLoop.h
  
 Index: third_party/WebKit/public/platform/linux/WebFontRenderStyle.h
 ===================================================================
---- third_party/WebKit/public/platform/linux/WebFontRenderStyle.h	(revision 164518)
+--- third_party/WebKit/public/platform/linux/WebFontRenderStyle.h	(revision 175075)
 +++ third_party/WebKit/public/platform/linux/WebFontRenderStyle.h	(working copy)
 @@ -50,7 +50,7 @@
      char useSubpixelRendering; // use subpixel rendering (partially-filled pixels)
      char useSubpixelPositioning; // use subpixel positioning (fractional X positions for glyphs)
  
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
+-#if BLINK_IMPLEMENTATION || BLINK_PLATFORM_IMPLEMENTATION
++#if INSIDE_BLINK || BLINK_PLATFORM_IMPLEMENTATION
      // Translates the members of this struct to a FontRenderStyle
      void toFontRenderStyle(WebCore::FontRenderStyle*);
  #endif
 Index: third_party/WebKit/public/web/WebAXObject.h
 ===================================================================
---- third_party/WebKit/public/web/WebAXObject.h	(revision 164518)
+--- third_party/WebKit/public/web/WebAXObject.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebAXObject.h	(working copy)
 @@ -36,7 +36,7 @@
  #include "../platform/WebVector.h"
@@ -526,7 +198,7 @@ Index: third_party/WebKit/public/web/WebAXObject.h
  namespace WTF { template <typename T> class PassRefPtr; }
  #endif
  
-@@ -210,7 +210,7 @@
+@@ -216,7 +216,7 @@
      // Scroll this object to a given point in global coordinates of the top-level window.
      BLINK_EXPORT void scrollToGlobalPoint(const WebPoint&) const;
  
@@ -537,7 +209,7 @@ Index: third_party/WebKit/public/web/WebAXObject.h
      operator WTF::PassRefPtr<WebCore::AXObject>() const;
 Index: third_party/WebKit/public/web/WebArrayBufferView.h
 ===================================================================
---- third_party/WebKit/public/web/WebArrayBufferView.h	(revision 164518)
+--- third_party/WebKit/public/web/WebArrayBufferView.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebArrayBufferView.h	(working copy)
 @@ -57,7 +57,7 @@
  
@@ -550,20 +222,29 @@ Index: third_party/WebKit/public/web/WebArrayBufferView.h
      operator WTF::PassRefPtr<WTF::ArrayBufferView>() const;
 Index: third_party/WebKit/public/web/WebBlob.h
 ===================================================================
---- third_party/WebKit/public/web/WebBlob.h	(revision 164518)
+--- third_party/WebKit/public/web/WebBlob.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebBlob.h	(working copy)
-@@ -69,7 +69,7 @@
+@@ -37,7 +37,7 @@
+ #include "public/platform/WebString.h"
+ #include "public/platform/WebURL.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ #include "heap/Handle.h"
+ #endif
+ 
+@@ -73,7 +73,7 @@
  
      BLINK_EXPORT v8::Handle<v8::Value>  toV8Value();
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
-     WebBlob(const WTF::PassRefPtr<WebCore::Blob>&);
-     WebBlob& operator=(const WTF::PassRefPtr<WebCore::Blob>&);
-     operator WTF::PassRefPtr<WebCore::Blob>() const;
+     explicit WebBlob(const PassRefPtrWillBeRawPtr<WebCore::Blob>&);
+     WebBlob& operator=(const PassRefPtrWillBeRawPtr<WebCore::Blob>&);
+ #endif
 Index: third_party/WebKit/public/web/WebCachedURLRequest.h
 ===================================================================
---- third_party/WebKit/public/web/WebCachedURLRequest.h	(revision 164518)
+--- third_party/WebKit/public/web/WebCachedURLRequest.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebCachedURLRequest.h	(working copy)
 @@ -53,7 +53,7 @@
      BLINK_EXPORT bool forPreload() const;
@@ -574,9 +255,22 @@ Index: third_party/WebKit/public/web/WebCachedURLRequest.h
      explicit WebCachedURLRequest(WebCore::FetchRequest*);
  #endif
  
+Index: third_party/WebKit/public/web/WebColorSuggestion.h
+===================================================================
+--- third_party/WebKit/public/web/WebColorSuggestion.h	(revision 175075)
++++ third_party/WebKit/public/web/WebColorSuggestion.h	(working copy)
+@@ -44,7 +44,7 @@
+     WebColor color;
+     WebString label;
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebColorSuggestion(const WebCore::ColorSuggestion&);
+     WebColorSuggestion& operator=(const WebCore::ColorSuggestion&);
+ #endif
 Index: third_party/WebKit/public/web/WebDOMError.h
 ===================================================================
---- third_party/WebKit/public/web/WebDOMError.h	(revision 164518)
+--- third_party/WebKit/public/web/WebDOMError.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebDOMError.h	(working copy)
 @@ -66,7 +66,7 @@
  
@@ -584,12 +278,12 @@ Index: third_party/WebKit/public/web/WebDOMError.h
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
-     WebDOMError(const WTF::PassRefPtr<WebCore::DOMError>&);
-     WebDOMError& operator=(const WTF::PassRefPtr<WebCore::DOMError>&);
-     operator WTF::PassRefPtr<WebCore::DOMError>() const;
+     explicit WebDOMError(const PassRefPtrWillBeRawPtr<WebCore::DOMError>&);
+     WebDOMError& operator=(const PassRefPtrWillBeRawPtr<WebCore::DOMError>&);
+ #endif
 Index: third_party/WebKit/public/web/WebDOMEvent.h
 ===================================================================
---- third_party/WebKit/public/web/WebDOMEvent.h	(revision 164518)
+--- third_party/WebKit/public/web/WebDOMEvent.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebDOMEvent.h	(working copy)
 @@ -37,7 +37,7 @@
  #include "WebNode.h"
@@ -600,16 +294,16 @@ Index: third_party/WebKit/public/web/WebDOMEvent.h
  namespace WTF { template <typename T> class PassRefPtr; }
  #endif
  
-@@ -92,7 +92,7 @@
+@@ -91,7 +91,7 @@
+     BLINK_EXPORT bool isProgressEvent() const;
      BLINK_EXPORT bool isXMLHttpRequestProgressEvent() const;
-     BLINK_EXPORT bool isBeforeLoadEvent() const;
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
      WebDOMEvent(const WTF::PassRefPtr<WebCore::Event>&);
      operator WTF::PassRefPtr<WebCore::Event>() const;
  #endif
-@@ -113,7 +113,7 @@
+@@ -112,7 +112,7 @@
  
  protected:
      typedef WebCore::Event WebDOMEventPrivate;
@@ -620,7 +314,7 @@ Index: third_party/WebKit/public/web/WebDOMEvent.h
      template<typename T> T* unwrap()
 Index: third_party/WebKit/public/web/WebDOMEventListener.h
 ===================================================================
---- third_party/WebKit/public/web/WebDOMEventListener.h	(revision 164518)
+--- third_party/WebKit/public/web/WebDOMEventListener.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebDOMEventListener.h	(working copy)
 @@ -33,7 +33,7 @@
  
@@ -642,20 +336,51 @@ Index: third_party/WebKit/public/web/WebDOMEventListener.h
      EventListenerWrapper* getEventListenerWrapper(const WebString& eventType, bool useCapture, WebCore::EventTarget*);
 Index: third_party/WebKit/public/web/WebDOMFileSystem.h
 ===================================================================
---- third_party/WebKit/public/web/WebDOMFileSystem.h	(revision 164518)
+--- third_party/WebKit/public/web/WebDOMFileSystem.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebDOMFileSystem.h	(working copy)
-@@ -68,7 +68,7 @@
+@@ -37,7 +37,7 @@
+ #include "../platform/WebURL.h"
+ #include "WebFrame.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ #include "heap/Handle.h"
+ #endif
+ 
+@@ -96,7 +96,7 @@
  
      bool isNull() const { return m_private.isNull(); }
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
-     WebDOMFileSystem(const WTF::PassRefPtr<WebCore::DOMFileSystem>&);
-     WebDOMFileSystem& operator=(const WTF::PassRefPtr<WebCore::DOMFileSystem>&);
-     operator WTF::PassRefPtr<WebCore::DOMFileSystem>() const;
+     WebDOMFileSystem(const PassRefPtrWillBeRawPtr<WebCore::DOMFileSystem>&);
+     WebDOMFileSystem& operator=(const PassRefPtrWillBeRawPtr<WebCore::DOMFileSystem>&);
+ #endif
+Index: third_party/WebKit/public/web/WebDOMMediaStreamTrack.h
+===================================================================
+--- third_party/WebKit/public/web/WebDOMMediaStreamTrack.h	(revision 175075)
++++ third_party/WebKit/public/web/WebDOMMediaStreamTrack.h	(working copy)
+@@ -34,7 +34,7 @@
+ #include "public/platform/WebMediaStreamTrack.h"
+ #include "public/platform/WebPrivatePtr.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ #include "wtf/PassRefPtr.h"
+ #endif
+ 
+@@ -67,7 +67,7 @@
+     BLINK_EXPORT WebMediaStreamTrack component() const;
+ 
+ private:
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebDOMMediaStreamTrack(WTF::PassRefPtr<WebCore::MediaStreamTrack>);
+ #endif
+ 
 Index: third_party/WebKit/public/web/WebDOMMessageEvent.h
 ===================================================================
---- third_party/WebKit/public/web/WebDOMMessageEvent.h	(revision 164518)
+--- third_party/WebKit/public/web/WebDOMMessageEvent.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebDOMMessageEvent.h	(working copy)
 @@ -34,7 +34,7 @@
  #include "WebDOMEvent.h"
@@ -677,7 +402,7 @@ Index: third_party/WebKit/public/web/WebDOMMessageEvent.h
  };
 Index: third_party/WebKit/public/web/WebDOMMouseEvent.h
 ===================================================================
---- third_party/WebKit/public/web/WebDOMMouseEvent.h	(revision 164518)
+--- third_party/WebKit/public/web/WebDOMMouseEvent.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebDOMMouseEvent.h	(working copy)
 @@ -32,7 +32,7 @@
  
@@ -690,9 +415,9 @@ Index: third_party/WebKit/public/web/WebDOMMouseEvent.h
  
 Index: third_party/WebKit/public/web/WebDatabase.h
 ===================================================================
---- third_party/WebKit/public/web/WebDatabase.h	(revision 164518)
+--- third_party/WebKit/public/web/WebDatabase.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebDatabase.h	(working copy)
-@@ -62,7 +62,7 @@
+@@ -58,7 +58,7 @@
      BLINK_EXPORT static void closeDatabaseImmediately(
          const WebString& originIdentifier, const WebString& databaseName);
  
@@ -701,11 +426,33 @@ Index: third_party/WebKit/public/web/WebDatabase.h
      WebDatabase(const WebCore::DatabaseBackendBase*);
  #endif
  
+Index: third_party/WebKit/public/web/WebDateTimeSuggestion.h
+===================================================================
+--- third_party/WebKit/public/web/WebDateTimeSuggestion.h	(revision 175075)
++++ third_party/WebKit/public/web/WebDateTimeSuggestion.h	(working copy)
+@@ -28,7 +28,7 @@
+ 
+ #include "public/platform/WebString.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ namespace WebCore { struct DateTimeSuggestion; }
+ #endif
+ 
+@@ -41,7 +41,7 @@
+ 
+     WebDateTimeSuggestion() { }
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebDateTimeSuggestion(const WebCore::DateTimeSuggestion&);
+     WebDateTimeSuggestion& operator=(const WebCore::DateTimeSuggestion&);
+ #endif
 Index: third_party/WebKit/public/web/WebDocument.h
 ===================================================================
---- third_party/WebKit/public/web/WebDocument.h	(revision 164518)
+--- third_party/WebKit/public/web/WebDocument.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebDocument.h	(working copy)
-@@ -38,7 +38,7 @@
+@@ -39,7 +39,7 @@
  #include "WebNode.h"
  #include "WebSecurityOrigin.h"
  
@@ -714,7 +461,7 @@ Index: third_party/WebKit/public/web/WebDocument.h
  namespace WebCore {
  class Document;
  class DocumentType;
-@@ -144,7 +144,7 @@
+@@ -136,7 +136,7 @@
  
      BLINK_EXPORT v8::Handle<v8::Value> registerEmbedderCustomElement(const WebString& name, v8::Handle<v8::Value> options, WebExceptionCode&);
  
@@ -725,7 +472,7 @@ Index: third_party/WebKit/public/web/WebDocument.h
      operator WTF::PassRefPtr<WebCore::Document>() const;
 Index: third_party/WebKit/public/web/WebDocumentType.h
 ===================================================================
---- third_party/WebKit/public/web/WebDocumentType.h	(revision 164518)
+--- third_party/WebKit/public/web/WebDocumentType.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebDocumentType.h	(working copy)
 @@ -33,7 +33,7 @@
  
@@ -747,7 +494,7 @@ Index: third_party/WebKit/public/web/WebDocumentType.h
      operator WTF::PassRefPtr<WebCore::DocumentType>() const;
 Index: third_party/WebKit/public/web/WebElement.h
 ===================================================================
---- third_party/WebKit/public/web/WebElement.h	(revision 164518)
+--- third_party/WebKit/public/web/WebElement.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebElement.h	(working copy)
 @@ -34,7 +34,7 @@
  #include "../platform/WebImage.h"
@@ -767,9 +514,31 @@ Index: third_party/WebKit/public/web/WebElement.h
          WebElement(const WTF::PassRefPtr<WebCore::Element>&);
          WebElement& operator=(const WTF::PassRefPtr<WebCore::Element>&);
          operator WTF::PassRefPtr<WebCore::Element>() const;
+Index: third_party/WebKit/public/web/WebElementCollection.h
+===================================================================
+--- third_party/WebKit/public/web/WebElementCollection.h	(revision 175075)
++++ third_party/WebKit/public/web/WebElementCollection.h	(working copy)
+@@ -35,7 +35,7 @@
+ #include "../platform/WebCommon.h"
+ 
+ namespace WebCore { class HTMLCollection; }
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ namespace WTF { template <typename T> class PassRefPtr; }
+ #endif
+ 
+@@ -64,7 +64,7 @@
+     BLINK_EXPORT WebElement nextItem() const;
+     BLINK_EXPORT WebElement firstItem() const;
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebElementCollection(const WTF::PassRefPtr<WebCore::HTMLCollection>&);
+ #endif
+ 
 Index: third_party/WebKit/public/web/WebFontDescription.h
 ===================================================================
---- third_party/WebKit/public/web/WebFontDescription.h	(revision 164518)
+--- third_party/WebKit/public/web/WebFontDescription.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebFontDescription.h	(working copy)
 @@ -33,7 +33,7 @@
  
@@ -786,12 +555,12 @@ Index: third_party/WebKit/public/web/WebFontDescription.h
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
-     WebFontDescription(const WebCore::FontDescription&, short fontLetterSpacing, short fontWordSpacing);
+     WebFontDescription(const WebCore::FontDescription&);
  
      operator WebCore::FontDescription() const;
 Index: third_party/WebKit/public/web/WebFormControlElement.h
 ===================================================================
---- third_party/WebKit/public/web/WebFormControlElement.h	(revision 164518)
+--- third_party/WebKit/public/web/WebFormControlElement.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebFormControlElement.h	(working copy)
 @@ -35,7 +35,7 @@
  #include "WebElement.h"
@@ -802,7 +571,7 @@ Index: third_party/WebKit/public/web/WebFormControlElement.h
  namespace WebCore { class HTMLFormControlElement; }
  #endif
  
-@@ -71,7 +71,7 @@
+@@ -112,7 +112,7 @@
  
      BLINK_EXPORT WebFormElement form() const;
  
@@ -813,7 +582,7 @@ Index: third_party/WebKit/public/web/WebFormControlElement.h
      operator WTF::PassRefPtr<WebCore::HTMLFormControlElement>() const;
 Index: third_party/WebKit/public/web/WebFormElement.h
 ===================================================================
---- third_party/WebKit/public/web/WebFormElement.h	(revision 164518)
+--- third_party/WebKit/public/web/WebFormElement.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebFormElement.h	(working copy)
 @@ -34,7 +34,7 @@
  #include "../platform/WebVector.h"
@@ -835,7 +604,7 @@ Index: third_party/WebKit/public/web/WebFormElement.h
          operator WTF::PassRefPtr<WebCore::HTMLFormElement>() const;
 Index: third_party/WebKit/public/web/WebGeolocationController.h
 ===================================================================
---- third_party/WebKit/public/web/WebGeolocationController.h	(revision 164518)
+--- third_party/WebKit/public/web/WebGeolocationController.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebGeolocationController.h	(working copy)
 @@ -43,7 +43,7 @@
      BLINK_EXPORT void positionChanged(const WebGeolocationPosition&);
@@ -848,7 +617,7 @@ Index: third_party/WebKit/public/web/WebGeolocationController.h
      {
 Index: third_party/WebKit/public/web/WebGeolocationError.h
 ===================================================================
---- third_party/WebKit/public/web/WebGeolocationError.h	(revision 164518)
+--- third_party/WebKit/public/web/WebGeolocationError.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebGeolocationError.h	(working copy)
 @@ -29,7 +29,7 @@
  #include "../platform/WebCommon.h"
@@ -870,7 +639,7 @@ Index: third_party/WebKit/public/web/WebGeolocationError.h
      operator WTF::PassRefPtr<WebCore::GeolocationError>() const;
 Index: third_party/WebKit/public/web/WebGeolocationPermissionRequest.h
 ===================================================================
---- third_party/WebKit/public/web/WebGeolocationPermissionRequest.h	(revision 164518)
+--- third_party/WebKit/public/web/WebGeolocationPermissionRequest.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebGeolocationPermissionRequest.h	(working copy)
 @@ -46,7 +46,7 @@
      BLINK_EXPORT WebSecurityOrigin securityOrigin() const;
@@ -883,7 +652,7 @@ Index: third_party/WebKit/public/web/WebGeolocationPermissionRequest.h
      {
 Index: third_party/WebKit/public/web/WebGeolocationPosition.h
 ===================================================================
---- third_party/WebKit/public/web/WebGeolocationPosition.h	(revision 164518)
+--- third_party/WebKit/public/web/WebGeolocationPosition.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebGeolocationPosition.h	(working copy)
 @@ -29,7 +29,7 @@
  #include "../platform/WebCommon.h"
@@ -905,9 +674,9 @@ Index: third_party/WebKit/public/web/WebGeolocationPosition.h
      operator WTF::PassRefPtr<WebCore::GeolocationPosition>() const;
 Index: third_party/WebKit/public/web/WebHistoryItem.h
 ===================================================================
---- third_party/WebKit/public/web/WebHistoryItem.h	(revision 164518)
+--- third_party/WebKit/public/web/WebHistoryItem.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebHistoryItem.h	(working copy)
-@@ -110,7 +110,7 @@
+@@ -107,7 +107,7 @@
  
      BLINK_EXPORT WebVector<WebString> getReferencedFilePaths() const;
  
@@ -918,7 +687,7 @@ Index: third_party/WebKit/public/web/WebHistoryItem.h
      operator WTF::PassRefPtr<WebCore::HistoryItem>() const;
 Index: third_party/WebKit/public/web/WebHitTestResult.h
 ===================================================================
---- third_party/WebKit/public/web/WebHitTestResult.h	(revision 164518)
+--- third_party/WebKit/public/web/WebHitTestResult.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebHitTestResult.h	(working copy)
 @@ -71,7 +71,7 @@
      // Return whether an editable input element was hit.
@@ -931,7 +700,7 @@ Index: third_party/WebKit/public/web/WebHitTestResult.h
      operator WebCore::HitTestResult() const;
 Index: third_party/WebKit/public/web/WebIconURL.h
 ===================================================================
---- third_party/WebKit/public/web/WebIconURL.h	(revision 164518)
+--- third_party/WebKit/public/web/WebIconURL.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebIconURL.h	(working copy)
 @@ -31,7 +31,7 @@
  #ifndef WebIconURL_h
@@ -941,9 +710,9 @@ Index: third_party/WebKit/public/web/WebIconURL.h
 +#if INSIDE_BLINK
  #include "core/dom/IconURL.h"
  #endif
- #include "../platform/WebURL.h"
-@@ -68,7 +68,7 @@
-         return m_iconURL;
+ #include "public/platform/WebSize.h"
+@@ -75,7 +75,7 @@
+         return m_sizes;
      }
  
 -#if BLINK_IMPLEMENTATION
@@ -953,7 +722,7 @@ Index: third_party/WebKit/public/web/WebIconURL.h
          , m_iconURL(iconURL.m_iconURL)
 Index: third_party/WebKit/public/web/WebInputElement.h
 ===================================================================
---- third_party/WebKit/public/web/WebInputElement.h	(revision 164518)
+--- third_party/WebKit/public/web/WebInputElement.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebInputElement.h	(working copy)
 @@ -33,7 +33,7 @@
  
@@ -964,9 +733,9 @@ Index: third_party/WebKit/public/web/WebInputElement.h
  namespace WebCore { class HTMLInputElement; }
  #endif
  
-@@ -111,7 +111,7 @@
-         BLINK_EXPORT WebElement decorationElementFor(void*);
-         BLINK_EXPORT WebElement passwordGeneratorButtonElement() const;
+@@ -101,7 +101,7 @@
+         // If true, forces the text of the element to be visible.
+         BLINK_EXPORT void setShouldRevealPassword(bool value);
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
@@ -975,7 +744,7 @@ Index: third_party/WebKit/public/web/WebInputElement.h
          operator WTF::PassRefPtr<WebCore::HTMLInputElement>() const;
 Index: third_party/WebKit/public/web/WebLabelElement.h
 ===================================================================
---- third_party/WebKit/public/web/WebLabelElement.h	(revision 164518)
+--- third_party/WebKit/public/web/WebLabelElement.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebLabelElement.h	(working copy)
 @@ -33,7 +33,7 @@
  
@@ -997,7 +766,7 @@ Index: third_party/WebKit/public/web/WebLabelElement.h
      operator WTF::PassRefPtr<WebCore::HTMLLabelElement>() const;
 Index: third_party/WebKit/public/web/WebMIDIPermissionRequest.h
 ===================================================================
---- third_party/WebKit/public/web/WebMIDIPermissionRequest.h	(revision 164518)
+--- third_party/WebKit/public/web/WebMIDIPermissionRequest.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebMIDIPermissionRequest.h	(working copy)
 @@ -59,7 +59,7 @@
      BLINK_EXPORT void assign(const WebMIDIPermissionRequest&);
@@ -1005,12 +774,25 @@ Index: third_party/WebKit/public/web/WebMIDIPermissionRequest.h
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
-     explicit WebMIDIPermissionRequest(const PassRefPtr<WebCore::MIDIAccess>&);
-     explicit WebMIDIPermissionRequest(WebCore::MIDIAccess*);
+     explicit WebMIDIPermissionRequest(const PassRefPtrWillBeRawPtr<WebCore::MIDIAccess>&);
  
+     WebCore::MIDIAccess* midiAccess() const { return m_private.get(); }
+Index: third_party/WebKit/public/web/WebMediaDevicesRequest.h
+===================================================================
+--- third_party/WebKit/public/web/WebMediaDevicesRequest.h	(revision 175075)
++++ third_party/WebKit/public/web/WebMediaDevicesRequest.h	(working copy)
+@@ -62,7 +62,7 @@
+ 
+     BLINK_EXPORT void requestSucceeded(WebVector<WebMediaDeviceInfo>);
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebMediaDevicesRequest(const PassRefPtr<WebCore::MediaDevicesRequest>&);
+     WebMediaDevicesRequest(WebCore::MediaDevicesRequest*);
+     operator WebCore::MediaDevicesRequest*() const;
 Index: third_party/WebKit/public/web/WebNode.h
 ===================================================================
---- third_party/WebKit/public/web/WebNode.h	(revision 164518)
+--- third_party/WebKit/public/web/WebNode.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebNode.h	(working copy)
 @@ -140,13 +140,13 @@
          return res;
@@ -1028,31 +810,9 @@ Index: third_party/WebKit/public/web/WebNode.h
      template<typename T> T* unwrap()
      {
          return static_cast<T*>(m_private.get());
-Index: third_party/WebKit/public/web/WebNodeCollection.h
-===================================================================
---- third_party/WebKit/public/web/WebNodeCollection.h	(revision 164518)
-+++ third_party/WebKit/public/web/WebNodeCollection.h	(working copy)
-@@ -34,7 +34,7 @@
- #include "../platform/WebCommon.h"
- 
- namespace WebCore { class HTMLCollection; }
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
- namespace WTF { template <typename T> class PassRefPtr; }
- #endif
- 
-@@ -63,7 +63,7 @@
-     BLINK_EXPORT WebNode nextItem() const;
-     BLINK_EXPORT WebNode firstItem() const;
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
-     WebNodeCollection(const WTF::PassRefPtr<WebCore::HTMLCollection>&);
- #endif
- 
 Index: third_party/WebKit/public/web/WebNodeList.h
 ===================================================================
---- third_party/WebKit/public/web/WebNodeList.h	(revision 164518)
+--- third_party/WebKit/public/web/WebNodeList.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebNodeList.h	(working copy)
 @@ -34,7 +34,7 @@
  #include "../platform/WebCommon.h"
@@ -1074,20 +834,20 @@ Index: third_party/WebKit/public/web/WebNodeList.h
  
 Index: third_party/WebKit/public/web/WebNotification.h
 ===================================================================
---- third_party/WebKit/public/web/WebNotification.h	(revision 164518)
+--- third_party/WebKit/public/web/WebNotification.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebNotification.h	(working copy)
-@@ -34,7 +34,7 @@
- #include "../platform/WebCommon.h"
- #include "WebTextDirection.h"
+@@ -38,7 +38,7 @@
+ 
+ namespace WebCore { class Notification; }
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
- namespace WebCore { class Notification; }
  namespace WTF { template <typename T> class PassRefPtr; }
  #endif
-@@ -100,7 +100,7 @@
-     // Called to indicate the notification was clicked on.
-     BLINK_EXPORT void dispatchClickEvent();
+ 
+@@ -92,7 +92,7 @@
+     WebString replaceId() const { return tag(); }
+     void dispatchDisplayEvent() { dispatchShowEvent(); }
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
@@ -1096,7 +856,7 @@ Index: third_party/WebKit/public/web/WebNotification.h
      operator WTF::PassRefPtr<WebCore::Notification>() const;
 Index: third_party/WebKit/public/web/WebOptionElement.h
 ===================================================================
---- third_party/WebKit/public/web/WebOptionElement.h	(revision 164518)
+--- third_party/WebKit/public/web/WebOptionElement.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebOptionElement.h	(working copy)
 @@ -34,7 +34,7 @@
  #include "../platform/WebVector.h"
@@ -1118,20 +878,29 @@ Index: third_party/WebKit/public/web/WebOptionElement.h
      operator WTF::PassRefPtr<WebCore::HTMLOptionElement>() const;
 Index: third_party/WebKit/public/web/WebPerformance.h
 ===================================================================
---- third_party/WebKit/public/web/WebPerformance.h	(revision 164518)
+--- third_party/WebKit/public/web/WebPerformance.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebPerformance.h	(working copy)
-@@ -81,7 +81,7 @@
+@@ -35,7 +35,7 @@
+ #include "../platform/WebPrivatePtr.h"
+ #include "WebNavigationType.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ #include "heap/Handle.h"
+ #endif
+ 
+@@ -85,7 +85,7 @@
      BLINK_EXPORT double loadEventStart() const;
      BLINK_EXPORT double loadEventEnd() const;
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
-     WebPerformance(const WTF::PassRefPtr<WebCore::Performance>&);
-     WebPerformance& operator=(const WTF::PassRefPtr<WebCore::Performance>&);
-     operator WTF::PassRefPtr<WebCore::Performance>() const;
+     WebPerformance(const PassRefPtrWillBeRawPtr<WebCore::Performance>&);
+     WebPerformance& operator=(const PassRefPtrWillBeRawPtr<WebCore::Performance>&);
+ #endif
 Index: third_party/WebKit/public/web/WebPluginDocument.h
 ===================================================================
---- third_party/WebKit/public/web/WebPluginDocument.h	(revision 164518)
+--- third_party/WebKit/public/web/WebPluginDocument.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebPluginDocument.h	(working copy)
 @@ -33,7 +33,7 @@
  
@@ -1153,11 +922,11 @@ Index: third_party/WebKit/public/web/WebPluginDocument.h
      operator WTF::PassRefPtr<WebCore::PluginDocument>() const;
 Index: third_party/WebKit/public/web/WebRange.h
 ===================================================================
---- third_party/WebKit/public/web/WebRange.h	(revision 164518)
+--- third_party/WebKit/public/web/WebRange.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebRange.h	(working copy)
-@@ -34,7 +34,7 @@
- #include "../platform/WebCommon.h"
+@@ -35,7 +35,7 @@
  #include "../platform/WebVector.h"
+ #include "WebFrame.h"
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
@@ -1175,7 +944,7 @@ Index: third_party/WebKit/public/web/WebRange.h
      operator WTF::PassRefPtr<WebCore::Range>() const;
 Index: third_party/WebKit/public/web/WebSecurityOrigin.h
 ===================================================================
---- third_party/WebKit/public/web/WebSecurityOrigin.h	(revision 164518)
+--- third_party/WebKit/public/web/WebSecurityOrigin.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebSecurityOrigin.h	(working copy)
 @@ -33,7 +33,7 @@
  
@@ -1197,7 +966,7 @@ Index: third_party/WebKit/public/web/WebSecurityOrigin.h
      operator WTF::PassRefPtr<WebCore::SecurityOrigin>() const;
 Index: third_party/WebKit/public/web/WebSelectElement.h
 ===================================================================
---- third_party/WebKit/public/web/WebSelectElement.h	(revision 164518)
+--- third_party/WebKit/public/web/WebSelectElement.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebSelectElement.h	(working copy)
 @@ -35,7 +35,7 @@
  #include "WebFormControlElement.h"
@@ -1208,8 +977,8 @@ Index: third_party/WebKit/public/web/WebSelectElement.h
  namespace WebCore { class HTMLSelectElement; }
  #endif
  
-@@ -58,7 +58,7 @@
-     BLINK_EXPORT WebString value() const;
+@@ -56,7 +56,7 @@
+ 
      BLINK_EXPORT WebVector<WebElement> listItems() const;
  
 -#if BLINK_IMPLEMENTATION
@@ -1219,7 +988,7 @@ Index: third_party/WebKit/public/web/WebSelectElement.h
      operator WTF::PassRefPtr<WebCore::HTMLSelectElement>() const;
 Index: third_party/WebKit/public/web/WebSerializedScriptValue.h
 ===================================================================
---- third_party/WebKit/public/web/WebSerializedScriptValue.h	(revision 164518)
+--- third_party/WebKit/public/web/WebSerializedScriptValue.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebSerializedScriptValue.h	(working copy)
 @@ -75,7 +75,7 @@
      // Convert the serialized value to a parsed v8 value.
@@ -1232,7 +1001,7 @@ Index: third_party/WebKit/public/web/WebSerializedScriptValue.h
      operator WTF::PassRefPtr<WebCore::SerializedScriptValue>() const;
 Index: third_party/WebKit/public/web/WebSpeechGrammar.h
 ===================================================================
---- third_party/WebKit/public/web/WebSpeechGrammar.h	(revision 164518)
+--- third_party/WebKit/public/web/WebSpeechGrammar.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebSpeechGrammar.h	(working copy)
 @@ -48,7 +48,7 @@
      BLINK_EXPORT void reset();
@@ -1240,12 +1009,12 @@ Index: third_party/WebKit/public/web/WebSpeechGrammar.h
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
-     WebSpeechGrammar(const WTF::PassRefPtr<WebCore::SpeechGrammar>&);
-     WebSpeechGrammar& operator=(const WTF::PassRefPtr<WebCore::SpeechGrammar>&);
+     explicit WebSpeechGrammar(const PassRefPtrWillBeRawPtr<WebCore::SpeechGrammar>&);
+     WebSpeechGrammar& operator=(const PassRefPtrWillBeRawPtr<WebCore::SpeechGrammar>&);
  #endif
 Index: third_party/WebKit/public/web/WebSpeechInputResult.h
 ===================================================================
---- third_party/WebKit/public/web/WebSpeechInputResult.h	(revision 164518)
+--- third_party/WebKit/public/web/WebSpeechInputResult.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebSpeechInputResult.h	(working copy)
 @@ -55,7 +55,7 @@
      BLINK_EXPORT void assign(const WebSpeechInputResult& other);
@@ -1253,12 +1022,12 @@ Index: third_party/WebKit/public/web/WebSpeechInputResult.h
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
-     WebSpeechInputResult(const WTF::PassRefPtr<WebCore::SpeechInputResult>&);
-     operator WTF::PassRefPtr<WebCore::SpeechInputResult>() const;
+     explicit WebSpeechInputResult(const PassRefPtrWillBeRawPtr<WebCore::SpeechInputResult>&);
+     operator PassRefPtrWillBeRawPtr<WebCore::SpeechInputResult>() const;
  #endif
 Index: third_party/WebKit/public/web/WebSpeechRecognitionHandle.h
 ===================================================================
---- third_party/WebKit/public/web/WebSpeechRecognitionHandle.h	(revision 164518)
+--- third_party/WebKit/public/web/WebSpeechRecognitionHandle.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebSpeechRecognitionHandle.h	(working copy)
 @@ -61,7 +61,7 @@
      BLINK_EXPORT bool equals(const WebSpeechRecognitionHandle&) const;
@@ -1266,12 +1035,12 @@ Index: third_party/WebKit/public/web/WebSpeechRecognitionHandle.h
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
-     WebSpeechRecognitionHandle(const WTF::PassRefPtr<WebCore::SpeechRecognition>&);
-     WebSpeechRecognitionHandle& operator=(const WTF::PassRefPtr<WebCore::SpeechRecognition>&);
-     operator WTF::PassRefPtr<WebCore::SpeechRecognition>() const;
+     explicit WebSpeechRecognitionHandle(const PassRefPtrWillBeRawPtr<WebCore::SpeechRecognition>&);
+     WebSpeechRecognitionHandle& operator=(const PassRefPtrWillBeRawPtr<WebCore::SpeechRecognition>&);
+     operator PassRefPtrWillBeRawPtr<WebCore::SpeechRecognition>() const;
 Index: third_party/WebKit/public/web/WebSpeechRecognitionResult.h
 ===================================================================
---- third_party/WebKit/public/web/WebSpeechRecognitionResult.h	(revision 164518)
+--- third_party/WebKit/public/web/WebSpeechRecognitionResult.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebSpeechRecognitionResult.h	(working copy)
 @@ -47,7 +47,7 @@
      BLINK_EXPORT void assign(const WebSpeechRecognitionResult&);
@@ -1279,12 +1048,12 @@ Index: third_party/WebKit/public/web/WebSpeechRecognitionResult.h
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
-     operator WTF::PassRefPtr<WebCore::SpeechRecognitionResult>() const;
+     operator PassRefPtrWillBeRawPtr<WebCore::SpeechRecognitionResult>() const;
  #endif
  
 Index: third_party/WebKit/public/web/WebTextAreaElement.h
 ===================================================================
---- third_party/WebKit/public/web/WebTextAreaElement.h	(revision 164518)
+--- third_party/WebKit/public/web/WebTextAreaElement.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebTextAreaElement.h	(working copy)
 @@ -33,7 +33,7 @@
  
@@ -1295,9 +1064,9 @@ Index: third_party/WebKit/public/web/WebTextAreaElement.h
  namespace WebCore { class HTMLTextAreaElement; }
  #endif
  
-@@ -55,7 +55,7 @@
-     BLINK_EXPORT void setValue(const WebString&);
-     BLINK_EXPORT WebString value() const;
+@@ -52,7 +52,7 @@
+     }
+     void assign(const WebTextAreaElement& element) { WebFormControlElement::assign(element); }
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
@@ -1306,7 +1075,7 @@ Index: third_party/WebKit/public/web/WebTextAreaElement.h
      operator WTF::PassRefPtr<WebCore::HTMLTextAreaElement>() const;
 Index: third_party/WebKit/public/web/WebTextCheckingResult.h
 ===================================================================
---- third_party/WebKit/public/web/WebTextCheckingResult.h	(revision 164518)
+--- third_party/WebKit/public/web/WebTextCheckingResult.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebTextCheckingResult.h	(working copy)
 @@ -60,7 +60,7 @@
      {
@@ -1319,7 +1088,7 @@ Index: third_party/WebKit/public/web/WebTextCheckingResult.h
  
 Index: third_party/WebKit/public/web/WebTextRun.h
 ===================================================================
---- third_party/WebKit/public/web/WebTextRun.h	(revision 164518)
+--- third_party/WebKit/public/web/WebTextRun.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebTextRun.h	(working copy)
 @@ -33,7 +33,7 @@
  
@@ -1341,7 +1110,7 @@ Index: third_party/WebKit/public/web/WebTextRun.h
      operator WebCore::TextRun() const;
 Index: third_party/WebKit/public/web/WebUserGestureToken.h
 ===================================================================
---- third_party/WebKit/public/web/WebUserGestureToken.h	(revision 164518)
+--- third_party/WebKit/public/web/WebUserGestureToken.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebUserGestureToken.h	(working copy)
 @@ -58,7 +58,7 @@
      BLINK_EXPORT void setJavascriptPrompt();
@@ -1354,11 +1123,11 @@ Index: third_party/WebKit/public/web/WebUserGestureToken.h
  #endif
 Index: third_party/WebKit/public/web/WebUserMediaRequest.h
 ===================================================================
---- third_party/WebKit/public/web/WebUserMediaRequest.h	(revision 164518)
+--- third_party/WebKit/public/web/WebUserMediaRequest.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebUserMediaRequest.h	(working copy)
-@@ -77,7 +77,7 @@
-     BLINK_EXPORT void requestFailed(const WebString& description = WebString());
-     BLINK_EXPORT void requestFailedConstraint(const WebString& constraintName, const WebString& description = WebString());
+@@ -81,7 +81,7 @@
+     // DEPRECATED
+     BLINK_EXPORT void requestFailed(const WebString& description = WebString()) { requestDenied(description); }
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
@@ -1367,7 +1136,7 @@ Index: third_party/WebKit/public/web/WebUserMediaRequest.h
      operator WebCore::UserMediaRequest*() const;
 Index: third_party/WebKit/public/web/WebWindowFeatures.h
 ===================================================================
---- third_party/WebKit/public/web/WebWindowFeatures.h	(revision 164518)
+--- third_party/WebKit/public/web/WebWindowFeatures.h	(revision 175075)
 +++ third_party/WebKit/public/web/WebWindowFeatures.h	(working copy)
 @@ -35,7 +35,7 @@
  #include "../platform/WebString.h"
