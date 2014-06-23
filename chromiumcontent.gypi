@@ -97,8 +97,6 @@
     },
     'xcode_settings': {
       'WARNING_CFLAGS!': [
-        # Xcode 5 doesn't support -Wno-deprecated-register.
-        '-Wno-deprecated-register',
         # Xcode 5.1 doesn't support -Wno-absolute-value.
         '-Wno-absolute-value',
       ],
