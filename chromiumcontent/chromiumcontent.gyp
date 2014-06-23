@@ -111,7 +111,6 @@
                 '<(PRODUCT_DIR)/obj/testing/libgtest.a',
                 '<(PRODUCT_DIR)/obj/third_party/libxml/libxml2.a',
                 '<(PRODUCT_DIR)/obj/third_party/zlib/libchrome_zlib.a',
-                '<(PRODUCT_DIR)/obj/ui/libui_test_support.a',
               ],
               'outputs': [
                 '<(PRODUCT_DIR)/libtest_support_chromiumcontent.a',
@@ -138,7 +137,6 @@
                 '<(PRODUCT_DIR)/libnet_test_support.a',
                 '<(PRODUCT_DIR)/libtest_support_base.a',
                 '<(PRODUCT_DIR)/libtest_support_content.a',
-                '<(PRODUCT_DIR)/libui_test_support.a',
                 '<(PRODUCT_DIR)/libxml2.a',
               ],
               'outputs': [
@@ -168,7 +166,6 @@
                 '<(PRODUCT_DIR)\\obj\\testing\\gtest.lib',
                 '<(PRODUCT_DIR)\\obj\\third_party\\libxml\\libxml2.lib',
                 '<(PRODUCT_DIR)\\obj\\third_party\\zlib\\zlib.lib',
-                '<(PRODUCT_DIR)\\obj\\ui\\ui_test_support.lib',
               ],
               'outputs': [
                 '<(PRODUCT_DIR)\\test_support_chromiumcontent.lib',
