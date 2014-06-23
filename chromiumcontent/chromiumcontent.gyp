@@ -11,16 +11,16 @@
         ['OS=="linux"', {
           'dependencies': [
             '<(DEPTH)/sandbox/sandbox.gyp:chrome_sandbox',
-            '<(DEPTH)/components/components.gyp:encryptor',
+            '<(DEPTH)/components/components.gyp:os_crypt',
           ],
           'actions': [
             {
-              'action_name': 'Flatten libencryptor.a',
+              'action_name': 'Flatten libos_crypt.a',
               'inputs': [
-                '<(PRODUCT_DIR)/obj/components/libencryptor.a',
+                '<(PRODUCT_DIR)/obj/components/libos_crypt.a',
               ],
               'outputs': [
-                '<(PRODUCT_DIR)/libencryptor.a',
+                '<(PRODUCT_DIR)/libos_crypt.a',
               ],
               'action': [
                 '<(DEPTH)/../../../tools/linux/ar-combine.sh',
@@ -34,7 +34,7 @@
         ['OS=="win"', {
           'dependencies': [
             'chromiumviews',
-            '<(DEPTH)/components/components.gyp:encryptor',
+            '<(DEPTH)/components/components.gyp:os_crypt',
             '<(DEPTH)/sandbox/sandbox.gyp:sandbox_static',
           ],
         }],
