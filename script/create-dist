@@ -231,7 +231,7 @@ def create_zip():
 
 
 def zip_directory(root_directory, destination):
-  with contextlib.closing(zipfile.ZipFile(destination, mode='w', compression=zipfile.ZIP_DEFLATED)) as z:
+  with contextlib.closing(zipfile.ZipFile(destination, mode='w', compression=zipfile.ZIP_DEFLATED, allowZip64=True)) as z:
       for dirpath, dirnames, filenames in os.walk(root_directory):
           for filename in filenames:
               path = os.path.join(dirpath, filename)
