@@ -25,6 +25,13 @@ def main():
         if result:
             return result
 
+    if sys.platform in ['win32', 'cygwin']:
+        if not os.path.isfile(os.path.join(DEPOT_TOOLS_DIR, 'python.bat')):
+            gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.bat')
+            result = subprocess.call(['cmd.exe', '/c', gclient])
+            if result:
+                return result
+
     update = os.path.join(SOURCE_ROOT, 'script', 'update')
     return subprocess.call([sys.executable, update])
 

@@ -168,7 +168,7 @@ def install_win_tool_wrapper():
 def chromium_python_path():
     """Returns the win32 python shipped by Chromium."""
 
-    return os.path.join(SRC_DIR, 'third_party', 'python_26', 'python.exe')
+    return os.path.join(DEPOT_TOOLS_DIR, 'python_bin', 'python.exe')
 
 
 def mkdir_p(path):
