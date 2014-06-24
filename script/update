@@ -18,8 +18,6 @@ CHROMIUMCONTENT_DESTINATION_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
 def main():
     return (write_dot_gclient() or
             gclient_sync() or
-            install_win_toolchain() or
-            import_win_environment() or
             apply_patches() or
             copy_chromiumcontent_files() or
             run_gyp() or
@@ -65,38 +63,6 @@ def ensure_nacl_disabled():
     os.environ['GYP_DEFINES'] = ' '.join(['disable_nacl=1', os.environ.get('GYP_DEFINES', '')])
 
 
-def install_win_toolchain():
-    if sys.platform not in ['win32', 'cygwin']:
-        return
-
-    target_dir = os.path.join(SOURCE_ROOT, 'win_toolchain')
-    if os.path.isdir(target_dir):
-        return
-
-    return subprocess.call(chromium_python() +
-                           [os.path.join(os.path.relpath(SRC_DIR), 'tools',
-                                         'win', 'toolchain', 'toolchain.py'),
-                            '--targetdir', os.path.relpath(target_dir)])
-
-
-def import_win_environment():
-    if sys.platform not in ['win32', 'cygwin']:
-        return
-
-    env_bat = os.path.join(SOURCE_ROOT, 'win_toolchain', 'env.bat')
-    with open(env_bat) as f:
-        for line in f:
-            if not line.startswith('set '):
-                continue
-            key, value = line[4:].strip().split('=', 1)
-            os.environ[key] = value
-
-    # env.bat sets component=shared_library in the environment. We don't want
-    # that.
-    os.environ['GYP_DEFINES'] = \
-        'windows_sdk_path="{0}"'.format(os.environ['WindowsSDKDir'])
-
-
 def copy_chromiumcontent_files():
     try:
         os.makedirs(CHROMIUMCONTENT_DESTINATION_DIR)
@@ -136,6 +102,11 @@ def run_gyp():
         # mismatches.
         os.environ['CC_target'] = 'clang'
         os.environ['CXX_target'] = 'clang++'
+    elif sys.platform in ['win32', 'cygwin']:
+        # Don't use the auto-installed VS2013 Express toolchain from depot_tools.
+        # We have our own.
+        os.environ['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
+        os.environ['GYP_MSVS_VERSION'] = '2013'
 
     os.chdir(SOURCE_ROOT)
     REL_SRC_DIR = os.path.relpath(SRC_DIR)
