@@ -80,6 +80,11 @@
           },
         }],
         ['OS=="mac"', {
+          'variables': {
+            # Create a fake .dSYM in Release mode that we can then post-process
+            # to create a real dSYM in script/create-dist.
+            'mac_strip_release': 1,
+          },
           'xcode_settings': {
             'OTHER_LDFLAGS': [
               '-all_load',
