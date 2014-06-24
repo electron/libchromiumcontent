@@ -77,7 +77,7 @@ def add_definition_file(args):
     rsp = [arg for arg in args if arg.endswith('.rsp')][0][1:]
     libs = libs_from_rsp(rsp)
     exports = read_saved_exports_from_libs(libs)
-    exports = filter(exports, should_reexport_symbol)
+    exports = filter(should_reexport_symbol, exports)
     lines = ['EXPORTS'] + sorted(exports)
     with open('chromiumcontent.def', 'w') as f:
         for line in lines:
