@@ -11,6 +11,8 @@ WIN_TOOL = os.path.abspath(os.path.join(os.path.dirname(__file__),
 # These are namespaces whose symbols aren't needed by embedding apps. We don't
 # export them to keep the number of exports under the linker's limit (65535).
 UNEXPORTED_NAMESPACES = set([
+    'cc',
+    'gpu',
     'media',
     'ppapi',
 ])
