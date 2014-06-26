@@ -1,0 +1,17 @@
+Index: tools/gyp/pylib/gyp/MSVSVersion.py
+===================================================================
+--- tools/gyp/pylib/gyp/MSVSVersion.py	(revision 1880)
++++ tools/gyp/pylib/gyp/MSVSVersion.py	(working copy)
+@@ -76,9 +76,9 @@
+     # 'x86' or 'x64'.
+     assert target_arch in ('x86', 'x64')
+     sdk_dir = os.environ.get('WindowsSDKDir')
+-    if self.sdk_based and sdk_dir:
+-      return [os.path.normpath(os.path.join(sdk_dir, 'Bin/SetEnv.Cmd')),
+-              '/' + target_arch]
++    setenv_cmd = os.path.normpath(os.path.join(sdk_dir, 'Bin/SetEnv.Cmd'))
++    if self.sdk_based and sdk_dir and os.path.isfile(setenv_cmd):
++      return [setenv_cmd, '/' + target_arch]
+     else:
+       # We don't use VC/vcvarsall.bat for x86 because vcvarsall calls
+       # vcvars32, which it can only find if VS??COMNTOOLS is set, which it
