@@ -67,7 +67,7 @@ BINARIES = {
         os.path.join('obj', 'sandbox', 'sandbox_static.lib'),
         os.path.join('obj', 'sandbox', 'sandbox_static.cc.pdb'),
         os.path.join('obj', 'testing', 'gtest.cc.pdb'),
-        os.path.join('obj', 'third_party', 'iaccessible2', 'iaccessible2.cc.pdb'),
+        os.path.join('obj', 'third_party', 'iaccessible2', 'iaccessible2.c.pdb'),
         os.path.join('obj', 'third_party', 'libxml', 'libxml.c.pdb'),
         os.path.join('obj', 'third_party', 'libxml', 'libxml.cc.pdb'),
         os.path.join('obj', 'third_party', 'zlib', 'zlib.c.pdb'),
