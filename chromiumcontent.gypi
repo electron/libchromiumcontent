@@ -2,6 +2,8 @@
   'variables': {
     # We're not using Chromium's clang, so we can't use their plugins either.
     'clang_use_chrome_plugins': 0,
+    # Make Linux build contain debug symbols, this flag will add '-g' to cflags.
+    'linux_dump_symbols': 1,
     # The Linux build of libchromiumcontent.so depends on, but doesn't
     # provide, tcmalloc by default.  Disabling tcmalloc here also prevents
     # any conflicts when linking to binaries or libraries that don't use

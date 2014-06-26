@@ -4,6 +4,7 @@ import argparse
 import contextlib
 import errno
 import os
+import platform
 import shutil
 import subprocess
 import sys
@@ -13,6 +14,13 @@ import zipfile
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+
+ARCH = {
+    'cygwin': '32bit',
+    'darwin': '64bit',
+    'linux2': platform.architecture()[0],
+    'win32': '32bit',
+}[sys.platform]
 
 PLATFORM_KEY = {
     'cygwin': 'win',
@@ -29,8 +37,11 @@ class ProgramError(Exception):
 def main():
     try:
         args = parse_args()
-        commit = head_commit()
-        base_url = '{0}/{1}'.format(args.url, PLATFORM_KEY)
+        if args.commit == 'HEAD':
+            commit = head_commit()
+        else:
+            commit = args.commit
+        base_url = '{0}/{1}/{2}'.format(args.url, PLATFORM_KEY, ARCH)
         download_if_needed(args.path, base_url, commit, force=args.force)
         if not args.symbols:
             return
@@ -46,6 +57,8 @@ def parse_args():
                         help='Overwrite destination if it already exists.')
     parser.add_argument('-s', '--symbols', action='store_true',
                         help='Download debugging symbols as well.')
+    parser.add_argument('-c', '--commit', nargs='?', default='HEAD',
+                        help='The commit of libchromiumcontent to download.')
     parser.add_argument('url', help='The base URL from which to download '
                         '(i.e., the URL you passed to script/upload)')
     parser.add_argument('path', help='The path to extract to')
