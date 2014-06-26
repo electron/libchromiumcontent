@@ -54,7 +54,7 @@ BINARIES = {
         'chromiumcontent.dll.lib',
         'chromiumviews.lib',
         'ffmpegsumo.dll',
-        'icudt.dll',
+        'icudtl.dat',
         'libGLESv2.dll',
         'test_support_chromiumcontent.lib',
         os.path.join('obj', 'base', 'base_static.lib'),
