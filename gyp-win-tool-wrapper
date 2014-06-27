@@ -8,6 +8,14 @@ import sys
 
 WIN_TOOL = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                         'gyp-win-tool-original'))
+# These are namespaces whose symbols aren't needed by embedding apps. We don't
+# export them to keep the number of exports under the linker's limit (65535).
+UNEXPORTED_NAMESPACES = set([
+    'cc',
+    'gpu',
+    'media',
+    'ppapi',
+])
 
 
 def main(args):
@@ -71,12 +79,19 @@ def add_definition_file(args):
     rsp = [arg for arg in args if arg.endswith('.rsp')][0][1:]
     libs = libs_from_rsp(rsp)
     exports = read_saved_exports_from_libs(libs)
+    exports = filter(should_reexport_symbol, exports)
     lines = ['EXPORTS'] + sorted(exports)
     with open('chromiumcontent.def', 'w') as f:
         for line in lines:
             f.write('{0}{1}'.format(line, os.linesep))
     with open(rsp, 'a') as r:
         r.write('{0}/DEF:chromiumcontent.def{0}'.format(os.linesep))
+
+
+def should_reexport_symbol(symbol):
+    mangled_namespaces = ['@{0}@@'.format(namespace) for namespace in
+                          UNEXPORTED_NAMESPACES]
+    return not any(namespace in symbol for namespace in mangled_namespaces)
 
 
 def libs_from_rsp(rsp):

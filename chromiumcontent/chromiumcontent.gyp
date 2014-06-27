@@ -11,16 +11,16 @@
         ['OS=="linux"', {
           'dependencies': [
             '<(DEPTH)/sandbox/sandbox.gyp:chrome_sandbox',
-            '<(DEPTH)/components/components.gyp:encryptor',
+            '<(DEPTH)/components/components.gyp:os_crypt',
           ],
           'actions': [
             {
-              'action_name': 'Flatten libencryptor.a',
+              'action_name': 'Flatten libos_crypt.a',
               'inputs': [
-                '<(PRODUCT_DIR)/obj/components/libencryptor.a',
+                '<(PRODUCT_DIR)/obj/components/libos_crypt.a',
               ],
               'outputs': [
-                '<(PRODUCT_DIR)/libencryptor.a',
+                '<(PRODUCT_DIR)/libos_crypt.a',
               ],
               'action': [
                 '<(DEPTH)/../../../tools/linux/ar-combine.sh',
@@ -34,7 +34,7 @@
         ['OS=="win"', {
           'dependencies': [
             'chromiumviews',
-            '<(DEPTH)/components/components.gyp:encryptor',
+            '<(DEPTH)/components/components.gyp:os_crypt',
             '<(DEPTH)/sandbox/sandbox.gyp:sandbox_static',
           ],
         }],
@@ -47,7 +47,7 @@
         '<(DEPTH)/base/base.gyp:base_prefs',
         '<(DEPTH)/content/content.gyp:content',
         '<(DEPTH)/content/content.gyp:content_app_both',
-        '<(DEPTH)/content/content.gyp:content_shell_pak',
+        '<(DEPTH)/content/content_shell_and_tests.gyp:content_shell_pak',
         '<(DEPTH)/net/net.gyp:net_with_v8',
       ],
       'sources': [
@@ -80,6 +80,11 @@
           },
         }],
         ['OS=="mac"', {
+          'variables': {
+            # Create a fake .dSYM in Release mode that we can then post-process
+            # to create a real dSYM in script/create-dist.
+            'mac_strip': 1,
+          },
           'xcode_settings': {
             'OTHER_LDFLAGS': [
               '-all_load',
@@ -94,7 +99,7 @@
       'type': 'none',
       'dependencies': [
         '<(DEPTH)/base/base.gyp:base_prefs_test_support',
-        '<(DEPTH)/content/content.gyp:test_support_content',
+        '<(DEPTH)/content/content_shell_and_tests.gyp:test_support_content',
       ],
       'conditions': [
         ['OS=="linux"', {
@@ -111,7 +116,6 @@
                 '<(PRODUCT_DIR)/obj/testing/libgtest.a',
                 '<(PRODUCT_DIR)/obj/third_party/libxml/libxml2.a',
                 '<(PRODUCT_DIR)/obj/third_party/zlib/libchrome_zlib.a',
-                '<(PRODUCT_DIR)/obj/ui/libui_test_support.a',
               ],
               'outputs': [
                 '<(PRODUCT_DIR)/libtest_support_chromiumcontent.a',
@@ -138,7 +142,6 @@
                 '<(PRODUCT_DIR)/libnet_test_support.a',
                 '<(PRODUCT_DIR)/libtest_support_base.a',
                 '<(PRODUCT_DIR)/libtest_support_content.a',
-                '<(PRODUCT_DIR)/libui_test_support.a',
                 '<(PRODUCT_DIR)/libxml2.a',
               ],
               'outputs': [
@@ -168,7 +171,6 @@
                 '<(PRODUCT_DIR)\\obj\\testing\\gtest.lib',
                 '<(PRODUCT_DIR)\\obj\\third_party\\libxml\\libxml2.lib',
                 '<(PRODUCT_DIR)\\obj\\third_party\\zlib\\zlib.lib',
-                '<(PRODUCT_DIR)\\obj\\ui\\ui_test_support.lib',
               ],
               'outputs': [
                 '<(PRODUCT_DIR)\\test_support_chromiumcontent.lib',

@@ -1,0 +1,61 @@
+Index: third_party/WebKit/Source/platform/audio/AudioDSPKernel.cpp
+===================================================================
+--- third_party/WebKit/Source/platform/audio/AudioDSPKernel.cpp	(revision 164518)
++++ third_party/WebKit/Source/platform/audio/AudioDSPKernel.cpp	(working copy)
+@@ -31,8 +31,16 @@
+ #include "config.h"
+ #include "platform/audio/AudioDSPKernel.h"
+ 
++#include "platform/audio/AudioDSPKernelProcessor.h"
++
+ namespace WebCore {
+ 
++AudioDSPKernel::AudioDSPKernel(AudioDSPKernelProcessor* kernelProcessor)
++    : m_kernelProcessor(kernelProcessor)
++    , m_sampleRate(kernelProcessor->sampleRate())
++{
++}
++
+ AudioDSPKernel::~AudioDSPKernel()
+ {
+ }
+Index: third_party/WebKit/Source/platform/audio/AudioDSPKernel.h
+===================================================================
+--- third_party/WebKit/Source/platform/audio/AudioDSPKernel.h	(revision 164518)
++++ third_party/WebKit/Source/platform/audio/AudioDSPKernel.h	(working copy)
+@@ -31,19 +31,17 @@
+ #ifndef AudioDSPKernel_h
+ #define AudioDSPKernel_h
+ 
+-#include "platform/audio/AudioDSPKernelProcessor.h"
++#include "platform/PlatformExport.h"
+ 
+ namespace WebCore {
+ 
++class AudioDSPKernelProcessor;
++
+ // AudioDSPKernel does the processing for one channel of an AudioDSPKernelProcessor.
+ 
+ class PLATFORM_EXPORT AudioDSPKernel {
+ public:
+-    AudioDSPKernel(AudioDSPKernelProcessor* kernelProcessor)
+-        : m_kernelProcessor(kernelProcessor)
+-        , m_sampleRate(kernelProcessor->sampleRate())
+-    {
+-    }
++    AudioDSPKernel(AudioDSPKernelProcessor* kernelProcessor);
+ 
+     AudioDSPKernel(float sampleRate)
+         : m_kernelProcessor(0)
+Index: third_party/WebKit/Source/platform/audio/AudioDSPKernelProcessor.h
+===================================================================
+--- third_party/WebKit/Source/platform/audio/AudioDSPKernelProcessor.h	(revision 164518)
++++ third_party/WebKit/Source/platform/audio/AudioDSPKernelProcessor.h	(working copy)
+@@ -32,6 +32,7 @@
+ #define AudioDSPKernelProcessor_h
+ 
+ #include "platform/audio/AudioBus.h"
++#include "platform/audio/AudioDSPKernel.h"
+ #include "platform/audio/AudioProcessor.h"
+ #include "wtf/OwnPtr.h"
+ #include "wtf/PassOwnPtr.h"

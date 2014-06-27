@@ -36,6 +36,7 @@ CONFIGURATIONS = ['Debug', 'Release']
 BINARIES = {
     'all': [
         'content_shell.pak',
+        'icudtl.dat',
     ],
     'darwin': [
         'ffmpegsumo.so',
@@ -46,7 +47,7 @@ BINARIES = {
         'chrome_sandbox',
         'libffmpegsumo.so',
         os.path.join('lib', 'libchromiumcontent.so'),
-        'libencryptor.a',
+        'libos_crypt.a',
         'libtest_support_chromiumcontent.a',
     ],
     'win32': [
@@ -54,26 +55,26 @@ BINARIES = {
         'chromiumcontent.dll.lib',
         'chromiumviews.lib',
         'ffmpegsumo.dll',
-        'icudt.dll',
         'libEGL.dll',
         'libGLESv2.dll',
         'test_support_chromiumcontent.lib',
         os.path.join('obj', 'base', 'base_static.lib'),
-        os.path.join('obj', 'base', 'base_static.pdb'),
-        os.path.join('obj', 'base', 'test_support_base.pdb'),
-        os.path.join('obj', 'components', 'encryptor.lib'),
-        os.path.join('obj', 'components', 'encryptor.pdb'),
-        os.path.join('obj', 'content', 'test_support_content.pdb'),
-        os.path.join('obj', 'net', 'net_test_support.pdb'),
+        os.path.join('obj', 'base', 'base_static.cc.pdb'),
+        os.path.join('obj', 'base', 'test_support_base.cc.pdb'),
+        os.path.join('obj', 'components', 'os_crypt.lib'),
+        os.path.join('obj', 'components', 'os_crypt.cc.pdb'),
+        os.path.join('obj', 'content', 'test_support_content.cc.pdb'),
+        os.path.join('obj', 'net', 'net_test_support.cc.pdb'),
         os.path.join('obj', 'sandbox', 'sandbox_static.lib'),
-        os.path.join('obj', 'sandbox', 'sandbox_static.pdb'),
-        os.path.join('obj', 'testing', 'gtest.pdb'),
-        os.path.join('obj', 'third_party', 'iaccessible2', 'iaccessible2.pdb'),
-        os.path.join('obj', 'third_party', 'libxml', 'libxml.pdb'),
-        os.path.join('obj', 'third_party', 'zlib', 'zlib.pdb'),
-        os.path.join('obj', 'ui', 'compositor', 'compositor.pdb'),
-        os.path.join('obj', 'ui', 'views', 'controls', 'webview', 'webview.pdb'),
-        os.path.join('obj', 'ui', 'web_dialogs', 'web_dialogs.pdb'),
+        os.path.join('obj', 'sandbox', 'sandbox_static.cc.pdb'),
+        os.path.join('obj', 'testing', 'gtest.cc.pdb'),
+        os.path.join('obj', 'third_party', 'iaccessible2', 'iaccessible2.c.pdb'),
+        os.path.join('obj', 'third_party', 'libxml', 'libxml.c.pdb'),
+        os.path.join('obj', 'third_party', 'libxml', 'libxml.cc.pdb'),
+        os.path.join('obj', 'third_party', 'zlib', 'zlib.c.pdb'),
+        os.path.join('obj', 'ui', 'compositor', 'compositor.cc.pdb'),
+        os.path.join('obj', 'ui', 'views', 'controls', 'webview', 'webview.cc.pdb'),
+        os.path.join('obj', 'ui', 'web_dialogs', 'web_dialogs.cc.pdb'),
     ],
 }
 
@@ -101,19 +102,19 @@ INCLUDE_DIRS = [
     'base',
     'build',
     'cc',
-    'components/webdata/encryptor',
+    'components/os_crypt',
     'content/public',
     'ipc',
     'gpu',
     'net',
     'sandbox',
-    'skia/ext',
+    'skia',
     'testing',
     'third_party/WebKit/Source/Platform/chromium/public',
     'third_party/WebKit/Source/WebKit/chromium/public',
     'third_party/WebKit/public',
     'third_party/icu/source',
-    'third_party/skia/include',
+    'third_party/skia',
     'third_party/wtl/include',
     'ui',
     'url',
@@ -258,7 +259,7 @@ def create_zip():
 
 
 def zip_directory(root_directory, destination):
-  with contextlib.closing(zipfile.ZipFile(destination, mode='w', compression=zipfile.ZIP_DEFLATED)) as z:
+  with contextlib.closing(zipfile.ZipFile(destination, mode='w', compression=zipfile.ZIP_DEFLATED, allowZip64=True)) as z:
       for dirpath, dirnames, filenames in os.walk(root_directory):
           for filename in filenames:
               path = os.path.join(dirpath, filename)
