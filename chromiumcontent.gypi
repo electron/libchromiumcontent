@@ -20,9 +20,11 @@
         'win_debug_RuntimeLibrary': '3',   # 3 = /MDd (debug DLL)
       }],
     ],
-  },
-  'target_defaults': {
-    'defines': [
+    'global_defines': [
+      'COMPONENT_BUILD',
+      'SKIA_DLL',
+    ],
+    'chromiumcontent_defines': [
       'ACCESSIBILITY_IMPLEMENTATION',
       'ANGLE_TRANSLATOR_IMPLEMENTATION',
       'APP_LIST_IMPLEMENTATION',
@@ -35,7 +37,6 @@
       'BLINK_PLATFORM_IMPLEMENTATION',
       'BUILDING_V8_SHARED',
       'CC_IMPLEMENTATION',
-      'COMPONENT_BUILD',
       'COMPOSITOR_IMPLEMENTATION',
       'CONTENT_IMPLEMENTATION',
       'CRYPTO_IMPLEMENTATION',
@@ -74,7 +75,6 @@
       'PPAPI_THUNK_IMPLEMENTATION',
       'PRINTING_IMPLEMENTATION',
       'SHELL_DIALOGS_IMPLEMENTATION',
-      'SKIA_DLL',
       'SKIA_IMPLEMENTATION',
       'SNAPSHOT_IMPLEMENTATION',
       'SQL_IMPLEMENTATION',
@@ -87,7 +87,6 @@
       'U_UTF8_IMPL',
       'V2_IMPLEMENTATION',
       'V8_SHARED',
-      'VIEWS_IMPLEMENTATION',
       'WEBKIT_BASE_IMPLEMENTATION',
       'WEBKIT_CHILD_IMPLEMENTATION',
       'WEBKIT_COMMON_IMPLEMENTATION',
@@ -102,10 +101,19 @@
       'WEBKIT_STORAGE_RENDERER_IMPLEMENTATION',
       'WEBKIT_USER_AGENT_IMPLEMENTATION',
       'WEBORIGIN_IMPLEMENTATION',
-      'WEBVIEW_IMPLEMENTATION',
-      'WEB_DIALOGS_IMPLEMENTATION',
       'WM_CORE_IMPLEMENTATION',
       'WTF_IMPLEMENTATION',
+    ],
+    'chromiumviews_defines': [
+      'VIEWS_IMPLEMENTATION',
+      'WEBVIEW_IMPLEMENTATION',
+      'WEB_DIALOGS_IMPLEMENTATION',
+    ],
+  },
+  'target_defaults': {
+    'defines': [
+      '<@(global_defines)',
+      '<@(chromiumcontent_defines)',
     ],
     'defines!': [
       '_HAS_EXCEPTIONS=0',
@@ -143,27 +151,15 @@
       # to see symbols decorated with __declspec(dllimport).
       ['_target_name in ["base_prefs_test_support", "net_test_support", "sandbox_static", "test_support_base", "test_support_content"]', {
         'defines!': [
-          'BASE_IMPLEMENTATION',
-          'CONTENT_IMPLEMENTATION',
-          'NET_IMPLEMENTATION',
-          'URL_IMPLEMENTATION',
+          '<@(chromiumcontent_defines)',
         ],
       }],
       ['_target_name in ["views", "webview", "web_dialogs"]', {
         'defines': [
-          'VIEWS_IMPLEMENTATION',
-          'WEBVIEW_IMPLEMENTATION',
-          'WEB_DIALOGS_IMPLEMENTATION',
+          '<@(chromiumviews_defines)',
         ],
         'defines!': [
-          'BASE_IMPLEMENTATION',
-          'CC_IMPLEMENTATION',
-          'CONTENT_IMPLEMENTATION',
-          'GL_IMPLEMENTATION',
-          'IPC_IMPLEMENTATION',
-          'SKIA_IMPLEMENTATION',
-          'UI_IMPLEMENTATION',
-          'URL_IMPLEMENTATION',
+          '<@(chromiumcontent_defines)',
         ],
       }],
       ['_target_name in ["v8", "v8_snapshot", "v8_shell", "preparser_lib"] or "v8_nosnapshot." in _target_name or "v8_base." in _target_name or "mksnapshot." in _target_name', {
