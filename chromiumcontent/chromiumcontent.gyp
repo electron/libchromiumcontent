@@ -92,6 +92,16 @@
             'LD_DYLIB_INSTALL_NAME': '@rpath/libchromiumcontent.dylib',
           },
         }],
+        ['OS=="linux" and host_arch=="ia32"', {
+          'target_conditions': [
+            ['_toolset=="target"', {
+              'ldflags': [
+                # Workaround for linker OOM.
+                '-Wl,--no-keep-memory',
+              ],
+            }],
+          ],
+        }],
       ],
     },
     {

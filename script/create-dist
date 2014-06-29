@@ -87,7 +87,7 @@ SYMBOLS = {
         'chrome_sandbox.dbg',
         'libchromiumcontent.so.dbg',
         'libffmpegsumo.so.dbg',
-        'libencryptor.a.dbg',
+        'libos_crypt.a.dbg',
         'libtest_support_chromiumcontent.a.dbg',
     ],
     'win32': [
