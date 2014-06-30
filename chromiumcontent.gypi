@@ -101,13 +101,13 @@
       'WEBKIT_STORAGE_RENDERER_IMPLEMENTATION',
       'WEBKIT_USER_AGENT_IMPLEMENTATION',
       'WEBORIGIN_IMPLEMENTATION',
-      'WM_CORE_IMPLEMENTATION',
       'WTF_IMPLEMENTATION',
     ],
     'chromiumviews_defines': [
       'VIEWS_IMPLEMENTATION',
       'WEBVIEW_IMPLEMENTATION',
       'WEB_DIALOGS_IMPLEMENTATION',
+      'WM_CORE_IMPLEMENTATION',
     ],
   },
   'target_defaults': {
@@ -154,7 +154,7 @@
           '<@(chromiumcontent_defines)',
         ],
       }],
-      ['_target_name in ["views", "webview", "web_dialogs"]', {
+      ['_target_name in ["views", "webview", "web_dialogs", "wm_core"]', {
         'defines': [
           '<@(chromiumviews_defines)',
         ],

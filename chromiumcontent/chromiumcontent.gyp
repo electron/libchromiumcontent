@@ -199,6 +199,7 @@
           'dependencies': [
             '<(DEPTH)/ui/views/controls/webview/webview.gyp:webview',
             '<(DEPTH)/ui/views/views.gyp:views',
+            '<(DEPTH)/ui/wm/wm.gyp:wm_core',
           ],
           'actions': [
             {
@@ -208,6 +209,7 @@
                 '<(PRODUCT_DIR)\\obj\\ui\\views\\views.lib',
                 '<(PRODUCT_DIR)\\obj\\ui\\views\\controls\\webview\\webview.lib',
                 '<(PRODUCT_DIR)\\obj\\ui\\web_dialogs\\web_dialogs.lib',
+                '<(PRODUCT_DIR)\\obj\\ui\\wm\\wm_core.lib',
               ],
               'outputs': [
                 '<(PRODUCT_DIR)\\chromiumviews.lib',
