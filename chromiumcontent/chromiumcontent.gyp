@@ -205,7 +205,6 @@
               'action_name': 'Create chromiumviews.lib',
               'inputs': [
                 '<(PRODUCT_DIR)\\obj\\third_party\\iaccessible2\\iaccessible2.lib',
-                '<(PRODUCT_DIR)\\obj\\ui\\compositor\\compositor.lib',
                 '<(PRODUCT_DIR)\\obj\\ui\\views\\views.lib',
                 '<(PRODUCT_DIR)\\obj\\ui\\views\\controls\\webview\\webview.lib',
                 '<(PRODUCT_DIR)\\obj\\ui\\web_dialogs\\web_dialogs.lib',
