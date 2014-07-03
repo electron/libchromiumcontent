@@ -46,6 +46,8 @@ BINARIES = {
     'linux': [
         'chrome_sandbox',
         'libffmpegsumo.so',
+        'libchromiumviews.a',
+        'libosmesa.so',
         os.path.join('lib', 'libchromiumcontent.so'),
         'libos_crypt.a',
         'libtest_support_chromiumcontent.a',
@@ -89,7 +91,9 @@ SYMBOLS = {
     'linux': [
         'chrome_sandbox.dbg',
         'libchromiumcontent.so.dbg',
+        'libchromiumviews.a.dbg',
         'libffmpegsumo.so.dbg',
+        'libosmesa.so.dbg',
         'libos_crypt.a.dbg',
         'libtest_support_chromiumcontent.a.dbg',
     ],

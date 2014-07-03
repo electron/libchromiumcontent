@@ -10,8 +10,10 @@
       'conditions': [
         ['OS=="linux"', {
           'dependencies': [
+            'chromiumviews',
             '<(DEPTH)/sandbox/sandbox.gyp:chrome_sandbox',
             '<(DEPTH)/components/components.gyp:os_crypt',
+            '<(DEPTH)/third_party/mesa/mesa.gyp:osmesa',
           ],
           'actions': [
             {
@@ -201,7 +203,7 @@
     },
   ],
   'conditions': [
-    ['OS=="win"', {
+    ['OS in ["win", "linux"]', {
       'targets': [
         {
           'target_name': 'chromiumviews',
@@ -211,29 +213,55 @@
             '<(DEPTH)/ui/views/views.gyp:views',
             '<(DEPTH)/ui/wm/wm.gyp:wm_core',
           ],
-          'actions': [
-            {
-              'action_name': 'Create chromiumviews.lib',
-              'inputs': [
-                '<(PRODUCT_DIR)\\obj\\third_party\\iaccessible2\\iaccessible2.lib',
-                '<(PRODUCT_DIR)\\obj\\ui\\views\\views.lib',
-                '<(PRODUCT_DIR)\\obj\\ui\\views\\controls\\webview\\webview.lib',
-                '<(PRODUCT_DIR)\\obj\\ui\\web_dialogs\\web_dialogs.lib',
-                '<(PRODUCT_DIR)\\obj\\ui\\wm\\wm_core.lib',
+          'conditions': [
+            ['OS=="win"', {
+              'actions': [
+                {
+                  'action_name': 'Create chromiumviews.lib',
+                  'inputs': [
+                    '<(PRODUCT_DIR)\\obj\\third_party\\iaccessible2\\iaccessible2.lib',
+                    '<(PRODUCT_DIR)\\obj\\ui\\views\\views.lib',
+                    '<(PRODUCT_DIR)\\obj\\ui\\views\\controls\\webview\\webview.lib',
+                    '<(PRODUCT_DIR)\\obj\\ui\\web_dialogs\\web_dialogs.lib',
+                    '<(PRODUCT_DIR)\\obj\\ui\\wm\\wm_core.lib',
+                  ],
+                  'outputs': [
+                    '<(PRODUCT_DIR)\\chromiumviews.lib',
+                  ],
+                  'action': [
+                    'lib.exe',
+                    '/nologo',
+                    # We can't use <(_outputs) here because that escapes the
+                    # backslash in the path, which confuses lib.exe.
+                    '/OUT:<(PRODUCT_DIR)\\chromiumviews.lib',
+                    '<@(_inputs)',
+                  ],
+                  'msvs_cygwin_shell': 0,
+                },
               ],
-              'outputs': [
-                '<(PRODUCT_DIR)\\chromiumviews.lib',
+            }],  # OS=="win"
+            ['OS=="linux"', {
+              'actions': [
+                {
+                  'action_name': 'Create libchromiumviews.a',
+                  'inputs': [
+                    '<(PRODUCT_DIR)/obj/ui/views/libviews.a',
+                    '<(PRODUCT_DIR)/obj/ui/views/controls/webview/libwebview.a',
+                    '<(PRODUCT_DIR)/obj/ui/web_dialogs/libweb_dialogs.a',
+                    '<(PRODUCT_DIR)/obj/ui/wm/libwm_core.a',
+                  ],
+                  'outputs': [
+                    '<(PRODUCT_DIR)/libchromiumviews.a',
+                  ],
+                  'action': [
+                    '<(DEPTH)/../../../tools/linux/ar-combine.sh',
+                    '-o',
+                    '<@(_outputs)',
+                    '<@(_inputs)',
+                  ],
+                },
               ],
-              'action': [
-                'lib.exe',
-                '/nologo',
-                # We can't use <(_outputs) here because that escapes the
-                # backslash in the path, which confuses lib.exe.
-                '/OUT:<(PRODUCT_DIR)\\chromiumviews.lib',
-                '<@(_inputs)',
-              ],
-              'msvs_cygwin_shell': 0,
-            },
+            }],  # OS=="linux"
           ],
         },
       ],
