@@ -2,6 +2,7 @@
 
 import errno
 import os
+import re
 import subprocess
 import sys
 
@@ -78,8 +79,7 @@ def exports_file_for_lib(lib):
 def add_definition_file(args):
     rsp = [arg for arg in args if arg.endswith('.rsp')][0][1:]
     libs = libs_from_rsp(rsp)
-    exports = read_saved_exports_from_libs(libs)
-    exports = filter(should_reexport_symbol, exports)
+    exports = filter_exports(read_saved_exports_from_libs(libs))
     lines = ['EXPORTS'] + sorted(exports)
     with open('chromiumcontent.def', 'w') as f:
         for line in lines:
@@ -88,10 +88,14 @@ def add_definition_file(args):
         r.write('{0}/DEF:chromiumcontent.def{0}'.format(os.linesep))
 
 
-def should_reexport_symbol(symbol):
-    mangled_namespaces = ['@{0}@@'.format(namespace) for namespace in
-                          UNEXPORTED_NAMESPACES]
-    return not any(namespace in symbol for namespace in mangled_namespaces)
+def filter_exports(symbols):
+    pattern = re.compile('@(?P<namespace>\w+)@@')
+    def should_reexport_symbol(symbol):
+        match = pattern.search(symbol)
+        if not match:
+            return True
+        return match.group('namespace') not in UNEXPORTED_NAMESPACES
+    return filter(should_reexport_symbol, symbols)
 
 
 def libs_from_rsp(rsp):
