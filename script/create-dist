@@ -72,9 +72,10 @@ BINARIES = {
         os.path.join('obj', 'third_party', 'libxml', 'libxml.c.pdb'),
         os.path.join('obj', 'third_party', 'libxml', 'libxml.cc.pdb'),
         os.path.join('obj', 'third_party', 'zlib', 'zlib.c.pdb'),
-        os.path.join('obj', 'ui', 'compositor', 'compositor.cc.pdb'),
         os.path.join('obj', 'ui', 'views', 'controls', 'webview', 'webview.cc.pdb'),
+        os.path.join('obj', 'ui', 'views', 'views.cc.pdb'),
         os.path.join('obj', 'ui', 'web_dialogs', 'web_dialogs.cc.pdb'),
+        os.path.join('obj', 'ui', 'wm', 'wm_core.cc.pdb'),
     ],
 }
 
