@@ -61,6 +61,8 @@ BINARIES = {
         os.path.join('obj', 'base', 'base_static.lib'),
         os.path.join('obj', 'base', 'base_static.cc.pdb'),
         os.path.join('obj', 'base', 'test_support_base.cc.pdb'),
+        os.path.join('obj', 'base', 'third_party', 'dynamic_annotations', 'dynamic_annotations.lib'),
+        os.path.join('obj', 'base', 'third_party', 'dynamic_annotations', 'dynamic_annotations.c.pdb'),
         os.path.join('obj', 'components', 'os_crypt.lib'),
         os.path.join('obj', 'components', 'os_crypt.cc.pdb'),
         os.path.join('obj', 'content', 'test_support_content.cc.pdb'),
