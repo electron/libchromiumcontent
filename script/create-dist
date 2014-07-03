@@ -91,11 +91,8 @@ SYMBOLS = {
     'linux': [
         'chrome_sandbox.dbg',
         'libchromiumcontent.so.dbg',
-        'libchromiumviews.a.dbg',
         'libffmpegsumo.so.dbg',
         'libosmesa.so.dbg',
-        'libos_crypt.a.dbg',
-        'libtest_support_chromiumcontent.a.dbg',
     ],
     'win32': [
         'ffmpegsumo.dll.pdb',
@@ -164,7 +161,10 @@ def copy_binaries():
         if TARGET_PLATFORM == 'linux':
             for binary in BINARIES[TARGET_PLATFORM]:
                 binary_path = os.path.join(config_dir, os.path.basename(binary))
-                subprocess.check_call(['strip', binary_path])
+                # Static libraries are not stripped because it would remove
+                # all the symbols in it.
+                if not binary_path.endswith('.a'):
+                    subprocess.check_call(['strip', binary_path])
 
 
 def create_dsym():
@@ -195,11 +195,12 @@ def objcopy_with_debug_info():
     for config in CONFIGURATIONS:
         for binary in BINARIES[TARGET_PLATFORM]:
             source = os.path.join(OUT_DIR, config, binary)
-            destination = os.path.join(OUT_DIR, config,
-                                       os.path.basename(binary) + ".dbg")
-            safe_unlink(destination)
-            subprocess.check_call(['objcopy', '--only-keep-debug', source,
-                                   destination])
+            symbol_name = os.path.basename(binary) + ".dbg"
+            if symbol_name in SYMBOLS[TARGET_PLATFORM]:
+                destination = os.path.join(OUT_DIR, config, symbol_name)
+                safe_unlink(destination)
+                subprocess.check_call(['objcopy', '--only-keep-debug', source,
+                                       destination])
 
 
 def copy_symbols():
