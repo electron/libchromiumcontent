@@ -106,6 +106,7 @@ INCLUDE_DIRS = [
     'base',
     'build',
     'cc',
+    'chrome/browser/ui/libgtk2ui',
     'components/os_crypt',
     'content/public',
     'ipc',

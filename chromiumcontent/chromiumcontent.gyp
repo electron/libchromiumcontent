@@ -241,10 +241,14 @@
               ],
             }],  # OS=="win"
             ['OS=="linux"', {
+              'dependencies': [
+                '<(DEPTH)/chrome/browser/ui/libgtk2ui/libgtk2ui.gyp:gtk2ui',
+              ],
               'actions': [
                 {
                   'action_name': 'Create libchromiumviews.a',
                   'inputs': [
+                    '<(PRODUCT_DIR)/obj/chrome/browser/ui/libgtk2ui/libgtk2ui.a',
                     '<(PRODUCT_DIR)/obj/ui/views/libviews.a',
                     '<(PRODUCT_DIR)/obj/ui/views/controls/webview/libwebview.a',
                     '<(PRODUCT_DIR)/obj/ui/web_dialogs/libweb_dialogs.a',
