@@ -61,6 +61,8 @@ BINARIES = {
         os.path.join('obj', 'base', 'base_static.lib'),
         os.path.join('obj', 'base', 'base_static.cc.pdb'),
         os.path.join('obj', 'base', 'test_support_base.cc.pdb'),
+        os.path.join('obj', 'base', 'third_party', 'dynamic_annotations', 'dynamic_annotations.lib'),
+        os.path.join('obj', 'base', 'third_party', 'dynamic_annotations', 'dynamic_annotations.c.pdb'),
         os.path.join('obj', 'components', 'os_crypt.lib'),
         os.path.join('obj', 'components', 'os_crypt.cc.pdb'),
         os.path.join('obj', 'content', 'test_support_content.cc.pdb'),
@@ -72,9 +74,10 @@ BINARIES = {
         os.path.join('obj', 'third_party', 'libxml', 'libxml.c.pdb'),
         os.path.join('obj', 'third_party', 'libxml', 'libxml.cc.pdb'),
         os.path.join('obj', 'third_party', 'zlib', 'zlib.c.pdb'),
-        os.path.join('obj', 'ui', 'compositor', 'compositor.cc.pdb'),
         os.path.join('obj', 'ui', 'views', 'controls', 'webview', 'webview.cc.pdb'),
+        os.path.join('obj', 'ui', 'views', 'views.cc.pdb'),
         os.path.join('obj', 'ui', 'web_dialogs', 'web_dialogs.cc.pdb'),
+        os.path.join('obj', 'ui', 'wm', 'wm_core.cc.pdb'),
     ],
 }
 
@@ -120,6 +123,9 @@ INCLUDE_DIRS = [
     'url',
     'v8/include',
     'webkit',
+]
+GENERATED_INCLUDE_DIRS = [
+    'ui',
 ]
 OTHER_HEADERS = [
     'content/common/content_export.h',
@@ -213,15 +219,15 @@ def copy_symbols():
 
 def copy_sources():
     for include_path in INCLUDE_DIRS:
-        abs_path = os.path.join(SRC_DIR, include_path)
-        for dirpath, dirnames, filenames in os.walk(abs_path):
-            for filename in filenames:
-                if os.path.splitext(filename)[1] != '.h':
-                    continue
-                copy_source_file(os.path.join(dirpath, filename))
+        copy_headers(include_path, relative_to=SRC_DIR, destination=DIST_SRC_DIR)
+    for config in CONFIGURATIONS:
+        for include_path in GENERATED_INCLUDE_DIRS:
+            copy_headers(include_path,
+                         relative_to=os.path.join(OUT_DIR, config, 'gen'),
+                         destination=os.path.join(MAIN_DIR, config, 'gen'))
 
     for path in OTHER_HEADERS + OTHER_SOURCES:
-        copy_source_file(os.path.join(SRC_DIR, path))
+        copy_source_file(os.path.join(SRC_DIR, path), relative_to=SRC_DIR, destination=DIST_SRC_DIR)
 
     # Some headers assume this file is at the top of the include path. Rather
     # than forcing client apps to set up their include path specially, we'll
@@ -231,11 +237,20 @@ def copy_sources():
     shutil.copy2(sk_user_config, DIST_SRC_DIR)
 
 
-def copy_source_file(source):
-    relative = os.path.relpath(source, start=SRC_DIR)
-    destination = os.path.join(DIST_SRC_DIR, relative)
-    mkdir_p(os.path.dirname(destination))
-    shutil.copy2(source, destination)
+def copy_headers(relative_path, relative_to, destination):
+    abs_path = os.path.join(relative_to, relative_path)
+    for dirpath, dirnames, filenames in os.walk(abs_path):
+        for filename in filenames:
+            if os.path.splitext(filename)[1] != '.h':
+                continue
+            copy_source_file(os.path.join(dirpath, filename), relative_to=relative_to, destination=destination)
+
+
+def copy_source_file(absolute_path, relative_to, destination):
+    relative_path = os.path.relpath(absolute_path, start=relative_to)
+    final_path = os.path.join(destination, relative_path)
+    mkdir_p(os.path.dirname(final_path))
+    shutil.copy2(absolute_path, final_path)
 
 
 def create_zip():

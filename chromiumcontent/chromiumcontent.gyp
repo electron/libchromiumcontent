@@ -209,16 +209,17 @@
           'dependencies': [
             '<(DEPTH)/ui/views/controls/webview/webview.gyp:webview',
             '<(DEPTH)/ui/views/views.gyp:views',
+            '<(DEPTH)/ui/wm/wm.gyp:wm_core',
           ],
           'actions': [
             {
               'action_name': 'Create chromiumviews.lib',
               'inputs': [
                 '<(PRODUCT_DIR)\\obj\\third_party\\iaccessible2\\iaccessible2.lib',
-                '<(PRODUCT_DIR)\\obj\\ui\\compositor\\compositor.lib',
                 '<(PRODUCT_DIR)\\obj\\ui\\views\\views.lib',
                 '<(PRODUCT_DIR)\\obj\\ui\\views\\controls\\webview\\webview.lib',
                 '<(PRODUCT_DIR)\\obj\\ui\\web_dialogs\\web_dialogs.lib',
+                '<(PRODUCT_DIR)\\obj\\ui\\wm\\wm_core.lib',
               ],
               'outputs': [
                 '<(PRODUCT_DIR)\\chromiumviews.lib',
