@@ -1,0 +1,12 @@
+Index: content/browser/loader/upload_data_stream_builder.cc
+===================================================================
+--- content/browser/loader/upload_data_stream_builder.cc	(revision 283153)
++++ content/browser/loader/upload_data_stream_builder.cc	(working copy)
+@@ -5,6 +5,7 @@
+ #include "content/browser/loader/upload_data_stream_builder.h"
+ 
+ #include "base/logging.h"
++#include "base/sequenced_task_runner.h"
+ #include "content/browser/fileapi/upload_file_system_file_element_reader.h"
+ #include "content/common/resource_request_body.h"
+ #include "net/base/upload_bytes_element_reader.h"
