@@ -154,7 +154,7 @@
           '<@(chromiumcontent_defines)',
         ],
       }],
-      ['_target_name in ["views", "webview", "web_dialogs", "wm_core"]', {
+      ['_target_name in ["views", "webview", "web_dialogs", "wm", "display", "display_util"]', {
         'defines': [
           '<@(chromiumviews_defines)',
         ],

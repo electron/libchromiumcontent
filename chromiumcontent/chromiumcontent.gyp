@@ -212,7 +212,7 @@
             '<(DEPTH)/ui/display/display.gyp:display',
             '<(DEPTH)/ui/views/controls/webview/webview.gyp:webview',
             '<(DEPTH)/ui/views/views.gyp:views',
-            '<(DEPTH)/ui/wm/wm.gyp:wm_core',
+            '<(DEPTH)/ui/wm/wm.gyp:wm',
           ],
           'conditions': [
             ['OS=="win"', {
@@ -225,7 +225,7 @@
                     '<(PRODUCT_DIR)\\obj\\ui\\views\\views.lib',
                     '<(PRODUCT_DIR)\\obj\\ui\\views\\controls\\webview\\webview.lib',
                     '<(PRODUCT_DIR)\\obj\\ui\\web_dialogs\\web_dialogs.lib',
-                    '<(PRODUCT_DIR)\\obj\\ui\\wm\\wm_core.lib',
+                    '<(PRODUCT_DIR)\\obj\\ui\\wm\\wm.lib',
                   ],
                   'outputs': [
                     '<(PRODUCT_DIR)\\chromiumviews.lib',
@@ -255,7 +255,7 @@
                     '<(PRODUCT_DIR)/obj/ui/views/libviews.a',
                     '<(PRODUCT_DIR)/obj/ui/views/controls/webview/libwebview.a',
                     '<(PRODUCT_DIR)/obj/ui/web_dialogs/libweb_dialogs.a',
-                    '<(PRODUCT_DIR)/obj/ui/wm/libwm_core.a',
+                    '<(PRODUCT_DIR)/obj/ui/wm/libwm.a',
                   ],
                   'outputs': [
                     '<(PRODUCT_DIR)/libchromiumviews.a',
