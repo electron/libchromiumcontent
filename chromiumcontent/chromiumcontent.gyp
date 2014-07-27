@@ -209,6 +209,7 @@
           'target_name': 'chromiumviews',
           'type': 'none',
           'dependencies': [
+            '<(DEPTH)/ui/display/display.gyp:display',
             '<(DEPTH)/ui/views/controls/webview/webview.gyp:webview',
             '<(DEPTH)/ui/views/views.gyp:views',
             '<(DEPTH)/ui/wm/wm.gyp:wm_core',
@@ -220,6 +221,7 @@
                   'action_name': 'Create chromiumviews.lib',
                   'inputs': [
                     '<(PRODUCT_DIR)\\obj\\third_party\\iaccessible2\\iaccessible2.lib',
+                    '<(PRODUCT_DIR)\\obj\\ui\\display\\display.lib',
                     '<(PRODUCT_DIR)\\obj\\ui\\views\\views.lib',
                     '<(PRODUCT_DIR)\\obj\\ui\\views\\controls\\webview\\webview.lib',
                     '<(PRODUCT_DIR)\\obj\\ui\\web_dialogs\\web_dialogs.lib',
@@ -249,6 +251,7 @@
                   'action_name': 'Create libchromiumviews.a',
                   'inputs': [
                     '<(PRODUCT_DIR)/obj/chrome/browser/ui/libgtk2ui/libgtk2ui.a',
+                    '<(PRODUCT_DIR)/obj/ui/display/libdisplay.a',
                     '<(PRODUCT_DIR)/obj/ui/views/libviews.a',
                     '<(PRODUCT_DIR)/obj/ui/views/controls/webview/libwebview.a',
                     '<(PRODUCT_DIR)/obj/ui/web_dialogs/libweb_dialogs.a',
