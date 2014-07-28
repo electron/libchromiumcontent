@@ -13,8 +13,16 @@ TODO
 ### Prerequisites
 
 * Python 2.7
-* Xcode 5.1 (Mac)
-* Visual Studio 2013 Professional Update 2 (Windows)
+
+#### Mac
+
+* Xcode 5.1
+
+#### Windows
+
+* Visual Studio 2013 Professional Update 2
+
+#### Linux
 
 ### One-time setup
 
