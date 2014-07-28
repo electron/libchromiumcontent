@@ -40,7 +40,6 @@
       'COMPOSITOR_IMPLEMENTATION',
       'CONTENT_IMPLEMENTATION',
       'CRYPTO_IMPLEMENTATION',
-      'DISPLAY_IMPLEMENTATION',
       'EVENTS_BASE_IMPLEMENTATION',
       'EVENTS_IMPLEMENTATION',
       'GESTURE_DETECTION_IMPLEMENTATION',
@@ -50,6 +49,7 @@
       'GLES2_IMPL_IMPLEMENTATION',
       'GLES2_UTILS_IMPLEMENTATION',
       'GL_IMPLEMENTATION',
+      'GL_IN_PROCESS_CONTEXT_IMPLEMENTATION',
       'GPU_IMPLEMENTATION',
       'HEAP_IMPLEMENTATION',
       'IPC_IMPLEMENTATION',
@@ -104,10 +104,12 @@
       'WTF_IMPLEMENTATION',
     ],
     'chromiumviews_defines': [
+      'DISPLAY_IMPLEMENTATION',
+      'DISPLAY_UTIL_IMPLEMENTATION',
       'VIEWS_IMPLEMENTATION',
       'WEBVIEW_IMPLEMENTATION',
       'WEB_DIALOGS_IMPLEMENTATION',
-      'WM_CORE_IMPLEMENTATION',
+      'WM_IMPLEMENTATION',
     ],
   },
   'target_defaults': {
@@ -154,7 +156,7 @@
           '<@(chromiumcontent_defines)',
         ],
       }],
-      ['_target_name in ["views", "webview", "web_dialogs", "wm_core"]', {
+      ['_target_name in ["views", "webview", "web_dialogs", "wm", "display", "display_util"]', {
         'defines': [
           '<@(chromiumviews_defines)',
         ],

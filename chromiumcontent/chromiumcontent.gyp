@@ -210,9 +210,10 @@
           'type': 'none',
           'dependencies': [
             '<(DEPTH)/ui/display/display.gyp:display',
+            '<(DEPTH)/ui/display/display.gyp:display_util',
             '<(DEPTH)/ui/views/controls/webview/webview.gyp:webview',
             '<(DEPTH)/ui/views/views.gyp:views',
-            '<(DEPTH)/ui/wm/wm.gyp:wm_core',
+            '<(DEPTH)/ui/wm/wm.gyp:wm',
           ],
           'conditions': [
             ['OS=="win"', {
@@ -222,10 +223,11 @@
                   'inputs': [
                     '<(PRODUCT_DIR)\\obj\\third_party\\iaccessible2\\iaccessible2.lib',
                     '<(PRODUCT_DIR)\\obj\\ui\\display\\display.lib',
+                    '<(PRODUCT_DIR)\\obj\\ui\\display\\display_util.lib',
                     '<(PRODUCT_DIR)\\obj\\ui\\views\\views.lib',
                     '<(PRODUCT_DIR)\\obj\\ui\\views\\controls\\webview\\webview.lib',
                     '<(PRODUCT_DIR)\\obj\\ui\\web_dialogs\\web_dialogs.lib',
-                    '<(PRODUCT_DIR)\\obj\\ui\\wm\\wm_core.lib',
+                    '<(PRODUCT_DIR)\\obj\\ui\\wm\\wm.lib',
                   ],
                   'outputs': [
                     '<(PRODUCT_DIR)\\chromiumviews.lib',
@@ -252,10 +254,11 @@
                   'inputs': [
                     '<(PRODUCT_DIR)/obj/chrome/browser/ui/libgtk2ui/libgtk2ui.a',
                     '<(PRODUCT_DIR)/obj/ui/display/libdisplay.a',
+                    '<(PRODUCT_DIR)/obj/ui/display/libdisplay_util.a',
                     '<(PRODUCT_DIR)/obj/ui/views/libviews.a',
                     '<(PRODUCT_DIR)/obj/ui/views/controls/webview/libwebview.a',
                     '<(PRODUCT_DIR)/obj/ui/web_dialogs/libweb_dialogs.a',
-                    '<(PRODUCT_DIR)/obj/ui/wm/libwm_core.a',
+                    '<(PRODUCT_DIR)/obj/ui/wm/libwm.a',
                   ],
                   'outputs': [
                     '<(PRODUCT_DIR)/libchromiumviews.a',
