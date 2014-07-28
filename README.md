@@ -13,8 +13,21 @@ TODO
 ### Prerequisites
 
 * Python 2.7
-* Xcode 5.1 (Mac)
-* Visual Studio 2013 Professional Update 2 (Windows)
+
+#### Mac
+
+* Xcode 5.1
+
+#### Windows
+
+* Visual Studio 2013 Professional Update 2
+
+#### Linux
+
+##### CentOS 6.5
+
+* `sudo yum install pciutils-devel cups-devel libudev-devel`
+* Currently bootstrap completes but build does not
 
 ### One-time setup
 
