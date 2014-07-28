@@ -24,6 +24,11 @@ TODO
 
 #### Linux
 
+##### CentOS 6.5
+
+* `sudo yum install pciutils-devel cups-devel libudev-devel`
+* Currently bootstrap completes but build does not
+
 ### One-time setup
 
     $ script/bootstrap
