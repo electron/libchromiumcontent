@@ -6,6 +6,7 @@
       'dependencies': [
         'chromiumcontent',
         'test_support_chromiumcontent',
+        '<(DEPTH)/chrome/chrome.gyp:chromedriver',
       ],
       'conditions': [
         ['OS=="linux"', {
