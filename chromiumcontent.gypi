@@ -2,6 +2,8 @@
   'variables': {
     # We're not using Chromium's clang, so we can't use their plugins either.
     'clang_use_chrome_plugins': 0,
+    # And the gold's flags are not available in system's ld neither.
+    'linux_use_gold_flags': 0,
     # Make Linux build contain debug symbols, this flag will add '-g' to cflags.
     'linux_dump_symbols': 1,
     # The Linux build of libchromiumcontent.so depends on, but doesn't
