@@ -41,12 +41,14 @@ BINARIES = {
         os.path.join('gen', 'webkit', 'webkit_resources_200_percent.pak'),
     ],
     'darwin': [
+        'chromedriver',
         'ffmpegsumo.so',
         'libchromiumcontent.dylib',
         'libtest_support_chromiumcontent.a',
     ],
     'linux': [
         'chrome_sandbox',
+        'chromedriver',
         'libffmpegsumo.so',
         'libchromiumviews.a',
         'libosmesa.so',
@@ -55,6 +57,7 @@ BINARIES = {
         'libtest_support_chromiumcontent.a',
     ],
     'win32': [
+        'chromedriver.exe',
         'chromiumcontent.dll',
         'chromiumcontent.dll.lib',
         'chromiumviews.lib',
