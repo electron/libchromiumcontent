@@ -119,6 +119,7 @@ INCLUDE_DIRS = [
     'gpu',
     'mojo',
     'net',
+    'printing',
     'sandbox',
     'skia',
     'testing',
