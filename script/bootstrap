@@ -48,7 +48,7 @@ def main():
     if not os.path.isdir(SRC_DIR):
         os.chdir(CHROMIUM_DIR)
         fetch = os.path.join(DEPOT_TOOLS_DIR, 'fetch.py')
-        result = subprocess.call([fetch, 'chromium'])
+        result = subprocess.call([fetch, 'chromium', '--nosvn=True'])
         if result:
             return result;
 
