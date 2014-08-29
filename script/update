@@ -30,14 +30,13 @@ def chromium_version():
 
 
 def checkout_version():
-    print 'git fetch'
+    print 'git rebase-update'
     os.chdir(SRC_DIR)
-    result = subprocess.call(['git', 'fetch', '--tags'])
+    result = subprocess.call(['git', 'rebase-update'])
     if result:
         return result
     print 'git checkout'
-    result = subprocess.call(['git', 'checkout',
-                              'refs/tags/{0}'.format(chromium_version())])
+    result = subprocess.call(['git', 'checkout', chromium_version()])
     if result:
         return result
 
