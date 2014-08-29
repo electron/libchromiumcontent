@@ -44,7 +44,10 @@ def gclient_sync():
     print 'git sync'
     os.chdir(SRC_DIR)
     gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.py')
-    return subprocess.call([sys.executable, gclient, 'sync',
+    if subprocess.call([sys.executable, gclient, 'sync', '--with_branch_heads'],
+                       env=gyp_env()) == 0:
+        return
+    return subprocess.call([sys.executable, gclient, 'sync', '--force',
                             '--with_branch_heads'], env=gyp_env())
 
 
