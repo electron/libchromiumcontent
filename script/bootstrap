@@ -45,7 +45,7 @@ def main():
         os.chdir(CHROMIUM_DIR)
         fetch = os.path.join(DEPOT_TOOLS_DIR, 'fetch.py')
         result = subprocess.call([sys.executable, fetch, 'chromium',
-                                  '--nosvn=True'])
+                                  '--nohooks', '--nosvn=True'])
         if result:
             return result;
 

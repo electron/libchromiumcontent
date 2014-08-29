@@ -17,11 +17,11 @@ CHROMIUMCONTENT_DESTINATION_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
 
 def main():
     return (# Make sure we get all of the branches locally.
-            gclient_sync() or
+            gclient_sync(True) or
             # Update top-level checkout to the release tag.
             checkout_version() or
             # Update deps for current checkout.
-            gclient_sync() or
+            gclient_sync(False) or
             apply_patches() or
             copy_chromiumcontent_files() or
             run_gyp() or
@@ -39,14 +39,14 @@ def checkout_version():
                             'refs/tags/{0}'.format(chromium_version())])
 
 
-def gclient_sync():
+def gclient_sync(nohooks):
     os.chdir(SRC_DIR)
     gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.py')
-    if subprocess.call([sys.executable, gclient, 'sync', '--with_branch_heads'],
-                       env=gyp_env()) == 0:
-        return
-    return subprocess.call([sys.executable, gclient, 'sync', '--force',
-                            '--with_branch_heads'], env=gyp_env())
+    args = [sys.executable, gclient, 'sync', '--with_branch_heads']
+    if nohooks:
+        args += ['--nohooks']
+    if subprocess.call(args, env=gyp_env()):
+        return subprocess.call(args + ['--force'], env=gyp_env())
 
 
 def gyp_env():
