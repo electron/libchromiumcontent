@@ -44,7 +44,7 @@ def checkout_version():
 def gclient_sync():
     print 'git sync'
     gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.py')
-    os.chdir(CHROMIUM_DIR)
+    os.chdir(SRC_DIR)
     if subprocess.call([sys.executable, gclient, 'sync'], env=gyp_env()) == 0:
         return
     sys.stderr.write('gclient sync failed. Reverting changes and trying again.\n')
