@@ -30,21 +30,22 @@ def chromium_version():
 
 
 def checkout_version():
-    print 'git rebase-update'
+    print 'checkout_version'
     os.chdir(SRC_DIR)
-    result = subprocess.call(['git', 'rebase-update'])
-    if result:
-        return result
-    print 'git checkout'
-    result = subprocess.call(['git', 'checkout', chromium_version()])
-    if result:
-        return result
+    gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.py')
+    return (
+        # Make sure we get all of the branches locally.
+        subprocess.call([sys.executable, gclient, 'sync', '--with_branch_heads'],
+                        env=gyp_env()) or
+        # Update top-level checkout to the release tag.
+        subprocess.call(['git', 'checkout', '-f',
+                         'refs/tags/{0}'.format(chromium_version())]))
 
 
 def gclient_sync():
     print 'git sync'
-    gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.py')
     os.chdir(SRC_DIR)
+    gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.py')
     if subprocess.call([sys.executable, gclient, 'sync'], env=gyp_env()) == 0:
         return
     sys.stderr.write('gclient sync failed. Reverting changes and trying again.\n')
