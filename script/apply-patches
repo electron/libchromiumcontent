@@ -53,6 +53,10 @@ def do_apply_patches():
             if subprocess.call(args + [patch]):
                 return '{0} failed to apply'.format(os.path.basename(patch))
 
+            # Stage the changes so "gclient sync" do not complain.
+            os.chdir(target)
+            subprocess.call(['git', 'add', '.'])
+
 
 def revert_changes():
     gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.py')
