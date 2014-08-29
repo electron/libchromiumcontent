@@ -17,7 +17,6 @@ PATCH_PY = os.path.join(VENDOR_DIR, 'python-patch', 'patch.py')
 
 
 def main():
-    return do_apply_patches()
     error, check_clean = apply_patches()
     if error:
         return error
@@ -43,10 +42,14 @@ def apply_patches():
 
 
 def do_apply_patches():
-    args = [sys.executable, PATCH_PY, '--directory', SRC_DIR, '--quiet']
-    for patch in sorted(glob.glob(os.path.join(PATCHES_DIR, '*.patch'))):
-        if subprocess.call(args + [patch]):
-            return '{0} failed to apply'.format(os.path.basename(patch))
+    for root, dirs, files in os.walk(PATCHES_DIR):
+        prefix = os.path.relpath(root, PATCHES_DIR)
+        target = os.path.join(SRC_DIR, prefix)
+        args = [sys.executable, PATCH_PY, '--directory', target, '--quiet']
+        for name in sorted(files):
+            patch = os.path.join(root, name)
+            if subprocess.call(args + [patch]):
+                return '{0} failed to apply'.format(os.path.basename(patch))
 
 
 def revert_changes():
