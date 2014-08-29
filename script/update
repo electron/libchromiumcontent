@@ -30,10 +30,12 @@ def chromium_version():
 
 
 def checkout_version():
+    print 'git fetch'
     os.chdir(SRC_DIR)
     result = subprocess.call(['git', 'fetch', '--tags'])
     if result:
         return result
+    print 'git checkout'
     result = subprocess.call(['git', 'checkout',
                               'refs/tags/{0}'.format(chromium_version())])
     if result:
@@ -41,6 +43,7 @@ def checkout_version():
 
 
 def gclient_sync():
+    print 'git sync'
     gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.py')
     os.chdir(CHROMIUM_DIR)
     if subprocess.call([sys.executable, gclient, 'sync'], env=gyp_env()) == 0:
