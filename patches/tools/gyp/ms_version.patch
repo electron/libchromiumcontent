@@ -1,31 +1,14 @@
-Index: tools/gyp/pylib/gyp/MSVSVersion.py
-===================================================================
---- tools/gyp/pylib/gyp/MSVSVersion.py	(revision 1880)
-+++ tools/gyp/pylib/gyp/MSVSVersion.py	(working copy)
-@@ -77,33 +77,34 @@
+diff --git a/pylib/gyp/MSVSVersion.py b/pylib/gyp/MSVSVersion.py
+index bcd6122..907434a 100644
+--- a/pylib/gyp/MSVSVersion.py
++++ b/pylib/gyp/MSVSVersion.py
+@@ -77,33 +77,34 @@ class VisualStudioVersion(object):
      assert target_arch in ('x86', 'x64')
      sdk_dir = os.environ.get('WindowsSDKDir')
      if self.sdk_based and sdk_dir:
 -      return [os.path.normpath(os.path.join(sdk_dir, 'Bin/SetEnv.Cmd')),
 -              '/' + target_arch]
-+      setenv_cmd = os.path.normpath(os.path.join(sdk_dir, 'Bin/SetEnv.Cmd'))
-+      if os.path.isfile(setenv_cmd):
-+        return [setenv_cmd, '/' + target_arch]
-+
-+    # We don't use VC/vcvarsall.bat for x86 because vcvarsall calls
-+    # vcvars32, which it can only find if VS??COMNTOOLS is set, which it
-+    # isn't always.
-+    if target_arch == 'x86':
-+      if self.short_name == '2013' and (
-+          os.environ.get('PROCESSOR_ARCHITECTURE') == 'AMD64' or
-+          os.environ.get('PROCESSOR_ARCHITEW6432') == 'AMD64'):
-+        # VS2013 non-Express has a x64-x86 cross that we want to prefer.
-+        return [os.path.normpath(
-+           os.path.join(self.path, 'VC/vcvarsall.bat')), 'amd64_x86']
-+      # Otherwise, the standard x86 compiler.
-+      return [os.path.normpath(
-+        os.path.join(self.path, 'Common7/Tools/vsvars32.bat'))]
-     else:
+-    else:
 -      # We don't use VC/vcvarsall.bat for x86 because vcvarsall calls
 -      # vcvars32, which it can only find if VS??COMNTOOLS is set, which it
 -      # isn't always.
@@ -48,8 +31,25 @@ Index: tools/gyp/pylib/gyp/MSVSVersion.py
 -            os.environ.get('PROCESSOR_ARCHITECTURE') == 'AMD64' or
 -            os.environ.get('PROCESSOR_ARCHITEW6432') == 'AMD64'):
 -          arg = 'amd64'
--        return [os.path.normpath(
++      setenv_cmd = os.path.normpath(os.path.join(sdk_dir, 'Bin/SetEnv.Cmd'))
++      if os.path.isfile(setenv_cmd):
++        return [setenv_cmd, '/' + target_arch]
++
++    # We don't use VC/vcvarsall.bat for x86 because vcvarsall calls
++    # vcvars32, which it can only find if VS??COMNTOOLS is set, which it
++    # isn't always.
++    if target_arch == 'x86':
++      if self.short_name == '2013' and (
++          os.environ.get('PROCESSOR_ARCHITECTURE') == 'AMD64' or
++          os.environ.get('PROCESSOR_ARCHITEW6432') == 'AMD64'):
++        # VS2013 non-Express has a x64-x86 cross that we want to prefer.
+         return [os.path.normpath(
 -            os.path.join(self.path, 'VC/vcvarsall.bat')), arg]
++           os.path.join(self.path, 'VC/vcvarsall.bat')), 'amd64_x86']
++      # Otherwise, the standard x86 compiler.
++      return [os.path.normpath(
++        os.path.join(self.path, 'Common7/Tools/vsvars32.bat'))]
++    else:
 +      assert target_arch == 'x64'
 +      arg = 'x86_amd64'
 +      # Use the 64-on-64 compiler if we're not using an express

@@ -1,0 +1,1151 @@
+diff --git a/public/platform/WebAnimation.h b/public/platform/WebAnimation.h
+index e955390..95809dc 100644
+--- a/public/platform/WebAnimation.h
++++ b/public/platform/WebAnimation.h
+@@ -29,7 +29,7 @@
+ #include "WebNonCopyable.h"
+ #include "WebPrivateOwnPtr.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ #include "wtf/Forward.h"
+ #endif
+ 
+diff --git a/public/platform/WebDragData.h b/public/platform/WebDragData.h
+index 73e778c..425ffdb 100644
+--- a/public/platform/WebDragData.h
++++ b/public/platform/WebDragData.h
+@@ -108,7 +108,7 @@ public:
+     BLINK_EXPORT WebString filesystemId() const;
+     BLINK_EXPORT void setFilesystemId(const WebString&);
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     explicit WebDragData(const PassRefPtrWillBeRawPtr<WebCore::DataObject>&);
+     WebDragData& operator=(const PassRefPtrWillBeRawPtr<WebCore::DataObject>&);
+     WebCore::DataObject* getValue() const;
+diff --git a/public/platform/WebGamepad.h b/public/platform/WebGamepad.h
+index 63d63f1..8844654 100644
+--- a/public/platform/WebGamepad.h
++++ b/public/platform/WebGamepad.h
+@@ -26,7 +26,7 @@
+ 
+ #include "WebCommon.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ #include "wtf/Assertions.h"
+ #endif
+ 
+@@ -96,7 +96,7 @@ public:
+     WebUChar mapping[mappingLengthCap];
+ };
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ COMPILE_ASSERT(sizeof(WebGamepad) == 721, WebGamepad_has_wrong_size);
+ #endif
+ 
+diff --git a/public/platform/WebGamepads.h b/public/platform/WebGamepads.h
+index 1fa1e81..dfedaf3 100644
+--- a/public/platform/WebGamepads.h
++++ b/public/platform/WebGamepads.h
+@@ -26,7 +26,7 @@
+ 
+ #include "WebGamepad.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ #include "wtf/Assertions.h"
+ #endif
+ 
+@@ -51,7 +51,7 @@ public:
+     WebGamepad items[itemsLengthCap];
+ };
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ COMPILE_ASSERT(sizeof(WebGamepads) == 2888, WebGamepads_has_wrong_size);
+ #endif
+ 
+diff --git a/public/platform/WebIDBDatabaseError.h b/public/platform/WebIDBDatabaseError.h
+index a50fcbd..d953a6b 100644
+--- a/public/platform/WebIDBDatabaseError.h
++++ b/public/platform/WebIDBDatabaseError.h
+@@ -54,7 +54,7 @@ public:
+     BLINK_EXPORT void assign(const WebIDBDatabaseError&);
+     BLINK_EXPORT void reset();
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     operator PassRefPtrWillBeRawPtr<WebCore::DOMError>() const;
+ #endif
+ 
+diff --git a/public/platform/WebIDBKey.h b/public/platform/WebIDBKey.h
+index 2c9a7a0..09ccfce 100644
+--- a/public/platform/WebIDBKey.h
++++ b/public/platform/WebIDBKey.h
+@@ -76,7 +76,7 @@ public:
+     BLINK_EXPORT double date() const; // Only valid for DateType.
+     BLINK_EXPORT double number() const; // Only valid for NumberType.
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebIDBKey(WebCore::IDBKey*);
+     WebIDBKey& operator=(WebCore::IDBKey*);
+     operator WebCore::IDBKey*() const;
+diff --git a/public/platform/WebIDBKeyPath.h b/public/platform/WebIDBKeyPath.h
+index 94bb177..9663ea6 100644
+--- a/public/platform/WebIDBKeyPath.h
++++ b/public/platform/WebIDBKeyPath.h
+@@ -58,7 +58,7 @@ public:
+     BLINK_EXPORT WebVector<WebString> array() const; // Only valid for ArrayType.
+     BLINK_EXPORT WebString string() const; // Only valid for StringType.
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebIDBKeyPath(const WebCore::IDBKeyPath&);
+     WebIDBKeyPath& operator=(const WebCore::IDBKeyPath&);
+     operator const WebCore::IDBKeyPath&() const;
+diff --git a/public/platform/WebIDBKeyRange.h b/public/platform/WebIDBKeyRange.h
+index 62fe27c..7033422 100644
+--- a/public/platform/WebIDBKeyRange.h
++++ b/public/platform/WebIDBKeyRange.h
+@@ -52,7 +52,7 @@ public:
+     BLINK_EXPORT void assign(const WebIDBKey& lower, const WebIDBKey& upper, bool lowerOpen, bool upperOpen);
+     BLINK_EXPORT void reset();
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebIDBKeyRange(WebCore::IDBKeyRange*);
+     WebIDBKeyRange& operator=(WebCore::IDBKeyRange*);
+     operator WebCore::IDBKeyRange*() const;
+diff --git a/public/platform/WebIDBMetadata.h b/public/platform/WebIDBMetadata.h
+index 86b4e8f..d5710d0 100644
+--- a/public/platform/WebIDBMetadata.h
++++ b/public/platform/WebIDBMetadata.h
+@@ -80,7 +80,7 @@ struct WebIDBMetadata {
+             , multiEntry(false) { }
+     };
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebIDBMetadata(const WebCore::IDBDatabaseMetadata&);
+     operator WebCore::IDBDatabaseMetadata() const;
+ #endif
+diff --git a/public/platform/WebRTCSessionDescription.h b/public/platform/WebRTCSessionDescription.h
+index a4b1746..faaccf2 100644
+--- a/public/platform/WebRTCSessionDescription.h
++++ b/public/platform/WebRTCSessionDescription.h
+@@ -75,7 +75,7 @@ public:
+     BLINK_PLATFORM_EXPORT WebString sdp() const;
+     BLINK_PLATFORM_EXPORT void setSDP(const WebString&);
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebRTCSessionDescription(WebString type, WebString sdp)
+     {
+         this->initialize(type, sdp);
+diff --git a/public/platform/WebScrollbarThemePainter.h b/public/platform/WebScrollbarThemePainter.h
+index 1417c0b..01281fb 100644
+--- a/public/platform/WebScrollbarThemePainter.h
++++ b/public/platform/WebScrollbarThemePainter.h
+@@ -62,7 +62,7 @@ public:
+     BLINK_EXPORT void paintTickmarks(WebCanvas*, const WebRect&);
+     BLINK_EXPORT void paintThumb(WebCanvas*, const WebRect&);
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebScrollbarThemePainter(WebCore::ScrollbarTheme*, WebCore::Scrollbar*);
+ #endif
+ 
+diff --git a/public/platform/WebWorkerRunLoop.h b/public/platform/WebWorkerRunLoop.h
+index d790a23..009716f 100644
+--- a/public/platform/WebWorkerRunLoop.h
++++ b/public/platform/WebWorkerRunLoop.h
+@@ -46,7 +46,7 @@ public:
+     BLINK_EXPORT bool equals(const WebWorkerRunLoop&) const;
+     BLINK_EXPORT bool lessThan(const WebWorkerRunLoop&) const;
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebWorkerRunLoop(WebCore::WorkerRunLoop*);
+ #endif
+ 
+diff --git a/public/platform/linux/WebFontRenderStyle.h b/public/platform/linux/WebFontRenderStyle.h
+index a7aa3b8..7622b71 100644
+--- a/public/platform/linux/WebFontRenderStyle.h
++++ b/public/platform/linux/WebFontRenderStyle.h
+@@ -50,7 +50,7 @@ struct BLINK_EXPORT WebFontRenderStyle {
+     char useSubpixelRendering; // use subpixel rendering (partially-filled pixels)
+     char useSubpixelPositioning; // use subpixel positioning (fractional X positions for glyphs)
+ 
+-#if BLINK_IMPLEMENTATION || BLINK_PLATFORM_IMPLEMENTATION
++#if INSIDE_BLINK || BLINK_PLATFORM_IMPLEMENTATION
+     // Translates the members of this struct to a FontRenderStyle
+     void toFontRenderStyle(WebCore::FontRenderStyle*);
+ #endif
+diff --git a/public/web/WebAXObject.h b/public/web/WebAXObject.h
+index c599034..0c56b20 100644
+--- a/public/web/WebAXObject.h
++++ b/public/web/WebAXObject.h
+@@ -36,7 +36,7 @@
+ #include "../platform/WebVector.h"
+ #include "WebAXEnums.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ namespace WTF { template <typename T> class PassRefPtr; }
+ #endif
+ 
+@@ -216,7 +216,7 @@ public:
+     // Scroll this object to a given point in global coordinates of the top-level window.
+     BLINK_EXPORT void scrollToGlobalPoint(const WebPoint&) const;
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebAXObject(const WTF::PassRefPtr<WebCore::AXObject>&);
+     WebAXObject& operator=(const WTF::PassRefPtr<WebCore::AXObject>&);
+     operator WTF::PassRefPtr<WebCore::AXObject>() const;
+diff --git a/public/web/WebArrayBufferView.h b/public/web/WebArrayBufferView.h
+index cc02d7e..7caaeb5 100644
+--- a/public/web/WebArrayBufferView.h
++++ b/public/web/WebArrayBufferView.h
+@@ -57,7 +57,7 @@ public:
+ 
+     BLINK_EXPORT static WebArrayBufferView* createFromV8Value(v8::Handle<v8::Value>);
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebArrayBufferView(const WTF::PassRefPtr<WTF::ArrayBufferView>&);
+     WebArrayBufferView& operator=(const WTF::PassRefPtr<WTF::ArrayBufferView>&);
+     operator WTF::PassRefPtr<WTF::ArrayBufferView>() const;
+diff --git a/public/web/WebBlob.h b/public/web/WebBlob.h
+index 3d0d829..8e61d50 100644
+--- a/public/web/WebBlob.h
++++ b/public/web/WebBlob.h
+@@ -37,7 +37,7 @@
+ #include "public/platform/WebString.h"
+ #include "public/platform/WebURL.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ #include "platform/heap/Handle.h"
+ #endif
+ 
+@@ -76,7 +76,7 @@ public:
+ 
+     BLINK_EXPORT v8::Handle<v8::Value>  toV8Value(v8::Handle<v8::Object> creationContext, v8::Isolate*);
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     explicit WebBlob(const PassRefPtrWillBeRawPtr<WebCore::Blob>&);
+     WebBlob& operator=(const PassRefPtrWillBeRawPtr<WebCore::Blob>&);
+ #endif
+diff --git a/public/web/WebCachedURLRequest.h b/public/web/WebCachedURLRequest.h
+index c889171..2cde187 100644
+--- a/public/web/WebCachedURLRequest.h
++++ b/public/web/WebCachedURLRequest.h
+@@ -53,7 +53,7 @@ public:
+     BLINK_EXPORT bool forPreload() const;
+     BLINK_EXPORT WebString initiatorName() const;
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     explicit WebCachedURLRequest(WebCore::FetchRequest*);
+ #endif
+ 
+diff --git a/public/web/WebColorSuggestion.h b/public/web/WebColorSuggestion.h
+index f1b838a..69a8c6f 100644
+--- a/public/web/WebColorSuggestion.h
++++ b/public/web/WebColorSuggestion.h
+@@ -44,7 +44,7 @@ struct WebColorSuggestion {
+     WebColor color;
+     WebString label;
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebColorSuggestion(const WebCore::ColorSuggestion&);
+     WebColorSuggestion& operator=(const WebCore::ColorSuggestion&);
+ #endif
+diff --git a/public/web/WebDOMError.h b/public/web/WebDOMError.h
+index ec7e9c7..cb7676b 100644
+--- a/public/web/WebDOMError.h
++++ b/public/web/WebDOMError.h
+@@ -68,7 +68,7 @@ public:
+ 
+     BLINK_EXPORT v8::Handle<v8::Value> toV8Value(v8::Handle<v8::Object> creationContext, v8::Isolate*);
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     explicit WebDOMError(const PassRefPtrWillBeRawPtr<WebCore::DOMError>&);
+     WebDOMError& operator=(const PassRefPtrWillBeRawPtr<WebCore::DOMError>&);
+ #endif
+diff --git a/public/web/WebDOMEvent.h b/public/web/WebDOMEvent.h
+index 2ee4932..48025d4 100644
+--- a/public/web/WebDOMEvent.h
++++ b/public/web/WebDOMEvent.h
+@@ -37,7 +37,7 @@
+ #include "WebNode.h"
+ 
+ namespace WebCore { class Event; }
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ namespace WTF { template <typename T> class PassRefPtr; }
+ #endif
+ 
+@@ -91,7 +91,7 @@ public:
+     BLINK_EXPORT bool isProgressEvent() const;
+     BLINK_EXPORT bool isXMLHttpRequestProgressEvent() const;
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebDOMEvent(const PassRefPtrWillBeRawPtr<WebCore::Event>&);
+     operator PassRefPtrWillBeRawPtr<WebCore::Event>() const;
+ #endif
+@@ -111,7 +111,7 @@ public:
+     }
+ 
+ protected:
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     void assign(const PassRefPtrWillBeRawPtr<WebCore::Event>&);
+ 
+     template<typename T> T* unwrap()
+diff --git a/public/web/WebDOMEventListener.h b/public/web/WebDOMEventListener.h
+index 7b247d1..9702283 100644
+--- a/public/web/WebDOMEventListener.h
++++ b/public/web/WebDOMEventListener.h
+@@ -33,7 +33,7 @@
+ 
+ #include "../platform/WebCommon.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ namespace WebCore { class EventTarget; }
+ #endif
+ 
+@@ -53,7 +53,7 @@ public:
+     // Called when an event is received.
+     virtual void handleEvent(const WebDOMEvent&) = 0;
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     void notifyEventListenerDeleted(EventListenerWrapper*);
+     EventListenerWrapper* createEventListenerWrapper(const WebString& eventType, bool useCapture, WebCore::EventTarget*);
+     EventListenerWrapper* getEventListenerWrapper(const WebString& eventType, bool useCapture, WebCore::EventTarget*);
+diff --git a/public/web/WebDOMFileSystem.h b/public/web/WebDOMFileSystem.h
+index 6af71cf..04cce2f 100644
+--- a/public/web/WebDOMFileSystem.h
++++ b/public/web/WebDOMFileSystem.h
+@@ -37,7 +37,7 @@
+ #include "../platform/WebURL.h"
+ #include "WebFrame.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ #include "platform/heap/Handle.h"
+ #endif
+ 
+@@ -101,7 +101,7 @@ public:
+ 
+     bool isNull() const { return m_private.isNull(); }
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebDOMFileSystem(WebCore::DOMFileSystem*);
+     WebDOMFileSystem& operator=(WebCore::DOMFileSystem*);
+ #endif
+diff --git a/public/web/WebDOMMediaStreamTrack.h b/public/web/WebDOMMediaStreamTrack.h
+index 7609721..080fe5d 100644
+--- a/public/web/WebDOMMediaStreamTrack.h
++++ b/public/web/WebDOMMediaStreamTrack.h
+@@ -34,7 +34,7 @@
+ #include "public/platform/WebMediaStreamTrack.h"
+ #include "public/platform/WebPrivatePtr.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ #include "wtf/PassRefPtr.h"
+ #endif
+ 
+@@ -67,7 +67,7 @@ public:
+     BLINK_EXPORT WebMediaStreamTrack component() const;
+ 
+ private:
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebDOMMediaStreamTrack(PassRefPtrWillBeRawPtr<WebCore::MediaStreamTrack>);
+ #endif
+ 
+diff --git a/public/web/WebDOMMessageEvent.h b/public/web/WebDOMMessageEvent.h
+index c220c0e..1774ad2 100644
+--- a/public/web/WebDOMMessageEvent.h
++++ b/public/web/WebDOMMessageEvent.h
+@@ -34,7 +34,7 @@
+ #include "WebDOMEvent.h"
+ #include "WebSerializedScriptValue.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ #include "core/events/Event.h"
+ #include "core/events/MessageEvent.h"
+ #endif
+@@ -54,7 +54,7 @@ public:
+ 
+     BLINK_EXPORT WebMessagePortChannelArray releaseChannels();
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     explicit WebDOMMessageEvent(const PassRefPtrWillBeRawPtr<WebCore::MessageEvent>& e) : WebDOMEvent(e) { }
+ #endif
+ };
+diff --git a/public/web/WebDOMMouseEvent.h b/public/web/WebDOMMouseEvent.h
+index a46dfec..5849c58 100644
+--- a/public/web/WebDOMMouseEvent.h
++++ b/public/web/WebDOMMouseEvent.h
+@@ -32,7 +32,7 @@
+ 
+ #include "WebDOMEvent.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ namespace WebCore { class Event; }
+ #endif
+ 
+diff --git a/public/web/WebDatabase.h b/public/web/WebDatabase.h
+index 14973c2..fe81454 100644
+--- a/public/web/WebDatabase.h
++++ b/public/web/WebDatabase.h
+@@ -58,7 +58,7 @@ public:
+     BLINK_EXPORT static void closeDatabaseImmediately(
+         const WebString& originIdentifier, const WebString& databaseName);
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebDatabase(const WebCore::DatabaseBackendBase*);
+ #endif
+ 
+diff --git a/public/web/WebDateTimeSuggestion.h b/public/web/WebDateTimeSuggestion.h
+index 7bd10b6..da9c5bc 100644
+--- a/public/web/WebDateTimeSuggestion.h
++++ b/public/web/WebDateTimeSuggestion.h
+@@ -28,7 +28,7 @@
+ 
+ #include "public/platform/WebString.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ namespace WebCore { struct DateTimeSuggestion; }
+ #endif
+ 
+@@ -41,7 +41,7 @@ struct WebDateTimeSuggestion {
+ 
+     WebDateTimeSuggestion() { }
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebDateTimeSuggestion(const WebCore::DateTimeSuggestion&);
+     WebDateTimeSuggestion& operator=(const WebCore::DateTimeSuggestion&);
+ #endif
+diff --git a/public/web/WebDocument.h b/public/web/WebDocument.h
+index 4e8b2f6..36269c5 100644
+--- a/public/web/WebDocument.h
++++ b/public/web/WebDocument.h
+@@ -39,7 +39,7 @@
+ #include "WebNode.h"
+ #include "WebSecurityOrigin.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ namespace WebCore {
+ class Document;
+ class DocumentType;
+@@ -138,7 +138,7 @@ public:
+ 
+     BLINK_EXPORT v8::Handle<v8::Value> registerEmbedderCustomElement(const WebString& name, v8::Handle<v8::Value> options, WebExceptionCode&);
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebDocument(const PassRefPtrWillBeRawPtr<WebCore::Document>&);
+     WebDocument& operator=(const PassRefPtrWillBeRawPtr<WebCore::Document>&);
+     operator PassRefPtrWillBeRawPtr<WebCore::Document>() const;
+diff --git a/public/web/WebDocumentType.h b/public/web/WebDocumentType.h
+index a23eebd..46ebebc 100644
+--- a/public/web/WebDocumentType.h
++++ b/public/web/WebDocumentType.h
+@@ -33,7 +33,7 @@
+ 
+ #include "WebNode.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ namespace WebCore { class DocumentType; }
+ namespace WTF { template <typename T> class PassRefPtr; }
+ #endif
+@@ -56,7 +56,7 @@ public:
+ 
+     BLINK_EXPORT WebString name() const;
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebDocumentType(const PassRefPtrWillBeRawPtr<WebCore::DocumentType>&);
+     WebDocumentType& operator=(const PassRefPtrWillBeRawPtr<WebCore::DocumentType>&);
+     operator PassRefPtrWillBeRawPtr<WebCore::DocumentType>() const;
+diff --git a/public/web/WebElement.h b/public/web/WebElement.h
+index 9308da0..7b1659e 100644
+--- a/public/web/WebElement.h
++++ b/public/web/WebElement.h
+@@ -34,7 +34,7 @@
+ #include "../platform/WebImage.h"
+ #include "WebNode.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ namespace WebCore { class Element; }
+ #endif
+ 
+@@ -88,7 +88,7 @@ struct WebRect;
+         // if there isn't any.
+         BLINK_EXPORT WebImage imageContents();
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+         WebElement(const PassRefPtrWillBeRawPtr<WebCore::Element>&);
+         WebElement& operator=(const PassRefPtrWillBeRawPtr<WebCore::Element>&);
+         operator PassRefPtrWillBeRawPtr<WebCore::Element>() const;
+diff --git a/public/web/WebElementCollection.h b/public/web/WebElementCollection.h
+index 28a8ac9..4c11742 100644
+--- a/public/web/WebElementCollection.h
++++ b/public/web/WebElementCollection.h
+@@ -36,7 +36,7 @@
+ #include "../platform/WebPrivatePtr.h"
+ 
+ namespace WebCore { class HTMLCollection; }
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ #include "platform/heap/Handle.h"
+ namespace WTF { template <typename T> class PassRefPtr; }
+ #endif
+@@ -66,7 +66,7 @@ public:
+     BLINK_EXPORT WebElement nextItem() const;
+     BLINK_EXPORT WebElement firstItem() const;
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebElementCollection(const PassRefPtrWillBeRawPtr<WebCore::HTMLCollection>&);
+     WebElementCollection& operator=(const PassRefPtrWillBeRawPtr<WebCore::HTMLCollection>&);
+ #endif
+diff --git a/public/web/WebFontDescription.h b/public/web/WebFontDescription.h
+index b7b29ba..31f8490 100644
+--- a/public/web/WebFontDescription.h
++++ b/public/web/WebFontDescription.h
+@@ -33,7 +33,7 @@
+ 
+ #include "../platform/WebString.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ namespace WebCore { class FontDescription; }
+ #endif
+ 
+@@ -94,7 +94,7 @@ struct WebFontDescription {
+     short letterSpacing;
+     short wordSpacing;
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebFontDescription(const WebCore::FontDescription&);
+ 
+     operator WebCore::FontDescription() const;
+diff --git a/public/web/WebFormControlElement.h b/public/web/WebFormControlElement.h
+index e8862d1..d5c18d1 100644
+--- a/public/web/WebFormControlElement.h
++++ b/public/web/WebFormControlElement.h
+@@ -35,7 +35,7 @@
+ #include "WebElement.h"
+ #include "WebFormElement.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ namespace WebCore { class HTMLFormControlElement; }
+ #endif
+ 
+@@ -115,7 +115,7 @@ public:
+ 
+     BLINK_EXPORT WebFormElement form() const;
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebFormControlElement(const PassRefPtrWillBeRawPtr<WebCore::HTMLFormControlElement>&);
+     WebFormControlElement& operator=(const PassRefPtrWillBeRawPtr<WebCore::HTMLFormControlElement>&);
+     operator PassRefPtrWillBeRawPtr<WebCore::HTMLFormControlElement>() const;
+diff --git a/public/web/WebFormElement.h b/public/web/WebFormElement.h
+index 3181e82..fd19f01 100644
+--- a/public/web/WebFormElement.h
++++ b/public/web/WebFormElement.h
+@@ -34,7 +34,7 @@
+ #include "../platform/WebVector.h"
+ #include "WebElement.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ namespace WebCore { class HTMLFormElement; }
+ #endif
+ 
+@@ -80,7 +80,7 @@ namespace blink {
+         };
+         BLINK_EXPORT void finishRequestAutocomplete(WebFormElement::AutocompleteResult);
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+         WebFormElement(const PassRefPtrWillBeRawPtr<WebCore::HTMLFormElement>&);
+         WebFormElement& operator=(const PassRefPtrWillBeRawPtr<WebCore::HTMLFormElement>&);
+         operator PassRefPtrWillBeRawPtr<WebCore::HTMLFormElement>() const;
+diff --git a/public/web/WebFrame.h b/public/web/WebFrame.h
+index 669b865..ced10cf 100644
+--- a/public/web/WebFrame.h
++++ b/public/web/WebFrame.h
+@@ -45,7 +45,7 @@
+ 
+ struct NPObject;
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ namespace WebCore { class Frame; }
+ #endif
+ 
+@@ -673,7 +673,7 @@ public:
+     // text form. This is used only by layout tests.
+     virtual WebString layerTreeAsText(bool showDebugInfo = false) const = 0;
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     static WebFrame* fromFrame(WebCore::Frame*);
+ #endif
+ 
+@@ -694,7 +694,7 @@ private:
+     WebPrivateOwnPtr<OpenedFrameTracker> m_openedFrameTracker;
+ };
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ WebCore::Frame* toWebCoreFrame(const WebFrame*);
+ #endif
+ 
+diff --git a/public/web/WebGeolocationController.h b/public/web/WebGeolocationController.h
+index 4a4df54..51594a9 100644
+--- a/public/web/WebGeolocationController.h
++++ b/public/web/WebGeolocationController.h
+@@ -43,7 +43,7 @@ public:
+     BLINK_EXPORT void positionChanged(const WebGeolocationPosition&);
+     BLINK_EXPORT void errorOccurred(const WebGeolocationError&);
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebGeolocationController(WebCore::GeolocationController* c)
+         : m_private(c)
+     {
+diff --git a/public/web/WebGeolocationError.h b/public/web/WebGeolocationError.h
+index 6e25662..c1e28bb 100644
+--- a/public/web/WebGeolocationError.h
++++ b/public/web/WebGeolocationError.h
+@@ -50,7 +50,7 @@ public:
+     BLINK_EXPORT void assign(const WebGeolocationError&);
+     BLINK_EXPORT void reset();
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebGeolocationError(WebCore::GeolocationError*);
+     WebGeolocationError& operator=(WebCore::GeolocationError*);
+     operator WebCore::GeolocationError*() const;
+diff --git a/public/web/WebGeolocationPermissionRequest.h b/public/web/WebGeolocationPermissionRequest.h
+index 38ed97a..d450620 100644
+--- a/public/web/WebGeolocationPermissionRequest.h
++++ b/public/web/WebGeolocationPermissionRequest.h
+@@ -47,7 +47,7 @@ public:
+     BLINK_EXPORT WebSecurityOrigin securityOrigin() const;
+     BLINK_EXPORT void setIsAllowed(bool);
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebGeolocationPermissionRequest(WebCore::Geolocation*);
+     WebCore::Geolocation* geolocation() const { return m_private.get(); }
+ #endif
+diff --git a/public/web/WebGeolocationPosition.h b/public/web/WebGeolocationPosition.h
+index 43ad42a..22315b2 100644
+--- a/public/web/WebGeolocationPosition.h
++++ b/public/web/WebGeolocationPosition.h
+@@ -47,7 +47,7 @@ public:
+     BLINK_EXPORT void assign(const WebGeolocationPosition&);
+     BLINK_EXPORT void reset();
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebGeolocationPosition(WebCore::GeolocationPosition*);
+     WebGeolocationPosition& operator=(WebCore::GeolocationPosition*);
+     operator WebCore::GeolocationPosition*() const;
+diff --git a/public/web/WebHistoryItem.h b/public/web/WebHistoryItem.h
+index a35f6eb..1908dc8 100644
+--- a/public/web/WebHistoryItem.h
++++ b/public/web/WebHistoryItem.h
+@@ -112,7 +112,7 @@ public:
+ 
+     BLINK_EXPORT WebVector<WebString> getReferencedFilePaths() const;
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebHistoryItem(const WTF::PassRefPtr<WebCore::HistoryItem>&);
+     WebHistoryItem& operator=(const WTF::PassRefPtr<WebCore::HistoryItem>&);
+     operator WTF::PassRefPtr<WebCore::HistoryItem>() const;
+diff --git a/public/web/WebHitTestResult.h b/public/web/WebHitTestResult.h
+index a48f3cd..367e590 100644
+--- a/public/web/WebHitTestResult.h
++++ b/public/web/WebHitTestResult.h
+@@ -71,7 +71,7 @@ public:
+     // Return whether an editable input element was hit.
+     BLINK_EXPORT bool isContentEditable() const;
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebHitTestResult(const WebCore::HitTestResult&);
+     WebHitTestResult& operator=(const WebCore::HitTestResult&);
+     operator WebCore::HitTestResult() const;
+diff --git a/public/web/WebIconURL.h b/public/web/WebIconURL.h
+index 98450d9..1ac006c 100644
+--- a/public/web/WebIconURL.h
++++ b/public/web/WebIconURL.h
+@@ -31,7 +31,7 @@
+ #ifndef WebIconURL_h
+ #define WebIconURL_h
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ #include "core/dom/IconURL.h"
+ #endif
+ #include "public/platform/WebSize.h"
+@@ -75,7 +75,7 @@ public:
+         return m_sizes;
+     }
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebIconURL(const WebCore::IconURL& iconURL)
+         : m_iconType(static_cast<Type>(iconURL.m_iconType))
+         , m_iconURL(iconURL.m_iconURL)
+diff --git a/public/web/WebInputElement.h b/public/web/WebInputElement.h
+index 86cf6f1..90b6d50 100644
+--- a/public/web/WebInputElement.h
++++ b/public/web/WebInputElement.h
+@@ -33,7 +33,7 @@
+ 
+ #include "WebFormControlElement.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ namespace WebCore { class HTMLInputElement; }
+ #endif
+ 
+@@ -86,7 +86,7 @@ namespace blink {
+         // If true, forces the text of the element to be visible.
+         BLINK_EXPORT void setShouldRevealPassword(bool value);
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+         WebInputElement(const PassRefPtrWillBeRawPtr<WebCore::HTMLInputElement>&);
+         WebInputElement& operator=(const PassRefPtrWillBeRawPtr<WebCore::HTMLInputElement>&);
+         operator PassRefPtrWillBeRawPtr<WebCore::HTMLInputElement>() const;
+diff --git a/public/web/WebLabelElement.h b/public/web/WebLabelElement.h
+index 8efa52d..2d10c24 100644
+--- a/public/web/WebLabelElement.h
++++ b/public/web/WebLabelElement.h
+@@ -33,7 +33,7 @@
+ 
+ #include "WebElement.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ namespace WebCore { class HTMLLabelElement; }
+ namespace WTF { template <typename T> class PassRefPtr; }
+ #endif
+@@ -56,7 +56,7 @@ public:
+ 
+     BLINK_EXPORT WebElement correspondingControl();
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebLabelElement(const PassRefPtrWillBeRawPtr<WebCore::HTMLLabelElement>&);
+     WebLabelElement& operator=(const PassRefPtrWillBeRawPtr<WebCore::HTMLLabelElement>&);
+     operator PassRefPtrWillBeRawPtr<WebCore::HTMLLabelElement>() const;
+diff --git a/public/web/WebMIDIPermissionRequest.h b/public/web/WebMIDIPermissionRequest.h
+index b863fe3..27e845c 100644
+--- a/public/web/WebMIDIPermissionRequest.h
++++ b/public/web/WebMIDIPermissionRequest.h
+@@ -55,7 +55,7 @@ public:
+ 
+     BLINK_EXPORT bool equals(const WebMIDIPermissionRequest&) const;
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     explicit WebMIDIPermissionRequest(WebCore::MIDIAccessInitializer*);
+ 
+     WebCore::MIDIAccessInitializer* midiAccessInitializer() const { return m_initializer; }
+diff --git a/public/web/WebMediaDevicesRequest.h b/public/web/WebMediaDevicesRequest.h
+index 268df83..4681c1e 100644
+--- a/public/web/WebMediaDevicesRequest.h
++++ b/public/web/WebMediaDevicesRequest.h
+@@ -62,7 +62,7 @@ public:
+ 
+     BLINK_EXPORT void requestSucceeded(WebVector<WebMediaDeviceInfo>);
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebMediaDevicesRequest(const PassRefPtrWillBeRawPtr<WebCore::MediaDevicesRequest>&);
+     WebMediaDevicesRequest(WebCore::MediaDevicesRequest*);
+     operator WebCore::MediaDevicesRequest*() const;
+diff --git a/public/web/WebNode.h b/public/web/WebNode.h
+index ba967ff..2faeae0 100644
+--- a/public/web/WebNode.h
++++ b/public/web/WebNode.h
+@@ -140,7 +140,7 @@ public:
+         return res;
+     }
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebNode(const PassRefPtrWillBeRawPtr<WebCore::Node>&);
+     WebNode& operator=(const PassRefPtrWillBeRawPtr<WebCore::Node>&);
+     operator PassRefPtrWillBeRawPtr<WebCore::Node>() const;
+@@ -158,7 +158,7 @@ public:
+ #endif
+ #endif
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     template<typename T> T* unwrap()
+     {
+         return static_cast<T*>(m_private.get());
+diff --git a/public/web/WebNodeList.h b/public/web/WebNodeList.h
+index 96ad0ad..11a467e 100644
+--- a/public/web/WebNodeList.h
++++ b/public/web/WebNodeList.h
+@@ -35,7 +35,7 @@
+ #include "public/platform/WebPrivatePtr.h"
+ 
+ namespace WebCore { class NodeList; }
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ #include "platform/heap/Handle.h"
+ namespace WTF { template <typename T> class PassRefPtr; }
+ #endif
+@@ -62,7 +62,7 @@ public:
+     BLINK_EXPORT unsigned length() const;
+     BLINK_EXPORT WebNode item(size_t) const;
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebNodeList(const PassRefPtrWillBeRawPtr<WebCore::NodeList>&);
+     WebNodeList& operator=(const PassRefPtrWillBeRawPtr<WebCore::NodeList>&);
+ #endif
+diff --git a/public/web/WebNotification.h b/public/web/WebNotification.h
+index 1b9587a..a2ea004 100644
+--- a/public/web/WebNotification.h
++++ b/public/web/WebNotification.h
+@@ -38,7 +38,7 @@
+ 
+ namespace WebCore { class Notification; }
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ namespace WTF { template <typename T> class PassRefPtr; }
+ #endif
+ 
+@@ -92,7 +92,7 @@ public:
+     WebString replaceId() const { return tag(); }
+     void dispatchDisplayEvent() { dispatchShowEvent(); }
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebNotification(WebCore::Notification*);
+     WebNotification& operator=(WebCore::Notification*);
+ #endif
+diff --git a/public/web/WebOptionElement.h b/public/web/WebOptionElement.h
+index ec3bf76..6801147 100644
+--- a/public/web/WebOptionElement.h
++++ b/public/web/WebOptionElement.h
+@@ -34,7 +34,7 @@
+ #include "../platform/WebVector.h"
+ #include "WebElement.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ namespace WebCore { class HTMLOptionElement; }
+ #endif
+ 
+@@ -61,7 +61,7 @@ public:
+     BLINK_EXPORT WebString label() const;
+     BLINK_EXPORT bool isEnabled() const;
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebOptionElement(const PassRefPtrWillBeRawPtr<WebCore::HTMLOptionElement>&);
+     WebOptionElement& operator=(const PassRefPtrWillBeRawPtr<WebCore::HTMLOptionElement>&);
+     operator PassRefPtrWillBeRawPtr<WebCore::HTMLOptionElement>() const;
+diff --git a/public/web/WebPerformance.h b/public/web/WebPerformance.h
+index a858f35..0616e19 100644
+--- a/public/web/WebPerformance.h
++++ b/public/web/WebPerformance.h
+@@ -35,7 +35,7 @@
+ #include "../platform/WebPrivatePtr.h"
+ #include "WebNavigationType.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ #include "platform/heap/Handle.h"
+ #endif
+ 
+@@ -85,7 +85,7 @@ public:
+     BLINK_EXPORT double loadEventStart() const;
+     BLINK_EXPORT double loadEventEnd() const;
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebPerformance(const PassRefPtrWillBeRawPtr<WebCore::Performance>&);
+     WebPerformance& operator=(const PassRefPtrWillBeRawPtr<WebCore::Performance>&);
+ #endif
+diff --git a/public/web/WebPluginDocument.h b/public/web/WebPluginDocument.h
+index 27eb142..418fb99 100644
+--- a/public/web/WebPluginDocument.h
++++ b/public/web/WebPluginDocument.h
+@@ -33,7 +33,7 @@
+ 
+ #include "WebDocument.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ namespace WebCore { class PluginDocument; }
+ #endif
+ 
+@@ -55,7 +55,7 @@ public:
+ 
+     BLINK_EXPORT WebPlugin* plugin();
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebPluginDocument(const PassRefPtrWillBeRawPtr<WebCore::PluginDocument>&);
+     WebPluginDocument& operator=(const PassRefPtrWillBeRawPtr<WebCore::PluginDocument>&);
+     operator PassRefPtrWillBeRawPtr<WebCore::PluginDocument>() const;
+diff --git a/public/web/WebRange.h b/public/web/WebRange.h
+index cd318a1..d41e23b 100644
+--- a/public/web/WebRange.h
++++ b/public/web/WebRange.h
+@@ -76,7 +76,7 @@ public:
+ 
+     BLINK_EXPORT WebVector<WebFloatQuad> textQuads() const;
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebRange(const PassRefPtrWillBeRawPtr<WebCore::Range>&);
+     operator PassRefPtrWillBeRawPtr<WebCore::Range>() const;
+ #endif
+diff --git a/public/web/WebSecurityOrigin.h b/public/web/WebSecurityOrigin.h
+index b33f09d..e3a4b18 100644
+--- a/public/web/WebSecurityOrigin.h
++++ b/public/web/WebSecurityOrigin.h
+@@ -33,7 +33,7 @@
+ 
+ #include "../platform/WebCommon.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ namespace WebCore { class SecurityOrigin; }
+ namespace WTF { template <typename T> class PassRefPtr; }
+ #endif
+@@ -99,7 +99,7 @@ public:
+     // Allows this WebSecurityOrigin access to local resources.
+     BLINK_EXPORT void grantLoadLocalResources() const;
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebSecurityOrigin(const WTF::PassRefPtr<WebCore::SecurityOrigin>&);
+     WebSecurityOrigin& operator=(const WTF::PassRefPtr<WebCore::SecurityOrigin>&);
+     operator WTF::PassRefPtr<WebCore::SecurityOrigin>() const;
+diff --git a/public/web/WebSelectElement.h b/public/web/WebSelectElement.h
+index 6fbe0c2..e445cac 100644
+--- a/public/web/WebSelectElement.h
++++ b/public/web/WebSelectElement.h
+@@ -35,7 +35,7 @@
+ #include "WebFormControlElement.h"
+ #include "WebOptionElement.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ namespace WebCore { class HTMLSelectElement; }
+ #endif
+ 
+@@ -56,7 +56,7 @@ public:
+ 
+     BLINK_EXPORT WebVector<WebElement> listItems() const;
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebSelectElement(const PassRefPtrWillBeRawPtr<WebCore::HTMLSelectElement>&);
+     WebSelectElement& operator=(const PassRefPtrWillBeRawPtr<WebCore::HTMLSelectElement>&);
+     operator PassRefPtrWillBeRawPtr<WebCore::HTMLSelectElement>() const;
+diff --git a/public/web/WebSerializedScriptValue.h b/public/web/WebSerializedScriptValue.h
+index b111ef0..f05c95c 100644
+--- a/public/web/WebSerializedScriptValue.h
++++ b/public/web/WebSerializedScriptValue.h
+@@ -75,7 +75,7 @@ public:
+     // Convert the serialized value to a parsed v8 value.
+     BLINK_EXPORT v8::Handle<v8::Value> deserialize();
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebSerializedScriptValue(const WTF::PassRefPtr<WebCore::SerializedScriptValue>&);
+     WebSerializedScriptValue& operator=(const WTF::PassRefPtr<WebCore::SerializedScriptValue>&);
+     operator WTF::PassRefPtr<WebCore::SerializedScriptValue>() const;
+diff --git a/public/web/WebSpeechGrammar.h b/public/web/WebSpeechGrammar.h
+index f0c4cd2..f2e58c3 100644
+--- a/public/web/WebSpeechGrammar.h
++++ b/public/web/WebSpeechGrammar.h
+@@ -48,7 +48,7 @@ public:
+     BLINK_EXPORT void reset();
+     BLINK_EXPORT void assign(const WebSpeechGrammar&);
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     explicit WebSpeechGrammar(WebCore::SpeechGrammar*);
+     WebSpeechGrammar& operator=(WebCore::SpeechGrammar*);
+ #endif
+diff --git a/public/web/WebSpeechRecognitionHandle.h b/public/web/WebSpeechRecognitionHandle.h
+index c56a1be..fe97a7e 100644
+--- a/public/web/WebSpeechRecognitionHandle.h
++++ b/public/web/WebSpeechRecognitionHandle.h
+@@ -61,7 +61,7 @@ public:
+     BLINK_EXPORT bool equals(const WebSpeechRecognitionHandle&) const;
+     BLINK_EXPORT bool lessThan(const WebSpeechRecognitionHandle&) const;
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     explicit WebSpeechRecognitionHandle(WebCore::SpeechRecognition*);
+     WebSpeechRecognitionHandle& operator=(WebCore::SpeechRecognition*);
+     operator WebCore::SpeechRecognition*() const;
+diff --git a/public/web/WebSpeechRecognitionResult.h b/public/web/WebSpeechRecognitionResult.h
+index d34e00b..511c90f 100644
+--- a/public/web/WebSpeechRecognitionResult.h
++++ b/public/web/WebSpeechRecognitionResult.h
+@@ -47,7 +47,7 @@ public:
+     BLINK_EXPORT void assign(const WebSpeechRecognitionResult&);
+     BLINK_EXPORT void reset();
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     operator WebCore::SpeechRecognitionResult*() const;
+ #endif
+ 
+diff --git a/public/web/WebTextAreaElement.h b/public/web/WebTextAreaElement.h
+index 489a308..9a4bc7b 100644
+--- a/public/web/WebTextAreaElement.h
++++ b/public/web/WebTextAreaElement.h
+@@ -33,7 +33,7 @@
+ 
+ #include "WebFormControlElement.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ namespace WebCore { class HTMLTextAreaElement; }
+ #endif
+ 
+@@ -52,7 +52,7 @@ public:
+     }
+     void assign(const WebTextAreaElement& element) { WebFormControlElement::assign(element); }
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebTextAreaElement(const PassRefPtrWillBeRawPtr<WebCore::HTMLTextAreaElement>&);
+     WebTextAreaElement& operator=(const PassRefPtrWillBeRawPtr<WebCore::HTMLTextAreaElement>&);
+     operator PassRefPtrWillBeRawPtr<WebCore::HTMLTextAreaElement>() const;
+diff --git a/public/web/WebTextCheckingResult.h b/public/web/WebTextCheckingResult.h
+index 088ab74..1060fbb 100644
+--- a/public/web/WebTextCheckingResult.h
++++ b/public/web/WebTextCheckingResult.h
+@@ -60,7 +60,7 @@ struct WebTextCheckingResult {
+     {
+     }
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     operator WebCore::TextCheckingResult() const;
+ #endif
+ 
+diff --git a/public/web/WebTextRun.h b/public/web/WebTextRun.h
+index 64504ef..5e7935a 100644
+--- a/public/web/WebTextRun.h
++++ b/public/web/WebTextRun.h
+@@ -33,7 +33,7 @@
+ 
+ #include "../platform/WebString.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ namespace WebCore { class TextRun; }
+ #endif
+ 
+@@ -56,7 +56,7 @@ struct WebTextRun {
+     bool rtl;
+     bool directionalOverride;
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     // The resulting WebCore::TextRun will refer to the text in this
+     // struct, so "this" must outlive the WebCore text run.
+     operator WebCore::TextRun() const;
+diff --git a/public/web/WebUserGestureToken.h b/public/web/WebUserGestureToken.h
+index 4251dcd..ec5683a 100644
+--- a/public/web/WebUserGestureToken.h
++++ b/public/web/WebUserGestureToken.h
+@@ -58,7 +58,7 @@ public:
+     BLINK_EXPORT void setJavascriptPrompt();
+     bool isNull() const { return m_token.isNull(); }
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     explicit WebUserGestureToken(PassRefPtr<WebCore::UserGestureToken>);
+     operator PassRefPtr<WebCore::UserGestureToken>() const;
+ #endif
+diff --git a/public/web/WebUserMediaRequest.h b/public/web/WebUserMediaRequest.h
+index aa85ad6..57f73fd 100644
+--- a/public/web/WebUserMediaRequest.h
++++ b/public/web/WebUserMediaRequest.h
+@@ -81,7 +81,7 @@ public:
+     // DEPRECATED
+     BLINK_EXPORT void requestFailed(const WebString& description = WebString()) { requestDenied(description); }
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebUserMediaRequest(const PassRefPtrWillBeRawPtr<WebCore::UserMediaRequest>&);
+     WebUserMediaRequest(WebCore::UserMediaRequest*);
+     operator WebCore::UserMediaRequest*() const;
+diff --git a/public/web/WebWindowFeatures.h b/public/web/WebWindowFeatures.h
+index 9e8581e..f805f41 100644
+--- a/public/web/WebWindowFeatures.h
++++ b/public/web/WebWindowFeatures.h
+@@ -35,7 +35,7 @@
+ #include "../platform/WebString.h"
+ #include "../platform/WebVector.h"
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ #include "core/page/WindowFeatures.h"
+ #endif
+ 
+@@ -79,7 +79,7 @@ struct WebWindowFeatures {
+     }
+ 
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     WebWindowFeatures(const WebCore::WindowFeatures& f)
+         : x(f.x)
+         , xSet(f.xSet)
