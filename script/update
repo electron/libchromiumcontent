@@ -16,7 +16,7 @@ CHROMIUMCONTENT_DESTINATION_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
 
 
 def main():
-    return (write_dot_gclient() or
+    return (checkout_version() or
             gclient_sync() or
             apply_patches() or
             copy_chromiumcontent_files() or
@@ -24,19 +24,20 @@ def main():
             install_win_tool_wrapper())
 
 
-def write_dot_gclient():
-    template = os.path.join(CHROMIUM_DIR, '.gclient.in')
-    destination = os.path.join(CHROMIUM_DIR, '.gclient')
-    version = chromium_version()
-    with open(template) as t:
-        with open(destination, 'w') as d:
-            for line in t:
-                d.write(line.replace('{{VERSION}}', version))
-
-
 def chromium_version():
     with open(os.path.join(SOURCE_ROOT, 'VERSION')) as f:
         return f.readline().strip()
+
+
+def checkout_version():
+    os.chdir(SRC_DIR)
+    result = subprocess.call(['git', 'fetch', '--tags'])
+    if result:
+        return result
+    result = subprocess.call(['git', 'checkout',
+                              'refs/tags/{0}'.format(chromium_version())])
+    if result:
+        return result
 
 
 def gclient_sync():
