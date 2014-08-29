@@ -46,12 +46,7 @@ def gclient_sync():
     print 'git sync'
     os.chdir(SRC_DIR)
     gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.py')
-    if subprocess.call([sys.executable, gclient, 'sync'], env=gyp_env()) == 0:
-        return
-    sys.stderr.write('gclient sync failed. Reverting changes and trying again.\n')
-    sys.stderr.flush()
-    return (subprocess.call([sys.executable, gclient, 'revert'], env=gyp_env()) or
-            subprocess.call([sys.executable, gclient, 'sync'], env=gyp_env()))
+    return subprocess.call([sys.executable, gclient, 'sync'], env=gyp_env())
 
 
 def gyp_env():

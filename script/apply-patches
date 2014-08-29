@@ -61,7 +61,7 @@ def do_apply_patches():
 def revert_changes():
     gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.py')
     with scoped_cwd(CHROMIUM_DIR):
-        return subprocess.call([sys.executable, gclient, 'revert'])
+        return subprocess.call([sys.executable, gclient, 'sync', '--force'])
 
 
 def ensure_clean_tree():
