@@ -24,14 +24,12 @@ def main():
     if result:
         return result
 
-    print 'clone depot_tools'
     if not os.path.isdir(DEPOT_TOOLS_DIR):
         result = subprocess.call(['git', 'clone',
                                   DEPOT_TOOLS_URL, DEPOT_TOOLS_DIR])
         if result:
             return result
 
-    print 'gclient.bat'
     if sys.platform in ['win32', 'cygwin']:
         if not os.path.isfile(os.path.join(DEPOT_TOOLS_DIR, 'python.bat')):
             gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.bat')
@@ -39,12 +37,10 @@ def main():
             if result:
                 return result
 
-    print 'rm .svn'
     # Clean out old svn checkout.
     if os.path.isdir(os.path.join(SRC_DIR, '.svn')):
         rm_rf(SRC_DIR)
 
-    print 'fetch chromium'
     if not os.path.isdir(SRC_DIR):
         os.chdir(CHROMIUM_DIR)
         fetch = os.path.join(DEPOT_TOOLS_DIR, 'fetch.py')
@@ -52,7 +48,6 @@ def main():
         if result:
             return result;
 
-    print 'update'
     update = os.path.join(SOURCE_ROOT, 'script', 'update')
     return subprocess.call([sys.executable, update])
 
