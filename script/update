@@ -16,7 +16,11 @@ CHROMIUMCONTENT_DESTINATION_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
 
 
 def main():
-    return (checkout_version() or
+    return (# Make sure we get all of the branches locally.
+            gclient_sync() or
+            # Update top-level checkout to the release tag.
+            checkout_version() or
+            # Update deps for current checkout.
             gclient_sync() or
             apply_patches() or
             copy_chromiumcontent_files() or
@@ -32,21 +36,16 @@ def chromium_version():
 def checkout_version():
     print 'checkout_version'
     os.chdir(SRC_DIR)
-    gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.py')
-    return (
-        # Make sure we get all of the branches locally.
-        subprocess.call([sys.executable, gclient, 'sync', '--with_branch_heads'],
-                        env=gyp_env()) or
-        # Update top-level checkout to the release tag.
-        subprocess.call(['git', 'checkout', '-f',
-                         'refs/tags/{0}'.format(chromium_version())]))
+    return subprocess.call(['git', 'checkout', '-f',
+                            'refs/tags/{0}'.format(chromium_version())])
 
 
 def gclient_sync():
     print 'git sync'
     os.chdir(SRC_DIR)
     gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.py')
-    return subprocess.call([sys.executable, gclient, 'sync'], env=gyp_env())
+    return subprocess.call([sys.executable, gclient, 'sync',
+                            '--with_branch_heads'], env=gyp_env())
 
 
 def gyp_env():
