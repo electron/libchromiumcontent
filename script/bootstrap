@@ -49,6 +49,13 @@ def main():
         if result:
             return result;
 
+    # Some deps contain long file paths, make sure they can work.
+    skia_dir = os.path.join(SRC_DIR, 'third_party', 'skia')
+    if os.path.isdir(skia_dir):
+        os.chdir(skia_dir)
+        subprocess.call(['git', 'config', 'core.longpaths', 'true'])
+
+    os.chdir(SOURCE_ROOT)
     update = os.path.join(SOURCE_ROOT, 'script', 'update')
     return subprocess.call([sys.executable, update])
 
