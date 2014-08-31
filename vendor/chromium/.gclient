@@ -15,6 +15,7 @@ solutions = [{
     'src/chrome/tools/test/reference_build/chrome_mac': None,
     'src/native_client': None,
     'src/third_party/hunspell_dictionaries': None,
+    'src/third_party/nacl_sdk_binaries': None,
     'src/third_party/WebKit/LayoutTests/w3c/web-platform-tests': None
   },
   'deps_file': '.DEPS.git'
