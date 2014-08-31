@@ -1,3 +1,4 @@
+*.swp
 /dist/
 /libchromiumcontent.zip
 /libchromiumcontent-symbols.zip
