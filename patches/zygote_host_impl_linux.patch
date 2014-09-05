@@ -1,0 +1,12 @@
+diff --git a/content/browser/zygote_host/zygote_host_impl_linux.cc b/content/browser/zygote_host/zygote_host_impl_linux.cc
+index 0ead4ce..94f122e 100644
+--- a/content/browser/zygote_host/zygote_host_impl_linux.cc
++++ b/content/browser/zygote_host/zygote_host_impl_linux.cc
+@@ -160,6 +160,7 @@ void ZygoteHostImpl::Init(const std::string& sandbox_cmd) {
+ 
+   base::ProcessHandle process = -1;
+   options.fds_to_remap = &fds_to_map;
++  options.allow_new_privs = true;
+   base::LaunchProcess(cmd_line.argv(), options, &process);
+   CHECK(process != -1) << "Failed to launch zygote process";
+   dummy_fd.reset();
