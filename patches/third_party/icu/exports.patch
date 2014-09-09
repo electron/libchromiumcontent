@@ -1,7 +1,7 @@
-Index: third_party/icu/source/common/unicode/utf8.h
-===================================================================
---- third_party/icu/source/common/unicode/utf8.h	(revision 192960)
-+++ third_party/icu/source/common/unicode/utf8.h	(working copy)
+diff --git a/source/common/unicode/utf8.h b/source/common/unicode/utf8.h
+index 6405795..238e562 100644
+--- a/source/common/unicode/utf8.h
++++ b/source/common/unicode/utf8.h
 @@ -53,7 +53,7 @@
   * @internal
   */
@@ -11,11 +11,11 @@ Index: third_party/icu/source/common/unicode/utf8.h
  #elif defined(U_STATIC_IMPLEMENTATION) || defined(U_COMMON_IMPLEMENTATION)
  U_CFUNC const uint8_t
  #else
-Index: third_party/icu/source/common/unicode/utypes.h
-===================================================================
---- third_party/icu/source/common/unicode/utypes.h	(revision 192960)
-+++ third_party/icu/source/common/unicode/utypes.h	(working copy)
-@@ -374,6 +374,14 @@
+diff --git a/source/common/unicode/utypes.h b/source/common/unicode/utypes.h
+index daea3c6..4bf06d3 100644
+--- a/source/common/unicode/utypes.h
++++ b/source/common/unicode/utypes.h
+@@ -374,6 +374,14 @@ typedef void* UClassID;
   */
  
  /*
@@ -30,7 +30,7 @@ Index: third_party/icu/source/common/unicode/utypes.h
   * \def U_COMBINED_IMPLEMENTATION
   * Set to export library symbols from inside the ICU library
   * when all of ICU is in a single library.
-@@ -431,7 +439,15 @@
+@@ -431,7 +439,15 @@ typedef void* UClassID;
   * @stable ICU 3.4
   */
  

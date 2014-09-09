@@ -1,8 +1,8 @@
-Index: sandbox/win/sandbox_win.gypi
-===================================================================
---- sandbox/win/sandbox_win.gypi	(revision 194718)
-+++ sandbox/win/sandbox_win.gypi	(working copy)
-@@ -204,6 +204,21 @@
+diff --git a/sandbox/win/sandbox_win.gypi b/sandbox/win/sandbox_win.gypi
+index 7d9cf94..ddd40c3 100644
+--- a/sandbox/win/sandbox_win.gypi
++++ b/sandbox/win/sandbox_win.gypi
+@@ -210,6 +210,21 @@
        ],
      },
      {

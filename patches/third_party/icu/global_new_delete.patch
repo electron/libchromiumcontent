@@ -1,8 +1,8 @@
-Index: third_party/icu/source/common/unicode/utypes.h
-===================================================================
---- third_party/icu/source/common/unicode/utypes.h	(revision 192960)
-+++ third_party/icu/source/common/unicode/utypes.h	(working copy)
-@@ -558,7 +558,7 @@
+diff --git a/source/common/unicode/utypes.h b/source/common/unicode/utypes.h
+index 4bf06d3..1346e4a 100644
+--- a/source/common/unicode/utypes.h
++++ b/source/common/unicode/utypes.h
+@@ -558,7 +558,7 @@ typedef void* UClassID;
   * some Linux/Unix compilers have problems with defining global new/delete.
   * On Windows, U_WINDOWS is defined, and it is _MSC_VER>=1200 for MSVC 6.0 and higher.
   */

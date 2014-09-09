@@ -1,7 +1,7 @@
-Index: third_party/WebKit/Source/platform/audio/AudioDSPKernel.cpp
-===================================================================
---- third_party/WebKit/Source/platform/audio/AudioDSPKernel.cpp	(revision 164518)
-+++ third_party/WebKit/Source/platform/audio/AudioDSPKernel.cpp	(working copy)
+diff --git a/Source/platform/audio/AudioDSPKernel.cpp b/Source/platform/audio/AudioDSPKernel.cpp
+index 719c44b..fdf26d6 100644
+--- a/Source/platform/audio/AudioDSPKernel.cpp
++++ b/Source/platform/audio/AudioDSPKernel.cpp
 @@ -31,8 +31,16 @@
  #include "config.h"
  #include "platform/audio/AudioDSPKernel.h"
@@ -19,10 +19,10 @@ Index: third_party/WebKit/Source/platform/audio/AudioDSPKernel.cpp
  AudioDSPKernel::~AudioDSPKernel()
  {
  }
-Index: third_party/WebKit/Source/platform/audio/AudioDSPKernel.h
-===================================================================
---- third_party/WebKit/Source/platform/audio/AudioDSPKernel.h	(revision 164518)
-+++ third_party/WebKit/Source/platform/audio/AudioDSPKernel.h	(working copy)
+diff --git a/Source/platform/audio/AudioDSPKernel.h b/Source/platform/audio/AudioDSPKernel.h
+index f2face9..02a58dc 100644
+--- a/Source/platform/audio/AudioDSPKernel.h
++++ b/Source/platform/audio/AudioDSPKernel.h
 @@ -31,19 +31,17 @@
  #ifndef AudioDSPKernel_h
  #define AudioDSPKernel_h
@@ -47,10 +47,10 @@ Index: third_party/WebKit/Source/platform/audio/AudioDSPKernel.h
  
      AudioDSPKernel(float sampleRate)
          : m_kernelProcessor(0)
-Index: third_party/WebKit/Source/platform/audio/AudioDSPKernelProcessor.h
-===================================================================
---- third_party/WebKit/Source/platform/audio/AudioDSPKernelProcessor.h	(revision 164518)
-+++ third_party/WebKit/Source/platform/audio/AudioDSPKernelProcessor.h	(working copy)
+diff --git a/Source/platform/audio/AudioDSPKernelProcessor.h b/Source/platform/audio/AudioDSPKernelProcessor.h
+index 6a62da1..11916f2 100644
+--- a/Source/platform/audio/AudioDSPKernelProcessor.h
++++ b/Source/platform/audio/AudioDSPKernelProcessor.h
 @@ -32,6 +32,7 @@
  #define AudioDSPKernelProcessor_h
  

@@ -16,22 +16,16 @@ CHROMIUMCONTENT_DESTINATION_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
 
 
 def main():
-    return (write_dot_gclient() or
-            gclient_sync() or
+    return (# Make sure we get all of the branches locally.
+            gclient_sync(True) or
+            # Update top-level checkout to the release tag.
+            checkout_version() or
+            # Update deps for current checkout.
+            gclient_sync(False) or
             apply_patches() or
             copy_chromiumcontent_files() or
             run_gyp() or
             install_win_tool_wrapper())
-
-
-def write_dot_gclient():
-    template = os.path.join(CHROMIUM_DIR, '.gclient.in')
-    destination = os.path.join(CHROMIUM_DIR, '.gclient')
-    version = chromium_version()
-    with open(template) as t:
-        with open(destination, 'w') as d:
-            for line in t:
-                d.write(line.replace('{{VERSION}}', version))
 
 
 def chromium_version():
@@ -39,15 +33,20 @@ def chromium_version():
         return f.readline().strip()
 
 
-def gclient_sync():
+def checkout_version():
+    os.chdir(SRC_DIR)
+    return subprocess.call(['git', 'checkout', '-f',
+                            'refs/tags/{0}'.format(chromium_version())])
+
+
+def gclient_sync(nohooks):
+    os.chdir(SRC_DIR)
     gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.py')
-    os.chdir(CHROMIUM_DIR)
-    if subprocess.call([sys.executable, gclient, 'sync'], env=gyp_env()) == 0:
-        return
-    sys.stderr.write('gclient sync failed. Reverting changes and trying again.\n')
-    sys.stderr.flush()
-    return (subprocess.call([sys.executable, gclient, 'revert'], env=gyp_env()) or
-            subprocess.call([sys.executable, gclient, 'sync'], env=gyp_env()))
+    args = [sys.executable, gclient, 'sync', '--with_branch_heads']
+    if nohooks:
+        args += ['--nohooks']
+    if subprocess.call(args, env=gyp_env()):
+        return subprocess.call(args + ['--force'], env=gyp_env())
 
 
 def gyp_env():
@@ -106,8 +105,7 @@ def apply_patches():
 
 
 def run_gyp():
-    os.chdir(SOURCE_ROOT)
-    REL_SRC_DIR = os.path.relpath(SRC_DIR)
+    os.chdir(SRC_DIR)
     REL_CHROMIUMCONTENT_DESTINATION_DIR = os.path.relpath(CHROMIUMCONTENT_DESTINATION_DIR)
 
     python = [sys.executable]
@@ -117,10 +115,9 @@ def run_gyp():
     # gyp_chromium is executed with win32 python shipped by chromium, so it can
     # not understand POSIX-style paths, to make it work we pass must relative
     # paths to it.
-    gyp = os.path.join(REL_SRC_DIR, 'build', 'gyp_chromium')
+    gyp = os.path.join('build', 'gyp_chromium')
     return subprocess.call(python +
-                           [gyp, '-Ichromiumcontent.gypi',
-                            '--depth', REL_SRC_DIR,
+                           [gyp, '-Ichromiumcontent/chromiumcontent.gypi',
                             os.path.join(REL_CHROMIUMCONTENT_DESTINATION_DIR,
                                          'chromiumcontent.gyp')],
                            env=gyp_env())

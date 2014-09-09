@@ -116,6 +116,7 @@ INCLUDE_DIRS = [
     'components/os_crypt',
     'content/public',
     'ipc',
+    'gin',
     'gpu',
     'mojo',
     'net',

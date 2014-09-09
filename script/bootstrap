@@ -1,14 +1,19 @@
 #!/usr/bin/env python
 
+import errno
 import os
+import shutil
 import subprocess
 import sys
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-DEPOT_TOOLS_DIR = os.path.join(SOURCE_ROOT, 'vendor', 'depot_tools')
+VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
+DEPOT_TOOLS_DIR = os.path.join(VENDOR_DIR, 'depot_tools')
 DEPOT_TOOLS_URL = \
     'https://chromium.googlesource.com/chromium/tools/depot_tools.git'
+CHROMIUM_DIR = os.path.join(VENDOR_DIR, 'chromium')
+SRC_DIR = os.path.join(CHROMIUM_DIR, 'src')
 
 
 def main():
@@ -32,8 +37,35 @@ def main():
             if result:
                 return result
 
+    # Clean out old svn checkout.
+    if os.path.isdir(os.path.join(SRC_DIR, '.svn')):
+        rm_rf(SRC_DIR)
+
+    if not os.path.isdir(SRC_DIR):
+        os.chdir(CHROMIUM_DIR)
+        fetch = os.path.join(DEPOT_TOOLS_DIR, 'fetch.py')
+        result = subprocess.call([sys.executable, fetch, '--nohooks',
+                                  'chromium', '--nosvn=True'])
+        if result:
+            return result;
+
+    # Some deps contain long file paths, make sure they can work.
+    skia_dir = os.path.join(SRC_DIR, 'third_party', 'skia')
+    if os.path.isdir(skia_dir):
+        os.chdir(skia_dir)
+        subprocess.call(['git', 'config', 'core.longpaths', 'true'])
+
+    os.chdir(SOURCE_ROOT)
     update = os.path.join(SOURCE_ROOT, 'script', 'update')
     return subprocess.call([sys.executable, update])
+
+
+def rm_rf(path):
+    try:
+        shutil.rmtree(path)
+    except OSError as e:
+        if e.errno != errno.ENOENT:
+            raise
 
 
 if __name__ == '__main__':
