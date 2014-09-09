@@ -1,0 +1,15 @@
+diff --git a/Source/core/frame/FrameView.cpp b/Source/core/frame/FrameView.cpp
+index 1426827..4bac4df 100644
+--- a/Source/core/frame/FrameView.cpp
++++ b/Source/core/frame/FrameView.cpp
+@@ -145,8 +145,10 @@ FrameView::FrameView(LocalFrame* frame)
+     if (!m_frame->isMainFrame())
+         return;
+ 
++#if 0
+     ScrollableArea::setVerticalScrollElasticity(ScrollElasticityAllowed);
+     ScrollableArea::setHorizontalScrollElasticity(ScrollElasticityAllowed);
++#endif
+ }
+ 
+ PassRefPtrWillBeRawPtr<FrameView> FrameView::create(LocalFrame* frame)
