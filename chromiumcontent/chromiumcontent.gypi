@@ -21,6 +21,10 @@
         'win_release_RuntimeLibrary': '2', # 2 = /MD (nondebug DLL)
         'win_debug_RuntimeLibrary': '3',   # 3 = /MDd (debug DLL)
       }],
+      ['OS=="linux"', {
+        # Enable high DPI support on Linux.
+        'enable_hidpi': 1,
+      }],
     ],
     'global_defines': [
       'COMPONENT_BUILD',
