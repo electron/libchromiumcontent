@@ -65,10 +65,14 @@ def revert_changes():
 
 
 def ensure_clean_tree():
-    error = do_ensure_clean_tree()
-    if not error:
-        return
-    sys.stderr.write(error)
+    try:
+        error = do_ensure_clean_tree()
+        if not error:
+            return
+        sys.stderr.write(error)
+    except subprocess.CalledProcessError as e:
+        sys.stderr.write("{0} returned with {1}".format(e.cmd, e.returncode))
+        pass
     sys.stderr.write('\nReverting changes and trying again.\n')
     sys.stderr.flush()
     revert_changes()
