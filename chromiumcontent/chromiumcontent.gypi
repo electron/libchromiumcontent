@@ -4,6 +4,7 @@
     'clang_use_chrome_plugins': 0,
     # Enalbe using proprietary codecs.
     'proprietary_codecs': 1,
+    'ffmpeg_branding': 'Chrome',
     # And the gold's flags are not available in system's ld neither.
     'linux_use_gold_flags': 0,
     # Make Linux build contain debug symbols, this flag will add '-g' to cflags.
