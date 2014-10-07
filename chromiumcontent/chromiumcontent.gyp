@@ -12,6 +12,7 @@
         ['OS=="linux"', {
           'dependencies': [
             'chromiumviews',
+            '<(DEPTH)/build/linux/system.gyp:libspeechd',
             '<(DEPTH)/sandbox/sandbox.gyp:chrome_sandbox',
             '<(DEPTH)/components/components.gyp:os_crypt',
             '<(DEPTH)/third_party/mesa/mesa.gyp:osmesa',
