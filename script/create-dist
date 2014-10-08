@@ -54,6 +54,7 @@ BINARIES = {
         'libosmesa.so',
         os.path.join('lib', 'libchromiumcontent.so'),
         'libos_crypt.a',
+        'libspeechd.a',
         'libtest_support_chromiumcontent.a',
     ],
     'win32': [
@@ -134,7 +135,13 @@ INCLUDE_DIRS = [
     'url',
     'v8/include',
     'webkit',
-]
+] + {
+    'darwin': [],
+    'linux': [
+        'third_party/speech-dispatcher',
+    ],
+    'win32': [],
+}[TARGET_PLATFORM]
 GENERATED_INCLUDE_DIRS = [
     'ui',
 ] + {

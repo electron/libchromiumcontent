@@ -33,6 +33,21 @@
                 '<@(_inputs)',
               ],
             },
+            {
+              'action_name': 'Flatten libspeechd.a',
+              'inputs': [
+                '<(PRODUCT_DIR)/obj/build/linux/libspeechd.a',
+              ],
+              'outputs': [
+                '<(PRODUCT_DIR)/libspeechd.a',
+              ],
+              'action': [
+                '<(DEPTH)/../../../tools/linux/ar-combine.sh',
+                '-o',
+                '<@(_outputs)',
+                '<@(_inputs)',
+              ],
+            },
           ],
         }],
         ['OS=="win"', {
