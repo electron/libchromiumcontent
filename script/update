@@ -53,7 +53,8 @@ def download_source_tarball(version):
   rm_rf(SRC_DIR)
 
   dir_name = 'chromium-{0}'.format(version)
-  xz_name = dir_name + '.tar.xz'
+  tar_name = dir_name + '.tar'
+  xz_name = tar_name + '.xz'
   url = TARBALL_URL.format(TARBALL_REPO, version)
   with open(xz_name, 'wb+') as t:
     with contextlib.closing(urllib2.urlopen(url)) as u:
@@ -68,6 +69,7 @@ def download_source_tarball(version):
   sys.stderr.write('\nExtracting...\n')
   sys.stderr.flush()
 
+  rm_f(tar_name)
   tar_xf(xz_name)
   os.rename(dir_name, SRC_DIR)
   os.remove(xz_name)
@@ -169,6 +171,14 @@ def xz():
 def is_newer(destination, source):
     return os.path.exists(destination) and \
         os.path.getmtime(destination) > os.path.getmtime(source)
+
+
+def rm_f(path):
+  try:
+    os.remove(path)
+  except OSError as e:
+    if e.errno != errno.ENOENT:
+      raise
 
 
 def rm_rf(path):
