@@ -12,7 +12,6 @@ import urllib2
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
-DEPOT_TOOLS_DIR = os.path.join(VENDOR_DIR, 'depot_tools')
 SRC_DIR = os.path.join(VENDOR_DIR, 'chromium', 'src')
 CHROMIUMCONTENT_SOURCE_DIR = os.path.join(SOURCE_ROOT, 'chromiumcontent')
 CHROMIUMCONTENT_DESTINATION_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
@@ -73,7 +72,7 @@ def download_source_tarball(version):
   os.rename(dir_name, SRC_DIR)
 
   version_file = os.path.join(SRC_DIR, '.version')
-  with open(version_file, 'r') as f:
+  with open(version_file, 'w+') as f:
     f.write(version)
 
 
@@ -88,9 +87,6 @@ def tar_xf(filename):
 
 def gyp_env():
     env = os.environ.copy()
-
-    # Some gclient hooks assume that depot_tools is on the path.
-    env['PATH'] = os.path.pathsep.join([DEPOT_TOOLS_DIR, env['PATH']])
 
     # Disable NaCl. We don't need it, and it requires some very long filepaths
     # which often overrun the Windows file path limit.
@@ -136,28 +132,18 @@ def copy_chromiumcontent_files():
 
 
 def apply_patches():
-    # Applying patches can invoke gclient, which in turn can invoke gyp, so make
-    # sure we have our gyp environment set.
-    return subprocess.call([sys.executable, os.path.join(SOURCE_ROOT, 'script', 'apply-patches')], env=gyp_env())
+  return subprocess.call([sys.executable,
+                          os.path.join(SOURCE_ROOT, 'script', 'apply-patches')])
 
 
 def run_gyp():
-    os.chdir(SRC_DIR)
-    REL_CHROMIUMCONTENT_DESTINATION_DIR = os.path.relpath(CHROMIUMCONTENT_DESTINATION_DIR)
-
-    python = [sys.executable]
-    if sys.platform in ['win32', 'cygwin']:
-      python = chromium_python()
-
-    # gyp_chromium is executed with win32 python shipped by chromium, so it can
-    # not understand POSIX-style paths, to make it work we pass must relative
-    # paths to it.
-    gyp = os.path.join('build', 'gyp_chromium')
-    return subprocess.call(python +
-                           [gyp, '-Ichromiumcontent/chromiumcontent.gypi',
-                            os.path.join(REL_CHROMIUMCONTENT_DESTINATION_DIR,
-                                         'chromiumcontent.gyp')],
-                           env=gyp_env())
+  os.chdir(SRC_DIR)
+  gyp = os.path.join('build', 'gyp_chromium')
+  return subprocess.call([sys.executable, gyp,
+                          '-Ichromiumcontent/chromiumcontent.gypi',
+                          os.path.join(CHROMIUMCONTENT_DESTINATION_DIR,
+                                       'chromiumcontent.gyp')],
+                         env=gyp_env())
 
 
 def install_win_tool_wrapper():
@@ -168,12 +154,6 @@ def install_win_tool_wrapper():
         win_tool = os.path.join(config_dir, 'gyp-win-tool')
         shutil.move(win_tool, '{0}-original'.format(win_tool))
         shutil.copy(os.path.join(SOURCE_ROOT, 'gyp-win-tool-wrapper'), win_tool)
-
-
-def chromium_python():
-    """Returns a command to execute the win32 python shipped by Chromium."""
-
-    return ['cmd.exe', '/c', os.path.join(DEPOT_TOOLS_DIR, 'python.bat')]
 
 
 def xz():
