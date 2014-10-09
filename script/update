@@ -70,6 +70,7 @@ def download_source_tarball(version):
 
   tar_xf(xz_name)
   os.rename(dir_name, SRC_DIR)
+  os.remove(xz_name)
 
   version_file = os.path.join(SRC_DIR, '.version')
   with open(version_file, 'w+') as f:
@@ -157,6 +158,11 @@ def install_win_tool_wrapper():
 
 
 def xz():
+  if sys.platform in ['win32', 'cygwin']:
+    return os.path.join(VENDOR_DIR, 'xz', 'win32', 'xz.exe')
+  elif sys.platform == 'darwin':
+    return os.path.join(VENDOR_DIR, 'xz', 'darwin', 'bin', 'xz')
+  else:
     return 'xz'
 
 
