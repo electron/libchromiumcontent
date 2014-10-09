@@ -140,11 +140,11 @@ def apply_patches():
 def run_gyp():
   os.chdir(SRC_DIR)
   gyp = os.path.join('build', 'gyp_chromium')
-  return subprocess.call([sys.executable, gyp,
-                          '-Ichromiumcontent/chromiumcontent.gypi',
-                          os.path.join(CHROMIUMCONTENT_DESTINATION_DIR,
-                                       'chromiumcontent.gyp')],
-                         env=gyp_env())
+  relative_dir = os.path.relpath(CHROMIUMCONTENT_DESTINATION_DIR, SRC_DIR)
+  return subprocess.call(
+      [sys.executable, gyp, '-Ichromiumcontent/chromiumcontent.gypi',
+       os.path.join(relative_dir, 'chromiumcontent.gyp')],
+      env=gyp_env())
 
 
 def install_win_tool_wrapper():
