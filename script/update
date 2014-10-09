@@ -55,15 +55,15 @@ def download_source_tarball(version):
   dir_name = 'chromium-{0}'.format(version)
   xz_name = dir_name + '.tar.xz'
   url = TARBALL_URL.format(TARBALL_REPO, version)
-  # with open(xz_name, 'w+') as t:
-  #   with contextlib.closing(urllib2.urlopen(url)) as u:
-  #     while True:
-  #       chunk = u.read(1024*1024)
-  #       if not len(chunk):
-  #           break
-  #       sys.stderr.write('.')
-  #       sys.stderr.flush()
-  #       t.write(chunk)
+  with open(xz_name, 'w+') as t:
+    with contextlib.closing(urllib2.urlopen(url)) as u:
+      while True:
+        chunk = u.read(1024*1024)
+        if not len(chunk):
+            break
+        sys.stderr.write('.')
+        sys.stderr.flush()
+        t.write(chunk)
 
   sys.stderr.write('\nExtracting...\n')
   sys.stderr.flush()
