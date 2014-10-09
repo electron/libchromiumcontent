@@ -17,6 +17,7 @@ PATCH_PY = os.path.join(VENDOR_DIR, 'python-patch', 'patch.py')
 
 
 def main():
+    return 1
     error, check_clean = apply_patches()
     if error:
         return error

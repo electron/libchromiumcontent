@@ -13,8 +13,7 @@ import urllib2
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
 DEPOT_TOOLS_DIR = os.path.join(VENDOR_DIR, 'depot_tools')
-CHROMIUM_DIR = os.path.join(VENDOR_DIR, 'chromium')
-SRC_DIR = os.path.join(CHROMIUM_DIR, 'src')
+SRC_DIR = os.path.join(VENDOR_DIR, 'chromium', 'src')
 CHROMIUMCONTENT_SOURCE_DIR = os.path.join(SOURCE_ROOT, 'chromiumcontent')
 CHROMIUMCONTENT_DESTINATION_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
 
@@ -27,15 +26,7 @@ def main():
   if not is_source_tarball_updated(version):
     download_source_tarball(version)
 
-  return
-
-  return (# Make sure we get all of the branches locally.
-          gclient_sync(True) or
-          # Update top-level checkout to the release tag.
-          checkout_version() or
-          # Update deps for current checkout.
-          gclient_sync(False) or
-          apply_patches() or
+  return (apply_patches() or
           copy_chromiumcontent_files() or
           run_gyp() or
           install_win_tool_wrapper())
@@ -62,38 +53,37 @@ def is_source_tarball_updated(version):
 def download_source_tarball(version):
   rm_rf(SRC_DIR)
 
-  tar_name = 'chromium-{0}.tar'.format(version)
-  xz_name = tar_name + '.xz'
+  dir_name = 'chromium-{0}'.format(version)
+  xz_name = dir_name + '.tar.xz'
   url = TARBALL_URL.format(TARBALL_REPO, version)
-  with open(xz_name, 'w+') as t:
-    with contextlib.closing(urllib2.urlopen(url)) as u:
-      while True:
-        chunk = u.read(1024*1024)
-        if not len(chunk):
-            break
-        sys.stderr.write('.')
-        sys.stderr.flush()
-        t.write(chunk)
+  # with open(xz_name, 'w+') as t:
+  #   with contextlib.closing(urllib2.urlopen(url)) as u:
+  #     while True:
+  #       chunk = u.read(1024*1024)
+  #       if not len(chunk):
+  #           break
+  #       sys.stderr.write('.')
+  #       sys.stderr.flush()
+  #       t.write(chunk)
 
   sys.stderr.write('\nExtracting...\n')
   sys.stderr.flush()
-  subprocess.check_call(['xz', '-dk', filename])
+
+  tar_xf(xz_name)
+  os.rename(dir_name, SRC_DIR)
+
+  version_file = os.path.join(SRC_DIR, '.version')
+  with open(version_file, 'r') as f:
+    f.write(version)
 
 
-def checkout_version():
-    os.chdir(SRC_DIR)
-    return subprocess.call(['git', 'checkout', '-f',
-                            'refs/tags/{0}'.format(chromium_version())])
-
-
-def gclient_sync(nohooks):
-    os.chdir(SRC_DIR)
-    gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.py')
-    args = [sys.executable, gclient, 'sync', '--with_branch_heads']
-    if nohooks:
-        args += ['--nohooks']
-    if subprocess.call(args, env=gyp_env()):
-        return subprocess.call(args + ['--force'], env=gyp_env())
+def tar_xf(filename):
+  subprocess.call([xz(), '-dqk', filename])
+  tar_name = filename[:-3]
+  tar = tarfile.open(tar_name)
+  tar.extractall()
+  tar.close()
+  os.remove(tar_name)
 
 
 def gyp_env():
@@ -184,6 +174,10 @@ def chromium_python():
     """Returns a command to execute the win32 python shipped by Chromium."""
 
     return ['cmd.exe', '/c', os.path.join(DEPOT_TOOLS_DIR, 'python.bat')]
+
+
+def xz():
+    return 'xz'
 
 
 def is_newer(destination, source):
