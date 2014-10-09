@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 
+import contextlib
 import errno
 import os
 import shutil
 import subprocess
+import tarfile
+import tempfile
+import urllib2
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -14,23 +18,66 @@ SRC_DIR = os.path.join(CHROMIUM_DIR, 'src')
 CHROMIUMCONTENT_SOURCE_DIR = os.path.join(SOURCE_ROOT, 'chromiumcontent')
 CHROMIUMCONTENT_DESTINATION_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
 
+TARBALL_REPO = 'zcbenz/chromium-source-tarball'
+TARBALL_URL = 'https://github.com/{0}/releases/download/{1}/chromium-{1}.tar.xz'
+
 
 def main():
-    return (# Make sure we get all of the branches locally.
-            gclient_sync(True) or
-            # Update top-level checkout to the release tag.
-            checkout_version() or
-            # Update deps for current checkout.
-            gclient_sync(False) or
-            apply_patches() or
-            copy_chromiumcontent_files() or
-            run_gyp() or
-            install_win_tool_wrapper())
+  version = chromium_version()
+  if not is_source_tarball_updated(version):
+    download_source_tarball(version)
+
+  return
+
+  return (# Make sure we get all of the branches locally.
+          gclient_sync(True) or
+          # Update top-level checkout to the release tag.
+          checkout_version() or
+          # Update deps for current checkout.
+          gclient_sync(False) or
+          apply_patches() or
+          copy_chromiumcontent_files() or
+          run_gyp() or
+          install_win_tool_wrapper())
 
 
 def chromium_version():
-    with open(os.path.join(SOURCE_ROOT, 'VERSION')) as f:
-        return f.readline().strip()
+  with open(os.path.join(SOURCE_ROOT, 'VERSION')) as f:
+    return f.readline().strip()
+
+
+def is_source_tarball_updated(version):
+  version_file = os.path.join(SRC_DIR, '.version')
+  existing_version = ''
+  try:
+    with open(version_file, 'r') as f:
+      existing_version = f.readline().strip()
+  except IOError as e:
+    if e.errno != errno.ENOENT:
+      raise
+    return False
+  return existing_version == version
+
+
+def download_source_tarball(version):
+  rm_rf(SRC_DIR)
+
+  tar_name = 'chromium-{0}.tar'.format(version)
+  xz_name = tar_name + '.xz'
+  url = TARBALL_URL.format(TARBALL_REPO, version)
+  with open(xz_name, 'w+') as t:
+    with contextlib.closing(urllib2.urlopen(url)) as u:
+      while True:
+        chunk = u.read(1024*1024)
+        if not len(chunk):
+            break
+        sys.stderr.write('.')
+        sys.stderr.flush()
+        t.write(chunk)
+
+  sys.stderr.write('\nExtracting...\n')
+  sys.stderr.flush()
+  subprocess.check_call(['xz', '-dk', filename])
 
 
 def checkout_version():
@@ -139,17 +186,25 @@ def chromium_python():
     return ['cmd.exe', '/c', os.path.join(DEPOT_TOOLS_DIR, 'python.bat')]
 
 
+def is_newer(destination, source):
+    return os.path.exists(destination) and \
+        os.path.getmtime(destination) > os.path.getmtime(source)
+
+
+def rm_rf(path):
+    try:
+        shutil.rmtree(path)
+    except OSError as e:
+        if e.errno != errno.ENOENT:
+            raise
+
+
 def mkdir_p(path):
     try:
         os.makedirs(path)
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise
-
-
-def is_newer(destination, source):
-    return os.path.exists(destination) and \
-        os.path.getmtime(destination) > os.path.getmtime(source)
 
 
 if __name__ == '__main__':
