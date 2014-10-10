@@ -136,6 +136,12 @@
         # class 'std::xx' needs to have dll-interface. Chrome turns this off
         # for component builds, and we need to too.
         4251,
+        # The file contains a character that cannot be represented in these
+        # current code page
+        4819,
+        # no matching operator delete found; memory will not be freed if
+        # initialization throws an exception
+        4291,
     ],
     'xcode_settings': {
       'WARNING_CFLAGS!': [
