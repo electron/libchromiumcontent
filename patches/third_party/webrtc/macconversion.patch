@@ -1,8 +1,8 @@
 diff --git a/base/base.gyp b/base/base.gyp
-index 330ea82..69a9b01 100644
+index ba5678e..7ca9902 100644
 --- a/base/base.gyp
 +++ b/base/base.gyp
-@@ -136,7 +136,6 @@
+@@ -138,7 +138,6 @@
          'maccocoasocketserver.mm',
          'maccocoathreadhelper.h',
          'maccocoathreadhelper.mm',
