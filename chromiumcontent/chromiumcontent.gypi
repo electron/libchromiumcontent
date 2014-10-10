@@ -142,6 +142,8 @@
         # no matching operator delete found; memory will not be freed if
         # initialization throws an exception
         4291,
+        # non dll-interface class used as base for dll-interface class
+        4275,
     ],
     'xcode_settings': {
       'WARNING_CFLAGS!': [
