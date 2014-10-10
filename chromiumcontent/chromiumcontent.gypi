@@ -137,11 +137,6 @@
         # for component builds, and we need to too.
         4251,
     ],
-    'msvs_settings': {
-      'VCCLCompilerTool': {
-        'ExceptionHandling': '1',  # /EHsc
-      },
-    },
     'xcode_settings': {
       'WARNING_CFLAGS!': [
         # Xcode 5.1 doesn't support these flags.
@@ -197,6 +192,14 @@
       ['_target_name in ["nspr", "nss_static"]', {
         'xcode_settings': {
           'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
+        },
+      }],
+      # Targets of static_library were forced to turn exception off.
+      ['component=="static_library"', {
+        'msvs_settings': {
+          'VCCLCompilerTool': {
+            'ExceptionHandling': '1',  # /EHsc
+          },
         },
       }],
     ],
