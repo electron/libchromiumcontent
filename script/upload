@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 import errno
 import glob
 import os
@@ -14,13 +15,6 @@ S3PUT = {
                                            'Scripts', 's3put')],
 }.get(sys.platform, ['s3put'])
 
-ARCH = {
-    'cygwin': '32bit',
-    'darwin': '64bit',
-    'linux2': platform.architecture()[0],
-    'win32': '32bit',
-}[sys.platform]
-
 PLATFORM_KEY = {
     'cygwin': 'win',
     'darwin': 'osx',
@@ -30,12 +24,20 @@ PLATFORM_KEY = {
 
 
 def main():
-    try:
-        ensure_s3put()
-        upload()
-        clean_up()
-    except AssertionError as e:
-        return e.message
+  args = parse_args()
+
+  try:
+    ensure_s3put()
+    upload(args.target_arch)
+    clean_up()
+  except AssertionError as e:
+    return e.message
+
+
+def parse_args():
+  parser = argparse.ArgumentParser(description='Upload distribution')
+  parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
+  return parser.parse_args()
 
 
 def ensure_s3put():
@@ -61,23 +63,28 @@ def ensure_s3put():
         S3PUT[1] = temp.name
 
 
-def upload():
-    os.chdir(SOURCE_ROOT)
-    bucket, access_key, secret_key = s3_config()
-    commit = command_output(['git', 'rev-parse', 'HEAD']).strip()
+def upload(target_arch):
+  os.chdir(SOURCE_ROOT)
+  bucket, access_key, secret_key = s3_config()
+  commit = command_output(['git', 'rev-parse', 'HEAD']).strip()
 
-    args = S3PUT + [
-        '--bucket', bucket,
-        '--access_key', access_key,
-        '--secret_key', secret_key,
-        '--prefix', SOURCE_ROOT,
-        '--key_prefix', 'libchromiumcontent/{0}/{1}/{2}'.format(PLATFORM_KEY, ARCH,
-                                                                commit),
-        '--grant', 'public-read',
-        '--multipart'
-    ] + glob.glob('libchromiumcontent*.zip')
+  if target_arch == 'ia32':
+    arch = '32bit'
+  else:
+    arch = '64bit'
 
-    subprocess.check_call(args)
+  args = S3PUT + [
+    '--bucket', bucket,
+    '--access_key', access_key,
+    '--secret_key', secret_key,
+    '--prefix', SOURCE_ROOT,
+    '--key_prefix', 'libchromiumcontent/{0}/{1}/{2}'.format(PLATFORM_KEY, arch,
+                                                            commit),
+    '--grant', 'public-read',
+    '--multipart'
+  ] + glob.glob('libchromiumcontent*.zip')
+
+  subprocess.check_call(args)
 
 
 def s3_config():
