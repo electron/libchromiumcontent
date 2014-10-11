@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 import contextlib
 import errno
 import os
@@ -21,6 +22,8 @@ TARBALL_URL = 'https://github.com/{0}/releases/download/{1}/chromium-{1}.tar.xz'
 
 
 def main():
+  args = parse_args()
+
   version = chromium_version()
   if not is_source_tarball_updated(version):
     download_source_tarball(version)
@@ -28,8 +31,13 @@ def main():
   return (apply_patches() or
           copy_chromiumcontent_files() or
           update_clang() or
-          run_gyp() or
+          run_gyp(args.target_arch) or
           install_win_tool_wrapper())
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='Update build configuration')
+    parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
+    return parser.parse_args()
 
 
 def chromium_version():
@@ -89,7 +97,7 @@ def tar_xf(filename):
   os.remove(tar_name)
 
 
-def gyp_env():
+def gyp_env(target_arch):
     env = os.environ.copy()
 
     # Disable NaCl. We don't need it, and it requires some very long filepaths
@@ -100,13 +108,20 @@ def gyp_env():
     env['GYP_GENERATORS'] = 'ninja'
 
     if sys.platform == 'darwin':
-        # Build 64-bit
-        env['GYP_DEFINES'] = ' '.join(['host_arch=x64 target_arch=x64', env.get('GYP_DEFINES', '')])
+        # Use Xcode's own clang instead of Chromium's. This matches what embedding
+        # applications will use, reducing the risk of bugs due to version
+        # mismatches.
+        env['CC_target'] = 'clang'
+        env['CXX_target'] = 'clang++'
     elif sys.platform in ['win32', 'cygwin']:
         # Don't use the auto-installed VS2013 Express toolchain from depot_tools.
         # We have our own.
         env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
         env['GYP_MSVS_VERSION'] = '2013'
+
+    # Build 32-bit or 64-bit.
+    env['GYP_DEFINES'] = ' '.join(['target_arch={0}'.format(target_arch),
+                                   env.get('GYP_DEFINES', '')])
 
     return env
 
@@ -141,14 +156,14 @@ def update_clang():
   return subprocess.call([sys.executable, update])
 
 
-def run_gyp():
+def run_gyp(target_arch):
   os.chdir(SRC_DIR)
   gyp = os.path.join('build', 'gyp_chromium')
   relative_dir = os.path.relpath(CHROMIUMCONTENT_DESTINATION_DIR, SRC_DIR)
   return subprocess.call(
       [sys.executable, gyp, '-Ichromiumcontent/chromiumcontent.gypi',
        os.path.join(relative_dir, 'chromiumcontent.gyp')],
-      env=gyp_env())
+      env=gyp_env(target_arch))
 
 
 def install_win_tool_wrapper():
