@@ -103,12 +103,14 @@ def gyp_env(target_arch):
 
   # Disable NaCl. We don't need it, and it requires some very long filepaths
   # which often overrun the Windows file path limit.
-  if 'disable_nacl=1' not in env.get('GYP_DEFINES', ''):
-    env['GYP_DEFINES'] = ' '.join(['disable_nacl=1', env.get('GYP_DEFINES', '')])
+  gyp_defines = 'disable_nacl=1'
 
   env['GYP_GENERATORS'] = 'ninja'
 
   if sys.platform == 'darwin':
+    # host_arch seems to be required.
+    gyp_defines += ' ' + 'host_arch=x64'
+
     # Use Xcode's own clang instead of Chromium's. This matches what embedding
     # applications will use, reducing the risk of bugs due to version
     # mismatches.
@@ -121,8 +123,8 @@ def gyp_env(target_arch):
     env['GYP_MSVS_VERSION'] = '2013'
 
   # Build 32-bit or 64-bit.
-  env['GYP_DEFINES'] = ' '.join(['target_arch={0}'.format(target_arch),
-                                 env.get('GYP_DEFINES', '')])
+  gyp_defines += ' ' + 'target_arch={0}'.format(target_arch)
+  env['GYP_DEFINES'] = gyp_defines
 
   # Build in "out32" for 32bit target.
   if target_arch == 'ia32':
