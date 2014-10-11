@@ -21,6 +21,7 @@ def main():
     print 'OS version:', os_version()
 
     return (run_script('bootstrap') or
+            run_script('update') or
             run_script('build') or
             run_script('create-dist') or
             run_script('upload'))
