@@ -34,10 +34,11 @@ def main():
           run_gyp(args.target_arch) or
           install_win_tool_wrapper())
 
+
 def parse_args():
-    parser = argparse.ArgumentParser(description='Update build configuration')
-    parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
-    return parser.parse_args()
+  parser = argparse.ArgumentParser(description='Update build configuration')
+  parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
+  return parser.parse_args()
 
 
 def chromium_version():
@@ -98,32 +99,36 @@ def tar_xf(filename):
 
 
 def gyp_env(target_arch):
-    env = os.environ.copy()
+  env = os.environ.copy()
 
-    # Disable NaCl. We don't need it, and it requires some very long filepaths
-    # which often overrun the Windows file path limit.
-    if 'disable_nacl=1' not in env.get('GYP_DEFINES', ''):
-        env['GYP_DEFINES'] = ' '.join(['disable_nacl=1', env.get('GYP_DEFINES', '')])
+  # Disable NaCl. We don't need it, and it requires some very long filepaths
+  # which often overrun the Windows file path limit.
+  if 'disable_nacl=1' not in env.get('GYP_DEFINES', ''):
+    env['GYP_DEFINES'] = ' '.join(['disable_nacl=1', env.get('GYP_DEFINES', '')])
 
-    env['GYP_GENERATORS'] = 'ninja'
+  env['GYP_GENERATORS'] = 'ninja'
 
-    if sys.platform == 'darwin':
-        # Use Xcode's own clang instead of Chromium's. This matches what embedding
-        # applications will use, reducing the risk of bugs due to version
-        # mismatches.
-        env['CC_target'] = 'clang'
-        env['CXX_target'] = 'clang++'
-    elif sys.platform in ['win32', 'cygwin']:
-        # Don't use the auto-installed VS2013 Express toolchain from depot_tools.
-        # We have our own.
-        env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
-        env['GYP_MSVS_VERSION'] = '2013'
+  if sys.platform == 'darwin':
+    # Use Xcode's own clang instead of Chromium's. This matches what embedding
+    # applications will use, reducing the risk of bugs due to version
+    # mismatches.
+    env['CC_target'] = 'clang'
+    env['CXX_target'] = 'clang++'
+  elif sys.platform in ['win32', 'cygwin']:
+    # Don't use the auto-installed VS2013 Express toolchain from depot_tools.
+    # We have our own.
+    env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
+    env['GYP_MSVS_VERSION'] = '2013'
 
-    # Build 32-bit or 64-bit.
-    env['GYP_DEFINES'] = ' '.join(['target_arch={0}'.format(target_arch),
-                                   env.get('GYP_DEFINES', '')])
+  # Build 32-bit or 64-bit.
+  env['GYP_DEFINES'] = ' '.join(['target_arch={0}'.format(target_arch),
+                                 env.get('GYP_DEFINES', '')])
 
-    return env
+  # Build in "out32" for 32bit target.
+  if target_arch == 'ia32':
+    env['GYP_GENERATOR_FLAGS'] = 'output_dir=out32'
+
+  return env
 
 
 def copy_chromiumcontent_files():

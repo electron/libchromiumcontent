@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 import contextlib
 import errno
 import os
@@ -162,15 +163,28 @@ OTHER_SOURCES = [
 
 
 def main():
-    rm_rf(DIST_DIR)
-    os.makedirs(DIST_DIR)
+  args = parse_args()
 
-    copy_binaries()
-    objcopy_with_debug_info()
-    create_dsym()
-    copy_symbols()
-    copy_sources()
-    create_zip()
+  # Build dir is "out32" for 32bit builds.
+  global OUT_DIR
+  if args.target_arch == 'ia32':
+    OUT_DIR += '32'
+
+  rm_rf(DIST_DIR)
+  os.makedirs(DIST_DIR)
+
+  copy_binaries()
+  objcopy_with_debug_info()
+  create_dsym()
+  copy_symbols()
+  copy_sources()
+  create_zip()
+
+
+def parse_args():
+  parser = argparse.ArgumentParser(description='Create distribution')
+  parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
+  return parser.parse_args()
 
 
 def copy_binaries():
