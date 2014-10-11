@@ -27,6 +27,7 @@ def main():
 
   return (apply_patches() or
           copy_chromiumcontent_files() or
+          update_clang() or
           run_gyp() or
           install_win_tool_wrapper())
 
@@ -137,6 +138,13 @@ def copy_chromiumcontent_files():
 def apply_patches():
   return subprocess.call([sys.executable,
                           os.path.join(SOURCE_ROOT, 'script', 'apply-patches')])
+
+
+def update_clang():
+  if sys.platform != 'linux2':
+    return
+  update = os.path.join(SRC_DIR, 'tools', 'clang', 'scripts', 'update.py')
+  return subprocess.call([sys.executable, update])
 
 
 def run_gyp():

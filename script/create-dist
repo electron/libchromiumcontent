@@ -37,7 +37,7 @@ BINARIES = {
     'all': [
         'content_shell.pak',
         'icudtl.dat',
-        os.path.join('gen', 'ui', 'ui_resources', 'ui_resources_200_percent.pak'),
+        os.path.join('gen', 'ui', 'resources', 'ui_resources_200_percent.pak'),
         os.path.join('gen', 'webkit', 'webkit_resources_200_percent.pak'),
     ],
     'darwin': [

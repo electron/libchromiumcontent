@@ -54,6 +54,7 @@
       'EVENTS_IMPLEMENTATION',
       'GESTURE_DETECTION_IMPLEMENTATION',
       'GFX_IMPLEMENTATION',
+      'GFX_IPC_IMPLEMENTATION',
       'GIN_IMPLEMENTATION',
       'GLES2_C_LIB_IMPLEMENTATION',
       'GLES2_IMPL_IMPLEMENTATION',
@@ -63,12 +64,14 @@
       'GPU_IMPLEMENTATION',
       'HEAP_IMPLEMENTATION',
       'IPC_IMPLEMENTATION',
+      'IPC_MOJO_IMPLEMENTATION',
       'KEYBOARD_IMPLEMENTATION',
       'LIBPROTOBUF_EXPORTS',
       'LIBPROTOC_EXPORTS',
       'MEDIA_IMPLEMENTATION',
       'MESSAGE_CENTER_IMPLEMENTATION',
       'METRO_VIEWER_IMPLEMENTATION',
+      'MOJO_APPLICATION_MANAGER_IMPLEMENTATION',
       'MOJO_COMMON_IMPLEMENTATION',
       'MOJO_ENVIRONMENT_IMPL_IMPLEMENTATION',
       'MOJO_GLES2_IMPLEMENTATION',
@@ -98,6 +101,7 @@
       'U_UTF8_IMPL',
       'V2_IMPLEMENTATION',
       'V8_SHARED',
+      'WIN_WINDOW_IMPLEMENTATION',
       'WEBKIT_BASE_IMPLEMENTATION',
       'WEBKIT_CHILD_IMPLEMENTATION',
       'WEBKIT_COMMON_IMPLEMENTATION',
@@ -136,12 +140,15 @@
         # class 'std::xx' needs to have dll-interface. Chrome turns this off
         # for component builds, and we need to too.
         4251,
+        # The file contains a character that cannot be represented in these
+        # current code page
+        4819,
+        # no matching operator delete found; memory will not be freed if
+        # initialization throws an exception
+        4291,
+        # non dll-interface class used as base for dll-interface class
+        4275,
     ],
-    'msvs_settings': {
-      'VCCLCompilerTool': {
-        'ExceptionHandling': '1',  # /EHsc
-      },
-    },
     'xcode_settings': {
       'WARNING_CFLAGS!': [
         # Xcode 5.1 doesn't support these flags.
@@ -197,6 +204,14 @@
       ['_target_name in ["nspr", "nss_static"]', {
         'xcode_settings': {
           'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
+        },
+      }],
+      # Targets of static_library were forced to turn exception off.
+      ['component=="static_library"', {
+        'msvs_settings': {
+          'VCCLCompilerTool': {
+            'ExceptionHandling': '1',  # /EHsc
+          },
         },
       }],
     ],

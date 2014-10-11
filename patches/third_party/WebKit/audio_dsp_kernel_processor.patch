@@ -8,7 +8,7 @@ index 719c44b..fdf26d6 100644
  
 +#include "platform/audio/AudioDSPKernelProcessor.h"
 +
- namespace WebCore {
+ namespace blink {
  
 +AudioDSPKernel::AudioDSPKernel(AudioDSPKernelProcessor* kernelProcessor)
 +    : m_kernelProcessor(kernelProcessor)
@@ -20,7 +20,7 @@ index 719c44b..fdf26d6 100644
  {
  }
 diff --git a/Source/platform/audio/AudioDSPKernel.h b/Source/platform/audio/AudioDSPKernel.h
-index f2face9..02a58dc 100644
+index a006864..05643b5 100644
 --- a/Source/platform/audio/AudioDSPKernel.h
 +++ b/Source/platform/audio/AudioDSPKernel.h
 @@ -31,19 +31,17 @@
@@ -30,7 +30,7 @@ index f2face9..02a58dc 100644
 -#include "platform/audio/AudioDSPKernelProcessor.h"
 +#include "platform/PlatformExport.h"
  
- namespace WebCore {
+ namespace blink {
  
 +class AudioDSPKernelProcessor;
 +
