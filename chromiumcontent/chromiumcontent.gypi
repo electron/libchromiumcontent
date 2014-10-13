@@ -190,6 +190,7 @@
       }],
       ['_target_name in ["views", "webview", "web_dialogs", "wm", "display", "display_util"]', {
         'defines': [
+          'VIEWS_STATIC',
           '<@(chromiumviews_defines)',
         ],
         'defines!': [
