@@ -161,6 +161,15 @@
         '-Wno-tautological-pointer-compare',
       ],
     },
+    'conditions': [
+      ['OS=="linux" and host_arch=="ia32"', {
+        'cflags!': [
+          # Clang 3.4 doesn't support these flags.
+          '-Wno-absolute-value',
+          '-Wno-tautological-pointer-compare',
+        ],
+      }],
+    ],
     'target_conditions': [
       ['_target_name=="base"', {
         # This file doesn't work inside a shared library, and won't compile at
