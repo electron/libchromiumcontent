@@ -29,8 +29,9 @@
         'enable_hidpi': 1,
       }],
       ['OS=="linux" and host_arch=="ia32"', {
-        # Use GCC on 32bit Linux.
-        'clang': 0,
+        # Use system installed clang for building.
+        'make_clang_dir': '/usr',
+        'clang': 1,
       }],
     ],
     'global_defines': [
@@ -160,6 +161,15 @@
         '-Wno-tautological-pointer-compare',
       ],
     },
+    'conditions': [
+      ['OS=="linux" and host_arch=="ia32"', {
+        'cflags!': [
+          # Clang 3.4 doesn't support these flags.
+          '-Wno-absolute-value',
+          '-Wno-tautological-pointer-compare',
+        ],
+      }],
+    ],
     'target_conditions': [
       ['_target_name=="base"', {
         # This file doesn't work inside a shared library, and won't compile at
@@ -209,6 +219,11 @@
         'xcode_settings': {
           'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
         },
+      }],
+      ['_target_name=="gtk2ui"', {
+        'cflags': [
+          '-Wno-sentinel',
+        ],
       }],
       # Targets of static_library were forced to turn exception off.
       ['component=="static_library"', {
