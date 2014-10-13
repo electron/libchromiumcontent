@@ -220,6 +220,11 @@
           'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
         },
       }],
+      ['_target_name=="gtk2ui"', {
+        'cflags': [
+          '-Wno-sentinel',
+        ],
+      }],
       # Targets of static_library were forced to turn exception off.
       ['component=="static_library"', {
         'msvs_settings': {
