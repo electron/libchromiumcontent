@@ -27,10 +27,9 @@
       ['OS=="linux"', {
         # Enable high DPI support on Linux.
         'enable_hidpi': 1,
-      }],
-      ['OS=="linux" and host_arch=="ia32"', {
-        # Use GCC on 32bit Linux.
-        'clang': 0,
+        # Use system installed clang for building.
+        'make_clang_dir': '/usr',
+        'clang': 1,
       }],
     ],
     'global_defines': [
