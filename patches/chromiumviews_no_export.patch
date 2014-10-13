@@ -1,0 +1,134 @@
+diff --git a/ui/display/display_export.h b/ui/display/display_export.h
+index 5dc19e0..67b191a 100644
+--- a/ui/display/display_export.h
++++ b/ui/display/display_export.h
+@@ -8,6 +8,10 @@
+ // Defines DISPLAY_EXPORT so that functionality implemented by the UI module
+ // can be exported to consumers.
+ 
++#if defined(VIEWS_STATIC)
++#define DISPLAY_EXPORT
++
++#else  // defined(VIEWS_STATIC)
+ #if defined(COMPONENT_BUILD)
+ 
+ #if defined(WIN32)
+@@ -34,4 +38,6 @@
+ 
+ #endif
+ 
++#endif
++
+ #endif  // UI_DISPLAY_DISPLAY_EXPORT_H_
+diff --git a/ui/display/util/display_util_export.h b/ui/display/util/display_util_export.h
+index 8eeb30d..02af4d2 100644
+--- a/ui/display/util/display_util_export.h
++++ b/ui/display/util/display_util_export.h
+@@ -8,6 +8,10 @@
+ // Defines DISPLAY_UTIL_EXPORT so that functionality implemented by the
+ // display_util module can be exported to consumers.
+ 
++#if defined(VIEWS_STATIC)
++#define WM_EXPORT
++
++#else  // defined(VIEWS_STATIC)
+ #if defined(COMPONENT_BUILD)
+ 
+ #if defined(WIN32)
+@@ -34,4 +38,6 @@
+ 
+ #endif
+ 
++#endif
++
+ #endif  // UI_DISPLAY_UTIL_DISPLAY_UTIL_EXPORT_H_
+diff --git a/ui/views/controls/webview/webview_export.h b/ui/views/controls/webview/webview_export.h
+index 2b071cc..0678f54 100644
+--- a/ui/views/controls/webview/webview_export.h
++++ b/ui/views/controls/webview/webview_export.h
+@@ -8,6 +8,11 @@
+ // Defines WEBVIEW_EXPORT so that functionality implemented by the webview
+ // module can be exported to consumers.
+ 
++#if defined(VIEWS_STATIC)
++#define WEBVIEW_EXPORT
++
++#else  // defined(VIEWS_STATIC)
++
+ #if defined(COMPONENT_BUILD)
+ #if defined(WIN32)
+ 
+@@ -29,4 +34,6 @@
+ #define WEBVIEW_EXPORT
+ #endif
+ 
++#endif
++
+ #endif  // UI_VIEWS_CONTROLS_WEBVIEW_WEBVIEW_EXPORT_H_
+diff --git a/ui/views/views_export.h b/ui/views/views_export.h
+index 05a7ead..5f1591f 100644
+--- a/ui/views/views_export.h
++++ b/ui/views/views_export.h
+@@ -8,6 +8,10 @@
+ // Defines VIEWS_EXPORT so that functionality implemented by the Views module
+ // can be exported to consumers.
+ 
++#if defined(VIEWS_STATIC)
++#define VIEWS_EXPORT
++
++#else  // defined(VIEWS_STATIC)
+ #if defined(COMPONENT_BUILD)
+ #if defined(WIN32)
+ 
+@@ -29,4 +33,6 @@
+ #define VIEWS_EXPORT
+ #endif
+ 
++#endif
++
+ #endif  // UI_VIEWS_VIEWS_EXPORT_H_
+diff --git a/ui/web_dialogs/web_dialogs_export.h b/ui/web_dialogs/web_dialogs_export.h
+index 36fae43..9dca602 100644
+--- a/ui/web_dialogs/web_dialogs_export.h
++++ b/ui/web_dialogs/web_dialogs_export.h
+@@ -8,6 +8,11 @@
+ // Defines WEB_DIALOGS_EXPORT so that functionality implemented by the
+ // web_dialogs module can be exported to consumers.
+ 
++#if defined(VIEWS_STATIC)
++#define WEB_DIALOGS_EXPORT
++
++#else  // defined(VIEWS_STATIC)
++
+ #if defined(COMPONENT_BUILD)
+ #if defined(WIN32)
+ 
+@@ -29,4 +34,6 @@
+ #define WEB_DIALOGS_EXPORT
+ #endif
+ 
++#endif
++
+ #endif  // UI_WEB_DIALOGS_WEB_DIALOGS_EXPORT_H_
+diff --git a/ui/wm/wm_export.h b/ui/wm/wm_export.h
+index 461d693..0da7cb1 100644
+--- a/ui/wm/wm_export.h
++++ b/ui/wm/wm_export.h
+@@ -8,6 +8,10 @@
+ // Defines WM_EXPORT so that functionality implemented by the WM module
+ // can be exported to consumers.
+ 
++#if defined(VIEWS_STATIC)
++#define WM_EXPORT
++
++#else  // defined(VIEWS_STATIC)
+ #if defined(COMPONENT_BUILD)
+ #if defined(WIN32)
+ 
+@@ -29,4 +33,6 @@
+ #define WM_EXPORT
+ #endif
+ 
++#endif
++
+ #endif  // UI_WM_WM_EXPORT_H_
