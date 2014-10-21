@@ -145,13 +145,7 @@ INCLUDE_DIRS = [
 }[TARGET_PLATFORM]
 GENERATED_INCLUDE_DIRS = [
     'ui',
-] + {
-    'darwin': [],
-    'linux': [
-        'library_loaders',
-    ],
-    'win32': [],
-}[TARGET_PLATFORM]
+]
 OTHER_HEADERS = [
     'content/common/content_export.h',
 ]
