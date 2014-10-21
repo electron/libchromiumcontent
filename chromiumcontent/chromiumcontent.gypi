@@ -27,6 +27,8 @@
       ['OS=="linux"', {
         # Enable high DPI support on Linux.
         'enable_hidpi': 1,
+        # Use Dbus.
+        'use_dbus': 1,
       }],
       ['OS=="linux" and host_arch=="ia32"', {
         # Use system installed clang for building.
