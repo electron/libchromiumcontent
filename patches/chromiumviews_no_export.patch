@@ -29,7 +29,7 @@ index 8eeb30d..02af4d2 100644
  // display_util module can be exported to consumers.
  
 +#if defined(VIEWS_STATIC)
-+#define WM_EXPORT
++#define DISPLAY_UTIL_EXPORT
 +
 +#else  // defined(VIEWS_STATIC)
  #if defined(COMPONENT_BUILD)
