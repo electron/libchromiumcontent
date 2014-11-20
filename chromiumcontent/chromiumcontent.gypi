@@ -158,11 +158,13 @@
         4275,
     ],
     'xcode_settings': {
+      # Xcode 5.1 doesn't support these flags.
       'WARNING_CFLAGS!': [
-        # Xcode 5.1 doesn't support these flags.
         '-Wno-absolute-value',
         '-Wno-tautological-pointer-compare',
         '-Wno-unused-local-typedef',
+      ],
+      'OTHER_CFLAGS!': [
         '-Wno-undefined-bool-conversion',
         '-Wno-tautological-undefined-compare',
       ],
