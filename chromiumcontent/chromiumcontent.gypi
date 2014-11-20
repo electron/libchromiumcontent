@@ -162,6 +162,9 @@
         # Xcode 5.1 doesn't support these flags.
         '-Wno-absolute-value',
         '-Wno-tautological-pointer-compare',
+        '-Wno-unused-local-typedef',
+        '-Wno-undefined-bool-conversion',
+        '-Wno-tautological-undefined-compare',
       ],
     },
     'conditions': [
@@ -170,6 +173,9 @@
           # Clang 3.4 doesn't support these flags.
           '-Wno-absolute-value',
           '-Wno-tautological-pointer-compare',
+          '-Wno-unused-local-typedef',
+          '-Wno-undefined-bool-conversion',
+          '-Wno-tautological-undefined-compare',
         ],
       }],
     ],
