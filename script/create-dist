@@ -124,6 +124,7 @@ INCLUDE_DIRS = [
     'printing',
     'sandbox',
     'skia',
+    'storage',
     'testing',
     'third_party/WebKit/Source/Platform/chromium/public',
     'third_party/WebKit/Source/WebKit/chromium/public',
