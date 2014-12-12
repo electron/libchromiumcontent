@@ -1,16 +1,3 @@
-diff --git a/public/platform/WebAnimation.h b/public/platform/WebAnimation.h
-index 26d0ec3..b4e08c6 100644
---- a/public/platform/WebAnimation.h
-+++ b/public/platform/WebAnimation.h
-@@ -29,7 +29,7 @@
- #include "WebNonCopyable.h"
- #include "WebPrivateOwnPtr.h"
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
- #include "wtf/Forward.h"
- #endif
- 
 diff --git a/public/platform/WebDragData.h b/public/platform/WebDragData.h
 index da9873b..c2beaa2 100644
 --- a/public/platform/WebDragData.h
@@ -172,21 +159,8 @@ index 748d111..e53442f 100644
      WebWorkerRunLoop(WorkerThread*);
  #endif
  
-diff --git a/public/platform/linux/WebFontRenderStyle.h b/public/platform/linux/WebFontRenderStyle.h
-index 765774a..234857a 100644
---- a/public/platform/linux/WebFontRenderStyle.h
-+++ b/public/platform/linux/WebFontRenderStyle.h
-@@ -50,7 +50,7 @@ struct BLINK_EXPORT WebFontRenderStyle {
-     char useSubpixelRendering; // use subpixel rendering (partially-filled pixels)
-     char useSubpixelPositioning; // use subpixel positioning (fractional X positions for glyphs)
- 
--#if BLINK_IMPLEMENTATION || BLINK_PLATFORM_IMPLEMENTATION
-+#if INSIDE_BLINK || BLINK_PLATFORM_IMPLEMENTATION
-     // Translates the members of this struct to a FontRenderStyle
-     void toFontRenderStyle(FontRenderStyle*);
- #endif
 diff --git a/public/web/WebAXObject.h b/public/web/WebAXObject.h
-index 1595d14..94c1892 100644
+index 4d96c8f..5d64287 100644
 --- a/public/web/WebAXObject.h
 +++ b/public/web/WebAXObject.h
 @@ -36,7 +36,7 @@
@@ -198,7 +172,7 @@ index 1595d14..94c1892 100644
  namespace WTF { template <typename T> class PassRefPtr; }
  #endif
  
-@@ -215,7 +215,7 @@ public:
+@@ -208,7 +208,7 @@ public:
      // Scroll this object to a given point in global coordinates of the top-level window.
      BLINK_EXPORT void scrollToGlobalPoint(const WebPoint&) const;
  
@@ -378,19 +352,6 @@ index 5d8dc08..a19ae5a 100644
      explicit WebDOMMessageEvent(const PassRefPtrWillBeRawPtr<MessageEvent>& e) : WebDOMEvent(e) { }
  #endif
  };
-diff --git a/public/web/WebDatabase.h b/public/web/WebDatabase.h
-index 14741a7..932d122 100644
---- a/public/web/WebDatabase.h
-+++ b/public/web/WebDatabase.h
-@@ -57,7 +57,7 @@ public:
-     BLINK_EXPORT static void closeDatabaseImmediately(
-         const WebString& originIdentifier, const WebString& databaseName);
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
-     WebDatabase(const DatabaseBackendBase*);
- #endif
- 
 diff --git a/public/web/WebDateTimeSuggestion.h b/public/web/WebDateTimeSuggestion.h
 index e2266b7..48d9f49 100644
 --- a/public/web/WebDateTimeSuggestion.h
@@ -405,7 +366,7 @@ index e2266b7..48d9f49 100644
      WebDateTimeSuggestion& operator=(const DateTimeSuggestion&);
  #endif
 diff --git a/public/web/WebDocument.h b/public/web/WebDocument.h
-index 7e22b53..499500f 100644
+index 89f5549..6cdbf05 100644
 --- a/public/web/WebDocument.h
 +++ b/public/web/WebDocument.h
 @@ -39,7 +39,7 @@
@@ -417,9 +378,9 @@ index 7e22b53..499500f 100644
  namespace WTF { template <typename T> class PassRefPtr; }
  #endif
  
-@@ -137,7 +137,7 @@ public:
+@@ -145,7 +145,7 @@ public:
  
-     BLINK_EXPORT v8::Handle<v8::Value> registerEmbedderCustomElement(const WebString& name, v8::Handle<v8::Value> options, WebExceptionCode&);
+     BLINK_EXPORT WebURL manifestURL() const;
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
@@ -523,19 +484,19 @@ index cb2f5d0..f530ae9 100644
      WebFormElement& operator=(const PassRefPtrWillBeRawPtr<HTMLFormElement>&);
      operator PassRefPtrWillBeRawPtr<HTMLFormElement>() const;
 diff --git a/public/web/WebFrame.h b/public/web/WebFrame.h
-index 152ba41..9af4d56 100644
+index 92eea56..091a474 100644
 --- a/public/web/WebFrame.h
 +++ b/public/web/WebFrame.h
-@@ -673,7 +673,7 @@ public:
+@@ -659,7 +659,7 @@ public:
      // text form. This is used only by layout tests.
      virtual WebString layerTreeAsText(bool showDebugInfo = false) const = 0;
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
      static WebFrame* fromFrame(Frame*);
+     static void traceChildren(Visitor*, WebFrame*);
  #endif
- 
-@@ -694,7 +694,7 @@ private:
+@@ -681,7 +681,7 @@ private:
      WebPrivateOwnPtr<OpenedFrameTracker> m_openedFrameTracker;
  };
  
@@ -545,10 +506,10 @@ index 152ba41..9af4d56 100644
  #endif
  
 diff --git a/public/web/WebGeolocationController.h b/public/web/WebGeolocationController.h
-index 96ca9e8..86a228e 100644
+index 13e3757..21280e9 100644
 --- a/public/web/WebGeolocationController.h
 +++ b/public/web/WebGeolocationController.h
-@@ -42,7 +42,7 @@ public:
+@@ -40,7 +40,7 @@ public:
      BLINK_EXPORT void positionChanged(const WebGeolocationPosition&);
      BLINK_EXPORT void errorOccurred(const WebGeolocationError&);
  

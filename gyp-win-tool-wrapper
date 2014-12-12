@@ -15,6 +15,7 @@ UNEXPORTED_NAMESPACES = set([
     'cc',
     'crypto',
     'gpu',
+    'icu_52',
     'jingle_glue',
     'media',
     'mojo',
