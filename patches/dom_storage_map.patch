@@ -1,0 +1,17 @@
+diff --git a/content/common/dom_storage/dom_storage_map.cc b/content/common/dom_storage/dom_storage_map.cc
+index 71368bd..047054f 100644
+--- a/content/common/dom_storage/dom_storage_map.cc
++++ b/content/common/dom_storage/dom_storage_map.cc
+@@ -64,10 +64,12 @@ bool DOMStorageMap::SetItem(
+   size_t new_item_size = size_of_item(key, value);
+   size_t new_bytes_used = bytes_used_ - old_item_size + new_item_size;
+ 
++#if 0
+   // Only check quota if the size is increasing, this allows
+   // shrinking changes to pre-existing files that are over budget.
+   if (new_item_size > old_item_size && new_bytes_used > quota_)
+     return false;
++#endif
+ 
+   values_[key] = base::NullableString16(value, false);
+   ResetKeyIterator();
