@@ -14,13 +14,15 @@ WIN_TOOL = os.path.abspath(os.path.join(os.path.dirname(__file__),
 UNEXPORTED_NAMESPACES = set([
     'cc',
     'crypto',
+    'egl',
     'gpu',
-    'icu_52',
     'jingle_glue',
     'media',
     'mojo',
     'ppapi',
+    'sql',
     'webrtc',
+    'WTF',
 ])
 
 
