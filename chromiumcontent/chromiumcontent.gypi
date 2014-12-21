@@ -159,6 +159,8 @@
         4291,
         # non dll-interface class used as base for dll-interface class
         4275,
+        # 'GetVersionExW': was declared deprecated
+        4996,
     ],
     'xcode_settings': {
       # Xcode 5.1 doesn't support these flags.
