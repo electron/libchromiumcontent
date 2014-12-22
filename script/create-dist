@@ -122,6 +122,7 @@ INCLUDE_DIRS = [
     'ipc',
     'gin',
     'gpu',
+    'media',
     'mojo',
     'net',
     'printing',
