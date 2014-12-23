@@ -1,0 +1,35 @@
+diff --git a/content/browser/browser_main.cc b/content/browser/browser_main.cc
+index 640ccee..86679c2 100644
+--- a/content/browser/browser_main.cc
++++ b/content/browser/browser_main.cc
+@@ -10,6 +10,9 @@
+ 
+ namespace content {
+ 
++// The global transparent switch.
++CONTENT_EXPORT bool g_use_transparent_window = false;
++
+ // Main routine for running as the Browser process.
+ int BrowserMain(const MainFunctionParams& parameters) {
+   TRACE_EVENT_BEGIN_ETW("BrowserMain", 0, "");
+diff --git a/content/browser/compositor/io_surface_layer_mac.mm b/content/browser/compositor/io_surface_layer_mac.mm
+index d09f24c..76be4b3 100644
+--- a/content/browser/compositor/io_surface_layer_mac.mm
++++ b/content/browser/compositor/io_surface_layer_mac.mm
+@@ -25,6 +25,8 @@
+ 
+ namespace content {
+ 
++extern bool g_use_transparent_window;
++
+ IOSurfaceLayerHelper::IOSurfaceLayerHelper(
+     IOSurfaceLayerClient* client,
+     IOSurfaceLayer* layer)
+@@ -183,6 +185,7 @@ void IOSurfaceLayerHelper::EndPumpingFrames() {
+       return nil;
+     }
+ 
++    if (!content::g_use_transparent_window)
+     [self setBackgroundColor:CGColorGetConstantColor(kCGColorWhite)];
+     [self setAnchorPoint:CGPointMake(0, 0)];
+     // Setting contents gravity is necessary to prevent the layer from being
