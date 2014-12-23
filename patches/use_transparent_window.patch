@@ -1,0 +1,60 @@
+diff --git a/ui/accelerated_widget_mac/io_surface_layer.mm b/ui/accelerated_widget_mac/io_surface_layer.mm
+index 1f4da95..8540e91 100644
+--- a/ui/accelerated_widget_mac/io_surface_layer.mm
++++ b/ui/accelerated_widget_mac/io_surface_layer.mm
+@@ -182,6 +182,7 @@ void IOSurfaceLayerHelper::EndPumpingFrames() {
+       return nil;
+     }
+ 
++    if (!ui::GpuSwitchingManager::UseTransparent())
+     [self setBackgroundColor:CGColorGetConstantColor(kCGColorWhite)];
+     [self setAnchorPoint:CGPointMake(0, 0)];
+     // Setting contents gravity is necessary to prevent the layer from being
+diff --git a/ui/gl/gpu_switching_manager.cc b/ui/gl/gpu_switching_manager.cc
+index 23fc2ff..ed36310 100644
+--- a/ui/gl/gpu_switching_manager.cc
++++ b/ui/gl/gpu_switching_manager.cc
+@@ -16,6 +16,12 @@
+ 
+ namespace ui {
+ 
++namespace {
++
++bool g_use_transparent = false;
++
++} // namespace
++
+ struct GpuSwitchingManager::PlatformSpecific {
+ #if defined(OS_MACOSX)
+   CGLPixelFormatObj discrete_pixel_format;
+@@ -27,6 +33,16 @@ GpuSwitchingManager* GpuSwitchingManager::GetInstance() {
+   return Singleton<GpuSwitchingManager>::get();
+ }
+ 
++// static
++void GpuSwitchingManager::SetTransparent(bool transparent) {
++  g_use_transparent = transparent;
++}
++
++// static
++bool GpuSwitchingManager::UseTransparent() {
++  return g_use_transparent;
++}
++
+ GpuSwitchingManager::GpuSwitchingManager()
+     : gpu_switching_option_(gfx::PreferIntegratedGpu),
+       gpu_switching_option_set_(false),
+diff --git a/ui/gl/gpu_switching_manager.h b/ui/gl/gpu_switching_manager.h
+index a6a810f..2a50bd8 100644
+--- a/ui/gl/gpu_switching_manager.h
++++ b/ui/gl/gpu_switching_manager.h
+@@ -20,6 +20,9 @@ class GL_EXPORT GpuSwitchingManager {
+   // Getter for the singleton. This will return NULL on failure.
+   static GpuSwitchingManager* GetInstance();
+ 
++  static void SetTransparent(bool transparent);
++  static bool UseTransparent();
++
+   // Set the switching option to PreferIntegratedGpu.
+   void ForceUseOfIntegratedGpu();
+   // Set the switching option to PreferDiscreteGpu; switch to discrete GPU
