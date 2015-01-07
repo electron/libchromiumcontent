@@ -115,10 +115,14 @@ INCLUDE_DIRS = [
     'cc',
     'chrome/browser/ui/libgtk2ui',
     'components/os_crypt',
+    'content/browser',
+    'content/common',
     'content/public',
+    'content/renderer',
     'ipc',
     'gin',
     'gpu',
+    'media',
     'mojo',
     'net',
     'printing',
@@ -145,6 +149,7 @@ INCLUDE_DIRS = [
     'win32': [],
 }[TARGET_PLATFORM]
 GENERATED_INCLUDE_DIRS = [
+    'mojo',
     'ui',
 ]
 OTHER_HEADERS = [
