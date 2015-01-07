@@ -131,6 +131,7 @@ INCLUDE_DIRS = [
     'storage',
     'testing',
     'third_party/WebKit/Source/platform',
+    'third_party/WebKit/Source/wtf',
     'third_party/WebKit/public',
     'third_party/icu/source',
     'third_party/skia',
