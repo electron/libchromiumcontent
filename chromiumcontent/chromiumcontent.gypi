@@ -154,16 +154,6 @@
       'WARNING_CFLAGS': [
         '-Wno-deprecated-declarations',
       ],
-      # Xcode 5.1 doesn't support these flags.
-      'WARNING_CFLAGS!': [
-        '-Wno-absolute-value',
-        '-Wno-tautological-pointer-compare',
-        '-Wno-unused-local-typedef',
-      ],
-      'OTHER_CFLAGS!': [
-        '-Wno-undefined-bool-conversion',
-        '-Wno-tautological-undefined-compare',
-      ],
       # Use C++11 library.
       'CLANG_CXX_LIBRARY': 'libc++',  # -stdlib=libc++
     },
@@ -233,11 +223,6 @@
       ['_target_name=="gtk2ui"', {
         'cflags': [
           '-Wno-sentinel',
-        ],
-      }],
-      ['_target_name=="sdch"', {
-        'cflags': [
-          '-Wno-unused-local-typedef',
         ],
       }],
       # Targets of static_library were forced to turn exception off.
