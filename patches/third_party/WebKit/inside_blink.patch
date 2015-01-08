@@ -56,7 +56,7 @@ index 1fa1e81..dfedaf3 100644
  #endif
  
 diff --git a/public/platform/WebIDBDatabaseError.h b/public/platform/WebIDBDatabaseError.h
-index d106d19..80911a0 100644
+index 957314b..2b8f7c4 100644
 --- a/public/platform/WebIDBDatabaseError.h
 +++ b/public/platform/WebIDBDatabaseError.h
 @@ -54,7 +54,7 @@ public:
@@ -65,7 +65,7 @@ index d106d19..80911a0 100644
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
-     operator PassRefPtrWillBeRawPtr<DOMError>() const;
+     operator DOMError*() const;
  #endif
  
 diff --git a/public/platform/WebIDBKey.h b/public/platform/WebIDBKey.h
@@ -160,7 +160,7 @@ index 748d111..e53442f 100644
  #endif
  
 diff --git a/public/web/WebAXObject.h b/public/web/WebAXObject.h
-index 4d96c8f..5d64287 100644
+index e2fb717..b88e5d9 100644
 --- a/public/web/WebAXObject.h
 +++ b/public/web/WebAXObject.h
 @@ -36,7 +36,7 @@
@@ -172,7 +172,7 @@ index 4d96c8f..5d64287 100644
  namespace WTF { template <typename T> class PassRefPtr; }
  #endif
  
-@@ -208,7 +208,7 @@ public:
+@@ -222,7 +222,7 @@ public:
      // Scroll this object to a given point in global coordinates of the top-level window.
      BLINK_EXPORT void scrollToGlobalPoint(const WebPoint&) const;
  
@@ -195,7 +195,7 @@ index cc02d7e..7caaeb5 100644
      WebArrayBufferView& operator=(const WTF::PassRefPtr<WTF::ArrayBufferView>&);
      operator WTF::PassRefPtr<WTF::ArrayBufferView>() const;
 diff --git a/public/web/WebBlob.h b/public/web/WebBlob.h
-index 1439ced..97c4818 100644
+index bfb0493..5203c71 100644
 --- a/public/web/WebBlob.h
 +++ b/public/web/WebBlob.h
 @@ -37,7 +37,7 @@
@@ -213,8 +213,8 @@ index 1439ced..97c4818 100644
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
-     explicit WebBlob(const PassRefPtrWillBeRawPtr<Blob>&);
-     WebBlob& operator=(const PassRefPtrWillBeRawPtr<Blob>&);
+     WebBlob(Blob*);
+     WebBlob& operator=(Blob*);
  #endif
 diff --git a/public/web/WebCachedURLRequest.h b/public/web/WebCachedURLRequest.h
 index 89cb482..b91173d 100644
@@ -243,7 +243,7 @@ index e413293..c206497 100644
      WebColorSuggestion& operator=(const ColorSuggestion&);
  #endif
 diff --git a/public/web/WebDOMError.h b/public/web/WebDOMError.h
-index 869a542..6306d08 100644
+index 6ce88e2..a4deb70 100644
 --- a/public/web/WebDOMError.h
 +++ b/public/web/WebDOMError.h
 @@ -68,7 +68,7 @@ public:
@@ -252,8 +252,8 @@ index 869a542..6306d08 100644
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
-     explicit WebDOMError(const PassRefPtrWillBeRawPtr<DOMError>&);
-     WebDOMError& operator=(const PassRefPtrWillBeRawPtr<DOMError>&);
+     WebDOMError(DOMError*);
+     WebDOMError& operator=(DOMError*);
  #endif
 diff --git a/public/web/WebDOMEvent.h b/public/web/WebDOMEvent.h
 index d10bded..9f3e84b 100644
@@ -484,19 +484,28 @@ index cb2f5d0..f530ae9 100644
      WebFormElement& operator=(const PassRefPtrWillBeRawPtr<HTMLFormElement>&);
      operator PassRefPtrWillBeRawPtr<HTMLFormElement>() const;
 diff --git a/public/web/WebFrame.h b/public/web/WebFrame.h
-index 92eea56..091a474 100644
+index 9024999..749438f 100644
 --- a/public/web/WebFrame.h
 +++ b/public/web/WebFrame.h
-@@ -659,7 +659,7 @@ public:
+@@ -657,7 +657,7 @@ public:
      // text form. This is used only by layout tests.
      virtual WebString layerTreeAsText(bool showDebugInfo = false) const = 0;
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
      static WebFrame* fromFrame(Frame*);
-     static void traceChildren(Visitor*, WebFrame*);
- #endif
-@@ -681,7 +681,7 @@ private:
+ #if ENABLE(OILPAN)
+     static void traceFrames(Visitor*, WebFrame*);
+@@ -678,7 +678,7 @@ protected:
+ private:
+     friend class OpenedFrameTracker;
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+ #if ENABLE(OILPAN)
+     static void traceFrame(Visitor*, WebFrame*);
+     static bool isFrameAlive(Visitor*, const WebFrame*);
+@@ -695,7 +695,7 @@ private:
      WebPrivateOwnPtr<OpenedFrameTracker> m_openedFrameTracker;
  };
  
@@ -558,7 +567,7 @@ index 6d7e03e..74eb73d 100644
      WebGeolocationPosition& operator=(GeolocationPosition*);
      operator GeolocationPosition*() const;
 diff --git a/public/web/WebHistoryItem.h b/public/web/WebHistoryItem.h
-index 8029cbb..92bd287 100644
+index a706d9a..456109c 100644
 --- a/public/web/WebHistoryItem.h
 +++ b/public/web/WebHistoryItem.h
 @@ -115,7 +115,7 @@ public:
@@ -567,9 +576,9 @@ index 8029cbb..92bd287 100644
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
-     WebHistoryItem(const WTF::PassRefPtr<HistoryItem>&);
-     WebHistoryItem& operator=(const WTF::PassRefPtr<HistoryItem>&);
-     operator WTF::PassRefPtr<HistoryItem>() const;
+     WebHistoryItem(const PassRefPtrWillBeRawPtr<HistoryItem>&);
+     WebHistoryItem& operator=(const PassRefPtrWillBeRawPtr<HistoryItem>&);
+     operator PassRefPtrWillBeRawPtr<HistoryItem>() const;
 diff --git a/public/web/WebHitTestResult.h b/public/web/WebHitTestResult.h
 index 78a4cc4..63dc507 100644
 --- a/public/web/WebHitTestResult.h
@@ -667,10 +676,10 @@ index a0126e7..dd6aef2 100644
      operator MediaDevicesRequest*() const;
  #endif
 diff --git a/public/web/WebNode.h b/public/web/WebNode.h
-index 1b3df2e..8c9f684 100644
+index d0f363e..0f59664 100644
 --- a/public/web/WebNode.h
 +++ b/public/web/WebNode.h
-@@ -139,13 +139,13 @@ public:
+@@ -142,13 +142,13 @@ public:
          return res;
      }
  
@@ -791,6 +800,19 @@ index 2a27890..ea79af2 100644
      WebRange(const PassRefPtrWillBeRawPtr<Range>&);
      operator PassRefPtrWillBeRawPtr<Range>() const;
  #endif
+diff --git a/public/web/WebScriptSource.h b/public/web/WebScriptSource.h
+index 0738adc..2ff985f 100644
+--- a/public/web/WebScriptSource.h
++++ b/public/web/WebScriptSource.h
+@@ -50,7 +50,7 @@ struct WebScriptSource {
+     WebScriptSource(const WebString& code, const WebURL& url, int startLine)
+         : code(code), url(url), startLine(startLine) { }
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     operator ScriptSourceCode() const;
+ #endif
+ };
 diff --git a/public/web/WebSecurityOrigin.h b/public/web/WebSecurityOrigin.h
 index 0a3474d..47e153e 100644
 --- a/public/web/WebSecurityOrigin.h
@@ -840,7 +862,7 @@ index ec1ba98..a47a471 100644
      WebSerializedScriptValue& operator=(const WTF::PassRefPtr<SerializedScriptValue>&);
      operator WTF::PassRefPtr<SerializedScriptValue>() const;
 diff --git a/public/web/WebSpeechGrammar.h b/public/web/WebSpeechGrammar.h
-index 0d50505..3891418 100644
+index 3a062bb..0890398 100644
 --- a/public/web/WebSpeechGrammar.h
 +++ b/public/web/WebSpeechGrammar.h
 @@ -46,7 +46,7 @@ public:
@@ -849,11 +871,11 @@ index 0d50505..3891418 100644
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
-     explicit WebSpeechGrammar(SpeechGrammar*);
      WebSpeechGrammar& operator=(SpeechGrammar*);
  #endif
+ 
 diff --git a/public/web/WebSpeechRecognitionHandle.h b/public/web/WebSpeechRecognitionHandle.h
-index aaf284f..8f1e81b 100644
+index cc41654..f643bc0 100644
 --- a/public/web/WebSpeechRecognitionHandle.h
 +++ b/public/web/WebSpeechRecognitionHandle.h
 @@ -58,7 +58,7 @@ public:
@@ -862,9 +884,9 @@ index aaf284f..8f1e81b 100644
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
-     explicit WebSpeechRecognitionHandle(SpeechRecognition*);
-     WebSpeechRecognitionHandle& operator=(SpeechRecognition*);
+     WebSpeechRecognitionHandle(SpeechRecognition*);
      operator SpeechRecognition*() const;
+ #endif
 diff --git a/public/web/WebSpeechRecognitionResult.h b/public/web/WebSpeechRecognitionResult.h
 index 2999562..bfa9ee1 100644
 --- a/public/web/WebSpeechRecognitionResult.h
