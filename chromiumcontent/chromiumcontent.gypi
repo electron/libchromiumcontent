@@ -235,6 +235,11 @@
           '-Wno-sentinel',
         ],
       }],
+      ['_target_name=="sdch"', {
+        'cflags': [
+          '-Wno-unused-local-typedef',
+        ],
+      }],
       # Targets of static_library were forced to turn exception off.
       ['component=="static_library"', {
         'msvs_settings': {
