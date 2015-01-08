@@ -1,7 +1,5 @@
 {
   'variables': {
-    # We're not using Chromium's clang, so we can't use their plugins either.
-    'clang_use_chrome_plugins': 0,
     # Enalbe using proprietary codecs.
     'proprietary_codecs': 1,
     'ffmpeg_branding': 'Chrome',
@@ -36,6 +34,7 @@
         # Use system installed clang for building.
         'make_clang_dir': '/usr',
         'clang': 1,
+        'clang_use_chrome_plugins': 0,
       }],
     ],
     'global_defines': [
