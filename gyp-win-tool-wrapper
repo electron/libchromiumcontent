@@ -22,7 +22,6 @@ UNEXPORTED_NAMESPACES = set([
     'ppapi',
     'sql',
     'webrtc',
-    'WTF',
 ])
 
 
