@@ -12,17 +12,20 @@ WIN_TOOL = os.path.abspath(os.path.join(os.path.dirname(__file__),
 # These are namespaces whose symbols aren't needed by embedding apps. We don't
 # export them to keep the number of exports under the linker's limit (65535).
 UNEXPORTED_NAMESPACES = set([
+    'ABU0',
     'cc',
+    'cc_blink',
     'crypto',
+    'disk_cache',
     'egl',
     'gpu',
+    'google',
     'jingle_glue',
     'media',
     'mojo',
     'ppapi',
     'sql',
     'webrtc',
-    'WTF',
 ])
 
 
@@ -96,12 +99,17 @@ def add_definition_file(args):
 
 
 def filter_exports(symbols):
-    pattern = re.compile('@(?P<namespace>\w+)@@')
+    namespace_pattern = re.compile('@(?P<namespace>\w+)@@')
+    msg_pattern = re.compile('^[a-zA-Z]+Msg_\w+$')
     def should_reexport_symbol(symbol):
-        match = pattern.search(symbol)
+        match = namespace_pattern.search(symbol)
         if not match:
             return True
-        return match.group('namespace') not in UNEXPORTED_NAMESPACES
+        namespace = match.group('namespace')
+        # Filter out symbols like "ViewMsg_Repaint".
+        if msg_pattern.match(namespace) and not namespace.endswith('_Params'):
+            return False
+        return namespace not in UNEXPORTED_NAMESPACES
     return filter(should_reexport_symbol, symbols)
 
 
