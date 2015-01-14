@@ -99,12 +99,17 @@ def add_definition_file(args):
 
 
 def filter_exports(symbols):
-    pattern = re.compile('@(?P<namespace>\w+)@@')
+    namespace_pattern = re.compile('@(?P<namespace>\w+)@@')
+    msg_pattern = re.compile('^[a-zA-Z]+Msg_\w+$')
     def should_reexport_symbol(symbol):
-        match = pattern.search(symbol)
+        match = namespace_pattern.search(symbol)
         if not match:
             return True
-        return match.group('namespace') not in UNEXPORTED_NAMESPACES
+        namespace = match.group('namespace')
+        # Filter out symbols like "ViewMsg_Repaint".
+        if msg_pattern.match(namespace) and not namespace.endswith('_Params'):
+            return False
+        return namespace not in UNEXPORTED_NAMESPACES
     return filter(should_reexport_symbol, symbols)
 
 
