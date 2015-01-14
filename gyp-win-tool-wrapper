@@ -13,7 +13,6 @@ WIN_TOOL = os.path.abspath(os.path.join(os.path.dirname(__file__),
 # export them to keep the number of exports under the linker's limit (65535).
 UNEXPORTED_NAMESPACES = set([
     'ABU0',
-    'ABV0',
     'cc',
     'cc_blink',
     'crypto',
@@ -26,8 +25,6 @@ UNEXPORTED_NAMESPACES = set([
     'mojo',
     'ppapi',
     'sql',
-    'SkCanvas',
-    'tracked_objects',
     'webrtc',
 ])
 
