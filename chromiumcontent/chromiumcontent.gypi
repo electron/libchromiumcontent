@@ -14,6 +14,8 @@
     'linux_use_tcmalloc': 0,
     # Using libc++ requires building for >= 10.7.
     'mac_deployment_target': '10.8',
+    # The 10.8 SDK does not work well with C++11.
+    'mac_sdk_min': '10.9',
     'conditions': [
       ['OS=="win"', {
         # Chrome turns this off for component builds, and we need to too. Leaving
