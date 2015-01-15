@@ -160,6 +160,8 @@
         '-Wno-undefined-bool-conversion',
         '-Wno-tautological-undefined-compare',
       ],
+      # Use C++11 library.
+      'CLANG_CXX_LIBRARY': 'libc++',  # -stdlib=libc++
     },
     'conditions': [
       ['OS=="linux" and host_arch=="ia32"', {
