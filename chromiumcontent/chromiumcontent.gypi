@@ -14,6 +14,8 @@
     # any conflicts when linking to binaries or libraries that don't use
     # tcmalloc.
     'linux_use_tcmalloc': 0,
+    # Using libc++ requires building for >= 10.7.
+    'mac_deployment_target': '10.8',
     'conditions': [
       ['OS=="win"', {
         # Chrome turns this off for component builds, and we need to too. Leaving
@@ -150,6 +152,9 @@
         4996,
     ],
     'xcode_settings': {
+      'WARNING_CFLAGS': [
+        '-Wno-deprecated-declarations',
+      ],
       # Xcode 5.1 doesn't support these flags.
       'WARNING_CFLAGS!': [
         '-Wno-absolute-value',
@@ -160,6 +165,8 @@
         '-Wno-undefined-bool-conversion',
         '-Wno-tautological-undefined-compare',
       ],
+      # Use C++11 library.
+      'CLANG_CXX_LIBRARY': 'libc++',  # -stdlib=libc++
     },
     'conditions': [
       ['OS=="linux" and host_arch=="ia32"', {
