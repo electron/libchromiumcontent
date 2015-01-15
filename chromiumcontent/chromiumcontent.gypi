@@ -14,6 +14,8 @@
     # any conflicts when linking to binaries or libraries that don't use
     # tcmalloc.
     'linux_use_tcmalloc': 0,
+    # Using libc++ requires building for >= 10.7.
+    'mac_deployment_target': '10.8',
     'conditions': [
       ['OS=="win"', {
         # Chrome turns this off for component builds, and we need to too. Leaving
