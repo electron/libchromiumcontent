@@ -152,6 +152,9 @@
         4996,
     ],
     'xcode_settings': {
+      'WARNING_CFLAGS': [
+        '-Wno-deprecated-declarations',
+      ],
       # Xcode 5.1 doesn't support these flags.
       'WARNING_CFLAGS!': [
         '-Wno-absolute-value',
