@@ -1,0 +1,25 @@
+diff --git a/sandbox/win/src/sandbox_nt_util.cc b/sandbox/win/src/sandbox_nt_util.cc
+index 12dd7d8..db8f7e8 100644
+--- a/sandbox/win/src/sandbox_nt_util.cc
++++ b/sandbox/win/src/sandbox_nt_util.cc
+@@ -365,7 +365,9 @@ UNICODE_STRING* GetImageInfoFromModule(HMODULE module, uint32* flags) {
+ #pragma warning(push)
+ #pragma warning(disable: 4509)
+   UNICODE_STRING* out_name = NULL;
++#if 0
+   __try {
++#endif
+     do {
+       *flags = 0;
+       base::win::PEImage pe(module);
+@@ -388,8 +390,10 @@ UNICODE_STRING* GetImageInfoFromModule(HMODULE module, uint32* flags) {
+           *flags |= MODULE_HAS_CODE;
+       }
+     } while (false);
++#if 0
+   } __except(EXCEPTION_EXECUTE_HANDLER) {
+   }
++#endif
+ 
+   return out_name;
+ #pragma warning(pop)

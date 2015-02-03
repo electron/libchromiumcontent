@@ -119,6 +119,7 @@ INCLUDE_DIRS = [
     'content/common',
     'content/public',
     'content/renderer',
+    'crypto',
     'ipc',
     'gin',
     'gpu',

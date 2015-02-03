@@ -1,7 +1,5 @@
 {
   'variables': {
-    # We're not using Chromium's clang, so we can't use their plugins either.
-    'clang_use_chrome_plugins': 0,
     # Enalbe using proprietary codecs.
     'proprietary_codecs': 1,
     'ffmpeg_branding': 'Chrome',
@@ -16,6 +14,8 @@
     'linux_use_tcmalloc': 0,
     # Using libc++ requires building for >= 10.7.
     'mac_deployment_target': '10.8',
+    # The 10.8 SDK does not work well with C++11.
+    'mac_sdk_min': '10.9',
     'conditions': [
       ['OS=="win"', {
         # Chrome turns this off for component builds, and we need to too. Leaving
@@ -36,6 +36,7 @@
         # Use system installed clang for building.
         'make_clang_dir': '/usr',
         'clang': 1,
+        'clang_use_chrome_plugins': 0,
       }],
     ],
     'global_defines': [
@@ -61,6 +62,7 @@
       'CONTENT_IMPLEMENTATION',
       'CRYPTO_IMPLEMENTATION',
       'DBUS_IMPLEMENTATION',
+      'DEVICE_BATTERY_IMPLEMENTATION',
       'EVENTS_BASE_IMPLEMENTATION',
       'EVENTS_IMPLEMENTATION',
       'GESTURE_DETECTION_IMPLEMENTATION',
@@ -154,16 +156,6 @@
     'xcode_settings': {
       'WARNING_CFLAGS': [
         '-Wno-deprecated-declarations',
-      ],
-      # Xcode 5.1 doesn't support these flags.
-      'WARNING_CFLAGS!': [
-        '-Wno-absolute-value',
-        '-Wno-tautological-pointer-compare',
-        '-Wno-unused-local-typedef',
-      ],
-      'OTHER_CFLAGS!': [
-        '-Wno-undefined-bool-conversion',
-        '-Wno-tautological-undefined-compare',
       ],
       # Use C++11 library.
       'CLANG_CXX_LIBRARY': 'libc++',  # -stdlib=libc++

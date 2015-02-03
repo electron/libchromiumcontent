@@ -1,12 +1,13 @@
-Index: content/browser/loader/upload_data_stream_builder.cc
-===================================================================
---- content/browser/loader/upload_data_stream_builder.cc	(revision 283153)
-+++ content/browser/loader/upload_data_stream_builder.cc	(working copy)
-@@ -5,6 +5,7 @@
+diff --git a/content/browser/loader/upload_data_stream_builder.cc b/content/browser/loader/upload_data_stream_builder.cc
+index 376e221..c6b7828 100644
+--- a/content/browser/loader/upload_data_stream_builder.cc
++++ b/content/browser/loader/upload_data_stream_builder.cc
+@@ -5,6 +5,8 @@
  #include "content/browser/loader/upload_data_stream_builder.h"
  
  #include "base/logging.h"
++#include "base/memory/scoped_vector.h"
 +#include "base/sequenced_task_runner.h"
  #include "content/browser/fileapi/upload_file_system_file_element_reader.h"
  #include "content/common/resource_request_body.h"
- #include "net/base/upload_bytes_element_reader.h"
+ #include "net/base/elements_upload_data_stream.h"
