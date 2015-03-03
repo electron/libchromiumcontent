@@ -25,10 +25,6 @@ def main():
     if os.path.isdir(os.path.join(SRC_DIR, '.git')):
         rm_rf(SRC_DIR)
 
-    os.chdir(SOURCE_ROOT)
-    update = os.path.join(SOURCE_ROOT, 'script', 'update')
-    return subprocess.call([sys.executable, update])
-
 
 def rm_rf(path):
     try:

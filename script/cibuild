@@ -13,17 +13,22 @@ S3_CREDENTIALS_FILE = os.path.join(JENKINS_ROOT, 'config', 's3credentials')
 
 
 def main():
-    if not os.path.isfile(S3_CREDENTIALS_FILE):
-        return 'Error: Can\'t find {0}'.format(S3_CREDENTIALS_FILE)
-    copy_to_environment(S3_CREDENTIALS_FILE)
+  if not os.path.isfile(S3_CREDENTIALS_FILE):
+    return 'Error: Can\'t find {0}'.format(S3_CREDENTIALS_FILE)
+  copy_to_environment(S3_CREDENTIALS_FILE)
 
-    print 'Python version:', platform.python_version()
-    print 'OS version:', os_version()
+  print 'Python version:', platform.python_version()
+  print 'OS version:', os_version()
 
-    return (run_script('bootstrap') or
-            run_script('build') or
-            run_script('create-dist') or
-            run_script('upload'))
+  args = []
+  if sys.platform in ['win32', 'cygwin']:
+    args = ['-t', 'ia32']
+
+  return (run_script('bootstrap') or
+          run_script('update', args) or
+          run_script('build', args) or
+          run_script('create-dist', args) or
+          run_script('upload', args))
 
 
 def copy_to_environment(credentials_file):
@@ -45,11 +50,11 @@ def os_version():
     return platform.platform()
 
 
-def run_script(script):
-    script = os.path.join('script', script)
-    sys.stderr.write('+ {0}\n'.format(script))
-    sys.stderr.flush()
-    return subprocess.call([sys.executable, script])
+def run_script(script, args=[]):
+  script = os.path.join('script', script)
+  sys.stderr.write('+ {0}\n'.format(script))
+  sys.stderr.flush()
+  return subprocess.call([sys.executable, script] + args)
 
 
 if __name__ == '__main__':

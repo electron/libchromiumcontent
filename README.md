@@ -35,7 +35,8 @@ TODO
 
 ### Building
 
-    $ script/build
+    $ script/update -t x64
+    $ script/build -t x64
 
 ### Updating project files
 

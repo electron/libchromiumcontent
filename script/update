@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 import contextlib
 import errno
 import os
@@ -21,6 +22,8 @@ TARBALL_URL = 'https://github.com/{0}/releases/download/{1}/chromium-{1}.tar.xz'
 
 
 def main():
+  args = parse_args()
+
   version = chromium_version()
   if not is_source_tarball_updated(version):
     download_source_tarball(version)
@@ -28,8 +31,14 @@ def main():
   return (apply_patches() or
           copy_chromiumcontent_files() or
           update_clang() or
-          run_gyp() or
+          run_gyp(args.target_arch) or
           install_win_tool_wrapper())
+
+
+def parse_args():
+  parser = argparse.ArgumentParser(description='Update build configuration')
+  parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
+  return parser.parse_args()
 
 
 def chromium_version():
@@ -89,26 +98,33 @@ def tar_xf(filename):
   os.remove(tar_name)
 
 
-def gyp_env():
-    env = os.environ.copy()
+def gyp_env(target_arch):
+  env = os.environ.copy()
 
-    # Disable NaCl. We don't need it, and it requires some very long filepaths
-    # which often overrun the Windows file path limit.
-    if 'disable_nacl=1' not in env.get('GYP_DEFINES', ''):
-        env['GYP_DEFINES'] = ' '.join(['disable_nacl=1', env.get('GYP_DEFINES', '')])
+  # Disable NaCl. We don't need it, and it requires some very long filepaths
+  # which often overrun the Windows file path limit.
+  gyp_defines = 'disable_nacl=1'
 
-    env['GYP_GENERATORS'] = 'ninja'
+  env['GYP_GENERATORS'] = 'ninja'
 
-    if sys.platform == 'darwin':
-        # Build 64-bit
-        env['GYP_DEFINES'] = ' '.join(['host_arch=x64 target_arch=x64', env.get('GYP_DEFINES', '')])
-    elif sys.platform in ['win32', 'cygwin']:
-        # Don't use the auto-installed VS2013 Express toolchain from depot_tools.
-        # We have our own.
-        env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
-        env['GYP_MSVS_VERSION'] = '2013'
+  if sys.platform == 'darwin':
+    # host_arch seems to be required.
+    gyp_defines += ' ' + 'host_arch=x64'
+  elif sys.platform in ['win32', 'cygwin']:
+    # Don't use the auto-installed VS2013 Express toolchain from depot_tools.
+    # We have our own.
+    env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
+    env['GYP_MSVS_VERSION'] = '2013'
 
-    return env
+  # Build 32-bit or 64-bit.
+  gyp_defines += ' ' + 'target_arch={0}'.format(target_arch)
+  env['GYP_DEFINES'] = gyp_defines
+
+  # Build in "out32" for 32bit target.
+  if target_arch == 'ia32':
+    env['GYP_GENERATOR_FLAGS'] = 'output_dir=out32'
+
+  return env
 
 
 def copy_chromiumcontent_files():
@@ -141,14 +157,14 @@ def update_clang():
   return subprocess.call([sys.executable, update])
 
 
-def run_gyp():
+def run_gyp(target_arch):
   os.chdir(SRC_DIR)
   gyp = os.path.join('build', 'gyp_chromium')
   relative_dir = os.path.relpath(CHROMIUMCONTENT_DESTINATION_DIR, SRC_DIR)
   return subprocess.call(
       [sys.executable, gyp, '-Ichromiumcontent/chromiumcontent.gypi',
        os.path.join(relative_dir, 'chromiumcontent.gyp')],
-      env=gyp_env())
+      env=gyp_env(target_arch))
 
 
 def install_win_tool_wrapper():

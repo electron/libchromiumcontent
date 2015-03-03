@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 import contextlib
 import errno
 import os
@@ -12,8 +13,6 @@ import zipfile
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 DIST_DIR = os.path.join(SOURCE_ROOT, 'dist')
 SRC_DIR = os.path.join(SOURCE_ROOT, 'vendor', 'chromium', 'src')
-OUT_DIR = os.path.join(SRC_DIR, 'out')
-SYMBOLS_INTERMEDIATE_DIR = os.path.join(OUT_DIR, 'symbols')
 DSYM_DYLIB_PATH = os.path.join('libchromiumcontent.dylib.dSYM', 'Contents',
                                'Resources', 'DWARF',
                                'libchromiumcontent.dylib')
@@ -162,24 +161,37 @@ OTHER_SOURCES = [
 
 
 def main():
-    rm_rf(DIST_DIR)
-    os.makedirs(DIST_DIR)
+  args = parse_args()
 
-    copy_binaries()
-    objcopy_with_debug_info()
-    create_dsym()
-    copy_symbols()
-    copy_sources()
-    create_zip()
+  # Build dir is "out32" for 32bit builds.
+  out_dir = os.path.join(SRC_DIR, 'out')
+  if args.target_arch == 'ia32':
+    out_dir += '32'
+
+  rm_rf(DIST_DIR)
+  os.makedirs(DIST_DIR)
+
+  copy_binaries(out_dir)
+  objcopy_with_debug_info(out_dir)
+  create_dsym(out_dir)
+  copy_symbols(out_dir)
+  copy_sources(out_dir)
+  create_zip()
 
 
-def copy_binaries():
+def parse_args():
+  parser = argparse.ArgumentParser(description='Create distribution')
+  parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
+  return parser.parse_args()
+
+
+def copy_binaries(out_dir):
     for config in CONFIGURATIONS:
         config_dir = os.path.join(MAIN_DIR, config)
         mkdir_p(config_dir)
 
         for binary in BINARIES['all'] + BINARIES[TARGET_PLATFORM]:
-            shutil.copy2(os.path.join(OUT_DIR, config, binary), config_dir)
+            shutil.copy2(os.path.join(out_dir, config, binary), config_dir)
 
         # Strip the copied binaries on Linux since they contain quite large
         # debug info.
@@ -192,54 +204,56 @@ def copy_binaries():
                     subprocess.check_call(['strip', binary_path])
 
 
-def create_dsym():
+def create_dsym(out_dir):
     if sys.platform != 'darwin':
         return
 
     # FIXME: We should probably do this as part of the build, not as part of
     # create-dist.
 
-    source = os.path.join(OUT_DIR, 'Release', DSYM_DYLIB_PATH)
-    destination = os.path.join(SYMBOLS_INTERMEDIATE_DIR, DSYM_DYLIB_PATH)
+    symbols_intermediate_dir = os.path.join(out_dir, 'symbols')
+    source = os.path.join(out_dir, 'Release', DSYM_DYLIB_PATH)
+    destination = os.path.join(symbols_intermediate_dir, DSYM_DYLIB_PATH)
 
     if is_newer(destination, source):
         return
 
     print "Creating dSYM..."
-    mkdir_p(SYMBOLS_INTERMEDIATE_DIR)
-    destination_dsym = os.path.join(SYMBOLS_INTERMEDIATE_DIR,
+    mkdir_p(symbols_intermediate_dir)
+    destination_dsym = os.path.join(symbols_intermediate_dir,
                                     'libchromiumcontent.dylib.dSYM')
     rm_rf(destination_dsym)
     subprocess.check_call(['dsymutil', source, '-o', destination_dsym])
 
 
-def objcopy_with_debug_info():
+def objcopy_with_debug_info(out_dir):
     if TARGET_PLATFORM != 'linux':
         return
 
     for config in CONFIGURATIONS:
         for binary in BINARIES[TARGET_PLATFORM]:
-            source = os.path.join(OUT_DIR, config, binary)
+            source = os.path.join(out_dir, config, binary)
             symbol_name = os.path.basename(binary) + ".dbg"
             if symbol_name in SYMBOLS[TARGET_PLATFORM]:
-                destination = os.path.join(OUT_DIR, config, symbol_name)
+                destination = os.path.join(out_dir, config, symbol_name)
                 safe_unlink(destination)
                 subprocess.check_call(['objcopy', '--only-keep-debug', source,
                                        destination])
 
 
-def copy_symbols():
+def copy_symbols(out_dir):
     for config in CONFIGURATIONS:
         config_dir = os.path.join(SYMBOLS_DIR, config)
         mkdir_p(config_dir)
 
         for path in SYMBOLS[TARGET_PLATFORM]:
-            shutil.copy2(os.path.join(OUT_DIR, config, path), config_dir)
+            shutil.copy2(os.path.join(out_dir, config, path), config_dir)
 
     if sys.platform != 'darwin':
         return
 
-    dsym = os.path.join(SYMBOLS_INTERMEDIATE_DIR,
+    symbols_intermediate_dir = os.path.join(out_dir, 'symbols')
+    dsym = os.path.join(symbols_intermediate_dir,
                         'libchromiumcontent.dylib.dSYM')
     destination = os.path.join(SYMBOLS_DIR, 'Release', os.path.basename(dsym))
     rm_rf(destination)
@@ -247,13 +261,13 @@ def copy_symbols():
     shutil.copytree(dsym, destination)
 
 
-def copy_sources():
+def copy_sources(out_dir):
     for include_path in INCLUDE_DIRS:
         copy_headers(include_path, relative_to=SRC_DIR, destination=DIST_SRC_DIR)
     for config in CONFIGURATIONS:
         for include_path in GENERATED_INCLUDE_DIRS:
             copy_headers(include_path,
-                         relative_to=os.path.join(OUT_DIR, config, 'gen'),
+                         relative_to=os.path.join(out_dir, config, 'gen'),
                          destination=os.path.join(MAIN_DIR, config, 'gen'))
 
     for path in OTHER_HEADERS + OTHER_SOURCES:

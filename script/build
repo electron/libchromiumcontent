@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 import os
 import subprocess
 import sys
@@ -7,7 +8,6 @@ import sys
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
-OUT_DIR = os.path.join(VENDOR_DIR, 'chromium', 'src', 'out')
 TARGETS = ['chromiumcontent_all']
 CONFIGURATIONS = ['Debug', 'Release']
 
@@ -17,10 +17,25 @@ if sys.platform == 'win32':
 
 
 def main():
-    os.chdir(SOURCE_ROOT)
-    for config in CONFIGURATIONS:
-        config_dir = os.path.relpath(os.path.join(OUT_DIR, config))
-        subprocess.check_call([NINJA, '-C', config_dir] + TARGETS)
+  args = parse_args()
+
+  # Build dir is "out32" for 32bit builds.
+  out_dir = os.path.join(VENDOR_DIR, 'chromium', 'src', 'out')
+  if args.target_arch == 'ia32':
+    out_dir += '32'
+
+  os.chdir(SOURCE_ROOT)
+  for config in CONFIGURATIONS:
+    if args.target_arch == 'x64' and sys.platform in ['win32', 'cygwin']:
+      config += '_x64'
+    config_dir = os.path.relpath(os.path.join(out_dir, config))
+    subprocess.check_call([NINJA, '-C', config_dir] + TARGETS)
+
+
+def parse_args():
+  parser = argparse.ArgumentParser(description='Build libchromiumcontent')
+  parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
+  return parser.parse_args()
 
 
 if __name__ == '__main__':
