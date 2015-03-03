@@ -110,12 +110,6 @@ def gyp_env(target_arch):
   if sys.platform == 'darwin':
     # host_arch seems to be required.
     gyp_defines += ' ' + 'host_arch=x64'
-
-    # Use Xcode's own clang instead of Chromium's. This matches what embedding
-    # applications will use, reducing the risk of bugs due to version
-    # mismatches.
-    env['CC_target'] = 'clang'
-    env['CXX_target'] = 'clang++'
   elif sys.platform in ['win32', 'cygwin']:
     # Don't use the auto-installed VS2013 Express toolchain from depot_tools.
     # We have our own.
