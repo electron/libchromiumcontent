@@ -1,8 +1,8 @@
 diff --git a/public/platform/WebDragData.h b/public/platform/WebDragData.h
-index da9873b..c2beaa2 100644
+index 4a63bb0e..ee7c4de 100644
 --- a/public/platform/WebDragData.h
 +++ b/public/platform/WebDragData.h
-@@ -107,7 +107,7 @@ public:
+@@ -106,7 +106,7 @@ public:
      BLINK_EXPORT WebString filesystemId() const;
      BLINK_EXPORT void setFilesystemId(const WebString&);
  
@@ -11,8 +11,21 @@ index da9873b..c2beaa2 100644
      explicit WebDragData(const PassRefPtrWillBeRawPtr<DataObject>&);
      WebDragData& operator=(const PassRefPtrWillBeRawPtr<DataObject>&);
      DataObject* getValue() const;
+diff --git a/public/platform/WebEncryptedMediaRequest.h b/public/platform/WebEncryptedMediaRequest.h
+index 98ef485..8a9300e 100644
+--- a/public/platform/WebEncryptedMediaRequest.h
++++ b/public/platform/WebEncryptedMediaRequest.h
+@@ -30,7 +30,7 @@ public:
+     BLINK_EXPORT void requestSucceeded(WebContentDecryptionModuleAccess*);
+     BLINK_EXPORT void requestNotSupported(const WebString& errorMessage);
+ 
+-#if BLINK_IMPLEMENTATION
++#if INSIDE_BLINK
+     explicit WebEncryptedMediaRequest(EncryptedMediaRequest*);
+ #endif
+ 
 diff --git a/public/platform/WebGamepad.h b/public/platform/WebGamepad.h
-index 63d63f1..8844654 100644
+index af1c3e7..ee764e7 100644
 --- a/public/platform/WebGamepad.h
 +++ b/public/platform/WebGamepad.h
 @@ -26,7 +26,7 @@
@@ -30,11 +43,11 @@ index 63d63f1..8844654 100644
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
- COMPILE_ASSERT(sizeof(WebGamepad) == 721, WebGamepad_has_wrong_size);
+ static_assert(sizeof(WebGamepad) == 721, "WebGamepad has wrong size");
  #endif
  
 diff --git a/public/platform/WebGamepads.h b/public/platform/WebGamepads.h
-index 1fa1e81..dfedaf3 100644
+index 2aa8621..57f1401 100644
 --- a/public/platform/WebGamepads.h
 +++ b/public/platform/WebGamepads.h
 @@ -26,7 +26,7 @@
@@ -52,7 +65,7 @@ index 1fa1e81..dfedaf3 100644
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
- COMPILE_ASSERT(sizeof(WebGamepads) == 2888, WebGamepads_has_wrong_size);
+ static_assert(sizeof(WebGamepads) == 2888, "WebGamepads has wrong size");
  #endif
  
 diff --git a/public/platform/WebIDBDatabaseError.h b/public/platform/WebIDBDatabaseError.h
@@ -95,10 +108,10 @@ index e15c6f2..ac68730 100644
      WebIDBKeyPath& operator=(const IDBKeyPath&);
      operator const IDBKeyPath&() const;
 diff --git a/public/platform/WebIDBKeyRange.h b/public/platform/WebIDBKeyRange.h
-index 69fc5f6..39632d1 100644
+index a371622..15ec801 100644
 --- a/public/platform/WebIDBKeyRange.h
 +++ b/public/platform/WebIDBKeyRange.h
-@@ -51,7 +51,7 @@ public:
+@@ -50,7 +50,7 @@ public:
      BLINK_EXPORT void assign(const WebIDBKey& lower, const WebIDBKey& upper, bool lowerOpen, bool upperOpen);
      BLINK_EXPORT void reset();
  
@@ -160,7 +173,7 @@ index 748d111..e53442f 100644
  #endif
  
 diff --git a/public/web/WebAXObject.h b/public/web/WebAXObject.h
-index e2fb717..b88e5d9 100644
+index 0af7027..42eda2a 100644
 --- a/public/web/WebAXObject.h
 +++ b/public/web/WebAXObject.h
 @@ -36,7 +36,7 @@
@@ -172,7 +185,7 @@ index e2fb717..b88e5d9 100644
  namespace WTF { template <typename T> class PassRefPtr; }
  #endif
  
-@@ -222,7 +222,7 @@ public:
+@@ -227,7 +227,7 @@ public:
      // Scroll this object to a given point in global coordinates of the top-level window.
      BLINK_EXPORT void scrollToGlobalPoint(const WebPoint&) const;
  
@@ -182,7 +195,7 @@ index e2fb717..b88e5d9 100644
      WebAXObject& operator=(const WTF::PassRefPtr<AXObject>&);
      operator WTF::PassRefPtr<AXObject>() const;
 diff --git a/public/web/WebArrayBufferView.h b/public/web/WebArrayBufferView.h
-index cc02d7e..7caaeb5 100644
+index 7d4dfe8..55bbb94 100644
 --- a/public/web/WebArrayBufferView.h
 +++ b/public/web/WebArrayBufferView.h
 @@ -57,7 +57,7 @@ public:
@@ -191,9 +204,9 @@ index cc02d7e..7caaeb5 100644
  
 -#if BLINK_IMPLEMENTATION
 +#if INSIDE_BLINK
-     WebArrayBufferView(const WTF::PassRefPtr<WTF::ArrayBufferView>&);
-     WebArrayBufferView& operator=(const WTF::PassRefPtr<WTF::ArrayBufferView>&);
-     operator WTF::PassRefPtr<WTF::ArrayBufferView>() const;
+     WebArrayBufferView(const WTF::PassRefPtr<DOMArrayBufferView>&);
+     WebArrayBufferView& operator=(const WTF::PassRefPtr<DOMArrayBufferView>&);
+     operator WTF::PassRefPtr<DOMArrayBufferView>() const;
 diff --git a/public/web/WebBlob.h b/public/web/WebBlob.h
 index bfb0493..5203c71 100644
 --- a/public/web/WebBlob.h
@@ -366,7 +379,7 @@ index e2266b7..48d9f49 100644
      WebDateTimeSuggestion& operator=(const DateTimeSuggestion&);
  #endif
 diff --git a/public/web/WebDocument.h b/public/web/WebDocument.h
-index 89f5549..6cdbf05 100644
+index ebfad41..39faa86 100644
 --- a/public/web/WebDocument.h
 +++ b/public/web/WebDocument.h
 @@ -39,7 +39,7 @@
@@ -378,7 +391,7 @@ index 89f5549..6cdbf05 100644
  namespace WTF { template <typename T> class PassRefPtr; }
  #endif
  
-@@ -145,7 +145,7 @@ public:
+@@ -147,7 +147,7 @@ public:
  
      BLINK_EXPORT WebURL manifestURL() const;
  
@@ -458,10 +471,10 @@ index cf0772f..130d71f 100644
      operator FontDescription() const;
  #endif
 diff --git a/public/web/WebFormControlElement.h b/public/web/WebFormControlElement.h
-index 63de563..9ea8dfc 100644
+index 877e59c..69822a7 100644
 --- a/public/web/WebFormControlElement.h
 +++ b/public/web/WebFormControlElement.h
-@@ -113,7 +113,7 @@ public:
+@@ -110,7 +110,7 @@ public:
  
      BLINK_EXPORT WebFormElement form() const;
  
@@ -471,10 +484,10 @@ index 63de563..9ea8dfc 100644
      WebFormControlElement& operator=(const PassRefPtrWillBeRawPtr<HTMLFormControlElement>&);
      operator PassRefPtrWillBeRawPtr<HTMLFormControlElement>() const;
 diff --git a/public/web/WebFormElement.h b/public/web/WebFormElement.h
-index cb2f5d0..f530ae9 100644
+index d50a3bb..994858f 100644
 --- a/public/web/WebFormElement.h
 +++ b/public/web/WebFormElement.h
-@@ -78,7 +78,7 @@ public:
+@@ -77,7 +77,7 @@ public:
      };
      BLINK_EXPORT void finishRequestAutocomplete(WebFormElement::AutocompleteResult);
  
@@ -484,10 +497,10 @@ index cb2f5d0..f530ae9 100644
      WebFormElement& operator=(const PassRefPtrWillBeRawPtr<HTMLFormElement>&);
      operator PassRefPtrWillBeRawPtr<HTMLFormElement>() const;
 diff --git a/public/web/WebFrame.h b/public/web/WebFrame.h
-index 9024999..749438f 100644
+index b2fa375..ddd07f8 100644
 --- a/public/web/WebFrame.h
 +++ b/public/web/WebFrame.h
-@@ -657,7 +657,7 @@ public:
+@@ -654,7 +654,7 @@ public:
      // text form. This is used only by layout tests.
      virtual WebString layerTreeAsText(bool showDebugInfo = false) const = 0;
  
@@ -496,7 +509,7 @@ index 9024999..749438f 100644
      static WebFrame* fromFrame(Frame*);
  #if ENABLE(OILPAN)
      static void traceFrames(Visitor*, WebFrame*);
-@@ -678,7 +678,7 @@ protected:
+@@ -675,7 +675,7 @@ protected:
  private:
      friend class OpenedFrameTracker;
  
@@ -505,7 +518,7 @@ index 9024999..749438f 100644
  #if ENABLE(OILPAN)
      static void traceFrame(Visitor*, WebFrame*);
      static bool isFrameAlive(Visitor*, const WebFrame*);
-@@ -695,7 +695,7 @@ private:
+@@ -692,7 +692,7 @@ private:
      WebPrivateOwnPtr<OpenedFrameTracker> m_openedFrameTracker;
  };
  
@@ -717,28 +730,6 @@ index 4e7dcf9..dad58c5 100644
      WebNodeList(const PassRefPtrWillBeRawPtr<NodeList>&);
      WebNodeList& operator=(const PassRefPtrWillBeRawPtr<NodeList>&);
  #endif
-diff --git a/public/web/WebNotification.h b/public/web/WebNotification.h
-index 347b8ff..effcb8a 100644
---- a/public/web/WebNotification.h
-+++ b/public/web/WebNotification.h
-@@ -36,7 +36,7 @@
- #include "../platform/WebString.h"
- #include "WebTextDirection.h"
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
- namespace WTF { template <typename T> class PassRefPtr; }
- #endif
- 
-@@ -91,7 +91,7 @@ public:
-     WebString replaceId() const { return tag(); }
-     void dispatchDisplayEvent() { dispatchShowEvent(); }
- 
--#if BLINK_IMPLEMENTATION
-+#if INSIDE_BLINK
-     WebNotification(Notification*);
-     WebNotification& operator=(Notification*);
- #endif
 diff --git a/public/web/WebOptionElement.h b/public/web/WebOptionElement.h
 index dfbba7e..97e89d5 100644
 --- a/public/web/WebOptionElement.h
@@ -788,10 +779,10 @@ index 7424bae..09e63d9 100644
      WebPluginDocument& operator=(const PassRefPtrWillBeRawPtr<PluginDocument>&);
      operator PassRefPtrWillBeRawPtr<PluginDocument>() const;
 diff --git a/public/web/WebRange.h b/public/web/WebRange.h
-index 2a27890..ea79af2 100644
+index 4d2a884..35f0519 100644
 --- a/public/web/WebRange.h
 +++ b/public/web/WebRange.h
-@@ -72,7 +72,7 @@ public:
+@@ -65,7 +65,7 @@ public:
  
      BLINK_EXPORT static WebRange fromDocumentRange(WebLocalFrame*, int start, int length);
  
@@ -875,10 +866,10 @@ index 3a062bb..0890398 100644
  #endif
  
 diff --git a/public/web/WebSpeechRecognitionHandle.h b/public/web/WebSpeechRecognitionHandle.h
-index cc41654..f643bc0 100644
+index 4e2de70..726a3e5 100644
 --- a/public/web/WebSpeechRecognitionHandle.h
 +++ b/public/web/WebSpeechRecognitionHandle.h
-@@ -58,7 +58,7 @@ public:
+@@ -56,7 +56,7 @@ public:
      BLINK_EXPORT bool equals(const WebSpeechRecognitionHandle&) const;
      BLINK_EXPORT bool lessThan(const WebSpeechRecognitionHandle&) const;
  
@@ -975,10 +966,10 @@ index 1721724..1629560 100644
      operator PassRefPtr<UserGestureToken>() const;
  #endif
 diff --git a/public/web/WebUserMediaRequest.h b/public/web/WebUserMediaRequest.h
-index e202ae1..e7f04ed 100644
+index 28ce59d..9bbc71e 100644
 --- a/public/web/WebUserMediaRequest.h
 +++ b/public/web/WebUserMediaRequest.h
-@@ -79,7 +79,7 @@ public:
+@@ -77,7 +77,7 @@ public:
      // DEPRECATED
      BLINK_EXPORT void requestFailed(const WebString& description = WebString()) { requestDenied(description); }
  
