@@ -183,6 +183,14 @@
           ['exclude', 'debug/debug_on_start_win\.cc$'],
         ],
       }],
+      ['_target_name in ["content", "content_common"]', {
+        # Fix C1128 number of sections exceeded object file format limit.
+        'msvs_settings': {
+          'VCCLCompilerTool': {
+            'AdditionalOptions': ['/bigobj'],
+          },
+        },
+      }],
       # These targets get linked directly into client applications, so need
       # to see symbols decorated with __declspec(dllimport).
       ['_target_name in ["base_prefs_test_support", "net_test_support", "sandbox_static", "test_support_base", "test_support_content"]', {
