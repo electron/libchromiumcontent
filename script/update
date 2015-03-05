@@ -28,11 +28,12 @@ def main():
   if not is_source_tarball_updated(version):
     download_source_tarball(version)
 
+  target_arch = args.target_arch
   return (apply_patches() or
           copy_chromiumcontent_files() or
           update_clang() or
-          run_gyp(args.target_arch) or
-          install_win_tool_wrapper())
+          run_gyp(target_arch) or
+          install_win_tool_wrapper(target_arch))
 
 
 def parse_args():
@@ -167,14 +168,17 @@ def run_gyp(target_arch):
       env=gyp_env(target_arch))
 
 
-def install_win_tool_wrapper():
-    if sys.platform not in ['win32', 'cygwin']:
-        return
-    for config in ['Debug', 'Release']:
-        config_dir = os.path.join(SRC_DIR, 'out', config)
-        win_tool = os.path.join(config_dir, 'gyp-win-tool')
-        shutil.move(win_tool, '{0}-original'.format(win_tool))
-        shutil.copy(os.path.join(SOURCE_ROOT, 'gyp-win-tool-wrapper'), win_tool)
+def install_win_tool_wrapper(target_arch):
+  if sys.platform not in ['win32', 'cygwin']:
+    return
+  for config in ['Debug', 'Release']:
+    out_dir = os.path.join(SRC_DIR, 'out')
+    if target_arch == 'ia32':
+      out_dir += '32'
+    config_dir = os.path.join(out_dir, config)
+    win_tool = os.path.join(config_dir, 'gyp-win-tool')
+    shutil.move(win_tool, '{0}-original'.format(win_tool))
+    shutil.copy(os.path.join(SOURCE_ROOT, 'gyp-win-tool-wrapper'), win_tool)
 
 
 def xz():
