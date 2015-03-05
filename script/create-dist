@@ -149,6 +149,7 @@ INCLUDE_DIRS = [
     'win32': [],
 }[TARGET_PLATFORM]
 GENERATED_INCLUDE_DIRS = [
+    'content',
     'mojo',
     'ui',
 ]
