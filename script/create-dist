@@ -36,6 +36,8 @@ BINARIES = {
     'all': [
         'content_shell.pak',
         'icudtl.dat',
+        'natives_blob.bin',
+        'snapshot_blob.bin',
         os.path.join('gen', 'content', 'app', 'resources', 'content_resources_200_percent.pak'),
         os.path.join('gen', 'ui', 'resources', 'ui_resources_200_percent.pak'),
     ],
