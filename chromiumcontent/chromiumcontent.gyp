@@ -130,6 +130,7 @@
           'target_name': 'chromiumviews',
           'type': 'none',
           'dependencies': [
+            '<(DEPTH)/ui/content_accelerators/ui_content_accelerators.gyp:ui_content_accelerators',
             '<(DEPTH)/ui/display/display.gyp:display',
             '<(DEPTH)/ui/display/display.gyp:display_util',
             '<(DEPTH)/ui/views/controls/webview/webview.gyp:webview',
@@ -143,6 +144,7 @@
                   'action_name': 'Create chromiumviews.lib',
                   'inputs': [
                     '<(PRODUCT_DIR)\\obj\\third_party\\iaccessible2\\iaccessible2.lib',
+                    '<(PRODUCT_DIR)\\obj\\ui\\content_accelerators\\ui_content_accelerators.lib',
                     '<(PRODUCT_DIR)\\obj\\ui\\display\\display.lib',
                     '<(PRODUCT_DIR)\\obj\\ui\\display\\display_util.lib',
                     '<(PRODUCT_DIR)\\obj\\ui\\views\\views.lib',
@@ -174,6 +176,7 @@
                   'action_name': 'Create libchromiumviews.a',
                   'inputs': [
                     '<(PRODUCT_DIR)/obj/chrome/browser/ui/libgtk2ui/libgtk2ui.a',
+                    '<(PRODUCT_DIR)/obj/ui/content_accelerators/libui_content_accelerators.a',
                     '<(PRODUCT_DIR)/obj/ui/display/libdisplay.a',
                     '<(PRODUCT_DIR)/obj/ui/display/libdisplay_util.a',
                     '<(PRODUCT_DIR)/obj/ui/views/libviews.a',
