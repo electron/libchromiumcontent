@@ -18,6 +18,8 @@
     'mac_sdk_min': '10.9',
     'conditions': [
       ['OS=="win"', {
+        # On Chrome 41 this is disabled on Windows.
+        'v8_use_external_startup_data': 1,
         # Chrome turns this off for component builds, and we need to too. Leaving
         # it on would result in both the Debug and Release CRTs being included in
         # the library.
