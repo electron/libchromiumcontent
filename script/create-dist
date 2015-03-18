@@ -36,6 +36,8 @@ BINARIES = {
     'all': [
         'content_shell.pak',
         'icudtl.dat',
+        'natives_blob.bin',
+        'snapshot_blob.bin',
         os.path.join('gen', 'content', 'app', 'resources', 'content_resources_200_percent.pak'),
         os.path.join('gen', 'ui', 'resources', 'ui_resources_200_percent.pak'),
     ],
@@ -43,7 +45,6 @@ BINARIES = {
         'chromedriver',
         'ffmpegsumo.so',
         'libchromiumcontent.dylib',
-        'libtest_support_chromiumcontent.a',
     ],
     'linux': [
         'chrome_sandbox',
@@ -54,7 +55,6 @@ BINARIES = {
         os.path.join('lib', 'libchromiumcontent.so'),
         'libos_crypt.a',
         'libspeechd.a',
-        'libtest_support_chromiumcontent.a',
     ],
     'win32': [
         'chromedriver.exe',
@@ -64,23 +64,19 @@ BINARIES = {
         'ffmpegsumo.dll',
         'libEGL.dll',
         'libGLESv2.dll',
-        'test_support_chromiumcontent.lib',
         os.path.join('obj', 'base', 'base_static.lib'),
         os.path.join('obj', 'base', 'base_static.cc.pdb'),
-        os.path.join('obj', 'base', 'test_support_base.cc.pdb'),
         os.path.join('obj', 'base', 'third_party', 'dynamic_annotations', 'dynamic_annotations.lib'),
         os.path.join('obj', 'base', 'third_party', 'dynamic_annotations', 'dynamic_annotations.c.pdb'),
         os.path.join('obj', 'components', 'os_crypt.lib'),
         os.path.join('obj', 'components', 'os_crypt.cc.pdb'),
-        os.path.join('obj', 'content', 'test_support_content.cc.pdb'),
-        os.path.join('obj', 'net', 'net_test_support.cc.pdb'),
         os.path.join('obj', 'sandbox', 'sandbox_static.lib'),
         os.path.join('obj', 'sandbox', 'sandbox_static.cc.pdb'),
-        os.path.join('obj', 'testing', 'gtest.cc.pdb'),
         os.path.join('obj', 'third_party', 'iaccessible2', 'iaccessible2.c.pdb'),
         os.path.join('obj', 'third_party', 'libxml', 'libxml.c.pdb'),
         os.path.join('obj', 'third_party', 'libxml', 'libxml.cc.pdb'),
         os.path.join('obj', 'third_party', 'zlib', 'zlib.c.pdb'),
+        os.path.join('obj', 'ui', 'content_accelerators', 'ui_content_accelerators.cc.pdb'),
         os.path.join('obj', 'ui', 'display', 'display.cc.pdb'),
         os.path.join('obj', 'ui', 'views', 'controls', 'webview', 'webview.cc.pdb'),
         os.path.join('obj', 'ui', 'views', 'views.cc.pdb'),
@@ -149,6 +145,7 @@ INCLUDE_DIRS = [
     'win32': [],
 }[TARGET_PLATFORM]
 GENERATED_INCLUDE_DIRS = [
+    'content',
     'mojo',
     'ui',
 ]

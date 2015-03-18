@@ -1,8 +1,8 @@
 diff --git a/sandbox/win/src/sandbox_nt_util.cc b/sandbox/win/src/sandbox_nt_util.cc
-index 12dd7d8..db8f7e8 100644
+index cc446e5..03fc45c 100644
 --- a/sandbox/win/src/sandbox_nt_util.cc
 +++ b/sandbox/win/src/sandbox_nt_util.cc
-@@ -365,7 +365,9 @@ UNICODE_STRING* GetImageInfoFromModule(HMODULE module, uint32* flags) {
+@@ -437,7 +437,9 @@ UNICODE_STRING* GetImageInfoFromModule(HMODULE module, uint32* flags) {
  #pragma warning(push)
  #pragma warning(disable: 4509)
    UNICODE_STRING* out_name = NULL;
@@ -12,7 +12,7 @@ index 12dd7d8..db8f7e8 100644
      do {
        *flags = 0;
        base::win::PEImage pe(module);
-@@ -388,8 +390,10 @@ UNICODE_STRING* GetImageInfoFromModule(HMODULE module, uint32* flags) {
+@@ -460,8 +462,10 @@ UNICODE_STRING* GetImageInfoFromModule(HMODULE module, uint32* flags) {
            *flags |= MODULE_HAS_CODE;
        }
      } while (false);

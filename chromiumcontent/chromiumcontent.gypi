@@ -18,6 +18,8 @@
     'mac_sdk_min': '10.9',
     'conditions': [
       ['OS=="win"', {
+        # On Chrome 41 this is disabled on Windows.
+        'v8_use_external_startup_data': 1,
         # Chrome turns this off for component builds, and we need to too. Leaving
         # it on would result in both the Debug and Release CRTs being included in
         # the library.
@@ -63,6 +65,7 @@
       'CRYPTO_IMPLEMENTATION',
       'DBUS_IMPLEMENTATION',
       'DEVICE_BATTERY_IMPLEMENTATION',
+      'DEVICE_VIBRATION_IMPLEMENTATION',
       'EVENTS_BASE_IMPLEMENTATION',
       'EVENTS_IMPLEMENTATION',
       'GESTURE_DETECTION_IMPLEMENTATION',
@@ -75,6 +78,7 @@
       'GL_IMPLEMENTATION',
       'GL_IN_PROCESS_CONTEXT_IMPLEMENTATION',
       'GPU_IMPLEMENTATION',
+      'GPU_BLINK_IMPLEMENTATION',
       'IPC_IMPLEMENTATION',
       'IPC_MOJO_IMPLEMENTATION',
       'KEYBOARD_IMPLEMENTATION',
@@ -165,6 +169,8 @@
         'cflags!': [
           # Clang 3.4 doesn't support these flags.
           '-Wno-absolute-value',
+          '-Wno-inconsistent-missing-override',
+          '-Wno-pointer-bool-conversion',
           '-Wno-tautological-pointer-compare',
           '-Wno-unused-local-typedef',
           '-Wno-undefined-bool-conversion',
@@ -183,6 +189,14 @@
           ['exclude', 'debug/debug_on_start_win\.cc$'],
         ],
       }],
+      ['_target_name in ["content", "content_common"]', {
+        # Fix C1128 number of sections exceeded object file format limit.
+        'msvs_settings': {
+          'VCCLCompilerTool': {
+            'AdditionalOptions': ['/bigobj'],
+          },
+        },
+      }],
       # These targets get linked directly into client applications, so need
       # to see symbols decorated with __declspec(dllimport).
       ['_target_name in ["base_prefs_test_support", "net_test_support", "sandbox_static", "test_support_base", "test_support_content"]', {
@@ -190,7 +204,7 @@
           '<@(chromiumcontent_defines)',
         ],
       }],
-      ['_target_name in ["views", "webview", "web_dialogs", "wm", "display", "display_util"]', {
+      ['_target_name in ["views", "webview", "web_dialogs", "wm", "display", "display_util", "ui_content_accelerators"]', {
         'defines': [
           'VIEWS_STATIC',
           '<@(chromiumviews_defines)',

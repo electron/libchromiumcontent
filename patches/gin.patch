@@ -1,0 +1,25 @@
+diff --git a/gin/gin.gyp b/gin/gin.gyp
+index 096c120..40ba098 100644
+--- a/gin/gin.gyp
++++ b/gin/gin.gyp
+@@ -78,20 +78,6 @@
+         'wrappable.h',
+         'wrapper_info.cc',
+       ],
+-      'conditions': [
+-        ['v8_use_external_startup_data==1 and OS=="win"', {
+-          'dependencies': [
+-            'gin_v8_snapshot_fingerprint',
+-            '../crypto/crypto.gyp:crypto',
+-          ],
+-          'sources': [
+-            '<(gin_gen_path)/v8_snapshot_fingerprint.cc',
+-          ],
+-          'defines': [
+-            'V8_VERIFY_EXTERNAL_STARTUP_DATA',
+-          ]
+-        }],
+-      ],
+     },
+     {
+       'target_name': 'gin_v8_snapshot_fingerprint',
