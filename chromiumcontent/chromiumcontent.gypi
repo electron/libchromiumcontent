@@ -169,6 +169,7 @@
         'cflags!': [
           # Clang 3.4 doesn't support these flags.
           '-Wno-absolute-value',
+          '-Wno-inconsistent-missing-override',
           '-Wno-tautological-pointer-compare',
           '-Wno-unused-local-typedef',
           '-Wno-undefined-bool-conversion',
