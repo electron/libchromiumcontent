@@ -1,0 +1,171 @@
+diff --git a/Source/core/css/RenderStyleCSSValueMapping.cpp b/Source/core/css/RenderStyleCSSValueMapping.cpp
+index e482f0b..7cada3ce 100644
+--- a/Source/core/css/RenderStyleCSSValueMapping.cpp
++++ b/Source/core/css/RenderStyleCSSValueMapping.cpp
+@@ -502,7 +502,7 @@ static PassRefPtrWillBeRawPtr<CSSValueList> valueForFontFamily(const RenderStyle
+ 
+ static PassRefPtrWillBeRawPtr<CSSPrimitiveValue> valueForFontSize(const RenderStyle& style)
+ {
+-    return zoomAdjustedPixelValue(style.fontDescription().computedSize(), style);
++    return zoomAdjustedPixelValue(RuntimeEnabledFeatures::subpixelFontScalingEnabled() ? style.fontDescription().computedSize() : style.fontDescription().computedPixelSize(), style);
+ }
+ 
+ static PassRefPtrWillBeRawPtr<CSSPrimitiveValue> valueForFontStretch(const RenderStyle& style)
+diff --git a/Source/core/paint/InlineTextBoxPainter.cpp b/Source/core/paint/InlineTextBoxPainter.cpp
+index da82452..c45f815 100644
+--- a/Source/core/paint/InlineTextBoxPainter.cpp
++++ b/Source/core/paint/InlineTextBoxPainter.cpp
+@@ -56,8 +56,13 @@ void InlineTextBoxPainter::paint(const PaintInfo& paintInfo, const LayoutPoint&
+     LayoutUnit paintEnd = m_inlineTextBox.isHorizontal() ? paintInfo.rect.maxX() : paintInfo.rect.maxY();
+     LayoutUnit paintStart = m_inlineTextBox.isHorizontal() ? paintInfo.rect.x() : paintInfo.rect.y();
+ 
+-    // We round the y-axis to ensure consistent line heights.
+-    LayoutPoint adjustedPaintOffset = LayoutPoint(paintOffset.x(), paintOffset.y().round());
++    // When subpixel font scaling is enabled text runs are positioned at
++    // subpixel boundaries on the x-axis and thus there is no reason to
++    // snap the x value. We still round the y-axis to ensure consistent
++    // line heights.
++    LayoutPoint adjustedPaintOffset = RuntimeEnabledFeatures::subpixelFontScalingEnabled()
++        ? LayoutPoint(paintOffset.x(), paintOffset.y().round())
++        : roundedIntPoint(paintOffset);
+ 
+     if (logicalStart >= paintEnd || logicalStart + logicalExtent <= paintStart)
+         return;
+diff --git a/Source/platform/RuntimeEnabledFeatures.in b/Source/platform/RuntimeEnabledFeatures.in
+index fa1f05f..4c276b3 100644
+--- a/Source/platform/RuntimeEnabledFeatures.in
++++ b/Source/platform/RuntimeEnabledFeatures.in
+@@ -124,6 +124,7 @@ SessionStorage status=stable
+ SharedWorker status=stable
+ SlimmingPaint
+ Stream status=experimental
++SubpixelFontScaling status=stable
+ SubresourceIntegrity status=experimental
+ TextBlob
+ ThreadedParserDataReceiver status=experimental
+diff --git a/Source/platform/fonts/FontDescription.cpp b/Source/platform/fonts/FontDescription.cpp
+index 7a9d0b9..208ea3d 100644
+--- a/Source/platform/fonts/FontDescription.cpp
++++ b/Source/platform/fonts/FontDescription.cpp
+@@ -143,9 +143,12 @@ void FontDescription::setVariantLigatures(const VariantLigatures& ligatures)
+ 
+ float FontDescription::effectiveFontSize() const
+ {
++    float size = (RuntimeEnabledFeatures::subpixelFontScalingEnabled())
++         ? computedSize()
++         : computedPixelSize();
+     // Ensure that the effective precision matches the font-cache precision.
+     // This guarantees that the same precision is used regardless of cache status.
+-    return floorf(computedSize() * FontCacheKey::precisionMultiplier()) / FontCacheKey::precisionMultiplier();
++    return floorf(size * FontCacheKey::precisionMultiplier()) / FontCacheKey::precisionMultiplier();
+ }
+ 
+ FontCacheKey FontDescription::cacheKey(const FontFaceCreationParams& creationParams, FontTraits desiredTraits) const
+diff --git a/Source/platform/fonts/linux/FontPlatformDataLinux.cpp b/Source/platform/fonts/linux/FontPlatformDataLinux.cpp
+index a570eff..8514c84 100644
+--- a/Source/platform/fonts/linux/FontPlatformDataLinux.cpp
++++ b/Source/platform/fonts/linux/FontPlatformDataLinux.cpp
+@@ -82,7 +82,8 @@ void FontPlatformData::setupPaint(SkPaint* paint, GraphicsContext* context, cons
+         paint->setLCDRenderText(m_style.useSubpixelRendering);
+ 
+     // Do not enable subpixel text on low-dpi if full hinting is requested.
+-    bool useSubpixelText = (paint->getHinting() != SkPaint::kFull_Hinting
++    bool useSubpixelText = RuntimeEnabledFeatures::subpixelFontScalingEnabled()
++        && (paint->getHinting() != SkPaint::kFull_Hinting
+         || (context && context->deviceScaleFactor() > 1.0f));
+ 
+     // TestRunner specifically toggles the subpixel positioning flag.
+diff --git a/Source/platform/fonts/mac/FontCacheMac.mm b/Source/platform/fonts/mac/FontCacheMac.mm
+index 8c2f402f3..1e5df92 100644
+--- a/Source/platform/fonts/mac/FontCacheMac.mm
++++ b/Source/platform/fonts/mac/FontCacheMac.mm
+@@ -72,7 +72,7 @@ static bool useHinting()
+     // Enable hinting when subpixel font scaling is disabled or
+     // when running the set of standard non-subpixel layout tests,
+     // otherwise use subpixel glyph positioning.
+-    return (LayoutTestSupport::isRunningLayoutTest() && !LayoutTestSupport::isFontAntialiasingEnabledForTest());
++    return (LayoutTestSupport::isRunningLayoutTest() && !LayoutTestSupport::isFontAntialiasingEnabledForTest()) || !RuntimeEnabledFeatures::subpixelFontScalingEnabled();
+ }
+ 
+ void FontCache::platformInit()
+diff --git a/Source/platform/fonts/mac/FontPlatformDataMac.mm b/Source/platform/fonts/mac/FontPlatformDataMac.mm
+index 94c888c..4a0fc8d 100644
+--- a/Source/platform/fonts/mac/FontPlatformDataMac.mm
++++ b/Source/platform/fonts/mac/FontPlatformDataMac.mm
+@@ -29,6 +29,7 @@
+ #import <wtf/text/WTFString.h>
+ 
+ #include "platform/LayoutTestSupport.h"
++#include "platform/RuntimeEnabledFeatures.h"
+ #include "platform/fonts/Font.h"
+ #import "platform/fonts/shaping/HarfBuzzFace.h"
+ #include "third_party/skia/include/ports/SkTypeface_mac.h"
+@@ -64,6 +65,8 @@ void FontPlatformData::setupPaint(SkPaint* paint, GraphicsContext*, const Font*
+         shouldAntialias = shouldAntialias && LayoutTestSupport::isFontAntialiasingEnabledForTest();
+     }
+ 
++    bool useSubpixelText = RuntimeEnabledFeatures::subpixelFontScalingEnabled();
++
+     paint->setAntiAlias(shouldAntialias);
+     paint->setEmbeddedBitmapText(false);
+     const float ts = m_textSize >= 0 ? m_textSize : 12;
+@@ -72,7 +75,7 @@ void FontPlatformData::setupPaint(SkPaint* paint, GraphicsContext*, const Font*
+     paint->setFakeBoldText(m_syntheticBold);
+     paint->setTextSkewX(m_syntheticItalic ? -SK_Scalar1 / 4 : 0);
+     paint->setLCDRenderText(shouldSmoothFonts);
+-    paint->setSubpixelText(true);
++    paint->setSubpixelText(useSubpixelText);
+ 
+     // When rendering using CoreGraphics, disable hinting when webkit-font-smoothing:antialiased or
+     // text-rendering:geometricPrecision is used.
+diff --git a/Source/platform/fonts/shaping/HarfBuzzShaper.cpp b/Source/platform/fonts/shaping/HarfBuzzShaper.cpp
+index dba7381..0faaf9d 100644
+--- a/Source/platform/fonts/shaping/HarfBuzzShaper.cpp
++++ b/Source/platform/fonts/shaping/HarfBuzzShaper.cpp
+@@ -558,6 +558,9 @@ bool HarfBuzzShaper::shape(GlyphBuffer* glyphBuffer)
+     if (!shapeHarfBuzzRuns())
+         return false;
+ 
++    if (!RuntimeEnabledFeatures::subpixelFontScalingEnabled())
++        m_totalWidth = roundf(m_totalWidth);
++
+     if (glyphBuffer && !fillGlyphBuffer(glyphBuffer))
+         return false;
+ 
+diff --git a/Source/platform/fonts/win/FontCacheSkiaWin.cpp b/Source/platform/fonts/win/FontCacheSkiaWin.cpp
+index 896e7d1..ed9d920 100644
+--- a/Source/platform/fonts/win/FontCacheSkiaWin.cpp
++++ b/Source/platform/fonts/win/FontCacheSkiaWin.cpp
+@@ -102,7 +102,7 @@ FontCache::FontCache()
+ 
+     if (s_useDirectWrite) {
+         fontManager = SkFontMgr_New_DirectWrite(s_directWriteFactory);
+-        s_useSubpixelPositioning = true;
++        s_useSubpixelPositioning = RuntimeEnabledFeatures::subpixelFontScalingEnabled();
+     } else {
+         fontManager = SkFontMgr_New_GDI();
+         // Subpixel text positioning is not supported by the GDI backend.
+diff --git a/Source/web/WebRuntimeFeatures.cpp b/Source/web/WebRuntimeFeatures.cpp
+index b053303..4a7d347 100644
+--- a/Source/web/WebRuntimeFeatures.cpp
++++ b/Source/web/WebRuntimeFeatures.cpp
+@@ -45,6 +45,7 @@ void WebRuntimeFeatures::enableBleedingEdgeFastPaths(bool enable)
+ {
+     ASSERT(enable);
+     RuntimeEnabledFeatures::setBleedingEdgeFastPathsEnabled(enable);
++    RuntimeEnabledFeatures::setSubpixelFontScalingEnabled(enable || RuntimeEnabledFeatures::subpixelFontScalingEnabled());
+     RuntimeEnabledFeatures::setWebAnimationsAPIEnabled(enable);
+ }
+ 
+@@ -143,6 +144,11 @@ void WebRuntimeFeatures::enableMediaPlayer(bool enable)
+     RuntimeEnabledFeatures::setMediaEnabled(enable);
+ }
+ 
++void WebRuntimeFeatures::enableSubpixelFontScaling(bool enable)
++{
++    RuntimeEnabledFeatures::setSubpixelFontScalingEnabled(enable);
++}
++
+ void WebRuntimeFeatures::enableMediaCapture(bool enable)
+ {
+     RuntimeEnabledFeatures::setMediaCaptureEnabled(enable);
