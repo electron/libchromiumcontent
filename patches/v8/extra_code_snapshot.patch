@@ -1,0 +1,278 @@
+diff --git a/Makefile b/Makefile
+index 606b5d7..6ffa20c 100644
+--- a/Makefile
++++ b/Makefile
+@@ -157,6 +157,9 @@ ifneq ($(strip $(asan)),)
+     GYPFLAGS += -Dlsan=1
+   endif
+ endif
++ifdef embedscript
++  GYPFLAGS += -Dembed_script=$(embedscript)
++endif
+ 
+ # arm specific flags.
+ # arm_version=<number | "default">
+diff --git a/include/v8.h b/include/v8.h
+index 449521e..413322e 100644
+--- a/include/v8.h
++++ b/include/v8.h
+@@ -5427,7 +5427,7 @@ class V8_EXPORT V8 {
+    * Returns { NULL, 0 } on failure.
+    * The caller owns the data array in the return value.
+    */
+-  static StartupData CreateSnapshotDataBlob();
++  static StartupData CreateSnapshotDataBlob(char* custom_source = NULL);
+ 
+   /**
+    * Adds a message listener.
+diff --git a/src/api.cc b/src/api.cc
+index 80afca2..30b4e8f 100644
+--- a/src/api.cc
++++ b/src/api.cc
+@@ -206,7 +206,21 @@ void V8::SetSnapshotDataBlob(StartupData* snapshot_blob) {
+ }
+ 
+ 
+-StartupData V8::CreateSnapshotDataBlob() {
++bool RunExtraCode(Isolate* isolate, char* utf8_source) {
++  // Run custom script if provided.
++  TryCatch try_catch;
++  Local<String> source_string = String::NewFromUtf8(isolate, utf8_source);
++  if (try_catch.HasCaught()) return false;
++  ScriptOrigin origin(String::NewFromUtf8(isolate, "<embedded script>"));
++  ScriptCompiler::Source source(source_string, origin);
++  Local<Script> script = ScriptCompiler::Compile(isolate, &source);
++  if (try_catch.HasCaught()) return false;
++  script->Run();
++  return !try_catch.HasCaught();
++}
++
++
++StartupData V8::CreateSnapshotDataBlob(char* custom_source) {
+   Isolate::CreateParams params;
+   params.enable_serializer = true;
+   Isolate* isolate = v8::Isolate::New(params);
+@@ -217,7 +231,12 @@ StartupData V8::CreateSnapshotDataBlob() {
+     Persistent<Context> context;
+     {
+       HandleScope handle_scope(isolate);
+-      context.Reset(isolate, Context::New(isolate));
++      Handle<Context> new_context = Context::New(isolate);
++      context.Reset(isolate, new_context);
++      if (custom_source != NULL) {
++        Context::Scope context_scope(new_context);
++        if (!RunExtraCode(isolate, custom_source)) context.Reset();
++      }
+     }
+     if (!context.IsEmpty()) {
+       // Make sure all builtin scripts are cached.
+diff --git a/src/execution.cc b/src/execution.cc
+index a85effd..b09904d 100644
+--- a/src/execution.cc
++++ b/src/execution.cc
+@@ -37,10 +37,15 @@ void StackGuard::reset_limits(const ExecutionAccess& lock) {
+ static void PrintDeserializedCodeInfo(Handle<JSFunction> function) {
+   if (function->code() == function->shared()->code() &&
+       function->shared()->deserialized()) {
+-    PrintF("Running deserialized script ");
++    PrintF("[Running deserialized script");
+     Object* script = function->shared()->script();
+-    if (script->IsScript()) Script::cast(script)->name()->ShortPrint();
+-    PrintF("\n");
++    if (script->IsScript()) {
++      Object* name = Script::cast(script)->name();
++      if (name->IsString()) {
++        PrintF(": %s", String::cast(name)->ToCString().get());
++      }
++    }
++    PrintF("]\n");
+   }
+ }
+ 
+diff --git a/src/mksnapshot.cc b/src/mksnapshot.cc
+index 988e7da..bc18aeb 100644
+--- a/src/mksnapshot.cc
++++ b/src/mksnapshot.cc
+@@ -111,6 +111,32 @@ class SnapshotWriter {
+ };
+ 
+ 
++char* GetExtraCode(char* filename) {
++  if (filename == NULL || strlen(filename) == 0) return NULL;
++  ::printf("Embedding extra script: %s\n", filename);
++  FILE* file = base::OS::FOpen(filename, "rb");
++  if (file == NULL) {
++    fprintf(stderr, "Failed to open '%s': errno %d\n", filename, errno);
++    exit(1);
++  }
++  fseek(file, 0, SEEK_END);
++  int size = ftell(file);
++  rewind(file);
++  char* chars = new char[size + 1];
++  chars[size] = '\0';
++  for (int i = 0; i < size;) {
++    int read = static_cast<int>(fread(&chars[i], 1, size - i, file));
++    if (read < 0) {
++      fprintf(stderr, "Failed to read '%s': errno %d\n", filename, errno);
++      exit(1);
++    }
++    i += read;
++  }
++  fclose(file);
++  return chars;
++}
++
++
+ int main(int argc, char** argv) {
+   // By default, log code create information in the snapshot.
+   i::FLAG_log_code = true;
+@@ -124,7 +150,7 @@ int main(int argc, char** argv) {
+   // Print the usage if an error occurs when parsing the command line
+   // flags or if the help flag is set.
+   int result = i::FlagList::SetFlagsFromCommandLine(&argc, argv, true);
+-  if (result > 0 || argc != 2 || i::FLAG_help) {
++  if (result > 0 || (argc != 2 && argc != 3) || i::FLAG_help) {
+     ::printf("Usage: %s [flag] ... outfile\n", argv[0]);
+     i::FlagList::PrintHelp();
+     return !i::FLAG_help;
+@@ -139,9 +165,11 @@ int main(int argc, char** argv) {
+   {
+     SnapshotWriter writer(argv[1]);
+     if (i::FLAG_startup_blob) writer.SetStartupBlobFile(i::FLAG_startup_blob);
+-    StartupData blob = v8::V8::CreateSnapshotDataBlob();
++    char* extra_code = GetExtraCode(argc == 3 ? argv[2] : NULL);
++    StartupData blob = v8::V8::CreateSnapshotDataBlob(extra_code);
+     CHECK(blob.data);
+     writer.WriteSnapshot(blob);
++    delete[] extra_code;
+     delete[] blob.data;
+   }
+ 
+diff --git a/src/snapshot-common.cc b/src/snapshot-common.cc
+index dc7f655..e38872d 100644
+--- a/src/snapshot-common.cc
++++ b/src/snapshot-common.cc
+@@ -25,12 +25,14 @@ bool Snapshot::Initialize(Isolate* isolate) {
+   if (FLAG_profile_deserialization) timer.Start();
+ 
+   const v8::StartupData blob = SnapshotBlob();
+-  SnapshotData snapshot_data(ExtractStartupData(&blob));
++  Vector<const byte> startup_data = ExtractStartupData(&blob);
++  SnapshotData snapshot_data(startup_data);
+   Deserializer deserializer(&snapshot_data);
+   bool success = isolate->Init(&deserializer);
+   if (FLAG_profile_deserialization) {
+     double ms = timer.Elapsed().InMillisecondsF();
+-    PrintF("[Snapshot loading and deserialization took %0.3f ms]\n", ms);
++    int bytes = startup_data.length();
++    PrintF("[Deserializing isolate (%d bytes) took %0.3f ms]\n", bytes, ms);
+   }
+   return success;
+ }
+@@ -38,13 +40,21 @@ bool Snapshot::Initialize(Isolate* isolate) {
+ 
+ Handle<Context> Snapshot::NewContextFromSnapshot(Isolate* isolate) {
+   if (!HaveASnapshotToStartFrom()) return Handle<Context>();
++  base::ElapsedTimer timer;
++  if (FLAG_profile_deserialization) timer.Start();
+ 
+   const v8::StartupData blob = SnapshotBlob();
+-  SnapshotData snapshot_data(ExtractContextData(&blob));
++  Vector<const byte> context_data = ExtractContextData(&blob);
++  SnapshotData snapshot_data(context_data);
+   Deserializer deserializer(&snapshot_data);
+   Object* root;
+   deserializer.DeserializePartial(isolate, &root);
+   CHECK(root->IsContext());
++  if (FLAG_profile_deserialization) {
++    double ms = timer.Elapsed().InMillisecondsF();
++    int bytes = context_data.length();
++    PrintF("[Deserializing context (%d bytes) took %0.3f ms]\n", bytes, ms);
++  }
+   return Handle<Context>(Context::cast(root));
+ }
+ 
+diff --git a/tools/gyp/v8.gyp b/tools/gyp/v8.gyp
+index 696434d..514ef39 100644
+--- a/tools/gyp/v8.gyp
++++ b/tools/gyp/v8.gyp
+@@ -30,6 +30,8 @@
+     'icu_use_data_file_flag%': 0,
+     'v8_code': 1,
+     'v8_random_seed%': 314159265,
++    'embed_script%': "",
++    'mksnapshot_exec': '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)mksnapshot<(EXECUTABLE_SUFFIX)',
+   },
+   'includes': ['../../build/toolchain.gypi', '../../build/features.gypi'],
+   'targets': [
+@@ -169,7 +171,8 @@
+         {
+           'action_name': 'run_mksnapshot',
+           'inputs': [
+-            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)mksnapshot<(EXECUTABLE_SUFFIX)',
++            '<(mksnapshot_exec)',
++            '<(embed_script)',
+           ],
+           'outputs': [
+             '<(INTERMEDIATE_DIR)/snapshot.cc',
+@@ -186,9 +189,10 @@
+             ],
+           },
+           'action': [
+-            '<@(_inputs)',
++            '<(mksnapshot_exec)',
+             '<@(mksnapshot_flags)',
+-            '<@(INTERMEDIATE_DIR)/snapshot.cc'
++            '<@(INTERMEDIATE_DIR)/snapshot.cc',
++            '<(embed_script)',
+           ],
+         },
+       ],
+@@ -270,7 +274,7 @@
+             {
+               'action_name': 'run_mksnapshot (external)',
+               'inputs': [
+-                '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)mksnapshot<(EXECUTABLE_SUFFIX)',
++                '<(mksnapshot_exec)',
+               ],
+               'variables': {
+                 'mksnapshot_flags': [
+@@ -292,10 +296,11 @@
+                         '<(PRODUCT_DIR)/snapshot_blob_host.bin',
+                       ],
+                       'action': [
+-                        '<@(_inputs)',
++                        '<(mksnapshot_exec)',
+                         '<@(mksnapshot_flags)',
+                         '<@(INTERMEDIATE_DIR)/snapshot.cc',
+                         '--startup_blob', '<(PRODUCT_DIR)/snapshot_blob_host.bin',
++                        '<(embed_script)',
+                       ],
+                     }, {
+                       'outputs': [
+@@ -303,10 +308,11 @@
+                         '<(PRODUCT_DIR)/snapshot_blob.bin',
+                       ],
+                       'action': [
+-                        '<@(_inputs)',
++                        '<(mksnapshot_exec)',
+                         '<@(mksnapshot_flags)',
+                         '<@(INTERMEDIATE_DIR)/snapshot.cc',
+                         '--startup_blob', '<(PRODUCT_DIR)/snapshot_blob.bin',
++                        '<(embed_script)',
+                       ],
+                     }],
+                   ],
+@@ -316,10 +322,11 @@
+                     '<(PRODUCT_DIR)/snapshot_blob.bin',
+                   ],
+                   'action': [
+-                    '<@(_inputs)',
++                    '<(mksnapshot_exec)',
+                     '<@(mksnapshot_flags)',
+                     '<@(INTERMEDIATE_DIR)/snapshot.cc',
+                     '--startup_blob', '<(PRODUCT_DIR)/snapshot_blob.bin',
++                    '<(embed_script)',
+                   ],
+                 }],
+               ],
