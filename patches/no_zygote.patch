@@ -1,0 +1,17 @@
+diff --git a/content/browser/renderer_host/render_process_host_impl.cc b/content/browser/renderer_host/render_process_host_impl.cc
+index 91dd8b3..2d8079a 100644
+--- a/content/browser/renderer_host/render_process_host_impl.cc
++++ b/content/browser/renderer_host/render_process_host_impl.cc
+@@ -340,11 +340,7 @@ class RendererSandboxedProcessLauncherDelegate
+ 
+ #elif defined(OS_POSIX)
+   bool ShouldUseZygote() override {
+-    const base::CommandLine& browser_command_line =
+-        *base::CommandLine::ForCurrentProcess();
+-    base::CommandLine::StringType renderer_prefix =
+-        browser_command_line.GetSwitchValueNative(switches::kRendererCmdPrefix);
+-    return renderer_prefix.empty();
++    return false;
+   }
+   base::ScopedFD TakeIpcFd() override { return ipc_fd_.Pass(); }
+ #endif  // OS_WIN
