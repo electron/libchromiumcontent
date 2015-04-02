@@ -126,7 +126,9 @@ def download_and_extract(destination, url):
 
 def generate_filenames_gypi(destination):
   generate = os.path.join(SOURCE_ROOT, 'tools', 'generate_filenames_gypi.py')
-  subprocess.check_call([sys.executable, generate, destination])
+  subprocess.check_call([sys.executable, generate,
+                         os.path.join(destination, 'filenames.gypi'),
+                         os.path.join(destination, 'Release')])
 
 
 def rm_rf(path):
