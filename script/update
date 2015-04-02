@@ -32,7 +32,7 @@ def main():
   return (apply_patches() or
           copy_chromiumcontent_files() or
           update_clang() or
-          run_gyp(target_arch)
+          run_gyp(target_arch))
 
 
 def parse_args():

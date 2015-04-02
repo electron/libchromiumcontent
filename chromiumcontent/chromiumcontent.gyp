@@ -12,26 +12,9 @@
           'dependencies': [
             'chromiumviews',
             '<(DEPTH)/build/linux/system.gyp:libspeechd',
-            '<(DEPTH)/sandbox/sandbox.gyp:chrome_sandbox',
-            '<(DEPTH)/components/components.gyp:os_crypt',
             '<(DEPTH)/third_party/mesa/mesa.gyp:osmesa',
           ],
           'actions': [
-            {
-              'action_name': 'Flatten libos_crypt.a',
-              'inputs': [
-                '<(PRODUCT_DIR)/obj/components/libos_crypt.a',
-              ],
-              'outputs': [
-                '<(PRODUCT_DIR)/libos_crypt.a',
-              ],
-              'action': [
-                '<(DEPTH)/../../../tools/linux/ar-combine.sh',
-                '-o',
-                '<@(_outputs)',
-                '<@(_inputs)',
-              ],
-            },
             {
               'action_name': 'Flatten libspeechd.a',
               'inputs': [
@@ -52,15 +35,13 @@
         ['OS=="win"', {
           'dependencies': [
             'chromiumviews',
-            '<(DEPTH)/components/components.gyp:os_crypt',
-            '<(DEPTH)/sandbox/sandbox.gyp:sandbox_static',
           ],
         }],
       ],
     },
     {
       'target_name': 'chromiumcontent',
-      'type': 'shared_library',
+      'type': 'static_library',
       'dependencies': [
         '<(DEPTH)/base/base.gyp:base_prefs',
         '<(DEPTH)/content/content.gyp:content',
@@ -73,9 +54,6 @@
       ],
       'conditions': [
         ['OS=="win"', {
-          'sources': [
-            '<(DEPTH)/base/win/dllmain.cc',
-          ],
           'configurations': {
             'Common_Base': {
               'msvs_settings': {
@@ -102,12 +80,6 @@
             # Create a fake .dSYM in Release mode that we can then post-process
             # to create a real dSYM in script/create-dist.
             'mac_strip': 1,
-          },
-          'xcode_settings': {
-            'OTHER_LDFLAGS': [
-              '-all_load',
-            ],
-            'LD_DYLIB_INSTALL_NAME': '@rpath/libchromiumcontent.dylib',
           },
         }],
         ['OS=="linux" and host_arch=="ia32"', {
