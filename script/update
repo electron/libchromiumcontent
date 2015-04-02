@@ -104,7 +104,7 @@ def gyp_env(target_arch):
 
   # Disable NaCl. We don't need it, and it requires some very long filepaths
   # which often overrun the Windows file path limit.
-  gyp_defines = 'disable_nacl=1'
+  gyp_defines = 'disable_nacl=1 component=shared_library'
 
   env['GYP_GENERATORS'] = 'ninja'
 
