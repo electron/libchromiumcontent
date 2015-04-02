@@ -10,6 +10,8 @@ import subprocess
 import sys
 import zipfile
 
+from lib.util import get_configuration, get_output_dir
+
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 DIST_DIR = os.path.join(SOURCE_ROOT, 'dist')
@@ -26,150 +28,150 @@ DIST_SRC_DIR = os.path.join(MAIN_DIR, 'src')
 SYMBOLS_DIR = os.path.join(DIST_DIR, 'symbols')
 
 TARGET_PLATFORM = {
-    'cygwin': 'win32',
-    'darwin': 'darwin',
-    'linux2': 'linux',
-    'win32': 'win32',
+  'cygwin': 'win32',
+  'darwin': 'darwin',
+  'linux2': 'linux',
+  'win32': 'win32',
 }[sys.platform]
 
-CONFIGURATIONS = ['Release']
+SHARED_LIBRARY_SUFFIX = {
+  'darwin': 'dylib',
+  'linux': 'so',
+  'win32': 'dll',
+}[TARGET_PLATFORM]
+STATIC_LIBRARY_SUFFIX = {
+  'darwin': 'a',
+  'linux': 'a',
+  'win32': 'lib',
+}[TARGET_PLATFORM]
+
+COMPONENTS = ['static_library', 'shared_library']
 BINARIES = {
-    'all': [
-        'content_shell.pak',
-        'icudtl.dat',
-        'natives_blob.bin',
-        'snapshot_blob.bin',
-        os.path.join('gen', 'content', 'app', 'resources', 'content_resources_200_percent.pak'),
-        os.path.join('gen', 'ui', 'resources', 'ui_resources_200_percent.pak'),
-    ],
-    'darwin': [
-        'chromedriver',
-        'ffmpegsumo.so',
-        'mksnapshot',
-    ],
-    'linux': [
-        'chrome_sandbox',
-        'chromedriver',
-        'libffmpegsumo.so',
-        'libchromiumviews.a',
-        'libosmesa.so',
-        'libos_crypt.a',
-        'libspeechd.a',
-        'mksnapshot',
-    ],
-    'win32': [
-        'chromedriver.exe',
-        'chromiumviews.lib',
-        'ffmpegsumo.dll',
-        'libEGL.dll',
-        'libGLESv2.dll',
-        'mksnapshot.exe',
-        os.path.join('obj', 'base', 'base_static.lib'),
-        os.path.join('obj', 'base', 'base_static.cc.pdb'),
-        os.path.join('obj', 'base', 'third_party', 'dynamic_annotations', 'dynamic_annotations.lib'),
-        os.path.join('obj', 'base', 'third_party', 'dynamic_annotations', 'dynamic_annotations.c.pdb'),
-        os.path.join('obj', 'components', 'os_crypt.lib'),
-        os.path.join('obj', 'components', 'os_crypt.cc.pdb'),
-        os.path.join('obj', 'sandbox', 'sandbox_static.lib'),
-        os.path.join('obj', 'sandbox', 'sandbox_static.cc.pdb'),
-        os.path.join('obj', 'third_party', 'iaccessible2', 'iaccessible2.c.pdb'),
-        os.path.join('obj', 'third_party', 'libxml', 'libxml.c.pdb'),
-        os.path.join('obj', 'third_party', 'libxml', 'libxml.cc.pdb'),
-        os.path.join('obj', 'third_party', 'zlib', 'zlib.c.pdb'),
-        os.path.join('obj', 'ui', 'content_accelerators', 'ui_content_accelerators.cc.pdb'),
-        os.path.join('obj', 'ui', 'display', 'display.cc.pdb'),
-        os.path.join('obj', 'ui', 'views', 'controls', 'webview', 'webview.cc.pdb'),
-        os.path.join('obj', 'ui', 'views', 'views.cc.pdb'),
-        os.path.join('obj', 'ui', 'web_dialogs', 'web_dialogs.cc.pdb'),
-        os.path.join('obj', 'ui', 'wm', 'wm.cc.pdb'),
-    ],
+  'all': [
+    'content_shell.pak',
+    'icudtl.dat',
+    'natives_blob.bin',
+    'snapshot_blob.bin',
+    os.path.join('gen', 'content', 'app', 'resources', 'content_resources_200_percent.pak'),
+    os.path.join('gen', 'ui', 'resources', 'ui_resources_200_percent.pak'),
+  ],
+  'darwin': [
+    'chromedriver',
+    'ffmpegsumo.so',
+    'mksnapshot',
+  ],
+  'linux': [
+    'chromedriver',
+    'libchromiumviews.a',
+    'libffmpegsumo.so',
+    'libosmesa.so',
+    'mksnapshot',
+  ],
+  'win32': [
+    'chromedriver.exe',
+    'chromiumviews.lib',
+    'ffmpegsumo.dll',
+    'libEGL.dll',
+    'libGLESv2.dll',
+    'mksnapshot.exe',
+    os.path.join('obj', 'base', 'base_static.cc.pdb'),
+    os.path.join('obj', 'base', 'third_party', 'dynamic_annotations', 'dynamic_annotations.lib'),
+    os.path.join('obj', 'base', 'third_party', 'dynamic_annotations', 'dynamic_annotations.c.pdb'),
+    os.path.join('obj', 'third_party', 'iaccessible2', 'iaccessible2.c.pdb'),
+    os.path.join('obj', 'third_party', 'libxml', 'libxml.c.pdb'),
+    os.path.join('obj', 'third_party', 'libxml', 'libxml.cc.pdb'),
+    os.path.join('obj', 'third_party', 'zlib', 'zlib.c.pdb'),
+    os.path.join('obj', 'ui', 'content_accelerators', 'ui_content_accelerators.cc.pdb'),
+    os.path.join('obj', 'ui', 'display', 'display.cc.pdb'),
+    os.path.join('obj', 'ui', 'views', 'controls', 'webview', 'webview.cc.pdb'),
+    os.path.join('obj', 'ui', 'views', 'views.cc.pdb'),
+    os.path.join('obj', 'ui', 'web_dialogs', 'web_dialogs.cc.pdb'),
+    os.path.join('obj', 'ui', 'wm', 'wm.cc.pdb'),
+  ],
 }
 
 SYMBOLS = {
-    'darwin': [
-        # OS X has a more complicated symbol creation process. See
-        # create_dsym() and copy_symbols().
-    ],
-    'linux': [
-        'libffmpegsumo.so.dbg',
-        'libosmesa.so.dbg',
-    ],
-    'win32': [
-        'ffmpegsumo.dll.pdb',
-        'libGLESv2.dll.pdb',
-    ],
+  'darwin': [
+    # OS X has a more complicated symbol creation process. See
+    # create_dsym() and copy_symbols().
+  ],
+  'linux': [
+    'libffmpegsumo.so.dbg',
+    'libosmesa.so.dbg',
+  ],
+  'win32': [
+    'ffmpegsumo.dll.pdb',
+    'libGLESv2.dll.pdb',
+  ],
 }
 
 # Emperically determined to be required by client apps.
 INCLUDE_DIRS = [
-    'base',
-    'build',
-    'cc',
-    'chrome/browser/ui/libgtk2ui',
-    'components/os_crypt',
-    'content/browser',
-    'content/common',
-    'content/public',
-    'content/renderer',
-    'crypto',
-    'ipc',
-    'gin',
-    'gpu',
-    'media',
-    'mojo',
-    'net',
-    'printing',
-    'sandbox',
-    'skia',
-    'storage',
-    'testing',
-    'third_party/WebKit/Source/platform',
-    'third_party/WebKit/Source/wtf',
-    'third_party/WebKit/public',
-    'third_party/icu/source',
-    'third_party/skia',
-    'third_party/wtl/include',
-    'ui',
-    'url',
-    'v8/include',
-    'webkit',
+  'base',
+  'build',
+  'cc',
+  'chrome/browser/ui/libgtk2ui',
+  'components/os_crypt',
+  'content/browser',
+  'content/common',
+  'content/public',
+  'content/renderer',
+  'crypto',
+  'ipc',
+  'gin',
+  'gpu',
+  'media',
+  'mojo',
+  'net',
+  'printing',
+  'sandbox',
+  'skia',
+  'storage',
+  'testing',
+  'third_party/WebKit/Source/platform',
+  'third_party/WebKit/Source/wtf',
+  'third_party/WebKit/public',
+  'third_party/icu/source',
+  'third_party/skia',
+  'third_party/wtl/include',
+  'ui',
+  'url',
+  'v8/include',
+  'webkit',
 ] + {
-    'darwin': [],
-    'linux': [
-        'dbus',
-        'third_party/speech-dispatcher',
-    ],
-    'win32': [],
+  'darwin': [],
+  'linux': [
+    'dbus',
+    'third_party/speech-dispatcher',
+  ],
+  'win32': [],
 }[TARGET_PLATFORM]
 GENERATED_INCLUDE_DIRS = [
-    'content',
-    'mojo',
-    'ui',
+  'content',
+  'mojo',
+  'ui',
 ]
 OTHER_HEADERS = [
-    'content/common/content_export.h',
+  'content/common/content_export.h',
 ]
 OTHER_SOURCES = [
-    'content/app/startup_helper_win.cc',
+  'content/app/startup_helper_win.cc',
 ]
 
 
 def main():
   args = parse_args()
-
-  # Build dir is "out32" for 32bit builds.
-  out_dir = os.path.join(SRC_DIR, 'out')
-  if args.target_arch == 'ia32':
-    out_dir += '32'
+  target_arch = args.target_arch
 
   rm_rf(DIST_DIR)
   os.makedirs(DIST_DIR)
 
-  copy_binaries(out_dir)
-  # objcopy_with_debug_info(out_dir)
-  # create_dsym(out_dir)
-  # copy_symbols(out_dir)
-  copy_sources(out_dir)
+  for component in COMPONENTS:
+    output_dir = os.path.join(SRC_DIR, get_output_dir(target_arch, component))
+    copy_binaries(target_arch, component, output_dir)
+    copy_generated_sources(target_arch, component, output_dir)
+
+  copy_sources()
   create_zip()
 
 
@@ -179,96 +181,48 @@ def parse_args():
   return parser.parse_args()
 
 
-def copy_binaries(out_dir):
-  for config in CONFIGURATIONS:
-    config_dir = os.path.join(MAIN_DIR, config)
-    mkdir_p(config_dir)
+def copy_binaries(target_arch, component, output_dir):
+  config_dir = os.path.join(output_dir, get_configuration(target_arch))
+  target_dir = os.path.join(MAIN_DIR, component)
+  mkdir_p(target_dir)
 
-    for binary in BINARIES['all'] + BINARIES[TARGET_PLATFORM]:
-      shutil.copy2(os.path.join(out_dir, config, binary), config_dir)
+  for binary in BINARIES['all'] + BINARIES[TARGET_PLATFORM]:
+    shutil.copy2(os.path.join(config_dir, binary), target_dir)
 
-    for library in glob.glob(os.path.join(out_dir, config, '*.dylib')):
-      shutil.copy2(library, config_dir)
+  if component == 'shared_library':
+    suffix = SHARED_LIBRARY_SUFFIX
+  else:
+    suffix = STATIC_LIBRARY_SUFFIX
+  for library in glob.glob(os.path.join(config_dir, '*.{0}'.format(suffix))):
+    shutil.copy2(library, target_dir)
 
-    # Strip the copied binaries on Linux since they contain quite large
-    # debug info.
-    if TARGET_PLATFORM == 'linux':
-      for binary in BINARIES[TARGET_PLATFORM]:
-        binary_path = os.path.join(config_dir, os.path.basename(binary))
-        # Static libraries are not stripped because it would remove
-        # all the symbols in it.
-        if not binary_path.endswith('.a'):
-          subprocess.check_call(['strip', binary_path])
-
-
-def create_dsym(out_dir):
-  if sys.platform != 'darwin':
-    return
-
-  # FIXME: We should probably do this as part of the build, not as part of
-  # create-dist.
-
-  symbols_intermediate_dir = os.path.join(out_dir, 'symbols')
-  source = os.path.join(out_dir, 'Release', DSYM_DYLIB_PATH)
-  destination = os.path.join(symbols_intermediate_dir, DSYM_DYLIB_PATH)
-
-  if is_newer(destination, source):
-    return
-
-  print "Creating dSYM..."
-  mkdir_p(symbols_intermediate_dir)
-  destination_dsym = os.path.join(symbols_intermediate_dir,
-                                  'libchromiumcontent.dylib.dSYM')
-  rm_rf(destination_dsym)
-  subprocess.check_call(['dsymutil', source, '-o', destination_dsym])
-
-
-def objcopy_with_debug_info(out_dir):
-  if TARGET_PLATFORM != 'linux':
-    return
-
-  for config in CONFIGURATIONS:
+  # Strip the copied binaries on Linux since they contain quite large
+  # debug info.
+  if TARGET_PLATFORM == 'linux':
     for binary in BINARIES[TARGET_PLATFORM]:
-      source = os.path.join(out_dir, config, binary)
-      symbol_name = os.path.basename(binary) + ".dbg"
-      if symbol_name in SYMBOLS[TARGET_PLATFORM]:
-        destination = os.path.join(out_dir, config, symbol_name)
-        safe_unlink(destination)
-        subprocess.check_call(['objcopy', '--only-keep-debug', source,
-                               destination])
+      binary_path = os.path.join(target_dir, os.path.basename(binary))
+      # Static libraries are not stripped because it would remove
+      # all the symbols in it.
+      if not binary_path.endswith('.a'):
+        subprocess.check_call(['strip', binary_path])
 
 
-def copy_symbols(out_dir):
-  for config in CONFIGURATIONS:
-    config_dir = os.path.join(SYMBOLS_DIR, config)
-    mkdir_p(config_dir)
-
-    for path in SYMBOLS[TARGET_PLATFORM]:
-      shutil.copy2(os.path.join(out_dir, config, path), config_dir)
-
-  if sys.platform != 'darwin':
-    return
-
-  symbols_intermediate_dir = os.path.join(out_dir, 'symbols')
-  dsym = os.path.join(symbols_intermediate_dir,
-                      'libchromiumcontent.dylib.dSYM')
-  destination = os.path.join(SYMBOLS_DIR, 'Release', os.path.basename(dsym))
-  rm_rf(destination)
-  mkdir_p(os.path.basename(destination))
-  shutil.copytree(dsym, destination)
+def copy_generated_sources(target_arch, component, output_dir):
+  config = get_configuration(target_arch)
+  target_dir = os.path.join(MAIN_DIR, component)
+  for include_path in GENERATED_INCLUDE_DIRS:
+    copy_headers(include_path,
+                 relative_to=os.path.join(output_dir, config, 'gen'),
+                 destination=os.path.join(target_dir, 'gen'))
 
 
-def copy_sources(out_dir):
+def copy_sources():
   for include_path in INCLUDE_DIRS:
     copy_headers(include_path, relative_to=SRC_DIR, destination=DIST_SRC_DIR)
-  for config in CONFIGURATIONS:
-    for include_path in GENERATED_INCLUDE_DIRS:
-      copy_headers(include_path,
-                   relative_to=os.path.join(out_dir, config, 'gen'),
-                   destination=os.path.join(MAIN_DIR, config, 'gen'))
 
   for path in OTHER_HEADERS + OTHER_SOURCES:
-    copy_source_file(os.path.join(SRC_DIR, path), relative_to=SRC_DIR, destination=DIST_SRC_DIR)
+    copy_source_file(os.path.join(SRC_DIR, path), relative_to=SRC_DIR,
+                     destination=DIST_SRC_DIR)
 
   # Some headers assume this file is at the top of the include path. Rather
   # than forcing client apps to set up their include path specially, we'll
@@ -300,21 +254,6 @@ def create_zip():
   safe_unlink(zip_file)
   zip_directory(MAIN_DIR, zip_file)
 
-  return
-
-  symbols_zip_file = os.path.join(SOURCE_ROOT,
-                                  'libchromiumcontent-symbols.zip')
-
-  if sys.platform == 'darwin':
-    # Since it takes so long to zip symbols, first see if symbols have changed
-    # since last time.
-    dsym_dylib = os.path.join(SYMBOLS_DIR, 'Release', DSYM_DYLIB_PATH)
-    if is_newer(symbols_zip_file, dsym_dylib):
-      return
-
-  safe_unlink(symbols_zip_file)
-  zip_directory(SYMBOLS_DIR, symbols_zip_file)
-
 
 def zip_directory(root_directory, destination):
   with contextlib.closing(zipfile.ZipFile(destination, mode='w', compression=zipfile.ZIP_DEFLATED, allowZip64=True)) as z:
@@ -342,10 +281,10 @@ def rm_rf(path):
 
 def safe_unlink(path):
   try:
-      os.unlink(path)
+    os.unlink(path)
   except OSError as e:
-      if e.errno != errno.ENOENT:
-          raise
+    if e.errno != errno.ENOENT:
+      raise
 
 
 def is_newer(destination, source):
