@@ -7,7 +7,10 @@ import sys
 
 GYPI_TEMPLATE = """\
 {
-  'libchromiumcontent_shared_libraries': %(shared_libraries)s,
+  'variables': {
+    'libchromiumcontent_dir': '%(src)s',
+    'libchromiumcontent_shared_libraries': %(shared_libraries)s,
+  },
 }
 """
 
@@ -15,7 +18,10 @@ GYPI_TEMPLATE = """\
 def main(target_file, src):
   shared_libraries = glob.glob(os.path.join(src, '*.dylib'))
   shared_libraries = [os.path.abspath(l) for l in shared_libraries]
-  content = GYPI_TEMPLATE % {'shared_libraries': shared_libraries}
+  content = GYPI_TEMPLATE % {
+    'src': os.path.dirname(target_file),
+    'shared_libraries': shared_libraries,
+  }
   with open(target_file, 'wb+') as f:
     f.write(content)
 
