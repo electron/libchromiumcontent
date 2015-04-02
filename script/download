@@ -128,7 +128,8 @@ def generate_filenames_gypi(destination):
   generate = os.path.join(SOURCE_ROOT, 'tools', 'generate_filenames_gypi.py')
   subprocess.check_call([sys.executable, generate,
                          os.path.join(destination, 'filenames.gypi'),
-                         os.path.join(destination, 'Release')])
+                         os.path.join(destination, 'shared_library'),
+                         os.path.join(destination, 'static_library')])
 
 
 def rm_rf(path):
