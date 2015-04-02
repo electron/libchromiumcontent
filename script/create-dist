@@ -3,6 +3,7 @@
 import argparse
 import contextlib
 import errno
+import glob
 import os
 import shutil
 import subprocess
@@ -31,7 +32,7 @@ TARGET_PLATFORM = {
     'win32': 'win32',
 }[sys.platform]
 
-CONFIGURATIONS = ['Debug', 'Release']
+CONFIGURATIONS = ['Release']
 BINARIES = {
     'all': [
         'content_shell.pak',
@@ -44,7 +45,6 @@ BINARIES = {
     'darwin': [
         'chromedriver',
         'ffmpegsumo.so',
-        'libchromiumcontent.dylib',
         'mksnapshot',
     ],
     'linux': [
@@ -53,15 +53,12 @@ BINARIES = {
         'libffmpegsumo.so',
         'libchromiumviews.a',
         'libosmesa.so',
-        os.path.join('lib', 'libchromiumcontent.so'),
         'libos_crypt.a',
         'libspeechd.a',
         'mksnapshot',
     ],
     'win32': [
         'chromedriver.exe',
-        'chromiumcontent.dll',
-        'chromiumcontent.dll.lib',
         'chromiumviews.lib',
         'ffmpegsumo.dll',
         'libEGL.dll',
@@ -94,14 +91,11 @@ SYMBOLS = {
         # create_dsym() and copy_symbols().
     ],
     'linux': [
-        'chrome_sandbox.dbg',
-        'libchromiumcontent.so.dbg',
         'libffmpegsumo.so.dbg',
         'libosmesa.so.dbg',
     ],
     'win32': [
         'ffmpegsumo.dll.pdb',
-        'chromiumcontent.dll.pdb',
         'libGLESv2.dll.pdb',
     ],
 }
@@ -172,9 +166,9 @@ def main():
   os.makedirs(DIST_DIR)
 
   copy_binaries(out_dir)
-  objcopy_with_debug_info(out_dir)
-  create_dsym(out_dir)
-  copy_symbols(out_dir)
+  # objcopy_with_debug_info(out_dir)
+  # create_dsym(out_dir)
+  # copy_symbols(out_dir)
   copy_sources(out_dir)
   create_zip()
 
@@ -186,173 +180,178 @@ def parse_args():
 
 
 def copy_binaries(out_dir):
-    for config in CONFIGURATIONS:
-        config_dir = os.path.join(MAIN_DIR, config)
-        mkdir_p(config_dir)
+  for config in CONFIGURATIONS:
+    config_dir = os.path.join(MAIN_DIR, config)
+    mkdir_p(config_dir)
 
-        for binary in BINARIES['all'] + BINARIES[TARGET_PLATFORM]:
-            shutil.copy2(os.path.join(out_dir, config, binary), config_dir)
+    for binary in BINARIES['all'] + BINARIES[TARGET_PLATFORM]:
+      shutil.copy2(os.path.join(out_dir, config, binary), config_dir)
 
-        # Strip the copied binaries on Linux since they contain quite large
-        # debug info.
-        if TARGET_PLATFORM == 'linux':
-            for binary in BINARIES[TARGET_PLATFORM]:
-                binary_path = os.path.join(config_dir, os.path.basename(binary))
-                # Static libraries are not stripped because it would remove
-                # all the symbols in it.
-                if not binary_path.endswith('.a'):
-                    subprocess.check_call(['strip', binary_path])
+    for library in glob.glob(os.path.join(out_dir, config, '*.dylib')):
+      shutil.copy2(library, config_dir)
+
+    # Strip the copied binaries on Linux since they contain quite large
+    # debug info.
+    if TARGET_PLATFORM == 'linux':
+      for binary in BINARIES[TARGET_PLATFORM]:
+        binary_path = os.path.join(config_dir, os.path.basename(binary))
+        # Static libraries are not stripped because it would remove
+        # all the symbols in it.
+        if not binary_path.endswith('.a'):
+          subprocess.check_call(['strip', binary_path])
 
 
 def create_dsym(out_dir):
-    if sys.platform != 'darwin':
-        return
+  if sys.platform != 'darwin':
+    return
 
-    # FIXME: We should probably do this as part of the build, not as part of
-    # create-dist.
+  # FIXME: We should probably do this as part of the build, not as part of
+  # create-dist.
 
-    symbols_intermediate_dir = os.path.join(out_dir, 'symbols')
-    source = os.path.join(out_dir, 'Release', DSYM_DYLIB_PATH)
-    destination = os.path.join(symbols_intermediate_dir, DSYM_DYLIB_PATH)
+  symbols_intermediate_dir = os.path.join(out_dir, 'symbols')
+  source = os.path.join(out_dir, 'Release', DSYM_DYLIB_PATH)
+  destination = os.path.join(symbols_intermediate_dir, DSYM_DYLIB_PATH)
 
-    if is_newer(destination, source):
-        return
+  if is_newer(destination, source):
+    return
 
-    print "Creating dSYM..."
-    mkdir_p(symbols_intermediate_dir)
-    destination_dsym = os.path.join(symbols_intermediate_dir,
-                                    'libchromiumcontent.dylib.dSYM')
-    rm_rf(destination_dsym)
-    subprocess.check_call(['dsymutil', source, '-o', destination_dsym])
+  print "Creating dSYM..."
+  mkdir_p(symbols_intermediate_dir)
+  destination_dsym = os.path.join(symbols_intermediate_dir,
+                                  'libchromiumcontent.dylib.dSYM')
+  rm_rf(destination_dsym)
+  subprocess.check_call(['dsymutil', source, '-o', destination_dsym])
 
 
 def objcopy_with_debug_info(out_dir):
-    if TARGET_PLATFORM != 'linux':
-        return
+  if TARGET_PLATFORM != 'linux':
+    return
 
-    for config in CONFIGURATIONS:
-        for binary in BINARIES[TARGET_PLATFORM]:
-            source = os.path.join(out_dir, config, binary)
-            symbol_name = os.path.basename(binary) + ".dbg"
-            if symbol_name in SYMBOLS[TARGET_PLATFORM]:
-                destination = os.path.join(out_dir, config, symbol_name)
-                safe_unlink(destination)
-                subprocess.check_call(['objcopy', '--only-keep-debug', source,
-                                       destination])
+  for config in CONFIGURATIONS:
+    for binary in BINARIES[TARGET_PLATFORM]:
+      source = os.path.join(out_dir, config, binary)
+      symbol_name = os.path.basename(binary) + ".dbg"
+      if symbol_name in SYMBOLS[TARGET_PLATFORM]:
+        destination = os.path.join(out_dir, config, symbol_name)
+        safe_unlink(destination)
+        subprocess.check_call(['objcopy', '--only-keep-debug', source,
+                               destination])
 
 
 def copy_symbols(out_dir):
-    for config in CONFIGURATIONS:
-        config_dir = os.path.join(SYMBOLS_DIR, config)
-        mkdir_p(config_dir)
+  for config in CONFIGURATIONS:
+    config_dir = os.path.join(SYMBOLS_DIR, config)
+    mkdir_p(config_dir)
 
-        for path in SYMBOLS[TARGET_PLATFORM]:
-            shutil.copy2(os.path.join(out_dir, config, path), config_dir)
+    for path in SYMBOLS[TARGET_PLATFORM]:
+      shutil.copy2(os.path.join(out_dir, config, path), config_dir)
 
-    if sys.platform != 'darwin':
-        return
+  if sys.platform != 'darwin':
+    return
 
-    symbols_intermediate_dir = os.path.join(out_dir, 'symbols')
-    dsym = os.path.join(symbols_intermediate_dir,
-                        'libchromiumcontent.dylib.dSYM')
-    destination = os.path.join(SYMBOLS_DIR, 'Release', os.path.basename(dsym))
-    rm_rf(destination)
-    mkdir_p(os.path.basename(destination))
-    shutil.copytree(dsym, destination)
+  symbols_intermediate_dir = os.path.join(out_dir, 'symbols')
+  dsym = os.path.join(symbols_intermediate_dir,
+                      'libchromiumcontent.dylib.dSYM')
+  destination = os.path.join(SYMBOLS_DIR, 'Release', os.path.basename(dsym))
+  rm_rf(destination)
+  mkdir_p(os.path.basename(destination))
+  shutil.copytree(dsym, destination)
 
 
 def copy_sources(out_dir):
-    for include_path in INCLUDE_DIRS:
-        copy_headers(include_path, relative_to=SRC_DIR, destination=DIST_SRC_DIR)
-    for config in CONFIGURATIONS:
-        for include_path in GENERATED_INCLUDE_DIRS:
-            copy_headers(include_path,
-                         relative_to=os.path.join(out_dir, config, 'gen'),
-                         destination=os.path.join(MAIN_DIR, config, 'gen'))
+  for include_path in INCLUDE_DIRS:
+    copy_headers(include_path, relative_to=SRC_DIR, destination=DIST_SRC_DIR)
+  for config in CONFIGURATIONS:
+    for include_path in GENERATED_INCLUDE_DIRS:
+      copy_headers(include_path,
+                   relative_to=os.path.join(out_dir, config, 'gen'),
+                   destination=os.path.join(MAIN_DIR, config, 'gen'))
 
-    for path in OTHER_HEADERS + OTHER_SOURCES:
-        copy_source_file(os.path.join(SRC_DIR, path), relative_to=SRC_DIR, destination=DIST_SRC_DIR)
+  for path in OTHER_HEADERS + OTHER_SOURCES:
+    copy_source_file(os.path.join(SRC_DIR, path), relative_to=SRC_DIR, destination=DIST_SRC_DIR)
 
-    # Some headers assume this file is at the top of the include path. Rather
-    # than forcing client apps to set up their include path specially, we'll
-    # just copy it to the top.
-    sk_user_config = os.path.join(SRC_DIR, 'third_party', 'skia', 'include',
-                                  'config', 'SkUserConfig.h')
-    shutil.copy2(sk_user_config, DIST_SRC_DIR)
+  # Some headers assume this file is at the top of the include path. Rather
+  # than forcing client apps to set up their include path specially, we'll
+  # just copy it to the top.
+  sk_user_config = os.path.join(SRC_DIR, 'third_party', 'skia', 'include',
+                                'config', 'SkUserConfig.h')
+  shutil.copy2(sk_user_config, DIST_SRC_DIR)
 
 
 def copy_headers(relative_path, relative_to, destination):
-    abs_path = os.path.join(relative_to, relative_path)
-    for dirpath, dirnames, filenames in os.walk(abs_path):
-        for filename in filenames:
-            if os.path.splitext(filename)[1] != '.h':
-                continue
-            copy_source_file(os.path.join(dirpath, filename), relative_to=relative_to, destination=destination)
+  abs_path = os.path.join(relative_to, relative_path)
+  for dirpath, dirnames, filenames in os.walk(abs_path):
+    for filename in filenames:
+      if os.path.splitext(filename)[1] != '.h':
+        continue
+      copy_source_file(os.path.join(dirpath, filename), relative_to=relative_to, destination=destination)
 
 
 def copy_source_file(absolute_path, relative_to, destination):
-    relative_path = os.path.relpath(absolute_path, start=relative_to)
-    final_path = os.path.join(destination, relative_path)
-    mkdir_p(os.path.dirname(final_path))
-    shutil.copy2(absolute_path, final_path)
+  relative_path = os.path.relpath(absolute_path, start=relative_to)
+  final_path = os.path.join(destination, relative_path)
+  mkdir_p(os.path.dirname(final_path))
+  shutil.copy2(absolute_path, final_path)
 
 
 def create_zip():
-    print "Zipping distribution..."
-    zip_file = os.path.join(SOURCE_ROOT, 'libchromiumcontent.zip')
-    safe_unlink(zip_file)
-    zip_directory(MAIN_DIR, zip_file)
+  print "Zipping distribution..."
+  zip_file = os.path.join(SOURCE_ROOT, 'libchromiumcontent.zip')
+  safe_unlink(zip_file)
+  zip_directory(MAIN_DIR, zip_file)
 
-    symbols_zip_file = os.path.join(SOURCE_ROOT,
-                                    'libchromiumcontent-symbols.zip')
+  return
 
-    if sys.platform == 'darwin':
-        # Since it takes so long to zip symbols, first see if symbols have changed
-        # since last time.
-        dsym_dylib = os.path.join(SYMBOLS_DIR, 'Release', DSYM_DYLIB_PATH)
-        if is_newer(symbols_zip_file, dsym_dylib):
-            return
+  symbols_zip_file = os.path.join(SOURCE_ROOT,
+                                  'libchromiumcontent-symbols.zip')
 
-    safe_unlink(symbols_zip_file)
-    zip_directory(SYMBOLS_DIR, symbols_zip_file)
+  if sys.platform == 'darwin':
+    # Since it takes so long to zip symbols, first see if symbols have changed
+    # since last time.
+    dsym_dylib = os.path.join(SYMBOLS_DIR, 'Release', DSYM_DYLIB_PATH)
+    if is_newer(symbols_zip_file, dsym_dylib):
+      return
+
+  safe_unlink(symbols_zip_file)
+  zip_directory(SYMBOLS_DIR, symbols_zip_file)
 
 
 def zip_directory(root_directory, destination):
   with contextlib.closing(zipfile.ZipFile(destination, mode='w', compression=zipfile.ZIP_DEFLATED, allowZip64=True)) as z:
-      for dirpath, dirnames, filenames in os.walk(root_directory):
-          for filename in filenames:
-              path = os.path.join(dirpath, filename)
-              z.write(path, arcname=os.path.relpath(path, root_directory))
+    for dirpath, dirnames, filenames in os.walk(root_directory):
+      for filename in filenames:
+        path = os.path.join(dirpath, filename)
+        z.write(path, arcname=os.path.relpath(path, root_directory))
 
 
 def mkdir_p(path):
-    try:
-        os.makedirs(path)
-    except OSError as e:
-        if e.errno != errno.EEXIST:
-            raise
+  try:
+    os.makedirs(path)
+  except OSError as e:
+    if e.errno != errno.EEXIST:
+      raise
 
 
 def rm_rf(path):
-    try:
-        shutil.rmtree(path)
-    except OSError as e:
-        if e.errno != errno.ENOENT:
-            raise
+  try:
+    shutil.rmtree(path)
+  except OSError as e:
+    if e.errno != errno.ENOENT:
+      raise
 
 
 def safe_unlink(path):
-    try:
-        os.unlink(path)
-    except OSError as e:
-        if e.errno != errno.ENOENT:
-            raise
+  try:
+      os.unlink(path)
+  except OSError as e:
+      if e.errno != errno.ENOENT:
+          raise
 
 
 def is_newer(destination, source):
-    return os.path.exists(destination) and \
-        os.path.getmtime(destination) > os.path.getmtime(source)
+  return os.path.exists(destination) and \
+    os.path.getmtime(destination) > os.path.getmtime(source)
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+  sys.exit(main())

@@ -82,7 +82,7 @@ def upload(target_arch):
                                                             commit),
     '--grant', 'public-read',
     '--multipart'
-  ] + glob.glob('libchromiumcontent*.zip')
+  ] + glob.glob('libchromiumcontent.zip')
 
   subprocess.check_call(args)
 

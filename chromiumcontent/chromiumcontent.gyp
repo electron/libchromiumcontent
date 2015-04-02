@@ -41,7 +41,7 @@
     },
     {
       'target_name': 'chromiumcontent',
-      'type': 'static_library',
+      'type': 'none',
       'dependencies': [
         '<(DEPTH)/base/base.gyp:base_prefs',
         '<(DEPTH)/content/content.gyp:content',
