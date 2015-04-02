@@ -54,47 +54,6 @@
       'sources': [
         'empty.cc',
       ],
-      'conditions': [
-        ['OS=="win"', {
-          'configurations': {
-            'Common_Base': {
-              'msvs_settings': {
-                'VCLinkerTool': {
-                  'AdditionalOptions': [
-                    '/WX', # Warnings as errors
-                  ],
-                },
-              },
-            },
-            'Debug_Base': {
-              'msvs_settings': {
-                'VCLinkerTool': {
-                  # We're too big to link incrementally. chrome.dll turns this
-                  # off in (most? all?) cases, too.
-                  'LinkIncremental': '1',
-                },
-              },
-            },
-          },
-        }],
-        ['OS=="mac"', {
-          'variables': {
-            # Create a fake .dSYM in Release mode that we can then post-process
-            # to create a real dSYM in script/create-dist.
-            'mac_strip': 1,
-          },
-        }],
-        ['OS=="linux" and host_arch=="ia32"', {
-          'target_conditions': [
-            ['_toolset=="target"', {
-              'ldflags': [
-                # Workaround for linker OOM.
-                '-Wl,--no-keep-memory',
-              ],
-            }],
-          ],
-        }],
-      ],
     },
   ],
   'conditions': [

@@ -20,13 +20,6 @@
       ['OS=="win"', {
         # On Chrome 41 this is disabled on Windows.
         'v8_use_external_startup_data': 1,
-        # Chrome turns this off for component builds, and we need to too. Leaving
-        # it on would result in both the Debug and Release CRTs being included in
-        # the library.
-        'win_use_allocator_shim': 0,
-
-        'win_release_RuntimeLibrary': '2', # 2 = /MD (nondebug DLL)
-        'win_debug_RuntimeLibrary': '3',   # 3 = /MDd (debug DLL)
       }],
       ['OS=="linux"', {
         # Enable high DPI support on Linux.
@@ -80,11 +73,6 @@
       }],
     ],
     'target_conditions': [
-      ['_target_name in ["nspr", "nss_static"]', {
-        'xcode_settings': {
-          'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
-        },
-      }],
       ['_target_name=="gtk2ui"', {
         'cflags': [
           '-Wno-sentinel',
