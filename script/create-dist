@@ -195,13 +195,9 @@ def copy_binaries(target_arch, component, output_dir):
 
   # Strip the copied binaries on Linux since they contain quite large
   # debug info.
-  if TARGET_PLATFORM == 'linux':
+  if TARGET_PLATFORM in ['linux', 'darwin']:
     for binary in BINARIES[TARGET_PLATFORM]:
-      binary_path = os.path.join(target_dir, os.path.basename(binary))
-      # Static libraries are not stripped because it would remove
-      # all the symbols in it.
-      if not binary_path.endswith('.a'):
-        subprocess.check_call(['strip', binary_path])
+      run_strip(os.path.join(target_dir, os.path.basename(binary)))
 
 
 def copy_generated_sources(target_arch, component, output_dir):
@@ -243,6 +239,18 @@ def copy_source_file(absolute_path, relative_to, destination):
   final_path = os.path.join(destination, relative_path)
   mkdir_p(os.path.dirname(final_path))
   shutil.copy2(absolute_path, final_path)
+
+
+def run_strip(filename):
+  # Static libraries are not stripped because it would remove
+  # all the symbols in it.
+  if filename.endswith('.a'):
+    return
+  if TARGET_PLATFORM == 'linux':
+    flags = []
+  else:
+    flags = ['-x', '-S']
+  subprocess.check_call(['strip'] + flags + [filename])
 
 
 def create_zip():
