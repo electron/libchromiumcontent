@@ -218,6 +218,9 @@ def copy_binaries(target_arch, component, output_dir):
   if TARGET_PLATFORM in ['linux', 'darwin']:
     for binary in BINARIES[TARGET_PLATFORM]:
       run_strip(os.path.join(target_dir, os.path.basename(binary)))
+    if component == 'shared_library':
+      for library in glob.glob(os.path.join(target_dir, match)):
+        run_strip(library)
 
 
 def copy_generated_sources(target_arch, component, output_dir):
