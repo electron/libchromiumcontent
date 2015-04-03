@@ -71,7 +71,7 @@
             '<(DEPTH)/ui/wm/wm.gyp:wm',
           ],
           'conditions': [
-            ['OS=="win"', {
+            ['OS=="win" and component=="static_library"', {
               'actions': [
                 {
                   'action_name': 'Create chromiumviews.lib',
@@ -100,7 +100,7 @@
                 },
               ],
             }],  # OS=="win"
-            ['OS=="linux"', {
+            ['OS=="linux" and component=="static_library"', {
               'dependencies': [
                 '<(DEPTH)/chrome/browser/ui/libgtk2ui/libgtk2ui.gyp:gtk2ui',
               ],
