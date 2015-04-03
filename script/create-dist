@@ -57,11 +57,13 @@ BINARIES = {
   ],
   'darwin': [
     'chromedriver',
+    'libboringssl.dylib',
     'ffmpegsumo.so',
     'mksnapshot',
   ],
   'linux': [
     'chromedriver',
+    'libboringssl.so',
     'libchromiumviews.a',
     'libffmpegsumo.so',
     'libosmesa.so',
@@ -128,6 +130,7 @@ INCLUDE_DIRS = [
   'skia',
   'storage',
   'testing',
+  'third_party/boringssl',
   'third_party/WebKit/Source/platform',
   'third_party/WebKit/Source/wtf',
   'third_party/WebKit/public',
