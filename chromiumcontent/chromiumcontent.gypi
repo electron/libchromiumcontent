@@ -73,6 +73,23 @@
       }],
     ],
     'target_conditions': [
+      ['_target_name in ["v8", "v8_snapshot", "v8_nosnapshot", "v8_external_snapshot", "v8_base", "v8_libbase", "v8_libplatform"]', {
+        'defines': [
+          'V8_SHARED',
+          'BUILDING_V8_SHARED',
+        ],
+        'xcode_settings': {
+          'DEAD_CODE_STRIPPING': 'NO',  # -Wl,-dead_strip
+          'GCC_INLINES_ARE_PRIVATE_EXTERN': 'NO',
+          'GCC_SYMBOLS_PRIVATE_EXTERN': 'NO',
+        },
+        'cflags!': [
+          '-fvisibility=hidden',
+          '-fdata-sections',
+          '-ffunction-sections',
+        ],
+        'cflags_cc!': ['-fvisibility-inlines-hidden'],
+      }],
       ['_target_name=="gtk2ui"', {
         'cflags': [
           '-Wno-sentinel',
