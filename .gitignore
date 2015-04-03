@@ -2,4 +2,4 @@
 *.pyc
 /dist/
 /libchromiumcontent.zip
-/libchromiumcontent-symbols.zip
+/libchromiumcontent-static.zip

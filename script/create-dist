@@ -60,7 +60,6 @@ BINARIES = {
   ],
   'linux': [
     'chromedriver',
-    'libboringssl.so',
     'libffmpegsumo.so',
     'libosmesa.so',
     'mksnapshot',
@@ -247,18 +246,23 @@ def copy_source_file(absolute_path, relative_to, destination):
 
 
 def create_zip():
-  print "Zipping distribution..."
-  zip_file = os.path.join(SOURCE_ROOT, 'libchromiumcontent.zip')
-  safe_unlink(zip_file)
-  zip_directory(MAIN_DIR, zip_file)
+  print 'Zipping shared_library builds...'
+  p = os.path.join(SOURCE_ROOT, 'libchromiumcontent.zip')
+  make_zip(MAIN_DIR, ['src', 'shared_library'], p)
+  print 'Zipping static_library builds...'
+  p = os.path.join(SOURCE_ROOT, 'libchromiumcontent-static.zip')
+  make_zip(MAIN_DIR, ['static_library'], p)
 
 
-def zip_directory(root_directory, destination):
-  with contextlib.closing(zipfile.ZipFile(destination, mode='w', compression=zipfile.ZIP_DEFLATED, allowZip64=True)) as z:
-    for dirpath, dirnames, filenames in os.walk(root_directory):
-      for filename in filenames:
-        path = os.path.join(dirpath, filename)
-        z.write(path, arcname=os.path.relpath(path, root_directory))
+def make_zip(src, dirs, target):
+  safe_unlink(target)
+  with scoped_cwd(src):
+    zip_file = zipfile.ZipFile(target, 'w', zipfile.ZIP_DEFLATED)
+    for dirname in dirs:
+      for root, _, filenames in os.walk(dirname):
+        for f in filenames:
+          zip_file.write(os.path.join(root, f))
+    zip_file.close();
 
 
 def mkdir_p(path):
@@ -288,6 +292,16 @@ def safe_unlink(path):
 def is_newer(destination, source):
   return os.path.exists(destination) and \
     os.path.getmtime(destination) > os.path.getmtime(source)
+
+
+@contextlib.contextmanager
+def scoped_cwd(path):
+  cwd = os.getcwd()
+  os.chdir(path)
+  try:
+    yield
+  finally:
+    os.chdir(cwd)
 
 
 if __name__ == '__main__':
