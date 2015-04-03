@@ -3,6 +3,7 @@
 import argparse
 import contextlib
 import errno
+import fnmatch
 import glob
 import os
 import shutil
@@ -187,11 +188,24 @@ def copy_binaries(target_arch, component, output_dir):
     shutil.copy2(os.path.join(config_dir, binary), target_dir)
 
   if component == 'shared_library':
-    suffix = SHARED_LIBRARY_SUFFIX
+    match = '*.{0}'.format(SHARED_LIBRARY_SUFFIX)
   else:
-    suffix = STATIC_LIBRARY_SUFFIX
-  for library in glob.glob(os.path.join(config_dir, '*.{0}'.format(suffix))):
+    match = '*.{0}'.format(STATIC_LIBRARY_SUFFIX)
+
+  # out/Release/*.dll
+  for library in glob.glob(os.path.join(config_dir, match)):
     shutil.copy2(library, target_dir)
+
+  # out/Release/obj/**/*.dll
+  if component == 'static_library' and TARGET_PLATFORM in ['win32', 'linux']:
+    for root, _, filenames in os.walk(os.path.join(config_dir, 'obj')):
+      for filename in fnmatch.filter(filenames, match):
+        shutil.copy2(os.path.join(root, filename), target_dir)
+
+  # out/Release/lib/*.dll
+  if component == 'shared_library' and TARGET_PLATFORM == 'linux':
+    for library in glob.glob(os.path.join(config_dir, 'lib', match)):
+      shutil.copy2(library, target_dir)
 
   # Strip the copied binaries on Linux since they contain quite large
   # debug info.
