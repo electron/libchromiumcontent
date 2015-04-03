@@ -202,6 +202,12 @@ def copy_binaries(target_arch, component, output_dir):
       for filename in fnmatch.filter(filenames, match):
         shutil.copy2(os.path.join(root, filename), target_dir)
 
+  # out/Release/obj/**/*.pdb
+  if component == 'static_library' and TARGET_PLATFORM == 'win32':
+    for root, _, filenames in os.walk(os.path.join(config_dir, 'obj')):
+      for filename in fnmatch.filter(filenames, '*.pdb'):
+        shutil.copy2(os.path.join(root, filename), target_dir)
+
   # out/Release/lib/*.dll
   if component == 'shared_library' and TARGET_PLATFORM == 'linux':
     for library in glob.glob(os.path.join(config_dir, 'lib', match)):
