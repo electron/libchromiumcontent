@@ -192,32 +192,39 @@ def copy_binaries(target_arch, component, output_dir):
   else:
     match = '*.{0}'.format(STATIC_LIBRARY_SUFFIX)
 
-  # out/Release/*.dll
+  # out/Release/*.{dll,lib}
   for library in glob.glob(os.path.join(config_dir, match)):
     shutil.copy2(library, target_dir)
 
-  # out/Release/obj/**/*.dll
-  if component == 'static_library' and TARGET_PLATFORM in ['win32', 'linux']:
-    for root, _, filenames in os.walk(os.path.join(config_dir, 'obj')):
-      for filename in fnmatch.filter(filenames, match):
-        shutil.copy2(os.path.join(root, filename), target_dir)
-
-  # out/Release/obj/**/*.pdb
+  # On Windows static libraries are placed under subdirs under "obj".
   if component == 'static_library' and TARGET_PLATFORM == 'win32':
     for root, _, filenames in os.walk(os.path.join(config_dir, 'obj')):
+      # out/Release/obj/**/*.lib
+      for filename in fnmatch.filter(filenames, '*.lib'):
+        shutil.copy2(os.path.join(root, filename), target_dir)
+      # out/Release/obj/**/*.pdb
       for filename in fnmatch.filter(filenames, '*.pdb'):
         shutil.copy2(os.path.join(root, filename), target_dir)
 
-  # out/Release/lib/*.dll
-  if component == 'shared_library' and TARGET_PLATFORM == 'linux':
-    for library in glob.glob(os.path.join(config_dir, 'lib', match)):
-      shutil.copy2(library, target_dir)
+  if TARGET_PLATFORM == 'linux':
+    if component == 'shared_library':
+      # out/Release/lib/*.so
+      for library in glob.glob(os.path.join(config_dir, 'lib', '*.so')):
+        shutil.copy2(library, target_dir)
+    else:
+      # out/Release/obj/**/*.a
+      for root, _, filenames in os.walk(os.path.join(config_dir, 'obj')):
+        for filename in fnmatch.filter(filenames, '*.a'):
+          # On Linux the .a doesn't include object files, we have to run
+          # the ar-combine.sh to make it include object files.
+          run_ar_combine(os.path.join(root, filename), target_dir)
 
-  # Strip the copied binaries on Linux since they contain quite large
-  # debug info.
   if TARGET_PLATFORM in ['linux', 'darwin']:
+    # Strip the copied binaries since they contain quite large debug info.
     for binary in BINARIES[TARGET_PLATFORM]:
       run_strip(os.path.join(target_dir, os.path.basename(binary)))
+    # We do not need debug info in "shared_library" build, since it will only
+    # be used for Release build.
     if component == 'shared_library':
       for library in glob.glob(os.path.join(target_dir, match)):
         run_strip(library)
@@ -274,6 +281,12 @@ def run_strip(filename):
   else:
     flags = ['-x', '-S']
   subprocess.check_call(['strip'] + flags + [filename])
+
+
+def run_ar_combine(filename, target_dir):
+  target = os.path.join(target_dir, os.path.basename(filename))
+  ar_combine = os.path.join(SOURCE_ROOT, 'tools', 'linux', 'ar-combine.sh')
+  subprocess.check_call([ar_combine, '-o', target, filename])
 
 
 def create_zip():

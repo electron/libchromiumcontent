@@ -13,7 +13,7 @@ shift
 if [ $# = 0 ]; then usage; fi
 
 SCRATCH="ar-combine.$$"
-mkdir $SCRATCH
+mkdir "$SCRATCH"
 
 for LIB in "$@"; do
     if [ "`head -c7 "$LIB"`" = "!<thin>" ]; then
@@ -22,9 +22,9 @@ for LIB in "$@"; do
         done
     else
         LIB="`readlink -e "$LIB"`"
-        (cd $SCRATCH ; ar x "$LIB")
+        (cd "$SCRATCH" ; ar x "$LIB")
     fi
 done
 
-ar rcs "$DEST" "$SCRATCH"/*
+ar rcs "$DEST" "$SCRATCH"/* > /dev/null 2>&1
 rm -r "$SCRATCH"
