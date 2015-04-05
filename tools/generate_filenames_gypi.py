@@ -39,7 +39,7 @@ EXCLUDE_STATIC_LIBRARIES = {
 GYPI_TEMPLATE = """\
 {
   'variables': {
-    'libchromiumcontent_root_dir': '%(src)s',
+    'libchromiumcontent_root_dir': %(src)s,
     'libchromiumcontent_shared_libraries': %(shared_libraries)s,
     'libchromiumcontent_static_libraries': %(static_libraries)s,
   },
@@ -53,7 +53,7 @@ def main(target_file, shared_src, static_src):
   static_libraries = searh_files(static_src, STATIC_LIBRARY_SUFFIX,
                                  EXCLUDE_STATIC_LIBRARIES)
   content = GYPI_TEMPLATE % {
-    'src': os.path.dirname(target_file),
+    'src': repr(os.path.dirname(target_file)),
     'shared_libraries': shared_libraries,
     'static_libraries': static_libraries,
   }
