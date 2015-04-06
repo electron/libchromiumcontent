@@ -41,6 +41,7 @@ EXCLUDE_STATIC_LIBRARIES = {
   'darwin': [],
   'linux': [],
   'win32': [
+    'boringssl.dll.lib',
     'ffmpegsumo.dll.lib',
     'ffmpeg_yasm.lib',
     'libEGL.dll.lib',

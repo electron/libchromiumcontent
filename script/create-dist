@@ -66,6 +66,8 @@ BINARIES = {
     'mksnapshot',
   ],
   'win32': [
+    'boringssl.dll',
+    'boringssl.dll.lib',
     'chromedriver.exe',
     'd3dcompiler_47.dll',
     'ffmpegsumo.dll',
