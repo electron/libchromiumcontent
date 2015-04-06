@@ -45,6 +45,7 @@ def main():
     download_if_needed(args.path, base_url, commit, force=args.force)
     if not args.static:
       download_static_libraries(args.path, base_url, commit)
+    generate_filenames_gypi(args.path)
   except ProgramError as e:
     return e.message
 
@@ -96,8 +97,6 @@ def download_if_needed(destination, base_url, commit, force):
   download_and_extract(destination, '{0}/{1}/libchromiumcontent.zip'.format(base_url, commit))
   with open(version_file, 'w') as f:
     f.write('{0}\n'.format(commit))
-
-  generate_filenames_gypi(destination)
 
 
 def download_static_libraries(destination, base_url, commit):
