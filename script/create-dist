@@ -72,6 +72,7 @@ BINARIES = {
     'libEGL.dll',
     'libGLESv2.dll',
     'mksnapshot.exe',
+    os.path.join('lib', 'ffmpegsumo.lib'),
     os.path.join('obj', 'base', 'base_static.cc.pdb'),
     os.path.join('obj', 'base', 'base_static.lib'),
     os.path.join('obj', 'sandbox', 'sandbox.cc.pdb'),
