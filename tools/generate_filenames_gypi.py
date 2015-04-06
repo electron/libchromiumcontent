@@ -24,16 +24,28 @@ STATIC_LIBRARY_SUFFIX = {
 }[TARGET_PLATFORM]
 
 EXCLUDE_SHARED_LIBRARIES = {
-  'darwin': [],
+  'darwin': [
+    'libboringssl.dylib',
+  ],
   'linux': [
     'ffmpegsumo.so',
   ],
-  'win32': [],
+  'win32': [
+    'd3dcompiler_47.dll',
+    'ffmpegsumo.dll',
+    'libEGL.dll',
+    'libGLESv2.dll',
+  ],
 }[TARGET_PLATFORM]
 EXCLUDE_STATIC_LIBRARIES = {
   'darwin': [],
   'linux': [],
-  'win32': [],
+  'win32': [
+    'ffmpegsumo.dll.lib',
+    'ffmpeg_yasm.lib',
+    'libEGL.dll.lib',
+    'libGLESv2.dll.lib',
+  ],
 }[TARGET_PLATFORM]
 
 GYPI_TEMPLATE = """\
@@ -63,7 +75,7 @@ def main(target_file, shared_src, static_src):
 
 def searh_files(src, suffix, exclude):
   files = glob.glob(os.path.join(src, '*.' + suffix))
-  files = list(set(files) - set(exclude))
+  files = [f for f in files if os.path.basename(f) not in exclude]
   return [os.path.abspath(f) for f in files]
 
 

@@ -67,6 +67,7 @@ BINARIES = {
   ],
   'win32': [
     'chromedriver.exe',
+    'd3dcompiler_47.dll',
     'ffmpegsumo.dll',
     'libEGL.dll',
     'libGLESv2.dll',
@@ -192,19 +193,28 @@ def copy_binaries(target_arch, component, output_dir):
   else:
     match = '*.{0}'.format(STATIC_LIBRARY_SUFFIX)
 
-  # out/Release/*.{dll,lib}
-  for library in glob.glob(os.path.join(config_dir, match)):
-    shutil.copy2(library, target_dir)
+  if TARGET_PLATFORM == 'darwin':
+    # out/Release/*.{dll,lib}
+    for library in glob.glob(os.path.join(config_dir, match)):
+      shutil.copy2(library, target_dir)
 
-  # On Windows static libraries are placed under subdirs under "obj".
-  if component == 'static_library' and TARGET_PLATFORM == 'win32':
-    for root, _, filenames in os.walk(os.path.join(config_dir, 'obj')):
-      # out/Release/obj/**/*.lib
-      for filename in fnmatch.filter(filenames, '*.lib'):
-        shutil.copy2(os.path.join(root, filename), target_dir)
-      # out/Release/obj/**/*.pdb
-      for filename in fnmatch.filter(filenames, '*.pdb'):
-        shutil.copy2(os.path.join(root, filename), target_dir)
+  if TARGET_PLATFORM == 'win32':
+    if component == 'shared_library':
+      # out/Release/*.dll(.lib)
+      for dll in glob.glob(os.path.join(config_dir, '*.dll')):
+        lib = dll + '.lib'
+        if os.path.exists(lib):
+          shutil.copy2(dll, target_dir)
+          shutil.copy2(lib, target_dir)
+    else:
+      # On Windows static libraries are placed under subdirs under "obj".
+      for root, _, filenames in os.walk(os.path.join(config_dir, 'obj')):
+        # out/Release/obj/**/*.lib
+        for filename in fnmatch.filter(filenames, '*.lib'):
+          shutil.copy2(os.path.join(root, filename), target_dir)
+        # out/Release/obj/**/*.pdb
+        for filename in fnmatch.filter(filenames, '*.pdb'):
+          shutil.copy2(os.path.join(root, filename), target_dir)
 
   if TARGET_PLATFORM == 'linux':
     if component == 'shared_library':
