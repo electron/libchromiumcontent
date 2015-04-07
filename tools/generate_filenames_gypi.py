@@ -25,7 +25,6 @@ STATIC_LIBRARY_SUFFIX = {
 
 EXCLUDE_SHARED_LIBRARIES = {
   'darwin': [
-    'libboringssl.dylib',
   ],
   'linux': [
     'ffmpegsumo.so',
