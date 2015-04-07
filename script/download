@@ -29,6 +29,9 @@ PLATFORM_KEY = {
   'win32': 'win',
 }[sys.platform]
 
+SHARED_LIBRARY_FILENAME = 'libchromiumcontent.zip'
+STATIC_LIBRARY_FILENAME = 'libchromiumcontent-static.zip'
+
 
 class ProgramError(Exception):
   pass
@@ -42,10 +45,11 @@ def main():
     else:
       commit = args.commit
     base_url = '{0}/{1}/{2}'.format(args.url, PLATFORM_KEY, ARCH)
-    download_if_needed(args.path, base_url, commit, force=args.force)
-    if not args.static:
-      download_static_libraries(args.path, base_url, commit)
-    generate_filenames_gypi(args.path)
+    download_if_needed(args.path, base_url, commit, SHARED_LIBRARY_FILENAME,
+                       args.force)
+    if (args.static and
+        not os.path.exists(os.path.join(args.path, 'static_library'))):
+      download(args.path, base_url, commit, STATIC_LIBRARY_FILENAME)
   except ProgramError as e:
     return e.message
 
@@ -75,7 +79,7 @@ def head_commit():
     os.chdir(cwd)
 
 
-def download_if_needed(destination, base_url, commit, force):
+def download_if_needed(destination, base_url, commit, filename, force):
   version_file = os.path.join(destination, '.version')
   existing_version = ''
   try:
@@ -92,11 +96,18 @@ def download_if_needed(destination, base_url, commit, force):
   elif os.path.exists(destination):
     raise ProgramError('Error: {0} already exists. Pass --force if you '
                        'want to overwrite it.'.format(destination))
-  sys.stderr.write('Downloading libchromiumcontent {0}...\n'.format(commit))
-  sys.stderr.flush()
-  download_and_extract(destination, '{0}/{1}/libchromiumcontent.zip'.format(base_url, commit))
+
+  download(destination, base_url, commit, filename)
+
   with open(version_file, 'w') as f:
     f.write('{0}\n'.format(commit))
+
+
+def download(destination, base_url, commit, filename):
+  sys.stderr.write('Downloading {0}...\n'.format(filename))
+  sys.stderr.flush()
+  url = '{0}/{1}/{2}'.format(base_url, commit, filename)
+  download_and_extract(destination, url)
 
 
 def download_static_libraries(destination, base_url, commit):
