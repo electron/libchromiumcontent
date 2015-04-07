@@ -37,8 +37,14 @@ EXCLUDE_SHARED_LIBRARIES = {
   ],
 }[TARGET_PLATFORM]
 EXCLUDE_STATIC_LIBRARIES = {
-  'darwin': [],
-  'linux': [],
+  'darwin': [
+    'libboringssl.a',
+    'libffmpeg_yasm.a',
+  ],
+  'linux': [
+    'libboringssl.a',
+    'libffmpeg_yasm.a',
+  ],
   'win32': [
     'boringssl.dll.lib',
     'ffmpegsumo.dll.lib',
