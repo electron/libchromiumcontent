@@ -61,7 +61,7 @@
       'targets': [
         {
           'target_name': 'chromiumviews',
-          'type': 'none',
+          'type': 'shared_library',
           'dependencies': [
             '<(DEPTH)/ui/content_accelerators/ui_content_accelerators.gyp:ui_content_accelerators',
             '<(DEPTH)/ui/display/display.gyp:display',
@@ -71,62 +71,9 @@
             '<(DEPTH)/ui/wm/wm.gyp:wm',
           ],
           'conditions': [
-            ['OS=="win" and component=="static_library"', {
-              'actions': [
-                {
-                  'action_name': 'Create chromiumviews.lib',
-                  'inputs': [
-                    '<(PRODUCT_DIR)\\obj\\third_party\\iaccessible2\\iaccessible2.lib',
-                    '<(PRODUCT_DIR)\\obj\\ui\\content_accelerators\\ui_content_accelerators.lib',
-                    '<(PRODUCT_DIR)\\obj\\ui\\display\\display.lib',
-                    '<(PRODUCT_DIR)\\obj\\ui\\display\\display_util.lib',
-                    '<(PRODUCT_DIR)\\obj\\ui\\views\\views.lib',
-                    '<(PRODUCT_DIR)\\obj\\ui\\views\\controls\\webview\\webview.lib',
-                    '<(PRODUCT_DIR)\\obj\\ui\\web_dialogs\\web_dialogs.lib',
-                    '<(PRODUCT_DIR)\\obj\\ui\\wm\\wm.lib',
-                  ],
-                  'outputs': [
-                    '<(PRODUCT_DIR)\\chromiumviews.lib',
-                  ],
-                  'action': [
-                    'lib.exe',
-                    '/nologo',
-                    # We can't use <(_outputs) here because that escapes the
-                    # backslash in the path, which confuses lib.exe.
-                    '/OUT:<(PRODUCT_DIR)\\chromiumviews.lib',
-                    '<@(_inputs)',
-                  ],
-                  'msvs_cygwin_shell': 0,
-                },
-              ],
-            }],  # OS=="win"
-            ['OS=="linux" and component=="static_library"', {
+            ['OS=="linux"', {
               'dependencies': [
                 '<(DEPTH)/chrome/browser/ui/libgtk2ui/libgtk2ui.gyp:gtk2ui',
-              ],
-              'actions': [
-                {
-                  'action_name': 'Create libchromiumviews.a',
-                  'inputs': [
-                    '<(PRODUCT_DIR)/obj/chrome/browser/ui/libgtk2ui/libgtk2ui.a',
-                    '<(PRODUCT_DIR)/obj/ui/content_accelerators/libui_content_accelerators.a',
-                    '<(PRODUCT_DIR)/obj/ui/display/libdisplay.a',
-                    '<(PRODUCT_DIR)/obj/ui/display/libdisplay_util.a',
-                    '<(PRODUCT_DIR)/obj/ui/views/libviews.a',
-                    '<(PRODUCT_DIR)/obj/ui/views/controls/webview/libwebview.a',
-                    '<(PRODUCT_DIR)/obj/ui/web_dialogs/libweb_dialogs.a',
-                    '<(PRODUCT_DIR)/obj/ui/wm/libwm.a',
-                  ],
-                  'outputs': [
-                    '<(PRODUCT_DIR)/libchromiumviews.a',
-                  ],
-                  'action': [
-                    '<(DEPTH)/../../../tools/linux/ar-combine.sh',
-                    '-o',
-                    '<@(_outputs)',
-                    '<@(_inputs)',
-                  ],
-                },
               ],
             }],  # OS=="linux"
           ],
