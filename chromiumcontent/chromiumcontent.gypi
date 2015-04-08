@@ -16,6 +16,8 @@
     'mac_deployment_target': '10.8',
     # The 10.8 SDK does not work well with C++11.
     'mac_sdk_min': '10.9',
+    # Use OpenSSL.
+    'use_openssl': 1,
     'conditions': [
       ['OS=="win"', {
         # On Chrome 41 this is disabled on Windows.
