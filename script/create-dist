@@ -64,6 +64,7 @@ BINARIES = {
     'libffmpegsumo.so',
     'libosmesa.so',
     'mksnapshot',
+    os.path.join('lib', 'libboringssl.so'),
   ],
   'win32': [
     'boringssl.dll',
