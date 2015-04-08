@@ -93,6 +93,7 @@
         'cflags_cc!': ['-fvisibility-inlines-hidden'],
       }],
       ['_target_name=="gtk2ui"', {
+        'type': 'static_library',
         'cflags': [
           '-Wno-sentinel',
         ],

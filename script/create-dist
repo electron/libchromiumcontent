@@ -65,6 +65,7 @@ BINARIES = {
     'libosmesa.so',
     'mksnapshot',
     os.path.join('lib', 'libboringssl.so'),
+    os.path.join('obj', 'chrome', 'browser', 'ui', 'libgtk2ui', 'libgtk2ui.a')
   ],
   'win32': [
     'boringssl.dll',
@@ -182,7 +183,10 @@ def copy_binaries(target_arch, component, output_dir):
   mkdir_p(target_dir)
 
   for binary in BINARIES['all'] + BINARIES[TARGET_PLATFORM]:
-    shutil.copy2(os.path.join(config_dir, binary), target_dir)
+    if binary.endswith('.a') and TARGET_PLATFORM == 'linux':
+      run_ar_combine(os.path.join(config_dir, binary), target_dir)
+    else:
+      shutil.copy2(os.path.join(config_dir, binary), target_dir)
 
   if component == 'shared_library':
     match = '*.{0}'.format(SHARED_LIBRARY_SUFFIX)
