@@ -14,23 +14,6 @@
             '<(DEPTH)/build/linux/system.gyp:libspeechd',
             '<(DEPTH)/third_party/mesa/mesa.gyp:osmesa',
           ],
-          'actions': [
-            {
-              'action_name': 'Flatten libspeechd.a',
-              'inputs': [
-                '<(PRODUCT_DIR)/obj/build/linux/libspeechd.a',
-              ],
-              'outputs': [
-                '<(PRODUCT_DIR)/libspeechd.a',
-              ],
-              'action': [
-                '<(DEPTH)/../../../tools/linux/ar-combine.sh',
-                '-o',
-                '<@(_outputs)',
-                '<@(_inputs)',
-              ],
-            },
-          ],
         }],
         ['OS=="win"', {
           'dependencies': [

@@ -183,10 +183,7 @@ def copy_binaries(target_arch, component, output_dir):
   mkdir_p(target_dir)
 
   for binary in BINARIES['all'] + BINARIES[TARGET_PLATFORM]:
-    if binary.endswith('.a') and TARGET_PLATFORM == 'linux':
-      run_ar_combine(os.path.join(config_dir, binary), target_dir)
-    else:
-      shutil.copy2(os.path.join(config_dir, binary), target_dir)
+    shutil.copy2(os.path.join(config_dir, binary), target_dir)
 
   if component == 'shared_library':
     match = '*.{0}'.format(SHARED_LIBRARY_SUFFIX)
@@ -222,12 +219,9 @@ def copy_binaries(target_arch, component, output_dir):
       for library in glob.glob(os.path.join(config_dir, 'lib', '*.so')):
         shutil.copy2(library, target_dir)
     else:
-      # out/Release/obj/**/*.a
-      for root, _, filenames in os.walk(os.path.join(config_dir, 'obj')):
-        for filename in fnmatch.filter(filenames, '*.a'):
-          # On Linux the .a doesn't include object files, we have to run
-          # the ar-combine.sh to make it include object files.
-          run_ar_combine(os.path.join(root, filename), target_dir)
+      # out/Release/*.a
+      for library in glob.glob(os.path.join(config_dir, '*.a')):
+        shutil.copy2(library, target_dir)
 
   if TARGET_PLATFORM in ['linux', 'darwin']:
     # Strip the copied binaries since they contain quite large debug info.
