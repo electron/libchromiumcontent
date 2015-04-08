@@ -44,6 +44,9 @@ EXCLUDE_STATIC_LIBRARIES = {
   'linux': [
     'libboringssl.a',
     'libffmpeg_yasm.a',
+    'libprotobuf_full_do_not_use.a',
+    'libgenperf_libs.a',
+    'libv8_nosnapshot.a',
   ],
   'win32': [
     'boringssl.dll.lib',
@@ -71,7 +74,7 @@ def main(target_file, shared_src, static_src):
   static_libraries = searh_files(static_src, STATIC_LIBRARY_SUFFIX,
                                  EXCLUDE_STATIC_LIBRARIES)
   content = GYPI_TEMPLATE % {
-    'src': repr(os.path.dirname(target_file)),
+    'src': repr(os.path.abspath(os.path.dirname(target_file))),
     'shared_libraries': shared_libraries,
     'static_libraries': static_libraries,
   }
