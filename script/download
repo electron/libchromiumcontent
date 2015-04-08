@@ -50,6 +50,7 @@ def main():
     if (args.static and
         not os.path.exists(os.path.join(args.path, 'static_library'))):
       download(args.path, base_url, commit, STATIC_LIBRARY_FILENAME)
+    generate_filenames_gypi(args.path)
   except ProgramError as e:
     return e.message
 
