@@ -73,9 +73,9 @@ GYPI_TEMPLATE = """\
 
 def main(target_file, shared_src, static_src):
   (shared_libraries, shared_v8_libraries) = searh_files(
-      shared_src, SHARED_LIBRARY_SUFFIX, EXCLUDE_SHARED_LIBRARIES, False)
+      shared_src, SHARED_LIBRARY_SUFFIX, EXCLUDE_SHARED_LIBRARIES)
   (static_libraries, static_v8_libraries) = searh_files(
-      static_src, STATIC_LIBRARY_SUFFIX, EXCLUDE_STATIC_LIBRARIES, True)
+      static_src, STATIC_LIBRARY_SUFFIX, EXCLUDE_STATIC_LIBRARIES)
   content = GYPI_TEMPLATE % {
     'src': repr(os.path.abspath(os.path.dirname(target_file))),
     'shared_libraries': shared_libraries,
@@ -87,26 +87,16 @@ def main(target_file, shared_src, static_src):
     f.write(content)
 
 
-def searh_files(src, suffix, exclude, is_static):
+def searh_files(src, suffix, exclude):
   files = glob.glob(os.path.join(src, '*.' + suffix))
   files = [f for f in files if os.path.basename(f) not in exclude]
-  return ([os.path.abspath(f) for f in files if not_v8_library(f)],
-          [os.path.abspath(f) for f in files if is_v8_library(is_static, f)])
+  return ([os.path.abspath(f) for f in files if not is_v8_library(f)],
+          [os.path.abspath(f) for f in files if is_v8_library(f)])
 
 
-# Returns libv8, and libicu when is static library.
-def is_v8_library(is_static, p):
-  p = os.path.basename(p)
-  return p.startswith(('v8', 'libv8')) or (is_static and is_icu_library(p))
-
-
-# Returns everything excepts libv8, including libicu.
-def not_v8_library(p):
-  return not is_v8_library(False, p)
-
-
-def is_icu_library(p):
-  return p.startswith(('icu', 'libicu'))
+def is_v8_library(p):
+  return (os.path.basename(p).startswith(('v8', 'libv8')) or
+          os.path.basename(p).startswith(('icu', 'libicu')))
 
 
 if __name__ == '__main__':
