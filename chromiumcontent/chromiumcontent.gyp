@@ -44,7 +44,7 @@
       'targets': [
         {
           'target_name': 'chromiumviews',
-          'type': 'shared_library',
+          'type': 'none',
           'dependencies': [
             '<(DEPTH)/ui/content_accelerators/ui_content_accelerators.gyp:ui_content_accelerators',
             '<(DEPTH)/ui/display/display.gyp:display',
