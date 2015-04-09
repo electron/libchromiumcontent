@@ -18,6 +18,10 @@
     'mac_sdk_min': '10.9',
     # Use OpenSSL.
     'use_openssl': 1,
+    # The V8 libraries.
+    'v8_libraries': '["v8", "v8_snapshot", "v8_nosnapshot", "v8_external_snapshot", "v8_base", "v8_libbase", "v8_libplatform"]',
+    # The icu libraries.
+    'icu_libraries': '["icui18n", "icuuc"]',
     'conditions': [
       ['OS=="win"', {
         # On Chrome 41 this is disabled on Windows.
@@ -60,6 +64,10 @@
       # Use C++11 library.
       'CLANG_CXX_LIBRARY': 'libc++',  # -stdlib=libc++
     },
+    # Force exporting icu's symbols.
+    'defines!': [
+      'U_STATIC_IMPLEMENTATION',
+    ],
     'conditions': [
       ['OS=="linux" and host_arch=="ia32"', {
         'cflags!': [
@@ -78,11 +86,7 @@
       ['_type=="static_library" and OS=="linux" and component=="static_library"', {
         'standalone_static_library': 1,
       }],
-      ['_target_name in ["v8", "v8_snapshot", "v8_nosnapshot", "v8_external_snapshot", "v8_base", "v8_libbase", "v8_libplatform"]', {
-        'defines': [
-          'V8_SHARED',
-          'BUILDING_V8_SHARED',
-        ],
+      ['_target_name in <(v8_libraries) + <(icu_libraries)', {
         'xcode_settings': {
           'DEAD_CODE_STRIPPING': 'NO',  # -Wl,-dead_strip
           'GCC_INLINES_ARE_PRIVATE_EXTERN': 'NO',
@@ -94,6 +98,12 @@
           '-ffunction-sections',
         ],
         'cflags_cc!': ['-fvisibility-inlines-hidden'],
+      }],
+      ['_target_name in <(v8_libraries)', {
+        'defines': [
+          'V8_SHARED',
+          'BUILDING_V8_SHARED',
+        ],
       }],
       ['_target_name=="gtk2ui"', {
         'type': 'static_library',
