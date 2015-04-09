@@ -40,6 +40,7 @@ EXCLUDE_STATIC_LIBRARIES = {
   'darwin': [
     'libboringssl.a',
     'libffmpeg_yasm.a',
+    'libv8_nosnapshot.a',
   ],
   'linux': [
     'libboringssl.a',
@@ -62,30 +63,50 @@ GYPI_TEMPLATE = """\
   'variables': {
     'libchromiumcontent_root_dir': %(src)s,
     'libchromiumcontent_shared_libraries': %(shared_libraries)s,
+    'libchromiumcontent_shared_v8_libraries': %(shared_v8_libraries)s,
     'libchromiumcontent_static_libraries': %(static_libraries)s,
+    'libchromiumcontent_static_v8_libraries': %(static_v8_libraries)s,
   },
 }
 """
 
 
 def main(target_file, shared_src, static_src):
-  shared_libraries = searh_files(shared_src, SHARED_LIBRARY_SUFFIX,
-                                 EXCLUDE_SHARED_LIBRARIES)
-  static_libraries = searh_files(static_src, STATIC_LIBRARY_SUFFIX,
-                                 EXCLUDE_STATIC_LIBRARIES)
+  (shared_libraries, shared_v8_libraries) = searh_files(
+      shared_src, SHARED_LIBRARY_SUFFIX, EXCLUDE_SHARED_LIBRARIES, False)
+  (static_libraries, static_v8_libraries) = searh_files(
+      static_src, STATIC_LIBRARY_SUFFIX, EXCLUDE_STATIC_LIBRARIES, True)
   content = GYPI_TEMPLATE % {
     'src': repr(os.path.abspath(os.path.dirname(target_file))),
     'shared_libraries': shared_libraries,
+    'shared_v8_libraries': shared_v8_libraries,
     'static_libraries': static_libraries,
+    'static_v8_libraries': static_v8_libraries,
   }
   with open(target_file, 'wb+') as f:
     f.write(content)
 
 
-def searh_files(src, suffix, exclude):
+def searh_files(src, suffix, exclude, is_static):
   files = glob.glob(os.path.join(src, '*.' + suffix))
   files = [f for f in files if os.path.basename(f) not in exclude]
-  return [os.path.abspath(f) for f in files]
+  return ([os.path.abspath(f) for f in files if not_v8_library(f)],
+          [os.path.abspath(f) for f in files if is_v8_library(is_static, f)])
+
+
+# Returns libv8, and libicu when is static library.
+def is_v8_library(is_static, p):
+  p = os.path.basename(p)
+  return p.startswith(('v8', 'libv8')) or (is_static and is_icu_library(p))
+
+
+# Returns everything excepts libv8, including libicu.
+def not_v8_library(p):
+  return not is_v8_library(False, p)
+
+
+def is_icu_library(p):
+  return p.startswith(('icu', 'libicu'))
 
 
 if __name__ == '__main__':
