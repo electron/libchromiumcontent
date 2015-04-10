@@ -55,7 +55,6 @@ BINARIES = {
   ],
   'darwin': [
     'chromedriver',
-    'libboringssl.dylib',
     'ffmpegsumo.so',
     'mksnapshot',
   ],
@@ -65,11 +64,8 @@ BINARIES = {
     'libgtk2ui.a',
     'libosmesa.so',
     'mksnapshot',
-    os.path.join('lib', 'libboringssl.so'),
   ],
   'win32': [
-    'boringssl.dll',
-    'boringssl.dll.lib',
     'chromedriver.exe',
     'd3dcompiler_47.dll',
     'ffmpegsumo.dll',
