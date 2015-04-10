@@ -65,6 +65,14 @@
       'CLANG_CXX_LIBRARY': 'libc++',  # -stdlib=libc++
     },
     # Force exporting icu's symbols.
+    'defines': [
+      'U_COMBINED_IMPLEMENTATION',
+      # Defining "U_COMBINED_IMPLEMENTATION" will add "explicit" for some
+      # constructors, make sure it doesn' happen.
+      'UNISTR_FROM_CHAR_EXPLICIT=',
+      'UNISTR_FROM_STRING_EXPLICIT=',
+      'U_NO_DEFAULT_INCLUDE_UTF_HEADERS=0',
+    ],
     'defines!': [
       'U_STATIC_IMPLEMENTATION',
     ],
