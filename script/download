@@ -4,7 +4,6 @@ import argparse
 import contextlib
 import errno
 import os
-import platform
 import shutil
 import subprocess
 import sys
@@ -14,13 +13,6 @@ import zipfile
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-
-ARCH = {
-  'cygwin': '32bit',
-  'darwin': '64bit',
-  'linux2': platform.architecture()[0],
-  'win32': '32bit',
-}[sys.platform]
 
 PLATFORM_KEY = {
   'cygwin': 'win',
@@ -44,12 +36,14 @@ def main():
       commit = head_commit()
     else:
       commit = args.commit
-    base_url = '{0}/{1}/{2}'.format(args.url, PLATFORM_KEY, ARCH)
+    base_url = '{0}/{1}/{2}'.format(args.url, PLATFORM_KEY, args.target_arch)
     download_if_needed(args.path, base_url, commit, SHARED_LIBRARY_FILENAME,
                        args.force)
     if (args.static and
         not os.path.exists(os.path.join(args.path, 'static_library'))):
       download(args.path, base_url, commit, STATIC_LIBRARY_FILENAME)
+    with open(os.path.join(args.path, '.target_arch'), 'w') as f:
+      f.write(args.target_arch)
     generate_filenames_gypi(args.path)
   except ProgramError as e:
     return e.message
@@ -64,6 +58,8 @@ def parse_args():
                       help='The commit of libchromiumcontent to download.')
   parser.add_argument('-s', '--static', action='store_true',
                       help='Download static_library build')
+  parser.add_argument('--target_arch', required=True,
+                      help='The arch of libchromiumcontent to download.')
   parser.add_argument('url', help='The base URL from which to download '
                       '(i.e., the URL you passed to script/upload)')
   parser.add_argument('path', help='The path to extract to')
