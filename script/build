@@ -5,29 +5,30 @@ import os
 import subprocess
 import sys
 
+from lib.util import get_configuration, get_output_dir
+
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
 TARGETS = ['chromiumcontent_all']
-CONFIGURATIONS = ['Debug', 'Release']
+COMPONENTS = ['static_library', 'shared_library']
 
 NINJA = os.path.join(VENDOR_DIR, 'depot_tools', 'ninja')
 if sys.platform == 'win32':
-    NINJA = '{0}.exe'.format(NINJA)
+  NINJA = '{0}.exe'.format(NINJA)
 
 
 def main():
   args = parse_args()
-
-  # Build dir is "out32" for 32bit builds.
-  out_dir = os.path.join(VENDOR_DIR, 'chromium', 'src', 'out')
-  if args.target_arch == 'ia32':
-    out_dir += '32'
+  target_arch = args.target_arch
 
   os.chdir(SOURCE_ROOT)
-  for config in CONFIGURATIONS:
-    if args.target_arch == 'x64' and sys.platform in ['win32', 'cygwin']:
-      config += '_x64'
+
+  for component in COMPONENTS:
+    out_dir = os.path.join(VENDOR_DIR, 'chromium', 'src',
+                           get_output_dir(target_arch, component))
+
+    config = get_configuration(target_arch)
     config_dir = os.path.relpath(os.path.join(out_dir, config))
     subprocess.check_call([NINJA, '-C', config_dir] + TARGETS)
 

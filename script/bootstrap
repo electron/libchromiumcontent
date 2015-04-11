@@ -12,27 +12,27 @@ SRC_DIR = os.path.join(SOURCE_ROOT, 'vendor', 'chromium', 'src')
 
 
 def main():
-    os.chdir(SOURCE_ROOT)
-    result = (subprocess.call(['git', 'submodule', 'sync']) or
-              subprocess.call(['git', 'submodule', 'update',
-                               '--init', '--recursive']))
-    if result:
-        return result
+  os.chdir(SOURCE_ROOT)
+  result = (subprocess.call(['git', 'submodule', 'sync']) or
+            subprocess.call(['git', 'submodule', 'update',
+                             '--init', '--recursive']))
+  if result:
+    return result
 
-    # Clean out old checkout.
-    if os.path.isdir(os.path.join(SRC_DIR, '.svn')):
-        rm_rf(SRC_DIR)
-    if os.path.isdir(os.path.join(SRC_DIR, '.git')):
-        rm_rf(SRC_DIR)
+  # Clean out old checkout.
+  if os.path.isdir(os.path.join(SRC_DIR, '.svn')):
+    rm_rf(SRC_DIR)
+  if os.path.isdir(os.path.join(SRC_DIR, '.git')):
+    rm_rf(SRC_DIR)
 
 
 def rm_rf(path):
-    try:
-        shutil.rmtree(path)
-    except OSError as e:
-        if e.errno != errno.ENOENT:
-            raise
+  try:
+    shutil.rmtree(path)
+  except OSError as e:
+    if e.errno != errno.ENOENT:
+      raise
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+  sys.exit(main())

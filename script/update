@@ -10,12 +10,15 @@ import tarfile
 import tempfile
 import urllib2
 
+from lib.util import get_output_dir
+
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
 SRC_DIR = os.path.join(VENDOR_DIR, 'chromium', 'src')
 CHROMIUMCONTENT_SOURCE_DIR = os.path.join(SOURCE_ROOT, 'chromiumcontent')
 CHROMIUMCONTENT_DESTINATION_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
+COMPONENTS = ['static_library', 'shared_library']
 
 TARBALL_REPO = 'zcbenz/chromium-source-tarball'
 TARBALL_URL = 'https://github.com/{0}/releases/download/{1}/chromium-{1}.tar.xz'
@@ -32,8 +35,7 @@ def main():
   return (apply_patches() or
           copy_chromiumcontent_files() or
           update_clang() or
-          run_gyp(target_arch) or
-          install_win_tool_wrapper(target_arch))
+          run_gyp(target_arch))
 
 
 def parse_args():
@@ -99,12 +101,12 @@ def tar_xf(filename):
   os.remove(tar_name)
 
 
-def gyp_env(target_arch):
+def gyp_env(target_arch, component):
   env = os.environ.copy()
 
   # Disable NaCl. We don't need it, and it requires some very long filepaths
   # which often overrun the Windows file path limit.
-  gyp_defines = 'disable_nacl=1'
+  gyp_defines = 'disable_nacl=1 component={0}'.format(component)
 
   env['GYP_GENERATORS'] = 'ninja'
 
@@ -121,29 +123,29 @@ def gyp_env(target_arch):
   gyp_defines += ' ' + 'target_arch={0}'.format(target_arch)
   env['GYP_DEFINES'] = gyp_defines
 
-  # Build in "out32" for 32bit target.
-  if target_arch == 'ia32':
-    env['GYP_GENERATOR_FLAGS'] = 'output_dir=out32'
+  # Output directory.
+  output_dir = 'output_dir={0}'.format(get_output_dir(target_arch, component))
+  env['GYP_GENERATOR_FLAGS'] = output_dir
 
   return env
 
 
 def copy_chromiumcontent_files():
-    try:
-        os.makedirs(CHROMIUMCONTENT_DESTINATION_DIR)
-    except OSError as e:
-        if e.errno != errno.EEXIST:
-            raise
-    for dirpath, dirnames, filenames in os.walk(CHROMIUMCONTENT_SOURCE_DIR):
-        for dirname in dirnames:
-            mkdir_p(os.path.join(dirpath, dirname))
-        for filename in filenames:
-            source = os.path.join(dirpath, filename)
-            relative = os.path.relpath(source, start=CHROMIUMCONTENT_SOURCE_DIR)
-            destination = os.path.join(CHROMIUMCONTENT_DESTINATION_DIR, relative)
-            if is_newer(destination, source):
-                continue
-            shutil.copy2(source, destination)
+  try:
+    os.makedirs(CHROMIUMCONTENT_DESTINATION_DIR)
+  except OSError as e:
+    if e.errno != errno.EEXIST:
+      raise
+  for dirpath, dirnames, filenames in os.walk(CHROMIUMCONTENT_SOURCE_DIR):
+    for dirname in dirnames:
+      mkdir_p(os.path.join(dirpath, dirname))
+    for filename in filenames:
+      source = os.path.join(dirpath, filename)
+      relative = os.path.relpath(source, start=CHROMIUMCONTENT_SOURCE_DIR)
+      destination = os.path.join(CHROMIUMCONTENT_DESTINATION_DIR, relative)
+      if is_newer(destination, source):
+        continue
+      shutil.copy2(source, destination)
 
 
 def apply_patches():
@@ -162,23 +164,10 @@ def run_gyp(target_arch):
   os.chdir(SRC_DIR)
   gyp = os.path.join('build', 'gyp_chromium')
   relative_dir = os.path.relpath(CHROMIUMCONTENT_DESTINATION_DIR, SRC_DIR)
-  return subprocess.call(
-      [sys.executable, gyp, '-Ichromiumcontent/chromiumcontent.gypi',
-       os.path.join(relative_dir, 'chromiumcontent.gyp')],
-      env=gyp_env(target_arch))
-
-
-def install_win_tool_wrapper(target_arch):
-  if sys.platform not in ['win32', 'cygwin']:
-    return
-  for config in ['Debug', 'Release']:
-    out_dir = os.path.join(SRC_DIR, 'out')
-    if target_arch == 'ia32':
-      out_dir += '32'
-    config_dir = os.path.join(out_dir, config)
-    win_tool = os.path.join(config_dir, 'gyp-win-tool')
-    shutil.move(win_tool, '{0}-original'.format(win_tool))
-    shutil.copy(os.path.join(SOURCE_ROOT, 'gyp-win-tool-wrapper'), win_tool)
+  args = [sys.executable, gyp, '-Ichromiumcontent/chromiumcontent.gypi',
+          os.path.join(relative_dir, 'chromiumcontent.gyp')]
+  for component in COMPONENTS:
+    subprocess.call(args, env=gyp_env(target_arch, component))
 
 
 def xz():
@@ -191,8 +180,8 @@ def xz():
 
 
 def is_newer(destination, source):
-    return os.path.exists(destination) and \
-        os.path.getmtime(destination) > os.path.getmtime(source)
+  return os.path.exists(destination) and \
+    os.path.getmtime(destination) > os.path.getmtime(source)
 
 
 def rm_f(path):
@@ -204,21 +193,21 @@ def rm_f(path):
 
 
 def rm_rf(path):
-    try:
-        shutil.rmtree(path)
-    except OSError as e:
-        if e.errno != errno.ENOENT:
-            raise
+  try:
+    shutil.rmtree(path)
+  except OSError as e:
+    if e.errno != errno.ENOENT:
+      raise
 
 
 def mkdir_p(path):
-    try:
-        os.makedirs(path)
-    except OSError as e:
-        if e.errno != errno.EEXIST:
-            raise
+  try:
+    os.makedirs(path)
+  except OSError as e:
+    if e.errno != errno.EEXIST:
+      raise
 
 
 if __name__ == '__main__':
-    import sys
-    sys.exit(main())
+  import sys
+  sys.exit(main())

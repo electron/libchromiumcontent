@@ -16,17 +16,16 @@
     'mac_deployment_target': '10.8',
     # The 10.8 SDK does not work well with C++11.
     'mac_sdk_min': '10.9',
+    # Use OpenSSL.
+    'use_openssl': 1,
+    # The V8 libraries.
+    'v8_libraries': '["v8", "v8_snapshot", "v8_nosnapshot", "v8_external_snapshot", "v8_base", "v8_libbase", "v8_libplatform"]',
+    # The icu libraries.
+    'icu_libraries': '["icui18n", "icuuc"]',
     'conditions': [
       ['OS=="win"', {
         # On Chrome 41 this is disabled on Windows.
         'v8_use_external_startup_data': 1,
-        # Chrome turns this off for component builds, and we need to too. Leaving
-        # it on would result in both the Debug and Release CRTs being included in
-        # the library.
-        'win_use_allocator_shim': 0,
-
-        'win_release_RuntimeLibrary': '2', # 2 = /MD (nondebug DLL)
-        'win_debug_RuntimeLibrary': '3',   # 3 = /MDd (debug DLL)
       }],
       ['OS=="linux"', {
         # Enable high DPI support on Linux.
@@ -41,107 +40,8 @@
         'clang_use_chrome_plugins': 0,
       }],
     ],
-    'global_defines': [
-      'COMPONENT_BUILD',
-      'SKIA_DLL',
-    ],
-    'chromiumcontent_defines': [
-      'ACCESSIBILITY_IMPLEMENTATION',
-      'ANGLE_TRANSLATOR_IMPLEMENTATION',
-      'APP_LIST_IMPLEMENTATION',
-      'AURA_IMPLEMENTATION',
-      'BASE_I18N_IMPLEMENTATION',
-      'BASE_IMPLEMENTATION',
-      'BASE_PREFS_IMPLEMENTATION',
-      'BLINK_COMMON_IMPLEMENTATION',
-      'BLINK_IMPLEMENTATION',
-      'BLINK_PLATFORM_IMPLEMENTATION',
-      'BUILDING_V8_SHARED',
-      'CC_BLINK_IMPLEMENTATION',
-      'CC_IMPLEMENTATION',
-      'CC_SURFACES_IMPLEMENTATION',
-      'COMPOSITOR_IMPLEMENTATION',
-      'CONTENT_IMPLEMENTATION',
-      'CRYPTO_IMPLEMENTATION',
-      'DBUS_IMPLEMENTATION',
-      'DEVICE_BATTERY_IMPLEMENTATION',
-      'DEVICE_VIBRATION_IMPLEMENTATION',
-      'EVENTS_BASE_IMPLEMENTATION',
-      'EVENTS_IMPLEMENTATION',
-      'GESTURE_DETECTION_IMPLEMENTATION',
-      'GFX_IMPLEMENTATION',
-      'GFX_IPC_IMPLEMENTATION',
-      'GIN_IMPLEMENTATION',
-      'GLES2_C_LIB_IMPLEMENTATION',
-      'GLES2_IMPL_IMPLEMENTATION',
-      'GLES2_UTILS_IMPLEMENTATION',
-      'GL_IMPLEMENTATION',
-      'GL_IN_PROCESS_CONTEXT_IMPLEMENTATION',
-      'GPU_IMPLEMENTATION',
-      'GPU_BLINK_IMPLEMENTATION',
-      'IPC_IMPLEMENTATION',
-      'IPC_MOJO_IMPLEMENTATION',
-      'KEYBOARD_IMPLEMENTATION',
-      'LIBPROTOBUF_EXPORTS',
-      'LIBPROTOC_EXPORTS',
-      'MEDIA_IMPLEMENTATION',
-      'MESSAGE_CENTER_IMPLEMENTATION',
-      'METRO_VIEWER_IMPLEMENTATION',
-      'MOJO_APPLICATION_MANAGER_IMPLEMENTATION',
-      'MOJO_COMMON_IMPLEMENTATION',
-      'MOJO_ENVIRONMENT_IMPL_IMPLEMENTATION',
-      'MOJO_GLES2_IMPLEMENTATION',
-      'MOJO_GLES2_IMPL_IMPLEMENTATION',
-      'MOJO_NATIVE_VIEWPORT_IMPLEMENTATION',
-      'MOJO_SERVICE_MANAGER_IMPLEMENTATION',
-      'MOJO_SYSTEM_IMPLEMENTATION',
-      'MOJO_SYSTEM_IMPL_IMPLEMENTATION',
-      'NATIVE_THEME_IMPLEMENTATION',
-      'NET_IMPLEMENTATION',
-      'OZONE_IMPLEMENTATION',
-      'PPAPI_HOST_IMPLEMENTATION',
-      'PPAPI_PROXY_IMPLEMENTATION',
-      'PPAPI_SHARED_IMPLEMENTATION',
-      'PPAPI_THUNK_IMPLEMENTATION',
-      'PRINTING_IMPLEMENTATION',
-      'SHELL_DIALOGS_IMPLEMENTATION',
-      'SKIA_IMPLEMENTATION',
-      'SNAPSHOT_IMPLEMENTATION',
-      'SQL_IMPLEMENTATION',
-      'STORAGE_BROWSER_IMPLEMENTATION',
-      'STORAGE_COMMON_IMPLEMENTATION',
-      'SURFACE_IMPLEMENTATION',
-      'UI_BASE_IMPLEMENTATION',
-      'UI_IMPLEMENTATION',
-      'URL_IMPLEMENTATION',
-      'U_COMBINED_IMPLEMENTATION_EXCEPT_DATA',
-      'U_NO_GLOBAL_NEW_DELETE',
-      'U_UTF8_IMPL',
-      'V2_IMPLEMENTATION',
-      'V8_SHARED',
-      'WIN_WINDOW_IMPLEMENTATION',
-      'WEBKIT_GPU_IMPLEMENTATION',
-      'WEBORIGIN_IMPLEMENTATION',
-      'WTF_IMPLEMENTATION',
-    ],
-    'chromiumviews_defines': [
-      'DISPLAY_IMPLEMENTATION',
-      'DISPLAY_UTIL_IMPLEMENTATION',
-      'VIEWS_IMPLEMENTATION',
-      'WEBVIEW_IMPLEMENTATION',
-      'WEB_DIALOGS_IMPLEMENTATION',
-      'WM_IMPLEMENTATION',
-    ],
   },
   'target_defaults': {
-    'defines': [
-      '<@(global_defines)',
-      '<@(chromiumcontent_defines)',
-    ],
-    'defines!': [
-      '_HAS_EXCEPTIONS=0',
-      'U_STATIC_IMPLEMENTATION',
-    ],
     'msvs_disabled_warnings': [
         # class 'std::xx' needs to have dll-interface. Chrome turns this off
         # for component builds, and we need to too.
@@ -164,6 +64,18 @@
       # Use C++11 library.
       'CLANG_CXX_LIBRARY': 'libc++',  # -stdlib=libc++
     },
+    # Force exporting icu's symbols.
+    'defines': [
+      'U_COMBINED_IMPLEMENTATION',
+      # Defining "U_COMBINED_IMPLEMENTATION" will add "explicit" for some
+      # constructors, make sure it doesn' happen.
+      'UNISTR_FROM_CHAR_EXPLICIT=',
+      'UNISTR_FROM_STRING_EXPLICIT=',
+      'U_NO_DEFAULT_INCLUDE_UTF_HEADERS=0',
+    ],
+    'defines!': [
+      'U_STATIC_IMPLEMENTATION',
+    ],
     'conditions': [
       ['OS=="linux" and host_arch=="ia32"', {
         'cflags!': [
@@ -179,76 +91,34 @@
       }],
     ],
     'target_conditions': [
-      ['_target_name=="base"', {
-        # This file doesn't work inside a shared library, and won't compile at
-        # all when COMPONENT_BUILD is defined.
-        # We can't use sources! here because that generates path names relative
-        # to this .gypi file, which won't match the relative path names in
-        # base.gyp.
-        'sources/': [
-          ['exclude', 'debug/debug_on_start_win\.cc$'],
-        ],
+      ['_type=="static_library" and OS=="linux" and component=="static_library"', {
+        'standalone_static_library': 1,
       }],
-      ['_target_name in ["content", "content_common"]', {
-        # Fix C1128 number of sections exceeded object file format limit.
-        'msvs_settings': {
-          'VCCLCompilerTool': {
-            'AdditionalOptions': ['/bigobj'],
-          },
-        },
-      }],
-      # These targets get linked directly into client applications, so need
-      # to see symbols decorated with __declspec(dllimport).
-      ['_target_name in ["base_prefs_test_support", "net_test_support", "sandbox_static", "test_support_base", "test_support_content"]', {
-        'defines!': [
-          '<@(chromiumcontent_defines)',
-        ],
-      }],
-      ['_target_name in ["views", "webview", "web_dialogs", "wm", "display", "display_util", "ui_content_accelerators"]', {
-        'defines': [
-          'VIEWS_STATIC',
-          '<@(chromiumviews_defines)',
-        ],
-        'defines!': [
-          '<@(chromiumcontent_defines)',
-        ],
-      }],
-      ['_target_name in ["v8", "v8_snapshot", "v8_nosnapshot", "v8_external_snapshot", "v8_base", "v8_libbase", "v8_libplatform", "mksnapshot"]', {
-        # Override src/v8/build/toolchain.gypi's RuntimeLibrary setting.
-        'configurations': {
-          'Debug': {
-            'msvs_settings': {
-              'VCCLCompilerTool': {
-                'RuntimeLibrary': '<(win_debug_RuntimeLibrary)',
-              },
-            },
-          },
-          'Release': {
-            'msvs_settings': {
-              'VCCLCompilerTool': {
-                'RuntimeLibrary': '<(win_release_RuntimeLibrary)',
-              },
-            },
-          },
-        },
-      }],
-      ['_target_name in ["nspr", "nss_static"]', {
+      ['_target_name in <(v8_libraries) + <(icu_libraries)', {
         'xcode_settings': {
-          'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
+          'DEAD_CODE_STRIPPING': 'NO',  # -Wl,-dead_strip
+          'GCC_INLINES_ARE_PRIVATE_EXTERN': 'NO',
+          'GCC_SYMBOLS_PRIVATE_EXTERN': 'NO',
         },
+        'cflags!': [
+          '-fvisibility=hidden',
+          '-fdata-sections',
+          '-ffunction-sections',
+        ],
+        'cflags_cc!': ['-fvisibility-inlines-hidden'],
+      }],
+      ['_target_name in <(v8_libraries)', {
+        'defines': [
+          'V8_SHARED',
+          'BUILDING_V8_SHARED',
+        ],
       }],
       ['_target_name=="gtk2ui"', {
+        'type': 'static_library',
+        'standalone_static_library': 1,
         'cflags': [
           '-Wno-sentinel',
         ],
-      }],
-      # Targets of static_library were forced to turn exception off.
-      ['component=="static_library"', {
-        'msvs_settings': {
-          'VCCLCompilerTool': {
-            'ExceptionHandling': '1',  # /EHsc
-          },
-        },
       }],
     ],
   },
