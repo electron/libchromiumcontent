@@ -68,17 +68,13 @@ def upload(target_arch):
   bucket, access_key, secret_key = s3_config()
   commit = command_output(['git', 'rev-parse', 'HEAD']).strip()
 
-  if target_arch == 'ia32':
-    arch = '32bit'
-  else:
-    arch = '64bit'
-
   args = S3PUT + [
     '--bucket', bucket,
     '--access_key', access_key,
     '--secret_key', secret_key,
     '--prefix', SOURCE_ROOT,
-    '--key_prefix', 'libchromiumcontent/{0}/{1}/{2}'.format(PLATFORM_KEY, arch,
+    '--key_prefix', 'libchromiumcontent/{0}/{1}/{2}'.format(PLATFORM_KEY,
+                                                            target_arch,
                                                             commit),
     '--grant', 'public-read',
   ] + glob.glob('libchromiumcontent*.zip')
