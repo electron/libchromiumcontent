@@ -1,0 +1,20 @@
+commit b36113a0ea1e6b3d376f8fb19547b4acc9cc5b6f
+Author: deepak1556 <hop2deep@gmail.com>
+Date:   Mon Apr 13 19:50:18 2015 +0530
+
+    Disable autohidecursor event for OSX
+
+diff --git a/content/browser/renderer_host/render_widget_host_view_mac.mm b/content/browser/renderer_host/render_widget_host_view_mac.mm
+index 924c274..aadfc6d 100644
+--- a/content/browser/renderer_host/render_widget_host_view_mac.mm
++++ b/content/browser/renderer_host/render_widget_host_view_mac.mm
+@@ -2536,8 +2536,7 @@ void RenderWidgetHostViewMac::OnDisplayMetricsChanged(
+ // move) for the given event. Customize here to be more selective about which
+ // key presses to autohide on.
+ + (BOOL)shouldAutohideCursorForEvent:(NSEvent*)event {
+-  return ([event type] == NSKeyDown &&
+-             !([event modifierFlags] & NSCommandKeyMask)) ? YES : NO;
++  return NO;
+ }
+ 
+ - (NSArray *)accessibilityArrayAttributeValues:(NSString *)attribute
