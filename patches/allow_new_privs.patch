@@ -1,0 +1,13 @@
+diff --git a/base/process/launch.cc b/base/process/launch.cc
+index c179b2f..9d40780 100644
+--- a/base/process/launch.cc
++++ b/base/process/launch.cc
+@@ -26,7 +26,7 @@ LaunchOptions::LaunchOptions()
+       new_process_group(false)
+ #if defined(OS_LINUX)
+       , clone_flags(0)
+-      , allow_new_privs(false)
++      , allow_new_privs(true)
+       , kill_on_parent_death(false)
+ #endif  // OS_LINUX
+ #if defined(OS_POSIX)
