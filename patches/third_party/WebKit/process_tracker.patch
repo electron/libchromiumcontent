@@ -1,10 +1,10 @@
 diff --git a/Source/core/loader/ProgressTracker.cpp b/Source/core/loader/ProgressTracker.cpp
-index 321d176..22a8bdd 100644
+index 251f4d1..c7263ba 100644
 --- a/Source/core/loader/ProgressTracker.cpp
 +++ b/Source/core/loader/ProgressTracker.cpp
-@@ -95,7 +95,7 @@ void ProgressTracker::dispose()
+@@ -93,7 +93,7 @@ void ProgressTracker::dispose()
  {
-     if (m_inProgress)
+     if (m_frame->isLoading())
          progressCompleted();
 -    ASSERT(!m_frame->isLoading());
 +    // ASSERT(!m_frame->isLoading());
