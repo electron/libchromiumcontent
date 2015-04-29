@@ -25,17 +25,19 @@ def main():
   os.chdir(SOURCE_ROOT)
 
   for component in COMPONENTS:
-    out_dir = os.path.join(VENDOR_DIR, 'chromium', 'src',
-                           get_output_dir(target_arch, component))
-
-    config = get_configuration(target_arch)
-    config_dir = os.path.relpath(os.path.join(out_dir, config))
-    subprocess.check_call([NINJA, '-C', config_dir] + TARGETS)
+    if args.component == 'all' or args.component == component:
+      out_dir = os.path.join(VENDOR_DIR, 'chromium', 'src',
+                             get_output_dir(target_arch, component))
+      config = get_configuration(target_arch)
+      config_dir = os.path.relpath(os.path.join(out_dir, config))
+      subprocess.check_call([NINJA, '-C', config_dir] + TARGETS)
 
 
 def parse_args():
   parser = argparse.ArgumentParser(description='Build libchromiumcontent')
   parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
+  parser.add_argument('-c', '--component', default='all',
+                      help='static_library or shared_library or all')
   return parser.parse_args()
 
 
