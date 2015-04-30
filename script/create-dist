@@ -115,6 +115,8 @@ INCLUDE_DIRS = [
   'mojo',
   'net',
   'printing',
+  'pdf',
+  'ppapi',
   'sandbox',
   'skia',
   'storage',
