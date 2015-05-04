@@ -78,6 +78,12 @@ BINARIES = {
     os.path.join('obj', 'base', 'base_static.lib'),
     os.path.join('obj', 'sandbox', 'sandbox.cc.pdb'),
     os.path.join('obj', 'sandbox', 'sandbox.lib'),
+    # pdf component related libraries
+    os.path.join('obj', 'pdf', 'pdf.cc.pdb'),
+    os.path.join('obj', 'pdf', 'pdf.lib'),
+    os.path.join('obj', 'ppapi', 'ppapi_cpp_objects.lib'),
+    os.path.join('obj', 'ppapi', 'ppapi_internal_module.lib'),
+    os.path.join('components', 'ui_zoom.lib'),
   ],
 }
 
@@ -205,6 +211,13 @@ def copy_binaries(target_arch, component, output_dir):
         if os.path.exists(lib):
           shutil.copy2(dll, target_dir)
           shutil.copy2(lib, target_dir)
+      # copy all pdfium libraries (out/Release/obj/third_party/pdfium/*.lib)
+      pdfium_dir = os.path.join(config_dir, 'obj', 'third_party', 'pdfium')
+      for root, _, filenames in os.walk(pdfium_dir):
+        for filename in fnmatch.filter(filenames, '*.lib'):
+          shutil.copy2(os.path.join(root, filename), target_dir)
+        for filename in fnmatch.filter(filenames, '*.pdb'):
+          shutil.copy2(os.path.join(root, filename), target_dir)
     else:
       # On Windows static libraries are placed under subdirs under "obj".
       for root, _, filenames in os.walk(os.path.join(config_dir, 'obj')):
