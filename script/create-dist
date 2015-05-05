@@ -83,7 +83,7 @@ BINARIES = {
     os.path.join('obj', 'pdf', 'pdf.lib'),
     os.path.join('obj', 'ppapi', 'ppapi_cpp_objects.lib'),
     os.path.join('obj', 'ppapi', 'ppapi_internal_module.lib'),
-    os.path.join('components', 'ui_zoom.lib'),
+    os.path.join('obj', 'components', 'ui_zoom.lib'),
   ],
 }
 
