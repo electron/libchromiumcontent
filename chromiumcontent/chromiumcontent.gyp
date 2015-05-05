@@ -18,7 +18,6 @@
         ['OS=="win"', {
           'dependencies': [
             'chromiumviews',
-            '<(DEPTH)/pdf/pdf.gyp:pdf',
           ],
         }],
       ],
@@ -37,10 +36,17 @@
         '<(DEPTH)/ppapi/ppapi_internal.gyp:ppapi_host',
         '<(DEPTH)/ppapi/ppapi_internal.gyp:ppapi_proxy',
         '<(DEPTH)/ppapi/ppapi_internal.gyp:ppapi_ipc',
-        '<(DEPTH)/ppapi/ppapi_internal.gyp:ppapi_shared',        
+        '<(DEPTH)/ppapi/ppapi_internal.gyp:ppapi_shared',
       ],
       'sources': [
         'empty.cc',
+      ],
+      'conditions': [
+        ['OS=="win"', {
+          'dependencies': [
+            '<(DEPTH)/pdf/pdf.gyp:pdf',
+          ],
+        }],
       ],
     },
   ],
