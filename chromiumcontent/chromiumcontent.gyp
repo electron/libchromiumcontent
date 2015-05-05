@@ -18,6 +18,7 @@
         ['OS=="win"', {
           'dependencies': [
             'chromiumviews',
+            '<(DEPTH)/pdf/pdf.gyp:pdf',
           ],
         }],
       ],
