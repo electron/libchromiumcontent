@@ -81,8 +81,11 @@ BINARIES = {
     # pdf component related libraries
     os.path.join('obj', 'pdf', 'pdf.cc.pdb'),
     os.path.join('obj', 'pdf', 'pdf.lib'),
+    os.path.join('obj', 'ppapi', 'ppapi_cpp_objects.cc.pdb'),
     os.path.join('obj', 'ppapi', 'ppapi_cpp_objects.lib'),
+    os.path.join('obj', 'ppapi', 'ppapi_internal_module.cc.pdb'),
     os.path.join('obj', 'ppapi', 'ppapi_internal_module.lib'),
+    os.path.join('obj', 'components', 'ui_zoom.cc.pdb'),
     os.path.join('obj', 'components', 'ui_zoom.lib'),
   ],
 }
