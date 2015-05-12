@@ -1,0 +1,131 @@
+diff --git a/pdf/pdf.cc b/pdf/pdf.cc
+index 7aba412..246cd81 100644
+--- a/pdf/pdf.cc
++++ b/pdf/pdf.cc
+@@ -81,21 +81,26 @@ const void* PPP_GetInterface(const char* interface_name) {
+   return pp::Module::Get()->GetPluginInterface(interface_name);
+ }
+ 
++}  // namespace chrome_pdf
++
++
++extern "C" {
++
+ #if defined(OS_WIN)
+-bool RenderPDFPageToDC(const void* pdf_buffer,
+-                                 int buffer_size,
+-                                 int page_number,
+-                                 HDC dc,
+-                                 int dpi,
+-                                 int bounds_origin_x,
+-                                 int bounds_origin_y,
+-                                 int bounds_width,
+-                                 int bounds_height,
+-                                 bool fit_to_bounds,
+-                                 bool stretch_to_bounds,
+-                                 bool keep_aspect_ratio,
+-                                 bool center_in_bounds,
+-                                 bool autorotate) {
++PDF_EXPORT bool RenderPDFPageToDC(const void* pdf_buffer,
++                                  int buffer_size,
++                                  int page_number,
++                                  HDC dc,
++                                  int dpi,
++                                  int bounds_origin_x,
++                                  int bounds_origin_y,
++                                  int bounds_width,
++                                  int bounds_height,
++                                  bool fit_to_bounds,
++                                  bool stretch_to_bounds,
++                                  bool keep_aspect_ratio,
++                                  bool center_in_bounds,
++                                  bool autorotate) {
+   if (!g_sdk_initialized_via_pepper) {
+     if (!chrome_pdf::InitializeSDK()) {
+       return false;
+@@ -118,9 +123,9 @@ bool RenderPDFPageToDC(const void* pdf_buffer,
+ 
+ #endif  // OS_WIN
+ 
+-bool GetPDFDocInfo(const void* pdf_buffer,
+-                   int buffer_size, int* page_count,
+-                   double* max_page_width) {
++PDF_EXPORT bool GetPDFDocInfo(const void* pdf_buffer,
++                              int buffer_size, int* page_count,
++                              double* max_page_width) {
+   if (!g_sdk_initialized_via_pepper) {
+     if (!chrome_pdf::InitializeSDK())
+       return false;
+@@ -176,4 +181,4 @@ bool RenderPDFPageToBitmap(const void* pdf_buffer,
+   return ret;
+ }
+ 
+-}  // namespace chrome_pdf
++}
+diff --git a/pdf/pdf.gyp b/pdf/pdf.gyp
+index f47e33a..6e0a12d 100644
+--- a/pdf/pdf.gyp
++++ b/pdf/pdf.gyp
+@@ -6,7 +6,7 @@
+   'targets': [
+     {
+       'target_name': 'pdf',
+-      'type': 'static_library',
++      'type': 'loadable_module',
+       'dependencies': [
+         '../base/base.gyp:base',
+         '../components/components.gyp:ui_zoom',
+@@ -17,6 +17,9 @@
+         '../third_party/pdfium/pdfium.gyp:pdfium',
+       ],
+       'ldflags': [ '-L<(PRODUCT_DIR)',],
++      'defines': [
++        'PDF_IMPLEMENTATION',
++      ],
+       'sources': [
+         'button.h',
+         'button.cc',
+diff --git a/pdf/pdf.h b/pdf/pdf.h
+index 37e72e5..37e7112 100644
+--- a/pdf/pdf.h
++++ b/pdf/pdf.h
+@@ -5,6 +5,22 @@
+ #ifndef PDF_PDF_H_
+ #define PDF_PDF_H_
+ 
++#if defined(WIN32)
++
++#if defined(PDF_IMPLEMENTATION)
++#define PDF_EXPORT __declspec(dllexport)
++#define PDF_EXPORT_PRIVATE __declspec(dllexport)
++#else
++#define PDF_EXPORT __declspec(dllimport)
++#define PDF_EXPORT_PRIVATE __declspec(dllimport)
++#endif  // defined(PDF_IMPLEMENTATION)
++
++#else
++#define PDF_EXPORT
++#define PDF_EXPORT_PRIVATE
++#endif
++
++
+ #include "ppapi/c/ppb.h"
+ #include "ppapi/cpp/module.h"
+ 
+@@ -25,6 +41,7 @@ int PPP_InitializeModule(PP_Module module_id,
+ void PPP_ShutdownModule();
+ const void* PPP_GetInterface(const char* interface_name);
+ 
++#if 0
+ #if defined(OS_WIN)
+ // |pdf_buffer| is the buffer that contains the entire PDF document to be
+ //     rendered.
+@@ -108,6 +125,8 @@ bool RenderPDFPageToBitmap(const void* pdf_buffer,
+                            int dpi,
+                            bool autorotate);
+ 
++#endif
++
+ }  // namespace chrome_pdf
+ 
+ #endif  // PDF_PDF_H_
