@@ -115,6 +115,16 @@
           'V8_SHARED',
           'BUILDING_V8_SHARED',
         ],
+        # Override src/v8/build/toolchain.gypi's RuntimeLibrary setting.
+        'configurations': {
+          'Release': {
+            'msvs_settings': {
+              'VCCLCompilerTool': {
+                'RuntimeLibrary': '<(win_release_RuntimeLibrary)',
+              },
+            },
+          },
+        },
       }],
       ['_target_name=="gtk2ui"', {
         'type': 'static_library',
