@@ -18,8 +18,9 @@
     'mac_sdk_min': '10.9',
     # Use OpenSSL.
     'use_openssl': 1,
-    # Use msvcrt instead of libcmt.
+    # Use the standard way of linking with msvc runtime.
     'win_use_allocator_shim': 0,
+    'win_release_RuntimeLibrary': '2',
     # The V8 libraries.
     'v8_libraries': '["v8", "v8_snapshot", "v8_nosnapshot", "v8_external_snapshot", "v8_base", "v8_libbase", "v8_libplatform"]',
     # The icu libraries.
