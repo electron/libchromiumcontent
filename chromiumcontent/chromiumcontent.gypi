@@ -110,7 +110,7 @@
         ],
         'cflags_cc!': ['-fvisibility-inlines-hidden'],
       }],
-      ['_target_name in <(v8_libraries)', {
+      ['_target_name in <(v8_libraries) + ["mksnapshot"]', {
         'defines': [
           'V8_SHARED',
           'BUILDING_V8_SHARED',
