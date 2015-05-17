@@ -1,0 +1,13 @@
+diff --git a/Source/core/html/forms/FileInputType.cpp b/Source/core/html/forms/FileInputType.cpp
+index 1183e15..719fe92 100644
+--- a/Source/core/html/forms/FileInputType.cpp
++++ b/Source/core/html/forms/FileInputType.cpp
+@@ -203,7 +203,7 @@ bool FileInputType::getTypeSpecificValue(String& value)
+     // decided to try to parse the value by looking for backslashes
+     // (because that's what Windows file paths use). To be compatible
+     // with that code, we make up a fake path for the file.
+-    value = "C:\\fakepath\\" + m_fileList->item(0)->name();
++    value = m_fileList->item(0)->path();
+     return true;
+ }
+ 
