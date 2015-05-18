@@ -153,6 +153,7 @@ INCLUDE_DIRS = [
 GENERATED_INCLUDE_DIRS = [
   'content',
   'mojo',
+  'net',
   'ui',
 ]
 OTHER_HEADERS = [
