@@ -1,0 +1,80 @@
+diff --git a/pdf/pdf.cc b/pdf/pdf.cc
+index 7aba412..f57902a 100644
+--- a/pdf/pdf.cc
++++ b/pdf/pdf.cc
+@@ -81,7 +81,13 @@ const void* PPP_GetInterface(const char* interface_name) {
+   return pp::Module::Get()->GetPluginInterface(interface_name);
+ }
+ 
++}  // namespace chrome_pdf
++
++
++extern "C" {
++
+ #if defined(OS_WIN)
++PDF_EXPORT
+ bool RenderPDFPageToDC(const void* pdf_buffer,
+                                  int buffer_size,
+                                  int page_number,
+@@ -118,6 +124,7 @@ bool RenderPDFPageToDC(const void* pdf_buffer,
+ 
+ #endif  // OS_WIN
+ 
++PDF_EXPORT
+ bool GetPDFDocInfo(const void* pdf_buffer,
+                    int buffer_size, int* page_count,
+                    double* max_page_width) {
+@@ -176,4 +183,4 @@ bool RenderPDFPageToBitmap(const void* pdf_buffer,
+   return ret;
+ }
+ 
+-}  // namespace chrome_pdf
++}
+diff --git a/pdf/pdf.gyp b/pdf/pdf.gyp
+index f47e33a..19864bb 100644
+--- a/pdf/pdf.gyp
++++ b/pdf/pdf.gyp
+@@ -6,7 +6,7 @@
+   'targets': [
+     {
+       'target_name': 'pdf',
+-      'type': 'static_library',
++      'type': 'loadable_module',
+       'dependencies': [
+         '../base/base.gyp:base',
+         '../components/components.gyp:ui_zoom',
+diff --git a/pdf/pdf.h b/pdf/pdf.h
+index 37e72e5..3f80208 100644
+--- a/pdf/pdf.h
++++ b/pdf/pdf.h
+@@ -5,6 +5,13 @@
+ #ifndef PDF_PDF_H_
+ #define PDF_PDF_H_
+ 
++#if defined(WIN32)
++#define PDF_EXPORT __declspec(dllexport)
++#else
++#define PDF_EXPORT
++#endif // defined(WIN32)
++
++
+ #include "ppapi/c/ppb.h"
+ #include "ppapi/cpp/module.h"
+ 
+@@ -25,6 +32,7 @@ int PPP_InitializeModule(PP_Module module_id,
+ void PPP_ShutdownModule();
+ const void* PPP_GetInterface(const char* interface_name);
+ 
++#if 0
+ #if defined(OS_WIN)
+ // |pdf_buffer| is the buffer that contains the entire PDF document to be
+ //     rendered.
+@@ -108,6 +116,8 @@ bool RenderPDFPageToBitmap(const void* pdf_buffer,
+                            int dpi,
+                            bool autorotate);
+ 
++#endif
++
+ }  // namespace chrome_pdf
+ 
+ #endif  // PDF_PDF_H_
