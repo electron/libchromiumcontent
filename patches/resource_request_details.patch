@@ -1,0 +1,35 @@
+diff --git a/content/public/browser/resource_request_details.cc b/content/public/browser/resource_request_details.cc
+index ad5f47e..0873a32 100644
+--- a/content/public/browser/resource_request_details.cc
++++ b/content/public/browser/resource_request_details.cc
+@@ -22,6 +22,10 @@ ResourceRequestDetails::ResourceRequestDetails(const net::URLRequest* request,
+       ssl_cert_id(cert_id),
+       ssl_cert_status(request->ssl_info().cert_status),
+       socket_address(request->GetSocketAddress()) {
++  if (request->response_info().headers.get())
++    headers = new net::HttpResponseHeaders(
++        request->response_info().headers->raw_headers());
++
+   const ResourceRequestInfo* info = ResourceRequestInfo::ForRequest(request);
+   resource_type = info->GetResourceType();
+   render_frame_id = info->GetRenderFrameID();
+diff --git a/content/public/browser/resource_request_details.h b/content/public/browser/resource_request_details.h
+index f776f4d..af13e87 100644
+--- a/content/public/browser/resource_request_details.h
++++ b/content/public/browser/resource_request_details.h
+@@ -10,6 +10,7 @@
+ #include "content/public/common/resource_type.h"
+ #include "net/base/host_port_pair.h"
+ #include "net/cert/cert_status_flags.h"
++#include "net/http/http_response_headers.h"
+ #include "net/url_request/url_request_status.h"
+ #include "url/gurl.h"
+ 
+@@ -43,6 +44,7 @@ struct ResourceRequestDetails {
+   // HTTP response code. See HttpResponseHeaders::response_code().
+   // -1 if there are no response headers yet.
+   int http_response_code;
++  scoped_refptr<net::HttpResponseHeaders> headers;
+ };
+ 
+ // Details about a redirection of a resource request.
