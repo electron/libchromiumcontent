@@ -88,6 +88,7 @@
           '-Wno-pointer-bool-conversion',
           '-Wno-tautological-pointer-compare',
           '-Wno-unused-local-typedef',
+          '-Wno-unused-local-typedefs',
           '-Wno-undefined-bool-conversion',
           '-Wno-tautological-undefined-compare',
         ],
