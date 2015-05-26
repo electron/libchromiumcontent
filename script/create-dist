@@ -209,6 +209,18 @@ def copy_binaries(target_arch, component, output_dir):
     else:
       # On Windows static libraries are placed under subdirs under "obj".
       for root, _, filenames in os.walk(os.path.join(config_dir, 'obj')):
+        # Filter out dependencies of pdf.dll:
+        #   out/Release/obj/third_party/pdfium/*
+        #   out/Release/obj/components/ui_zoom.*
+        #   out/Release/obj/ppapi/ppapi_cpp_objects.*
+        #   out/Release/obj/ppapi/ppapi_internal_module.*
+        def is_pdf_library(filename):
+          full_path = os.path.join(root, filename)
+          return fnmatch.fnmatch(full_path, '*/third_party/pdfium/*') or \
+                 fnmatch.fnmatch(full_path, '*/component/ui_zoom.*') or \
+                 fnmatch.fnmatch(full_path, '*/ppapi/ppapi_cpp_objects.*') or \
+                 fnmatch.fnmatch(full_path, '*/ppapi/ppapi_internal_module.*')
+        filenames = [f for f in filenames if not is_pdf_library(f)]
         # out/Release/obj/**/*.lib
         for filename in fnmatch.filter(filenames, '*.lib'):
           shutil.copy2(os.path.join(root, filename), target_dir)
