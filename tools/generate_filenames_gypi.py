@@ -58,23 +58,23 @@ EXCLUDE_STATIC_LIBRARIES = {
 GYPI_TEMPLATE = """\
 {
   'variables': {
-    'libchromiumcontent_root_dir': %(src)s,
-    'libchromiumcontent_shared_libraries': %(shared_libraries)s,
-    'libchromiumcontent_shared_v8_libraries': %(shared_v8_libraries)s,
-    'libchromiumcontent_static_libraries': %(static_libraries)s,
-    'libchromiumcontent_static_v8_libraries': %(static_v8_libraries)s,
+    'libchromiumcontent_root_dir': '.',
+    'libchromiumcontent_shared_library_files': %(shared_libraries)s,
+    'libchromiumcontent_shared_v8_library_files': %(shared_v8_libraries)s,
+    'libchromiumcontent_static_library_files': %(static_libraries)s,
+    'libchromiumcontent_static_v8_library_files': %(static_v8_libraries)s,
   },
 }
 """
 
 
 def main(target_file, shared_src, static_src):
+  target_dir = os.path.dirname(target_file)
   (shared_libraries, shared_v8_libraries) = searh_files(
-      shared_src, SHARED_LIBRARY_SUFFIX, EXCLUDE_SHARED_LIBRARIES)
+      shared_src, target_dir, SHARED_LIBRARY_SUFFIX, EXCLUDE_SHARED_LIBRARIES)
   (static_libraries, static_v8_libraries) = searh_files(
-      static_src, STATIC_LIBRARY_SUFFIX, EXCLUDE_STATIC_LIBRARIES)
+      static_src, target_dir, STATIC_LIBRARY_SUFFIX, EXCLUDE_STATIC_LIBRARIES)
   content = GYPI_TEMPLATE % {
-    'src': repr(os.path.abspath(os.path.dirname(target_file))),
     'shared_libraries': shared_libraries,
     'shared_v8_libraries': shared_v8_libraries,
     'static_libraries': static_libraries,
@@ -84,11 +84,11 @@ def main(target_file, shared_src, static_src):
     f.write(content)
 
 
-def searh_files(src, suffix, exclude):
+def searh_files(src, root, suffix, exclude):
   files = glob.glob(os.path.join(src, '*.' + suffix))
   files = [f for f in files if os.path.basename(f) not in exclude]
-  return ([os.path.abspath(f) for f in files if not is_v8_library(f)],
-          [os.path.abspath(f) for f in files if is_v8_library(f)])
+  return ([os.path.relpath(f, root) for f in files if not is_v8_library(f)],
+          [os.path.relpath(f, root) for f in files if is_v8_library(f)])
 
 
 def is_v8_library(p):
