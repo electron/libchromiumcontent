@@ -169,7 +169,6 @@ def main():
       copy_generated_sources(target_arch, component, output_dir)
 
   copy_sources()
-  generate_filenames_gypi()
   create_zip()
 
 
@@ -307,24 +306,16 @@ def run_ar_combine(filename, target_dir):
   subprocess.check_call([ar_combine, '-o', target, filename])
 
 
-def generate_filenames_gypi():
-  generate = os.path.join(SOURCE_ROOT, 'tools', 'generate_filenames_gypi.py')
-  subprocess.check_call([sys.executable, generate,
-                         os.path.join(MAIN_DIR, 'filenames.gypi'),
-                         os.path.join(MAIN_DIR, 'shared_library'),
-                         os.path.join(MAIN_DIR, 'static_library')])
-
-
 def create_zip():
   print 'Zipping shared_library builds...'
   p = os.path.join(SOURCE_ROOT, 'libchromiumcontent.zip')
-  make_zip(MAIN_DIR, ['src', 'shared_library'], ['filenames.gypi'], p)
+  make_zip(MAIN_DIR, ['src', 'shared_library'], p)
   print 'Zipping static_library builds...'
   p = os.path.join(SOURCE_ROOT, 'libchromiumcontent-static.zip')
-  make_zip(MAIN_DIR, ['static_library'], [], p)
+  make_zip(MAIN_DIR, ['static_library'], p)
 
 
-def make_zip(src, dirs, files, target):
+def make_zip(src, dirs, target):
   safe_unlink(target)
   with scoped_cwd(src):
     zip_file = zipfile.ZipFile(target, 'w', zipfile.ZIP_DEFLATED)
@@ -332,8 +323,6 @@ def make_zip(src, dirs, files, target):
       for root, _, filenames in os.walk(dirname):
         for f in filenames:
           zip_file.write(os.path.join(root, f))
-    for f in files:
-      zip_file.write(f)
     zip_file.close();
 
 
