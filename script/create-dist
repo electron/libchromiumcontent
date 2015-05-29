@@ -103,6 +103,7 @@ INCLUDE_DIRS = [
   'build',
   'cc',
   'chrome/browser/ui/libgtk2ui',
+  'components/ui/zoom',
   'components/os_crypt',
   'content/browser',
   'content/common',
