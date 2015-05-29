@@ -169,6 +169,7 @@ def main():
       copy_generated_sources(target_arch, component, output_dir)
 
   copy_sources()
+  generate_filenames_gypi()
   create_zip()
 
 
@@ -306,6 +307,14 @@ def run_ar_combine(filename, target_dir):
   target = os.path.join(target_dir, os.path.basename(filename))
   ar_combine = os.path.join(SOURCE_ROOT, 'tools', 'linux', 'ar-combine.sh')
   subprocess.check_call([ar_combine, '-o', target, filename])
+
+
+def generate_filenames_gypi():
+  generate = os.path.join(SOURCE_ROOT, 'tools', 'generate_filenames_gypi.py')
+  subprocess.check_call([sys.executable, generate,
+                         os.path.join(MAIN_DIR, 'filenames.gypi'),
+                         os.path.join(MAIN_DIR, 'shared_library'),
+                         os.path.join(MAIN_DIR, 'static_library')])
 
 
 def create_zip():
