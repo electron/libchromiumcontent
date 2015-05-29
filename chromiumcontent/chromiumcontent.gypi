@@ -127,7 +127,7 @@
           },
         },
       }],
-      ['_target_name in ["gtk2ui", "ui_zoom"]', {
+      ['_target_name=="gtk2ui"', {
         'type': 'static_library',
         'standalone_static_library': 1,
         'cflags': [

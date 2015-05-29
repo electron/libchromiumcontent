@@ -57,13 +57,11 @@ BINARIES = {
     'chromedriver',
     'ffmpegsumo.so',
     'mksnapshot',
-    'libui_zoom.a',
   ],
   'linux': [
     'chromedriver',
     'libffmpegsumo.so',
     'libgtk2ui.a',
-    'libui_zoom.a',
     'libosmesa.so',
     'mksnapshot',
   ],
@@ -79,8 +77,6 @@ BINARIES = {
     os.path.join('lib', 'ffmpegsumo.lib'),
     os.path.join('obj', 'base', 'base_static.cc.pdb'),
     os.path.join('obj', 'base', 'base_static.lib'),
-    os.path.join('obj', 'components', 'ui_zoom.cc.pdb'),
-    os.path.join('obj', 'components', 'ui_zoom.lib'),
     os.path.join('obj', 'sandbox', 'sandbox.cc.pdb'),
     os.path.join('obj', 'sandbox', 'sandbox.lib'),
   ],
@@ -107,7 +103,6 @@ INCLUDE_DIRS = [
   'build',
   'cc',
   'chrome/browser/ui/libgtk2ui',
-  'components/ui/zoom',
   'components/os_crypt',
   'content/browser',
   'content/common',
@@ -216,11 +211,13 @@ def copy_binaries(target_arch, component, output_dir):
       for root, _, filenames in os.walk(os.path.join(config_dir, 'obj')):
         # Filter out dependencies of pdf.dll:
         #   out/Release/obj/third_party/pdfium/*
+        #   out/Release/obj/components/ui_zoom.*
         #   out/Release/obj/ppapi/ppapi_cpp_objects.*
         #   out/Release/obj/ppapi/ppapi_internal_module.*
         def is_pdf_library(filename):
           full_path = os.path.join(root, filename)
           return fnmatch.fnmatch(full_path, '*/third_party/pdfium/*') or \
+                 fnmatch.fnmatch(full_path, '*/component/ui_zoom.*') or \
                  fnmatch.fnmatch(full_path, '*/ppapi/ppapi_cpp_objects.*') or \
                  fnmatch.fnmatch(full_path, '*/ppapi/ppapi_internal_module.*')
         filenames = [f for f in filenames if not is_pdf_library(f)]
