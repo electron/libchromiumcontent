@@ -1,0 +1,16 @@
+diff --git a/Source/core/frame/DOMTimer.cpp b/Source/core/frame/DOMTimer.cpp
+index ec03aab..add534c 100644
+--- a/Source/core/frame/DOMTimer.cpp
++++ b/Source/core/frame/DOMTimer.cpp
+@@ -54,9 +54,8 @@ static inline bool shouldForwardUserGesture(int interval, int nestingLevel)
+
+ double DOMTimer::hiddenPageAlignmentInterval()
+ {
+-    // Timers on hidden pages are aligned so that they fire once per
+-    // second at most.
+-    return 1.0;
++    // Do not throttle hidden pages
++    return 0;
+ }
+
+ double DOMTimer::visiblePageAlignmentInterval()
