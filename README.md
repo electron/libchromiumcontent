@@ -26,8 +26,7 @@ TODO
 
 ##### CentOS 6.5
 
-* `sudo yum install pciutils-devel cups-devel libudev-devel`
-* Currently bootstrap completes but build does not
+`sudo yum install -y pciutils-devel git tar gcc pkg-config atk-devel pulseaudio-libs-devel gdk-devel gdk-pixbuf2-devel gdk-pixbuf2 pygtk2-devel libXtst-devel libXScrnSaver-devel dbus-devel GConf2-devel libgnome-keyring-devel libexif-devel gperf`
 
 ### One-time setup
 
