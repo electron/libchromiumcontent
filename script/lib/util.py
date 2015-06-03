@@ -15,8 +15,7 @@ def get_output_dir(target_arch, component):
   return output_dir
 
 
-def get_configuration(target_arch):
-  config = 'Release'
+def get_configuration(config, target_arch):
   if target_arch == 'x64' and sys.platform in ['win32', 'cygwin']:
     config += '_x64'
   return config
