@@ -20,15 +20,11 @@ def main():
   print 'Python version:', platform.python_version()
   print 'OS version:', os_version()
 
-  args = []
   if sys.platform in ['win32', 'cygwin']:
-    args = ['-t', 'ia32']
-
-  return (run_script('bootstrap') or
-          run_script('update', args) or
-          run_script('build', args) or
-          run_script('create-dist', args) or
-          run_script('upload', args))
+    return (run_ci(['-t', 'ia32']) or
+            run_ci(['-t', 'x64']))
+  else:
+    return run_ci([])
 
 
 def copy_to_environment(credentials_file):
@@ -48,6 +44,14 @@ def os_version():
     return 'Mac OS X ' + mac_ver[0] + ' ' + mac_ver[2]
   else:
     return platform.platform()
+
+
+def run_ci(args):
+  return (run_script('bootstrap') or
+          run_script('update', args) or
+          run_script('build', args) or
+          run_script('create-dist', args) or
+          run_script('upload', args))
 
 
 def run_script(script, args=[]):
