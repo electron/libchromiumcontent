@@ -28,6 +28,11 @@ TODO
 
 `sudo yum install -y pciutils-devel git tar gcc pkg-config atk-devel pulseaudio-libs-devel gdk-devel gdk-pixbuf2-devel gdk-pixbuf2 pygtk2-devel libXtst-devel libXScrnSaver-devel dbus-devel GConf2-devel libgnome-keyring-devel libexif-devel gperf`
 
+##### Ubuntu 14.04
+
+`sudo apt-get install -y build-essential bison libasound2-dev libatk1.0-dev libcups2-dev libexif-dev
+ libgconf2-dev libgnome-keyring-dev libgtk2.0-dev libpci-dev libpulse libxtst-dev gperf`
+
 ### One-time setup
 
     $ script/bootstrap
