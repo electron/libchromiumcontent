@@ -12,6 +12,8 @@ def get_output_dir(target_arch, component):
   # Build in "out_32" for 32bit target.
   if target_arch == 'ia32':
     output_dir += '_32'
+  elif target_arch == 'arm':
+    output_dir += '_arm'
   return output_dir
 
 
