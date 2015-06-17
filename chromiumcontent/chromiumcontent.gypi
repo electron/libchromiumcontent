@@ -39,6 +39,7 @@
       ['OS=="linux" and target_arch=="arm"', {
         'use_system_protobuf': 0,
         'arm_float_abi': 'hard',
+        'v8_target_arch': 'arm',
       }],
       ['OS=="linux" and host_arch=="x64"', {
         'linux_use_gold_flags': 1,
