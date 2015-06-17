@@ -41,6 +41,7 @@
         'use_system_yasm': 0,
         'use_system_icu': 0,
         'arm_float_abi': 'hard',
+        'arm_arch': 'armv7-a',
       }],
       ['OS=="linux" and host_arch=="x64"', {
         'linux_use_gold_flags': 1,
