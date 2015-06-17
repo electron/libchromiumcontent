@@ -36,6 +36,9 @@
         # Use Dbus.
         'use_dbus': 1,
       }],
+      ['OS=="linux" and host_arch=="x64"', {
+        'linux_use_gold_flags': 1,
+      }],
       ['OS=="linux" and host_arch=="ia32"', {
         # Use system installed clang for building.
         'make_clang_dir': '/usr',
