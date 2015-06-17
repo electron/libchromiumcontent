@@ -36,6 +36,10 @@
         # Use Dbus.
         'use_dbus': 1,
       }],
+      ['OS=="linux" and target_arch=="arm"', {
+        'use_system_protobuf': 0,
+        'arm_float_abi': 'hard',
+      }],
       ['OS=="linux" and host_arch=="x64"', {
         'linux_use_gold_flags': 1,
       }],
