@@ -37,11 +37,8 @@
         'use_dbus': 1,
       }],
       ['OS=="linux" and target_arch=="arm"', {
-        'use_system_protobuf': 0,
-        'use_system_yasm': 0,
-        'use_system_icu': 0,
+        'arm_version': 7,
         'arm_float_abi': 'hard',
-        'arm_arch': 'armv7-a',
         'linux_dump_symbols': 0,
       }],
       ['OS=="linux" and host_arch=="x64"', {
