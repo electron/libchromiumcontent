@@ -106,7 +106,7 @@
       }],
     ],
     'target_conditions': [
-      ['_type=="static_library" and OS=="linux" and component=="static_library"', {
+      ['_type=="static_library" and _toolset=="target" and OS=="linux" and component=="static_library"', {
         'standalone_static_library': 1,
       }],
       ['_target_name in <(v8_libraries) + <(icu_libraries)', {
