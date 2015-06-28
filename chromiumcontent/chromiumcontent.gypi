@@ -42,6 +42,7 @@
         'use_system_icu': 0,
         'arm_float_abi': 'hard',
         'arm_arch': 'armv7-a',
+        'linux_dump_symbols': 0,
       }],
       ['OS=="linux" and host_arch=="x64"', {
         'linux_use_gold_flags': 1,
