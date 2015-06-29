@@ -300,8 +300,8 @@ def run_strip(target_arch, filename):
     flags = []
   else:
     flags = ['-x', '-S']
-  if target_arch == 'arm':
-    strip = 'arm-linux-gnueabi-strip'
+  if target_arch == 'arm' and filename.endswith(('.so', 'chromedriver')):
+    strip = 'arm-linux-gnueabihf-strip'
   else:
     strip = 'strip'
   subprocess.check_call([strip] + flags + [filename])
