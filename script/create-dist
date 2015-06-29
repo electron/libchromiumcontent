@@ -169,6 +169,7 @@ def main():
       copy_generated_sources(target_arch, component, output_dir)
 
   copy_sources()
+  generate_licenses()
   create_zip()
 
 
@@ -308,10 +309,18 @@ def run_ar_combine(filename, target_dir):
   subprocess.check_call([ar_combine, '-o', target, filename])
 
 
+def generate_licenses():
+  licenses_py = os.path.join(SRC_DIR, 'tools', 'licenses.py')
+  output = subprocess.check_output([licenses_py, 'credits'])
+  target = os.path.join(MAIN_DIR, 'LICENSES.chromium.html')
+  with open(target, 'w') as f:
+    f.write(output)
+
+
 def create_zip():
   print 'Zipping shared_library builds...'
   p = os.path.join(SOURCE_ROOT, 'libchromiumcontent.zip')
-  make_zip(MAIN_DIR, ['src', 'shared_library'], p)
+  make_zip(MAIN_DIR, ['LICENSES.chromium.html', 'src', 'shared_library'], p)
   print 'Zipping static_library builds...'
   p = os.path.join(SOURCE_ROOT, 'libchromiumcontent-static.zip')
   make_zip(MAIN_DIR, ['static_library'], p)
