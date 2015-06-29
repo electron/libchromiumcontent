@@ -242,12 +242,12 @@ def copy_binaries(target_arch, component, output_dir):
   if TARGET_PLATFORM in ['linux', 'darwin']:
     # Strip the copied binaries since they contain quite large debug info.
     for binary in BINARIES[TARGET_PLATFORM]:
-      run_strip(os.path.join(target_dir, os.path.basename(binary)))
+      run_strip(target_arch, os.path.join(target_dir, os.path.basename(binary)))
     # We do not need debug info in "shared_library" build, since it will only
     # be used for Release build.
     if component == 'shared_library':
       for library in glob.glob(os.path.join(target_dir, match)):
-        run_strip(library)
+        run_strip(target_arch, library)
 
 
 def copy_generated_sources(target_arch, component, output_dir):
@@ -291,7 +291,7 @@ def copy_source_file(absolute_path, relative_to, destination):
   shutil.copy2(absolute_path, final_path)
 
 
-def run_strip(filename):
+def run_strip(target_arch, filename):
   # Static libraries are not stripped because it would remove
   # all the symbols in it.
   if filename.endswith('.a'):
@@ -300,7 +300,11 @@ def run_strip(filename):
     flags = []
   else:
     flags = ['-x', '-S']
-  subprocess.check_call(['strip'] + flags + [filename])
+  if target_arch == 'arm':
+    strip = 'arm-linux-gnueabi-strip'
+  else:
+    strip = 'strip'
+  subprocess.check_call([strip] + flags + [filename])
 
 
 def run_ar_combine(filename, target_dir):
