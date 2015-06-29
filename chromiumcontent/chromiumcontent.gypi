@@ -39,7 +39,6 @@
       ['OS=="linux" and target_arch=="arm"', {
         'arm_version': 7,
         'arm_float_abi': 'hard',
-        'linux_dump_symbols': 0,
       }],
       ['OS=="linux" and host_arch=="x64"', {
         'linux_use_gold_flags': 1,
@@ -88,6 +87,12 @@
       'U_STATIC_IMPLEMENTATION',
     ],
     'conditions': [
+      ['OS=="linux" and target_arch=="arm"', {
+        # Work around ODR violations.
+        'ldflags!': [
+          '-Wl,--detect-odr-violations',
+        ],
+      }],
       ['OS=="linux" and host_arch=="ia32"', {
         'cflags!': [
           # Clang 3.4 doesn't support these flags.
