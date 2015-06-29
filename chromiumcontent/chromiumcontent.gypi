@@ -39,7 +39,6 @@
       ['OS=="linux" and target_arch=="arm"', {
         'arm_version': 7,
         'arm_float_abi': 'hard',
-        'linux_dump_symbols': 0,
       }],
       ['OS=="linux" and host_arch=="x64"', {
         'linux_use_gold_flags': 1,
