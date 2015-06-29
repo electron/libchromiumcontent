@@ -315,7 +315,7 @@ def generate_licenses():
                                 'about_credits_entry.tmpl')
   licenses_py = os.path.join(SOURCE_ROOT, 'tools', 'licenses.py')
   target = os.path.join(MAIN_DIR, 'LICENSES.chromium.html')
-  subprocess.check_call([licenses_py, 'credits', target,
+  subprocess.check_call([sys.executable, licenses_py, 'credits', target,
                          '--file-template', file_template,
                          '--entry-template', entry_template])
 
