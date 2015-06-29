@@ -3,8 +3,6 @@
     # Enalbe using proprietary codecs.
     'proprietary_codecs': 1,
     'ffmpeg_branding': 'Chrome',
-    # And the gold's flags are not available in system's ld neither.
-    'linux_use_gold_flags': 0,
     # Make Linux build contain debug symbols, this flag will add '-g' to cflags.
     'linux_dump_symbols': 1,
     # The Linux build of libchromiumcontent.so depends on, but doesn't
@@ -39,9 +37,6 @@
       ['OS=="linux" and target_arch=="arm"', {
         'arm_version': 7,
         'arm_float_abi': 'hard',
-      }],
-      ['OS=="linux" and host_arch=="x64"', {
-        'linux_use_gold_flags': 1,
       }],
     ],
   },
