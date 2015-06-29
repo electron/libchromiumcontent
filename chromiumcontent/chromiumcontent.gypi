@@ -43,12 +43,6 @@
       ['OS=="linux" and host_arch=="x64"', {
         'linux_use_gold_flags': 1,
       }],
-      ['OS=="linux" and host_arch=="ia32"', {
-        # Use system installed clang for building.
-        'make_clang_dir': '/usr',
-        'clang': 1,
-        'clang_use_chrome_plugins': 0,
-      }],
     ],
   },
   'target_defaults': {
@@ -91,19 +85,6 @@
         # Work around ODR violations.
         'ldflags!': [
           '-Wl,--detect-odr-violations',
-        ],
-      }],
-      ['OS=="linux" and host_arch=="ia32"', {
-        'cflags!': [
-          # Clang 3.4 doesn't support these flags.
-          '-Wno-absolute-value',
-          '-Wno-inconsistent-missing-override',
-          '-Wno-pointer-bool-conversion',
-          '-Wno-tautological-pointer-compare',
-          '-Wno-unused-local-typedef',
-          '-Wno-unused-local-typedefs',
-          '-Wno-undefined-bool-conversion',
-          '-Wno-tautological-undefined-compare',
         ],
       }],
     ],
