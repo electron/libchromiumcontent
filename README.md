@@ -50,3 +50,15 @@ If you change `VERSION` to point to a different Chromium release, or modify
     $ script/update
 
 This will regenerate all the project files. Then you can build again.
+
+### Building for ARM target
+
+```bash
+$ ./script/bootstrap
+$ ./script/update -t arm
+$ cd vendor/chromium/src
+$ ./build/install-build-deps.sh --arm
+$ ./chrome/installer/linux/sysroot_scripts/install-debian.wheezy.sysroot.py --arch=arm
+$ cd -
+$ ./script/build -t arm
+```

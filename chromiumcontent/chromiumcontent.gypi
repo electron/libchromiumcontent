@@ -36,6 +36,14 @@
         # Use Dbus.
         'use_dbus': 1,
       }],
+      ['OS=="linux" and target_arch=="arm"', {
+        'arm_version': 7,
+        'arm_float_abi': 'hard',
+        'linux_dump_symbols': 0,
+      }],
+      ['OS=="linux" and host_arch=="x64"', {
+        'linux_use_gold_flags': 1,
+      }],
       ['OS=="linux" and host_arch=="ia32"', {
         # Use system installed clang for building.
         'make_clang_dir': '/usr',
@@ -95,7 +103,7 @@
       }],
     ],
     'target_conditions': [
-      ['_type=="static_library" and OS=="linux" and component=="static_library"', {
+      ['_type=="static_library" and _toolset=="target" and OS=="linux" and component=="static_library"', {
         'standalone_static_library': 1,
       }],
       ['_target_name in <(v8_libraries) + <(icu_libraries)', {
