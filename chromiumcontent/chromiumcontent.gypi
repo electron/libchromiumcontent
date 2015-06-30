@@ -10,6 +10,8 @@
     # any conflicts when linking to binaries or libraries that don't use
     # tcmalloc.
     'linux_use_tcmalloc': 0,
+    # Force using gold linker.
+    'linux_use_bundled_gold': 1,
     # Using libc++ requires building for >= 10.7.
     'mac_deployment_target': '10.8',
     # The 10.8 SDK does not work well with C++11.
