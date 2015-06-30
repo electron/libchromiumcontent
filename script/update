@@ -31,6 +31,9 @@ def main():
   if not is_source_tarball_updated(version):
     download_source_tarball(version)
 
+  if sys.platform == 'linux2':
+    install_sysroot()
+
   target_arch = args.target_arch
   return (apply_patches() or
           copy_chromiumcontent_files() or
@@ -90,6 +93,14 @@ def download_source_tarball(version):
   version_file = os.path.join(SRC_DIR, '.version')
   with open(version_file, 'w+') as f:
     f.write(version)
+
+
+def install_sysroot():
+  for arch in ('arm', 'amd64', 'i386'):
+    install = os.path.join(SRC_DIR, 'chrome', 'installer', 'linux',
+                           'sysroot_scripts',
+                           'install-debian.wheezy.sysroot.py')
+    subprocess.check_call([install, '--arch', arch])
 
 
 def tar_xf(filename):

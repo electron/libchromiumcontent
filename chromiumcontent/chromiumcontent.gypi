@@ -33,10 +33,21 @@
         'enable_hidpi': 1,
         # Use Dbus.
         'use_dbus': 1,
-      }],
-      ['OS=="linux" and target_arch=="arm"', {
-        'arm_version': 7,
-        'arm_float_abi': 'hard',
+        # Use sysroot for building.
+        'use_sysroot': 1,
+        'conditions': [
+          ['target_arch=="arm"', {
+            'arm_version': 7,
+            'arm_float_abi': 'hard',
+            'sysroot%': '<!(cd <(DEPTH) && pwd -P)/chrome/installer/linux/debian_wheezy_arm-sysroot',
+          }],
+          ['target_arch=="ia32"', {
+            'sysroot%': '<!(cd <(DEPTH) && pwd -P)/chrome/installer/linux/debian_wheezy_i386-sysroot',
+          }],
+          ['target_arch=="x64"', {
+            'sysroot%': '<!(cd <(DEPTH) && pwd -P)/chrome/installer/linux/debian_wheezy_amd64-sysroot',
+          }],
+        ],
       }],
     ],
   },
