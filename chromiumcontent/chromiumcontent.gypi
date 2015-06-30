@@ -101,7 +101,11 @@
       }],
       # V8 is force using ia32 as host on a x64 host.
       ['_toolset=="host" and target_arch=="ia32" and sysroot!="" and _target_name in <(v8_libraries) + <(icu_libraries)', {
-        'include_dirs': [ '<(sysroot)/usr/include/i386-linux-gnu' ],
+        'include_dirs': [
+          '<(sysroot)/usr/include/i386-linux-gnu',
+          '<(sysroot)/usr/include/c++/4.6',
+          '<(sysroot)/usr/include/c++/4.6/i486-linux-gnu',
+        ],
       }],
       ['_target_name in <(v8_libraries) + <(icu_libraries)', {
         'xcode_settings': {
