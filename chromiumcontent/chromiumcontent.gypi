@@ -93,17 +93,17 @@
           '-Wl,--detect-odr-violations',
         ],
       }],
-      ['sysroot!=""', {
+    ],
+    'target_conditions': [
+      ['_type=="static_library" and _toolset=="target" and OS=="linux" and component=="static_library"', {
+        'standalone_static_library': 1,
+      }],
+      ['_toolset=="target" and sysroot!=""', {
         'conditions': [
           ['target_arch=="ia32"', {
             'include_dirs': [ '<(sysroot)/usr/include/i386-linux-gnu' ],
           }],
         ],
-      }],
-    ],
-    'target_conditions': [
-      ['_type=="static_library" and _toolset=="target" and OS=="linux" and component=="static_library"', {
-        'standalone_static_library': 1,
       }],
       ['_target_name in <(v8_libraries) + <(icu_libraries)', {
         'xcode_settings': {
