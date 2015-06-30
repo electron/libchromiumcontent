@@ -91,12 +91,17 @@
       ['_type=="static_library" and _toolset=="target" and OS=="linux" and component=="static_library"', {
         'standalone_static_library': 1,
       }],
+      # Manually set include dirs.
       ['_toolset=="target" and sysroot!=""', {
         'conditions': [
           ['target_arch=="ia32"', {
             'include_dirs': [ '<(sysroot)/usr/include/i386-linux-gnu' ],
           }],
         ],
+      }],
+      # V8 is force using ia32 as host on a x64 host.
+      ['_toolset=="host" and target_arch=="ia32" and sysroot!="" and _target_name in <(v8_libraries) + <(icu_libraries)', {
+        'include_dirs': [ '<(sysroot)/usr/include/i386-linux-gnu' ],
       }],
       ['_target_name in <(v8_libraries) + <(icu_libraries)', {
         'xcode_settings': {
