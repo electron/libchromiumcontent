@@ -3,15 +3,6 @@
     # Enalbe using proprietary codecs.
     'proprietary_codecs': 1,
     'ffmpeg_branding': 'Chrome',
-    # And the gold's flags are not available in system's ld neither.
-    'linux_use_gold_flags': 0,
-    # Make Linux build contain debug symbols, this flag will add '-g' to cflags.
-    'linux_dump_symbols': 1,
-    # The Linux build of libchromiumcontent.so depends on, but doesn't
-    # provide, tcmalloc by default.  Disabling tcmalloc here also prevents
-    # any conflicts when linking to binaries or libraries that don't use
-    # tcmalloc.
-    'linux_use_tcmalloc': 0,
     # Using libc++ requires building for >= 10.7.
     'mac_deployment_target': '10.8',
     # The 10.8 SDK does not work well with C++11.
@@ -35,19 +26,22 @@
         'enable_hidpi': 1,
         # Use Dbus.
         'use_dbus': 1,
-      }],
-      ['OS=="linux" and target_arch=="arm"', {
-        'arm_version': 7,
-        'arm_float_abi': 'hard',
-      }],
-      ['OS=="linux" and host_arch=="x64"', {
-        'linux_use_gold_flags': 1,
-      }],
-      ['OS=="linux" and host_arch=="ia32"', {
-        # Use system installed clang for building.
-        'make_clang_dir': '/usr',
-        'clang': 1,
-        'clang_use_chrome_plugins': 0,
+        # Make Linux build contain debug symbols, this flag will add '-g' to
+        # cflags.
+        'linux_dump_symbols': 1,
+        # The Linux build of libchromiumcontent.so depends on, but doesn't
+        # provide, tcmalloc by default.  Disabling tcmalloc here also prevents
+        # any conflicts when linking to binaries or libraries that don't use
+        # tcmalloc.
+        'linux_use_tcmalloc': 0,
+        # Force using gold linker.
+        'linux_use_bundled_gold': 1,
+        'conditions': [
+          ['target_arch=="arm"', {
+            'arm_version': 7,
+            'arm_float_abi': 'hard',
+          }],
+        ],
       }],
     ],
   },
@@ -91,19 +85,6 @@
         # Work around ODR violations.
         'ldflags!': [
           '-Wl,--detect-odr-violations',
-        ],
-      }],
-      ['OS=="linux" and host_arch=="ia32"', {
-        'cflags!': [
-          # Clang 3.4 doesn't support these flags.
-          '-Wno-absolute-value',
-          '-Wno-inconsistent-missing-override',
-          '-Wno-pointer-bool-conversion',
-          '-Wno-tautological-pointer-compare',
-          '-Wno-unused-local-typedef',
-          '-Wno-unused-local-typedefs',
-          '-Wno-undefined-bool-conversion',
-          '-Wno-tautological-undefined-compare',
         ],
       }],
     ],

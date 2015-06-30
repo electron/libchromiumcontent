@@ -31,6 +31,9 @@ def main():
   if not is_source_tarball_updated(version):
     download_source_tarball(version)
 
+  if sys.platform == 'linux2':
+    install_sysroot()
+
   target_arch = args.target_arch
   return (apply_patches() or
           copy_chromiumcontent_files() or
@@ -92,6 +95,14 @@ def download_source_tarball(version):
     f.write(version)
 
 
+def install_sysroot():
+  for arch in ('arm', 'amd64', 'i386'):
+    install = os.path.join(SRC_DIR, 'chrome', 'installer', 'linux',
+                           'sysroot_scripts',
+                           'install-debian.wheezy.sysroot.py')
+    subprocess.check_call([install, '--arch', arch])
+
+
 def tar_xf(filename):
   subprocess.call([xz(), '-dqk', filename])
   tar_name = filename[:-3]
@@ -110,21 +121,20 @@ def gyp_env(target_arch, component):
 
   env['GYP_GENERATORS'] = 'ninja'
 
-  if sys.platform == 'darwin':
-    # host_arch seems to be required.
-    gyp_defines += ' ' + 'host_arch=x64'
-  elif sys.platform in ['win32', 'cygwin']:
+  if sys.platform in ['win32', 'cygwin']:
     # Don't use the auto-installed VS2013 Express toolchain from depot_tools.
     # We have our own.
     env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
     env['GYP_MSVS_VERSION'] = '2013'
-
-  # ARM build requires cross compilation.
-  if target_arch == 'arm':
+  elif sys.platform == 'linux2' and target_arch in ('arm', 'ia32'):
+    # ARM build requires cross compilation.
     env['GYP_CROSSCOMPILE'] = '1'
 
+  # Always build on 64-bit machine.
+  gyp_defines += ' host_arch=x64'
+
   # Build 32-bit or 64-bit.
-  gyp_defines += ' ' + 'target_arch={0}'.format(target_arch)
+  gyp_defines += ' target_arch={0}'.format(target_arch)
   env['GYP_DEFINES'] = gyp_defines
 
   # Output directory.
