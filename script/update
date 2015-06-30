@@ -110,21 +110,20 @@ def gyp_env(target_arch, component):
 
   env['GYP_GENERATORS'] = 'ninja'
 
-  if sys.platform == 'darwin':
-    # host_arch seems to be required.
-    gyp_defines += ' ' + 'host_arch=x64'
-  elif sys.platform in ['win32', 'cygwin']:
+  if sys.platform in ['win32', 'cygwin']:
     # Don't use the auto-installed VS2013 Express toolchain from depot_tools.
     # We have our own.
     env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
     env['GYP_MSVS_VERSION'] = '2013'
-
-  # ARM build requires cross compilation.
-  if target_arch in ('arm', 'ia32'):
+  elif sys.platform == 'linux2' and target_arch in ('arm', 'ia32'):
+    # ARM build requires cross compilation.
     env['GYP_CROSSCOMPILE'] = '1'
 
+  # Always build on 64-bit machine.
+  gyp_defines += ' host_arch=x64'
+
   # Build 32-bit or 64-bit.
-  gyp_defines += ' ' + 'target_arch={0}'.format(target_arch)
+  gyp_defines += ' target_arch={0}'.format(target_arch)
   env['GYP_DEFINES'] = gyp_defines
 
   # Output directory.
