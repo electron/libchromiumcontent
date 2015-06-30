@@ -129,9 +129,8 @@ def gyp_env(target_arch, component):
     # We have our own.
     env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
     env['GYP_MSVS_VERSION'] = '2013'
-
-  # ARM build requires cross compilation.
-  if target_arch in ('arm', 'ia32'):
+  elif sys.platform == 'linux2' and target_arch in ('arm', 'ia32'):
+    # ARM build requires cross compilation.
     env['GYP_CROSSCOMPILE'] = '1'
 
   # Build 32-bit or 64-bit.
