@@ -132,9 +132,18 @@ def gyp_env(target_arch, component):
   elif sys.platform == 'linux2' and target_arch in ('arm', 'ia32'):
     # ARM build requires cross compilation.
     env['GYP_CROSSCOMPILE'] = '1'
+    # Sets sysroot.
+    sysroot_dir = os.path.join(SRC_DIR, 'chrome', 'installer', 'linux')
+    if target_arch == 'arm':
+      sysroot = os.path.join(sysroot_dir, 'debian_wheezy_arm-sysroot')
+    elif target_arch == 'ia32':
+      sysroot = os.path.join(sysroot_dir, 'debian_wheezy_i386-sysroot')
+    elif target_arch == 'x64':
+      sysroot = os.path.join(sysroot_dir, 'debian_wheezy_amd64-sysroot')
+    gyp_defines += ' sysroot={0}'.format(sysroot)
 
   # Build 32-bit or 64-bit.
-  gyp_defines += ' ' + 'target_arch={0}'.format(target_arch)
+  gyp_defines += ' target_arch={0}'.format(target_arch)
   env['GYP_DEFINES'] = gyp_defines
 
   # Output directory.

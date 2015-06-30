@@ -39,13 +39,6 @@
           ['target_arch=="arm"', {
             'arm_version': 7,
             'arm_float_abi': 'hard',
-            'sysroot': '<!(cd <(DEPTH) && pwd -P)/chrome/installer/linux/debian_wheezy_arm-sysroot',
-          }],
-          ['target_arch=="ia32"', {
-            'sysroot': '<!(cd <(DEPTH) && pwd -P)/chrome/installer/linux/debian_wheezy_i386-sysroot',
-          }],
-          ['target_arch=="x64"', {
-            'sysroot': '<!(cd <(DEPTH) && pwd -P)/chrome/installer/linux/debian_wheezy_amd64-sysroot',
           }],
         ],
       }],
