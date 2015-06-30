@@ -93,6 +93,13 @@
           '-Wl,--detect-odr-violations',
         ],
       }],
+      ['sysroot!=""', {
+        'conditions': [
+          ['target_arch=="ia32"', {
+            'include_dirs': [ '<(sysroot)/usr/include/i386-linux-gnu' ],
+          }],
+        ],
+      }],
     ],
     'target_conditions': [
       ['_type=="static_library" and _toolset=="target" and OS=="linux" and component=="static_library"', {
