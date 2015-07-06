@@ -74,6 +74,7 @@ BINARIES = {
     'libyuv.lib',
     'mksnapshot.exe',
     'pdf.dll',
+    os.path.join('gen', 'ui', 'resources', 'ui_unscaled_resources.rc'),
     os.path.join('lib', 'ffmpegsumo.lib'),
     os.path.join('obj', 'base', 'base_static.cc.pdb'),
     os.path.join('obj', 'base', 'base_static.lib'),
