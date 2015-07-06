@@ -154,6 +154,9 @@ OTHER_HEADERS = [
 OTHER_SOURCES = [
   'content/app/startup_helper_win.cc',
 ]
+OTHER_DIRS = [
+  os.path.join('ui', 'resources', 'cursors'),
+]
 
 
 def main():
@@ -268,6 +271,9 @@ def copy_sources():
     copy_source_file(os.path.join(SRC_DIR, path), relative_to=SRC_DIR,
                      destination=DIST_SRC_DIR)
 
+  for path in OTHER_DIRS:
+    copy_dir(path, relative_to=SRC_DIR, destination=DIST_SRC_DIR)
+
   # Some headers assume this file is at the top of the include path. Rather
   # than forcing client apps to set up their include path specially, we'll
   # just copy it to the top.
@@ -290,6 +296,13 @@ def copy_source_file(absolute_path, relative_to, destination):
   final_path = os.path.join(destination, relative_path)
   mkdir_p(os.path.dirname(final_path))
   shutil.copy2(absolute_path, final_path)
+
+
+def copy_dir(relative_path, relative_to, destination):
+  abs_path = os.path.join(relative_to, relative_path)
+  for dirpath, dirnames, filenames in os.walk(abs_path):
+    for filename in filenames:
+      copy_source_file(os.path.join(dirpath, filename), relative_to=relative_to, destination=destination)
 
 
 def run_strip(target_arch, filename):
