@@ -7,8 +7,8 @@
     'mac_deployment_target': '10.8',
     # The 10.8 SDK does not work well with C++11.
     'mac_sdk_min': '10.9',
-    # Use OpenSSL.
-    'use_openssl': 1,
+    # Don't OpenSSL, it's not quite ready yet.
+    'use_openssl': 0,
     # Use the standard way of linking with msvc runtime.
     'win_use_allocator_shim': 0,
     'win_release_RuntimeLibrary': '2',
