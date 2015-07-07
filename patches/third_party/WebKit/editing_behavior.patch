@@ -1,0 +1,13 @@
+diff --git a/Source/core/editing/EditingBehavior.h b/Source/core/editing/EditingBehavior.h
+index e436564..e9248e0 100644
+--- a/Source/core/editing/EditingBehavior.h
++++ b/Source/core/editing/EditingBehavior.h
+@@ -67,7 +67,7 @@ public:
+     // On Mac and Windows, pressing backspace (when it isn't handled otherwise) should navigate back.
+     bool shouldNavigateBackOnBackspace() const
+     {
+-        return m_type != EditingUnixBehavior && m_type != EditingAndroidBehavior;
++        return false;
+     }
+ 
+     // On Mac, selecting backwards by word/line from the middle of a word/line, and then going
