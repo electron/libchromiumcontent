@@ -1,0 +1,13 @@
+diff --git a/third_party/WebKit/Source/core/editing/EditingBehavior.h b/third_party/WebKit/Source/core/editing/EditingBehavior.h
+index 2a500e3..8297121 100644
+--- a/third_party/WebKit/Source/core/editing/EditingBehavior.h
++++ b/third_party/WebKit/Source/core/editing/EditingBehavior.h
+@@ -69,7 +69,7 @@ public:
+     // On Mac and Windows, pressing backspace (when it isn't handled otherwise) should navigate back.
+     bool shouldNavigateBackOnBackspace() const
+     {
+-        return m_type != EditingUnixBehavior && m_type != EditingAndroidBehavior;
++        return false;
+     }
+ 
+     // On Mac, selecting backwards by word/line from the middle of a word/line, and then going
