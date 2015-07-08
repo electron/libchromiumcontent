@@ -23,6 +23,10 @@ def main():
   if sys.platform in ['win32', 'cygwin']:
     return (run_ci(['-t', 'ia32']) or
             run_ci(['-t', 'x64']))
+  elif sys.platform == 'linux2':
+    return (run_ci(['-t', 'ia32']) or
+            run_ci(['-t', 'arm']) or
+            run_ci(['-t', 'x64']))
   else:
     return run_ci([])
 
