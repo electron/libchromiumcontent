@@ -2,7 +2,7 @@ diff --git a/gin/gin.gyp b/gin/gin.gyp
 index 096c120..40ba098 100644
 --- a/gin/gin.gyp
 +++ b/gin/gin.gyp
-@@ -78,20 +78,6 @@
+@@ -82,20 +82,6 @@
          'wrappable.h',
          'wrapper_info.cc',
        ],
