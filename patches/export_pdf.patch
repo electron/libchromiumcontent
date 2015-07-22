@@ -2,7 +2,7 @@ diff --git a/pdf/pdf.cc b/pdf/pdf.cc
 index 7aba412..f57902a 100644
 --- a/pdf/pdf.cc
 +++ b/pdf/pdf.cc
-@@ -81,7 +81,13 @@ const void* PPP_GetInterface(const char* interface_name) {
+@@ -78,7 +78,13 @@ const void* PPP_GetInterface(const char* interface_name) {
    return pp::Module::Get()->GetPluginInterface(interface_name);
  }
  
@@ -16,7 +16,7 @@ index 7aba412..f57902a 100644
  bool RenderPDFPageToDC(const void* pdf_buffer,
                                   int buffer_size,
                                   int page_number,
-@@ -118,6 +124,7 @@ bool RenderPDFPageToDC(const void* pdf_buffer,
+@@ -115,6 +121,7 @@ bool RenderPDFPageToDC(const void* pdf_buffer,
  
  #endif  // OS_WIN
  
@@ -24,7 +24,7 @@ index 7aba412..f57902a 100644
  bool GetPDFDocInfo(const void* pdf_buffer,
                     int buffer_size, int* page_count,
                     double* max_page_width) {
-@@ -176,4 +183,4 @@ bool RenderPDFPageToBitmap(const void* pdf_buffer,
+@@ -173,4 +180,4 @@ bool RenderPDFPageToBitmap(const void* pdf_buffer,
    return ret;
  }
  
