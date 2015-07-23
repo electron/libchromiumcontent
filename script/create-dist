@@ -55,12 +55,12 @@ BINARIES = {
   ],
   'darwin': [
     'chromedriver',
-    'ffmpegsumo.so',
+    'ffmpeg.so',
     'mksnapshot',
   ],
   'linux': [
     'chromedriver',
-    'libffmpegsumo.so',
+    'libffmpeg.so',
     'libgtk2ui.a',
     'libosmesa.so',
     'mksnapshot',
@@ -68,14 +68,14 @@ BINARIES = {
   'win32': [
     'chromedriver.exe',
     'd3dcompiler_47.dll',
-    'ffmpegsumo.dll',
+    'ffmpeg.dll',
+    'ffmpeg.dll.lib',
     'libEGL.dll',
     'libGLESv2.dll',
     'libyuv.lib',
     'mksnapshot.exe',
     'pdf.dll',
     os.path.join('gen', 'ui', 'resources', 'ui_unscaled_resources.rc'),
-    os.path.join('lib', 'ffmpegsumo.lib'),
     os.path.join('obj', 'base', 'base_static.cc.pdb'),
     os.path.join('obj', 'base', 'base_static.lib'),
     os.path.join('obj', 'sandbox', 'sandbox.cc.pdb'),
@@ -89,11 +89,11 @@ SYMBOLS = {
     # create_dsym() and copy_symbols().
   ],
   'linux': [
-    'libffmpegsumo.so.dbg',
+    'libffmpeg.so.dbg',
     'libosmesa.so.dbg',
   ],
   'win32': [
-    'ffmpegsumo.dll.pdb',
+    'ffmpeg.dll.pdb',
     'libGLESv2.dll.pdb',
   ],
 }
@@ -174,7 +174,7 @@ def main():
 
   copy_sources()
   generate_licenses()
-  create_zip()
+  #create_zip()
 
 
 def parse_args():
