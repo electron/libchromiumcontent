@@ -29,6 +29,8 @@
       'type': 'shared_library',
       'dependencies': [
         '<(DEPTH)/base/base.gyp:base_prefs',
+        '<(DEPTH)/components/components.gyp:devtools_discovery',
+        '<(DEPTH)/components/components.gyp:devtools_http_handler',
         '<(DEPTH)/content/content.gyp:content',
         '<(DEPTH)/content/content.gyp:content_app_both',
         '<(DEPTH)/content/content_shell_and_tests.gyp:content_shell_pak',
