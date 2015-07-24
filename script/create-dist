@@ -78,6 +78,10 @@ BINARIES = {
     os.path.join('gen', 'ui', 'resources', 'ui_unscaled_resources.rc'),
     os.path.join('obj', 'base', 'base_static.cc.pdb'),
     os.path.join('obj', 'base', 'base_static.lib'),
+    os.path.join('obj', 'components', 'devtools_http_handler.cc.pdb'),
+    os.path.join('obj', 'components', 'devtools_http_handler.lib'),
+    os.path.join('obj', 'components', 'devtools_discovery.cc.pdb'),
+    os.path.join('obj', 'components', 'devtools_discovery.lib'),
     os.path.join('obj', 'sandbox', 'sandbox.cc.pdb'),
     os.path.join('obj', 'sandbox', 'sandbox.lib'),
   ],
@@ -176,7 +180,7 @@ def main():
 
   copy_sources()
   generate_licenses()
-  #create_zip()
+  create_zip()
 
 
 def parse_args():
