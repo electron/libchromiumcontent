@@ -157,6 +157,7 @@ GENERATED_INCLUDE_DIRS = [
 ]
 OTHER_HEADERS = [
   'content/common/content_export.h',
+  'ui/events/keycodes/dom/dom_key_data.inc',
 ]
 OTHER_SOURCES = [
   'content/app/startup_helper_win.cc',
