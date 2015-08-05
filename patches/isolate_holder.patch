@@ -1,0 +1,14 @@
+diff --git a/gin/isolate_holder.cc b/gin/isolate_holder.cc
+index 656ce09..9bccde0 100644
+--- a/gin/isolate_holder.cc
++++ b/gin/isolate_holder.cc
+@@ -38,7 +38,9 @@ IsolateHolder::IsolateHolder(AccessMode access_mode)
+   params.array_buffer_allocator = allocator;
+   isolate_ = v8::Isolate::New(params);
+   isolate_data_.reset(new PerIsolateData(isolate_, allocator));
++#if 0
+   isolate_memory_dump_provider_.reset(new V8IsolateMemoryDumpProvider(this));
++#endif
+ #if defined(OS_WIN)
+   {
+     void* code_range;
