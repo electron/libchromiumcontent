@@ -55,12 +55,10 @@ BINARIES = {
   ],
   'darwin': [
     'chromedriver',
-    'ffmpeg.so',
     'mksnapshot',
   ],
   'linux': [
     'chromedriver',
-    'libffmpeg.so',
     'libgtk2ui.a',
     'libosmesa.so',
     'mksnapshot',
@@ -68,8 +66,6 @@ BINARIES = {
   'win32': [
     'chromedriver.exe',
     'd3dcompiler_47.dll',
-    'ffmpeg.dll',
-    'ffmpeg.dll.lib',
     'libEGL.dll',
     'libGLESv2.dll',
     'libyuv.lib',
@@ -94,11 +90,9 @@ SYMBOLS = {
     # create_dsym() and copy_symbols().
   ],
   'linux': [
-    'libffmpeg.so.dbg',
     'libosmesa.so.dbg',
   ],
   'win32': [
-    'ffmpeg.dll.pdb',
     'libGLESv2.dll.pdb',
   ],
 }
