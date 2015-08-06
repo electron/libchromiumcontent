@@ -27,29 +27,23 @@ EXCLUDE_SHARED_LIBRARIES = {
   'darwin': [
   ],
   'linux': [
-    'ffmpegsumo.so',
   ],
   'win32': [
     'd3dcompiler_47.dll',
-    'ffmpegsumo.dll',
     'libEGL.dll',
     'libGLESv2.dll',
   ],
 }[TARGET_PLATFORM]
 EXCLUDE_STATIC_LIBRARIES = {
   'darwin': [
-    'libffmpeg_yasm.a',
     'libv8_nosnapshot.a',
   ],
   'linux': [
-    'libffmpeg_yasm.a',
     'libprotobuf_full_do_not_use.a',
     'libgenperf_libs.a',
     'libv8_nosnapshot.a',
   ],
   'win32': [
-    'ffmpegsumo.dll.lib',
-    'ffmpeg_yasm.lib',
     'libEGL.dll.lib',
     'libGLESv2.dll.lib',
   ],
