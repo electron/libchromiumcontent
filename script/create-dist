@@ -55,12 +55,12 @@ BINARIES = {
   ],
   'darwin': [
     'chromedriver',
-    'ffmpegsumo.so',
+    'ffmpeg.so',
     'mksnapshot',
   ],
   'linux': [
     'chromedriver',
-    'libffmpegsumo.so',
+    'libffmpeg.so',
     'libgtk2ui.a',
     'libosmesa.so',
     'mksnapshot',
@@ -68,16 +68,21 @@ BINARIES = {
   'win32': [
     'chromedriver.exe',
     'd3dcompiler_47.dll',
-    'ffmpegsumo.dll',
+    'ffmpeg.dll',
+    'ffmpeg.dll.lib',
     'libEGL.dll',
     'libGLESv2.dll',
     'libyuv.lib',
     'mksnapshot.exe',
     'pdf.dll',
     os.path.join('gen', 'ui', 'resources', 'ui_unscaled_resources.rc'),
-    os.path.join('lib', 'ffmpegsumo.lib'),
     os.path.join('obj', 'base', 'base_static.cc.pdb'),
     os.path.join('obj', 'base', 'base_static.lib'),
+    os.path.join('obj', 'components', 'devtools_http_handler.cc.pdb'),
+    os.path.join('obj', 'components', 'devtools_http_handler.lib'),
+    os.path.join('obj', 'components', 'devtools_discovery.cc.pdb'),
+    os.path.join('obj', 'components', 'devtools_discovery.lib'),
+    os.path.join('obj', 'net', 'http_server.lib'),
     os.path.join('obj', 'sandbox', 'sandbox.cc.pdb'),
     os.path.join('obj', 'sandbox', 'sandbox.lib'),
   ],
@@ -89,11 +94,11 @@ SYMBOLS = {
     # create_dsym() and copy_symbols().
   ],
   'linux': [
-    'libffmpegsumo.so.dbg',
+    'libffmpeg.so.dbg',
     'libosmesa.so.dbg',
   ],
   'win32': [
-    'ffmpegsumo.dll.pdb',
+    'ffmpeg.dll.pdb',
     'libGLESv2.dll.pdb',
   ],
 }
@@ -104,6 +109,8 @@ INCLUDE_DIRS = [
   'build',
   'cc',
   'chrome/browser/ui/libgtk2ui',
+  'components/devtools_discovery',
+  'components/devtools_http_handler',
   'components/os_crypt',
   'content/browser',
   'content/common',
@@ -150,6 +157,7 @@ GENERATED_INCLUDE_DIRS = [
 ]
 OTHER_HEADERS = [
   'content/common/content_export.h',
+  'ui/events/keycodes/dom/dom_key_data.inc',
 ]
 OTHER_SOURCES = [
   'content/app/startup_helper_win.cc',
