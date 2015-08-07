@@ -1,0 +1,76 @@
+diff --git a/Source/bindings/core/v8/V8RecursionScope.h b/Source/bindings/core/v8/V8RecursionScope.h
+index 86c638d..7764d81 100644
+--- a/Source/bindings/core/v8/V8RecursionScope.h
++++ b/Source/bindings/core/v8/V8RecursionScope.h
+@@ -113,7 +113,7 @@ public:
+     };
+ 
+ private:
+-    void didLeaveScriptContext();
++    CORE_EXPORT void didLeaveScriptContext();
+ 
+     v8::Isolate* m_isolate;
+ };
+diff --git a/Source/web/WebScopedMicrotaskSuppression.cpp b/Source/web/WebScopedMicrotaskSuppression.cpp
+index 7171212..da1372a 100644
+--- a/Source/web/WebScopedMicrotaskSuppression.cpp
++++ b/Source/web/WebScopedMicrotaskSuppression.cpp
+@@ -37,6 +37,16 @@
+ 
+ namespace blink {
+ 
++void WebScopedRunV8Script::initialize(v8::Isolate* isolate)
++{
++    m_scope.reset(new V8RecursionScope(isolate));
++}
++
++void WebScopedRunV8Script::reset()
++{
++    m_scope.reset(0);
++}
++
+ #if ENABLE(ASSERT)
+ class WebScopedMicrotaskSuppression::Impl : public V8RecursionScope::MicrotaskSuppression {
+ public:
+diff --git a/public/web/WebScopedMicrotaskSuppression.h b/public/web/WebScopedMicrotaskSuppression.h
+index 8347ddf..16b6ebf 100644
+--- a/public/web/WebScopedMicrotaskSuppression.h
++++ b/public/web/WebScopedMicrotaskSuppression.h
+@@ -33,8 +33,14 @@
+ 
+ #include "../platform/WebPrivateOwnPtr.h"
+ 
++namespace v8 {
++class Isolate;
++}
++
+ namespace blink {
+ 
++class V8RecursionScope;
++
+ // This class wraps V8RecursionScope::BypassMicrotaskCheckpoint. Please
+ // see V8RecursionScope.h for full usage. Short story: Embedder calls into
+ // script contexts which also host page script must do one of two things:
+@@ -71,6 +77,22 @@ private:
+     WebPrivateOwnPtr<Impl> m_impl;
+ };
+ 
++// This class wraps V8RecursionScope, any direct call into V8 should be guarded
++// inside an instance of this class, otherwise microtask checkpoint will be
++// executed too early.
++// See http://git.io/vOFN5.
++class WebScopedRunV8Script {
++public:
++    explicit WebScopedRunV8Script(v8::Isolate* isolate) { initialize(isolate); }
++    ~WebScopedRunV8Script() { reset(); }
++
++private:
++    BLINK_EXPORT void initialize(v8::Isolate* isolate);
++    BLINK_EXPORT void reset();
++
++    WebPrivateOwnPtr<V8RecursionScope> m_scope;
++};
++
+ } // WebKit
+ 
+ #endif
