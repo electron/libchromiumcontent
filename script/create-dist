@@ -56,12 +56,18 @@ BINARIES = {
   'darwin': [
     'chromedriver',
     'mksnapshot',
+    'libdevtools_discovery.a',
+    'libdevtools_http_handler.a',
+    'libhttp_server.a',
   ],
   'linux': [
     'chromedriver',
-    'libgtk2ui.a',
-    'libosmesa.so',
     'mksnapshot',
+    'libosmesa.so',
+    'libgtk2ui.a',
+    'libdevtools_discovery.a',
+    'libdevtools_http_handler.a',
+    'libhttp_server.a',
   ],
   'win32': [
     'chromedriver.exe',
