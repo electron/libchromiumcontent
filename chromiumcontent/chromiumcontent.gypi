@@ -122,7 +122,7 @@
           },
         },
       }],
-      ['_target_name=="gtk2ui"', {
+      ['_target_name in ["gtk2ui", "devtools_http_handler", "devtools_discovery", "http_server"]', {
         'type': 'static_library',
         'standalone_static_library': 1,
         'cflags': [
