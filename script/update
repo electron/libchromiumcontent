@@ -97,9 +97,8 @@ def download_source_tarball(version):
 
 def install_sysroot():
   for arch in ('arm', 'amd64', 'i386'):
-    install = os.path.join(SRC_DIR, 'chrome', 'installer', 'linux',
-                           'sysroot_scripts',
-                           'install-debian.wheezy.sysroot.py')
+    install = os.path.join(SRC_DIR, 'build', 'linux', 'sysroot_scripts',
+                           'install-sysroot.py')
     subprocess.check_call([install, '--arch', arch])
 
 
