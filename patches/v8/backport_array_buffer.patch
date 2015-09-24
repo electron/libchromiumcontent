@@ -1,0 +1,200 @@
+diff --git a/src/heap/mark-compact.cc b/src/heap/mark-compact.cc
+index 9ca06cf..14f918b 100644
+--- a/src/heap/mark-compact.cc
++++ b/src/heap/mark-compact.cc
+@@ -2782,6 +2782,28 @@ void MarkCompactCollector::MigrateObjectMixed(HeapObject* dst, HeapObject* src,
+     Address base_pointer_slot =
+         dst->address() + FixedTypedArrayBase::kBasePointerOffset;
+     RecordMigratedSlot(Memory::Object_at(base_pointer_slot), base_pointer_slot);
++  } else if (src->IsJSArrayBuffer()) {
++    heap()->MoveBlock(dst->address(), src->address(), size);
++
++    // Visit inherited JSObject properties and byte length of ArrayBuffer
++    Address regular_slot =
++        dst->address() + JSArrayBuffer::BodyDescriptor::kStartOffset;
++    Address regular_slots_end =
++        dst->address() + JSArrayBuffer::kByteLengthOffset + kPointerSize;
++    while (regular_slot < regular_slots_end) {
++      RecordMigratedSlot(Memory::Object_at(regular_slot), regular_slot);
++      regular_slot += kPointerSize;
++    }
++
++    // Skip backing store and visit just internal fields
++    Address internal_field_slot = dst->address() + JSArrayBuffer::kSize;
++    Address internal_fields_end =
++        dst->address() + JSArrayBuffer::kSizeWithInternalFields;
++    while (internal_field_slot < internal_fields_end) {
++      RecordMigratedSlot(Memory::Object_at(internal_field_slot),
++                         internal_field_slot);
++      internal_field_slot += kPointerSize;
++    }
+   } else if (FLAG_unbox_double_fields) {
+     Address dst_addr = dst->address();
+     Address src_addr = src->address();
+@@ -3206,6 +3228,12 @@ bool MarkCompactCollector::IsSlotInLiveObject(Address slot) {
+         if (object->IsFixedTypedArrayBase()) {
+           return static_cast<int>(slot - object->address()) ==
+                  FixedTypedArrayBase::kBasePointerOffset;
++        } else if (object->IsJSArrayBuffer()) {
++          int off = static_cast<int>(slot - object->address());
++          return (off >= JSArrayBuffer::BodyDescriptor::kStartOffset &&
++                  off <= JSArrayBuffer::kByteLengthOffset) ||
++                 (off >= JSArrayBuffer::kSize &&
++                  off < JSArrayBuffer::kSizeWithInternalFields);
+         } else if (FLAG_unbox_double_fields) {
+           // Filter out slots that happen to point to unboxed double fields.
+           LayoutDescriptorHelper helper(object->map());
+diff --git a/src/heap/objects-visiting-inl.h b/src/heap/objects-visiting-inl.h
+index 0103054..bdb801a 100644
+--- a/src/heap/objects-visiting-inl.h
++++ b/src/heap/objects-visiting-inl.h
+@@ -81,10 +81,8 @@ int StaticNewSpaceVisitor<StaticVisitor>::VisitJSArrayBuffer(
+     Map* map, HeapObject* object) {
+   Heap* heap = map->GetHeap();
+ 
+-  VisitPointers(
+-      heap,
+-      HeapObject::RawField(object, JSArrayBuffer::BodyDescriptor::kStartOffset),
+-      HeapObject::RawField(object, JSArrayBuffer::kSizeWithInternalFields));
++  JSArrayBuffer::JSArrayBufferIterateBody<
++      StaticNewSpaceVisitor<StaticVisitor> >(heap, object);
+   if (!JSArrayBuffer::cast(object)->is_external()) {
+     heap->RegisterLiveArrayBuffer(true,
+                                   JSArrayBuffer::cast(object)->backing_store());
+@@ -503,10 +501,7 @@ void StaticMarkingVisitor<StaticVisitor>::VisitJSArrayBuffer(
+     Map* map, HeapObject* object) {
+   Heap* heap = map->GetHeap();
+ 
+-  StaticVisitor::VisitPointers(
+-      heap,
+-      HeapObject::RawField(object, JSArrayBuffer::BodyDescriptor::kStartOffset),
+-      HeapObject::RawField(object, JSArrayBuffer::kSizeWithInternalFields));
++  JSArrayBuffer::JSArrayBufferIterateBody<StaticVisitor>(heap, object);
+   if (!JSArrayBuffer::cast(object)->is_external()) {
+     heap->RegisterLiveArrayBuffer(false,
+                                   JSArrayBuffer::cast(object)->backing_store());
+diff --git a/src/heap/store-buffer.cc b/src/heap/store-buffer.cc
+index 03f587f..efdd0b4 100644
+--- a/src/heap/store-buffer.cc
++++ b/src/heap/store-buffer.cc
+@@ -503,6 +503,17 @@ void StoreBuffer::IteratePointersToNewSpace(ObjectSlotCallback slot_callback) {
+                         obj_address + FixedTypedArrayBase::kBasePointerOffset,
+                         obj_address + FixedTypedArrayBase::kHeaderSize,
+                         slot_callback);
++                  } else if (heap_object->IsJSArrayBuffer()) {
++                    FindPointersToNewSpaceInRegion(
++                        obj_address +
++                            JSArrayBuffer::BodyDescriptor::kStartOffset,
++                        obj_address + JSArrayBuffer::kByteLengthOffset +
++                            kPointerSize,
++                        slot_callback);
++                    FindPointersToNewSpaceInRegion(
++                        obj_address + JSArrayBuffer::kSize,
++                        obj_address + JSArrayBuffer::kSizeWithInternalFields,
++                        slot_callback);
+                   } else if (FLAG_unbox_double_fields) {
+                     LayoutDescriptorHelper helper(heap_object->map());
+                     DCHECK(!helper.all_fields_tagged());
+diff --git a/src/objects-inl.h b/src/objects-inl.h
+index fbc2c4e..3caf52b 100644
+--- a/src/objects-inl.h
++++ b/src/objects-inl.h
+@@ -1503,6 +1503,8 @@ HeapObjectContents HeapObject::ContentType() {
+   } else if (type >= FIRST_FIXED_TYPED_ARRAY_TYPE &&
+              type <= LAST_FIXED_TYPED_ARRAY_TYPE) {
+     return HeapObjectContents::kMixedValues;
++  } else if (type == JS_ARRAY_BUFFER_TYPE) {
++    return HeapObjectContents::kMixedValues;
+   } else if (type <= LAST_DATA_TYPE) {
+     // TODO(jochen): Why do we claim that Code and Map contain only raw values?
+     return HeapObjectContents::kRawValues;
+@@ -6091,6 +6093,32 @@ void JSArrayBuffer::set_is_shared(bool value) {
+ }
+ 
+ 
++// static
++template <typename StaticVisitor>
++void JSArrayBuffer::JSArrayBufferIterateBody(Heap* heap, HeapObject* obj) {
++  StaticVisitor::VisitPointers(
++      heap,
++      HeapObject::RawField(obj, JSArrayBuffer::BodyDescriptor::kStartOffset),
++      HeapObject::RawField(obj,
++                           JSArrayBuffer::kByteLengthOffset + kPointerSize));
++  StaticVisitor::VisitPointers(
++      heap, HeapObject::RawField(obj, JSArrayBuffer::kSize),
++      HeapObject::RawField(obj, JSArrayBuffer::kSizeWithInternalFields));
++}
++
++
++void JSArrayBuffer::JSArrayBufferIterateBody(HeapObject* obj,
++                                             ObjectVisitor* v) {
++  v->VisitPointers(
++      HeapObject::RawField(obj, JSArrayBuffer::BodyDescriptor::kStartOffset),
++      HeapObject::RawField(obj,
++                           JSArrayBuffer::kByteLengthOffset + kPointerSize));
++  v->VisitPointers(
++      HeapObject::RawField(obj, JSArrayBuffer::kSize),
++      HeapObject::RawField(obj, JSArrayBuffer::kSizeWithInternalFields));
++}
++
++
+ Object* JSArrayBufferView::byte_offset() const {
+   if (WasNeutered()) return Smi::FromInt(0);
+   return Object::cast(READ_FIELD(this, kByteOffsetOffset));
+diff --git a/src/objects.cc b/src/objects.cc
+index 2b042fd..5c86385 100644
+--- a/src/objects.cc
++++ b/src/objects.cc
+@@ -1420,7 +1420,6 @@ void HeapObject::IterateBody(InstanceType type, int object_size,
+     case JS_VALUE_TYPE:
+     case JS_DATE_TYPE:
+     case JS_ARRAY_TYPE:
+-    case JS_ARRAY_BUFFER_TYPE:
+     case JS_TYPED_ARRAY_TYPE:
+     case JS_DATA_VIEW_TYPE:
+     case JS_SET_TYPE:
+@@ -1436,6 +1435,9 @@ void HeapObject::IterateBody(InstanceType type, int object_size,
+     case JS_MESSAGE_OBJECT_TYPE:
+       JSObject::BodyDescriptor::IterateBody(this, object_size, v);
+       break;
++    case JS_ARRAY_BUFFER_TYPE:
++      JSArrayBuffer::JSArrayBufferIterateBody(this, v);
++      break;
+     case JS_FUNCTION_TYPE:
+       reinterpret_cast<JSFunction*>(this)
+           ->JSFunctionIterateBody(object_size, v);
+diff --git a/src/objects.h b/src/objects.h
+index 7e4fcba..563618a 100644
+--- a/src/objects.h
++++ b/src/objects.h
+@@ -10014,9 +10014,14 @@ class JSArrayBuffer: public JSObject {
+   DECLARE_PRINTER(JSArrayBuffer)
+   DECLARE_VERIFIER(JSArrayBuffer)
+ 
+-  static const int kBackingStoreOffset = JSObject::kHeaderSize;
+-  static const int kByteLengthOffset = kBackingStoreOffset + kPointerSize;
+-  static const int kBitFieldSlot = kByteLengthOffset + kPointerSize;
++  static const int kByteLengthOffset = JSObject::kHeaderSize;
++
++  // NOTE: GC will visit objects fields:
++  // 1. From JSObject::BodyDescriptor::kStartOffset to kByteLengthOffset +
++  //    kPointerSize
++  // 2. From start of the internal fields and up to the end of them
++  static const int kBackingStoreOffset = kByteLengthOffset + kPointerSize;
++  static const int kBitFieldSlot = kBackingStoreOffset + kPointerSize;
+ #if V8_TARGET_LITTLE_ENDIAN || !V8_HOST_ARCH_64_BIT
+   static const int kBitFieldOffset = kBitFieldSlot;
+ #else
+@@ -10027,6 +10032,12 @@ class JSArrayBuffer: public JSObject {
+   static const int kSizeWithInternalFields =
+       kSize + v8::ArrayBuffer::kInternalFieldCount * kPointerSize;
+ 
++  template <typename StaticVisitor>
++  static inline void JSArrayBufferIterateBody(Heap* heap, HeapObject* obj);
++
++  static inline void JSArrayBufferIterateBody(HeapObject* obj,
++                                              ObjectVisitor* v);
++
+   class IsExternal : public BitField<bool, 1, 1> {};
+   class IsNeuterable : public BitField<bool, 2, 1> {};
+   class WasNeutered : public BitField<bool, 3, 1> {};
