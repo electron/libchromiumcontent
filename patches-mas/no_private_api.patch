@@ -1,0 +1,75 @@
+diff --git a/content/browser/accessibility/browser_accessibility_cocoa.mm b/content/browser/accessibility/browser_accessibility_cocoa.mm
+index c76d2c4..b0807bf 100644
+--- a/content/browser/accessibility/browser_accessibility_cocoa.mm
++++ b/content/browser/accessibility/browser_accessibility_cocoa.mm
+@@ -19,10 +19,12 @@
+ #include "content/public/common/content_client.h"
+ #import "ui/accessibility/platform/ax_platform_node_mac.h"
+ 
++#ifndef MAS_BUILD
+ // See http://openradar.appspot.com/9896491. This SPI has been tested on 10.5,
+ // 10.6, and 10.7. It allows accessibility clients to observe events posted on
+ // this object.
+ extern "C" void NSAccessibilityUnregisterUniqueIdForUIElement(id element);
++#endif
+ 
+ using ui::AXNodeData;
+ using content::AccessibilityMatchPredicate;
+@@ -422,7 +424,9 @@ bool InitializeAccessibilityTreeSearch(
+ 
+ - (void)detach {
+   if (browserAccessibility_) {
++#ifndef MAS_BUILD
+     NSAccessibilityUnregisterUniqueIdForUIElement(self);
++#endif
+     browserAccessibility_ = NULL;
+   }
+ }
+diff --git a/content/common/sandbox_mac.mm b/content/common/sandbox_mac.mm
+index 6466b04..e8e582b 100644
+--- a/content/common/sandbox_mac.mm
++++ b/content/common/sandbox_mac.mm
+@@ -41,10 +41,12 @@ extern "C" {
+ #include "ui/base/layout.h"
+ #include "ui/gl/gl_surface.h"
+ 
++#ifndef MAS_BUILD
+ extern "C" {
+ void CGSSetDenyWindowServerConnections(bool);
+ void CGSShutdownServerConnections();
+ };
++#endif
+ 
+ namespace content {
+ namespace {
+@@ -345,8 +347,10 @@ void Sandbox::SandboxWarmup(int sandbox_type) {
+     // 10.8 and higher because doing it on earlier OSes causes layout tests to
+     // fail <http://crbug.com/397642#c48>. This may cause two log messages to
+     // be printed to the system logger on certain OS versions.
++#ifndef MAS_BUILD
+     CGSSetDenyWindowServerConnections(true);
+     CGSShutdownServerConnections();
++#endif
+   }
+ }
+ 
+diff --git a/net/dns/dns_config_service_posix.cc b/net/dns/dns_config_service_posix.cc
+index 02877e7..973e485 100644
+--- a/net/dns/dns_config_service_posix.cc
++++ b/net/dns/dns_config_service_posix.cc
+@@ -202,6 +202,7 @@ class DnsConfigServicePosix::Watcher {
+ 
+   bool Watch() {
+     bool success = true;
++#ifndef MAS_BUILD
+     if (!config_watcher_.Watch(base::Bind(&Watcher::OnConfigChanged,
+                                           base::Unretained(this)))) {
+       LOG(ERROR) << "DNS config watch failed to start.";
+@@ -219,6 +220,7 @@ class DnsConfigServicePosix::Watcher {
+                                 DNS_CONFIG_WATCH_FAILED_TO_START_HOSTS,
+                                 DNS_CONFIG_WATCH_MAX);
+     }
++#endif
+     return success;
+   }
+ 
