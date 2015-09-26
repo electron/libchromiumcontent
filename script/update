@@ -129,6 +129,12 @@ def gyp_env(target_arch, component):
     # ARM build requires cross compilation.
     env['GYP_CROSSCOMPILE'] = '1'
 
+  # Whether to build for Mac App Store.
+  if env.has_key('MAS_BUILD'):
+    gyp_defines += ' mac_mas_build=1'
+  else:
+    gyp_defines += ' mac_mas_build=0'
+
   # Always build on 64-bit machine.
   gyp_defines += ' host_arch=x64'
 
