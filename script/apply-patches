@@ -7,25 +7,30 @@ import sys
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 PATCHES_DIR = os.path.join(SOURCE_ROOT, 'patches')
+PATCHES_MAS_DIR = os.path.join(SOURCE_ROOT, 'patches-mas')
 VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
 SRC_DIR = os.path.join(VENDOR_DIR, 'chromium', 'src')
 PATCH_PY = os.path.join(VENDOR_DIR, 'python-patch', 'patch.py')
 
 
 def main():
-  error = apply_patches()
+  error = apply_patches_for_dir(PATCHES_DIR)
   if not error:
-    return
+    if os.environ.has_key('MAS_BUILD'):
+      error = apply_patches_for_dir(PATCHES_MAS_DIR)
+    if not error:
+      return
 
   sys.stderr.write(error + '\n')
   sys.stderr.flush()
-  revert_changes()
+  revert_changes_for_dir(PATCHES_DIR)
+  revert_changes_for_dir(PATCHES_MAS_DIR)
   return 1
 
 
-def apply_patches():
-  for root, dirs, files in os.walk(PATCHES_DIR):
-    prefix = os.path.relpath(root, PATCHES_DIR)
+def apply_patches_for_dir(directory):
+  for root, dirs, files in os.walk(directory):
+    prefix = os.path.relpath(root, directory)
     target = os.path.join(SRC_DIR, prefix)
     args = [sys.executable, PATCH_PY, '--directory', target, '--quiet']
     for name in sorted(files):
@@ -36,9 +41,9 @@ def apply_patches():
         return '{0} failed to apply'.format(os.path.basename(patch))
 
 
-def revert_changes():
-  for root, dirs, files in reversed(list(os.walk(PATCHES_DIR))):
-    prefix = os.path.relpath(root, PATCHES_DIR)
+def revert_changes_for_dir(directory):
+  for root, dirs, files in reversed(list(os.walk(directory))):
+    prefix = os.path.relpath(root, directory)
     target = os.path.join(SRC_DIR, prefix)
     args = [sys.executable, PATCH_PY, '--directory', target, '--quiet',
             '--revert']
