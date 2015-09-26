@@ -44,11 +44,6 @@
           }],
         ],
       }],
-      ['mac_mas_build==1', {
-        'defines': [
-          'MAS_BUILD',
-        ],
-      }],
     ],
   },
   'target_defaults': {
@@ -91,6 +86,11 @@
         # Work around ODR violations.
         'ldflags!': [
           '-Wl,--detect-odr-violations',
+        ],
+      }],
+      ['mac_mas_build==1', {
+        'defines': [
+          'MAS_BUILD',
         ],
       }],
     ],
