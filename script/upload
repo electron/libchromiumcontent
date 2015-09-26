@@ -68,12 +68,17 @@ def upload(target_arch):
   bucket, access_key, secret_key = s3_config()
   commit = command_output(['git', 'rev-parse', 'HEAD']).strip()
 
+  if os.environ.has_key('MAS_BUILD'):
+    platform = 'mas'
+  else:
+    platform = PLATFORM_KEY
+
   args = S3PUT + [
     '--bucket', bucket,
     '--access_key', access_key,
     '--secret_key', secret_key,
     '--prefix', SOURCE_ROOT,
-    '--key_prefix', 'libchromiumcontent/{0}/{1}/{2}'.format(PLATFORM_KEY,
+    '--key_prefix', 'libchromiumcontent/{0}/{1}/{2}'.format(platform,
                                                             target_arch,
                                                             commit),
     '--grant', 'public-read',
