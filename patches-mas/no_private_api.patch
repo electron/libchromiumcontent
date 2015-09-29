@@ -73,3 +73,35 @@ index 02877e7..973e485 100644
      return success;
    }
  
+diff --git a/ui/gfx/font_fallback_mac.mm b/ui/gfx/font_fallback_mac.mm
+index d312f8b..7e5f5bb 100644
+--- a/ui/gfx/font_fallback_mac.mm
++++ b/ui/gfx/font_fallback_mac.mm
+@@ -13,6 +13,7 @@
+ #import "base/mac/mac_util.h"
+ #import "base/strings/sys_string_conversions.h"
+ 
++#ifndef MAS_BUILD
+ // CTFontCopyDefaultCascadeListForLanguages() doesn't exist in the 10.6 SDK.
+ // There is only the following. It doesn't exist in the public header files,
+ // but is an exported symbol so should always link.
+@@ -39,6 +40,7 @@ CFArrayRef CTFontCopyDefaultCascadeListForLanguagesWrapper(
+ }
+ 
+ }  // namespace
++#endif
+ 
+ namespace gfx {
+ 
+@@ -78,7 +80,11 @@ std::vector<std::string> GetFallbackFontFamilies(
+       stringArrayForKey:@"AppleLanguages"];
+   CFArrayRef languages_cf = base::mac::NSToCFCast(languages);
+   base::ScopedCFTypeRef<CFArrayRef> cascade_list(
++#ifndef MAS_BUILD
+       CTFontCopyDefaultCascadeListForLanguagesWrapper(base_font, languages_cf));
++#else
++      CTFontCopyDefaultCascadeListForLanguages(base_font, languages_cf));
++#endif
+ 
+   std::vector<std::string> fallback_fonts;
+ 
