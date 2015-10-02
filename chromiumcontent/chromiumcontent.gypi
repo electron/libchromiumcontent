@@ -122,7 +122,7 @@
           },
         },
       }],
-      ['_target_name in ["gtk2ui", "devtools_http_handler", "devtools_discovery", "http_server"]', {
+      ['_target_name in ["gtk2ui", "devtools_http_handler", "devtools_discovery", "http_server", "desktop_capture", "webrtc_common", "system_wrapper", "rtc_base", "rtc_base_approved", "libyuv"]', {
         'type': 'static_library',
         'standalone_static_library': 1,
         'cflags': [

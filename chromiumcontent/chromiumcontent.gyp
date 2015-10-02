@@ -39,6 +39,7 @@
         '<(DEPTH)/ppapi/ppapi_internal.gyp:ppapi_proxy',
         '<(DEPTH)/ppapi/ppapi_internal.gyp:ppapi_ipc',
         '<(DEPTH)/ppapi/ppapi_internal.gyp:ppapi_shared',
+        '<(DEPTH)/third_party/webrtc/modules/modules.gyp:desktop_capture',
       ],
       'sources': [
         'empty.cc',
