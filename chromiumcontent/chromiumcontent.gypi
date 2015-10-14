@@ -88,6 +88,11 @@
           '-Wl,--detect-odr-violations',
         ],
       }],
+      ['mac_mas_build==1', {
+        'defines': [
+          'MAS_BUILD',
+        ],
+      }],
     ],
     'target_conditions': [
       ['_type=="static_library" and _toolset=="target" and OS=="linux" and component=="static_library"', {

@@ -36,7 +36,11 @@ def main():
       commit = head_commit()
     else:
       commit = args.commit
-    base_url = '{0}/{1}/{2}'.format(args.url, PLATFORM_KEY, args.target_arch)
+    if os.environ.has_key('MAS_BUILD'):
+      platform = 'mas'
+    else:
+      platform = PLATFORM_KEY
+    base_url = '{0}/{1}/{2}'.format(args.url, platform, args.target_arch)
     download_if_needed(args.path, base_url, commit, SHARED_LIBRARY_FILENAME,
                        args.force)
     if (args.static and

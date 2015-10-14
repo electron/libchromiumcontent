@@ -1,0 +1,141 @@
+diff --git a/content/browser/device_monitor_mac.mm b/content/browser/device_monitor_mac.mm
+index c3c713c..869c04c 100644
+--- a/content/browser/device_monitor_mac.mm
++++ b/content/browser/device_monitor_mac.mm
+@@ -4,7 +4,9 @@
+ 
+ #include "content/browser/device_monitor_mac.h"
+ 
++#ifndef MAS_BUILD
+ #import <QTKit/QTKit.h>
++#endif
+ 
+ #include <set>
+ 
+@@ -150,6 +152,7 @@ class QTKitMonitorImpl : public DeviceMonitorMacImpl {
+ 
+ QTKitMonitorImpl::QTKitMonitorImpl(content::DeviceMonitorMac* monitor)
+     : DeviceMonitorMacImpl(monitor) {
++#ifndef MAS_BUILD
+   NSNotificationCenter* nc = [NSNotificationCenter defaultCenter];
+   device_arrival_ =
+       [nc addObserverForName:QTCaptureDeviceWasConnectedNotification
+@@ -169,25 +172,31 @@ QTKitMonitorImpl::QTKitMonitorImpl(content::DeviceMonitorMac* monitor)
+                        queue:nil
+                   usingBlock:^(NSNotification* notification) {
+                       OnAttributeChanged(notification);}];
++#endif
+ }
+ 
+ QTKitMonitorImpl::~QTKitMonitorImpl() {
++#ifndef MAS_BUILD
+   NSNotificationCenter* nc = [NSNotificationCenter defaultCenter];
+   [nc removeObserver:device_arrival_];
+   [nc removeObserver:device_removal_];
+   [nc removeObserver:device_change_];
++#endif
+ }
+ 
+ void QTKitMonitorImpl::OnAttributeChanged(
+     NSNotification* notification) {
++#ifndef MAS_BUILD
+   if ([[[notification userInfo]
+          objectForKey:QTCaptureDeviceChangedAttributeKey]
+       isEqualToString:QTCaptureDeviceSuspendedAttribute]) {
+     OnDeviceChanged();
+   }
++#endif
+ }
+ 
+ void QTKitMonitorImpl::OnDeviceChanged() {
++#ifndef MAS_BUILD
+   std::vector<DeviceInfo> snapshot_devices;
+ 
+   NSArray* devices = [QTCaptureDevice inputDevices];
+@@ -212,6 +221,7 @@ void QTKitMonitorImpl::OnDeviceChanged() {
+         DeviceInfo([[device uniqueID] UTF8String], device_type));
+   }
+   ConsolidateDevicesListAndNotify(snapshot_devices);
++#endif
+ }
+ 
+ // Forward declaration for use by CrAVFoundationDeviceObserver.
+diff --git a/media/media.gyp b/media/media.gyp
+index f041c15..ecd7dfb 100644
+--- a/media/media.gyp
++++ b/media/media.gyp
+@@ -574,8 +574,8 @@
+         'video/capture/mac/video_capture_device_factory_mac.mm',
+         'video/capture/mac/video_capture_device_mac.h',
+         'video/capture/mac/video_capture_device_mac.mm',
+-        'video/capture/mac/video_capture_device_qtkit_mac.h',
+-        'video/capture/mac/video_capture_device_qtkit_mac.mm',
++        # 'video/capture/mac/video_capture_device_qtkit_mac.h',
++        # 'video/capture/mac/video_capture_device_qtkit_mac.mm',
+         'video/capture/video_capture_device.cc',
+         'video/capture/video_capture_device.h',
+         'video/capture/video_capture_device_factory.cc',
+@@ -945,7 +945,7 @@
+               '$(SDKROOT)/System/Library/Frameworks/CoreAudio.framework',
+               '$(SDKROOT)/System/Library/Frameworks/CoreVideo.framework',
+               '$(SDKROOT)/System/Library/Frameworks/OpenGL.framework',
+-              '$(SDKROOT)/System/Library/Frameworks/QTKit.framework',
++              # '$(SDKROOT)/System/Library/Frameworks/QTKit.framework',
+             ],
+           },
+         }],
+diff --git a/media/video/capture/mac/video_capture_device_factory_mac.mm b/media/video/capture/mac/video_capture_device_factory_mac.mm
+index 76e14c6..3e63109 100644
+--- a/media/video/capture/mac/video_capture_device_factory_mac.mm
++++ b/media/video/capture/mac/video_capture_device_factory_mac.mm
+@@ -15,7 +15,9 @@
+ #import "media/video/capture/mac/video_capture_device_avfoundation_mac.h"
+ #import "media/video/capture/mac/video_capture_device_decklink_mac.h"
+ #include "media/video/capture/mac/video_capture_device_mac.h"
++#ifndef MAS_BUILD
+ #import "media/video/capture/mac/video_capture_device_qtkit_mac.h"
++#endif
+ 
+ namespace media {
+ 
+@@ -53,6 +55,7 @@ EnumerateDevicesUsingQTKit() {
+ 
+   scoped_ptr<VideoCaptureDevice::Names> device_names(
+         new VideoCaptureDevice::Names());
++#ifndef MAS_BUILD
+   NSMutableDictionary* capture_devices =
+       [[[NSMutableDictionary alloc] init] autorelease];
+   [VideoCaptureDeviceQTKit getDeviceNames:capture_devices];
+@@ -64,6 +67,7 @@ EnumerateDevicesUsingQTKit() {
+       name.set_is_blacklisted(true);
+     device_names->push_back(name);
+   }
++#endif
+   return device_names.Pass();
+ }
+ 
+diff --git a/media/video/capture/mac/video_capture_device_mac.mm b/media/video/capture/mac/video_capture_device_mac.mm
+index 521a111..6104cb1 100644
+--- a/media/video/capture/mac/video_capture_device_mac.mm
++++ b/media/video/capture/mac/video_capture_device_mac.mm
+@@ -20,7 +20,9 @@
+ #import "media/base/mac/avfoundation_glue.h"
+ #import "media/video/capture/mac/platform_video_capturing_mac.h"
+ #import "media/video/capture/mac/video_capture_device_avfoundation_mac.h"
++#ifndef MAS_BUILD
+ #import "media/video/capture/mac/video_capture_device_qtkit_mac.h"
++#endif
+ #include "ui/gfx/geometry/size.h"
+ 
+ @implementation DeviceNameAndTransportType
+@@ -454,8 +456,10 @@ bool VideoCaptureDeviceMac::Init(
+     capture_device_ =
+         [[VideoCaptureDeviceAVFoundation alloc] initWithFrameReceiver:this];
+   } else {
++#ifndef MAS_BUILD
+     capture_device_ =
+         [[VideoCaptureDeviceQTKit alloc] initWithFrameReceiver:this];
++#endif
+   }
+ 
+   if (!capture_device_)
