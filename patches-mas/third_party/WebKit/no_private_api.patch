@@ -1,3 +1,42 @@
+diff --git a/Source/core/paint/ThemePainterMac.mm b/Source/core/paint/ThemePainterMac.mm
+index 090eb12..50c06d9 100644
+--- a/Source/core/paint/ThemePainterMac.mm
++++ b/Source/core/paint/ThemePainterMac.mm
+@@ -42,12 +42,14 @@
+ 
+ // The methods in this file are specific to the Mac OS X platform.
+ 
++#ifndef MAS_BUILD
+ // Forward declare Mac SPIs.
+ extern "C" {
+ void _NSDrawCarbonThemeBezel(NSRect frame, BOOL enabled, BOOL flipped);
+ // Request for public API: rdar://13787640
+ void _NSDrawCarbonThemeListBox(NSRect frame, BOOL enabled, BOOL flipped, BOOL always_yes);
+ }
++#endif
+ 
+ namespace blink {
+ 
+@@ -66,7 +68,9 @@ bool ThemePainterMac::paintTextField(LayoutObject* o, const PaintInfo& paintInfo
+     // background. We need WebCore to paint styled backgrounds, so we'll use
+     // this AppKit SPI function instead.
+     if (!useNSTextFieldCell) {
++#ifndef MAS_BUILD
+         _NSDrawCarbonThemeBezel(r, LayoutTheme::isEnabled(o) && !LayoutTheme::isReadOnlyControl(o), YES);
++#endif
+         return false;
+     }
+ #endif
+@@ -147,7 +151,9 @@ bool ThemePainterMac::paintCapsLockIndicator(LayoutObject*, const PaintInfo& pai
+ bool ThemePainterMac::paintTextArea(LayoutObject* o, const PaintInfo& paintInfo, const IntRect& r)
+ {
+     LocalCurrentGraphicsContext localContext(paintInfo.context, &paintInfo.rect, r);
++#ifndef MAS_BUILD
+     _NSDrawCarbonThemeListBox(r, LayoutTheme::isEnabled(o) && !LayoutTheme::isReadOnlyControl(o), YES, YES);
++#endif
+     return false;
+ }
+ 
 diff --git a/Source/platform/mac/KillRingMac.mm b/Source/platform/mac/KillRingMac.mm
 index 63fd8f8..de3a3b2 100644
 --- a/Source/platform/mac/KillRingMac.mm
