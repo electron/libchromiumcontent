@@ -70,9 +70,9 @@ def main(target_file, code_dir, shared_dir, static_dir):
   (static_libraries, static_v8_libraries) = searh_files(
       static_dir, STATIC_LIBRARY_SUFFIX, EXCLUDE_STATIC_LIBRARIES)
   content = GYPI_TEMPLATE % {
-    'src': repr(os.path.abspath(os.path.dirname(code_dir))),
-    'shared_libraries_dir': repr(os.path.abspath(os.path.dirname(shared_dir))),
-    'static_libraries_dir': repr(os.path.abspath(os.path.dirname(static_dir))),
+    'src': repr(os.path.abspath(code_dir)),
+    'shared_libraries_dir': repr(os.path.abspath(shared_dir)),
+    'static_libraries_dir': repr(os.path.abspath(static_dir)),
     'shared_libraries': shared_libraries,
     'shared_v8_libraries': shared_v8_libraries,
     'static_libraries': static_libraries,
@@ -80,6 +80,7 @@ def main(target_file, code_dir, shared_dir, static_dir):
   }
   with open(target_file, 'wb+') as f:
     f.write(content)
+
 
 def searh_files(src, suffix, exclude):
   files = glob.glob(os.path.join(src, '*.' + suffix))
