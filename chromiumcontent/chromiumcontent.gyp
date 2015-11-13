@@ -29,6 +29,8 @@
       'type': 'shared_library',
       'dependencies': [
         '<(DEPTH)/base/base.gyp:base_prefs',
+        '<(DEPTH)/components/components.gyp:cdm_renderer',
+        '<(DEPTH)/components/components.gyp:component_updater',
         '<(DEPTH)/components/components.gyp:devtools_discovery',
         '<(DEPTH)/components/components.gyp:devtools_http_handler',
         '<(DEPTH)/content/content.gyp:content',
@@ -39,6 +41,8 @@
         '<(DEPTH)/ppapi/ppapi_internal.gyp:ppapi_proxy',
         '<(DEPTH)/ppapi/ppapi_internal.gyp:ppapi_ipc',
         '<(DEPTH)/ppapi/ppapi_internal.gyp:ppapi_shared',
+        '<(DEPTH)/third_party/widevine/cdm/widevine_cdm.gyp:widevinecdmadapter',
+        '<(DEPTH)/third_party/widevine/cdm/widevine_cdm.gyp:widevine_cdm_version_h',
       ],
       'sources': [
         'empty.cc',

@@ -59,6 +59,8 @@ BINARIES = {
     'libdevtools_discovery.a',
     'libdevtools_http_handler.a',
     'libhttp_server.a',
+    'libcdm_renderer.a',
+    'libcomponent_updater.a',
   ],
   'linux': [
     'chromedriver',
@@ -68,6 +70,10 @@ BINARIES = {
     'libdevtools_discovery.a',
     'libdevtools_http_handler.a',
     'libhttp_server.a',
+    'libwidevinecdmadapter.so',
+    'libwidevinecdm.so',
+    'libcdm_renderer.a',
+    'libcomponent_updater.a',
   ],
   'win32': [
     'chromedriver.exe',
@@ -110,9 +116,15 @@ INCLUDE_DIRS = [
   'build',
   'cc',
   'chrome/browser/ui/libgtk2ui',
+  'components/cdm',
   'components/devtools_discovery',
   'components/devtools_http_handler',
   'components/os_crypt',
+  'components/component_updater',
+  'components/content_settings',
+  'components/nacl',
+  'components/omnibox',
+  'components/update_client',
   'content/browser',
   'content/common',
   'content/public',
@@ -137,6 +149,7 @@ INCLUDE_DIRS = [
   'third_party/icu/source',
   'third_party/mojo/src/mojo/public',
   'third_party/skia',
+  'third_party/widevine',
   'third_party/wtl/include',
   'ui',
   'url',
@@ -201,7 +214,20 @@ def copy_binaries(target_arch, component, output_dir):
   mkdir_p(target_dir)
 
   for binary in BINARIES['all'] + BINARIES[TARGET_PLATFORM]:
-    shutil.copy2(os.path.join(config_dir, binary), target_dir)
+    src_path = os.path.join(config_dir, binary)
+
+    if component == 'shared_library' and \
+       TARGET_PLATFORM == 'linux' and  \
+       binary in ('libcdm_renderer.a', 'libcomponent_updater.a'):
+      # libcdm_renderer.a and libcomponent_updater.a on
+      # linux and for shared_library
+      # are stored in obj/components
+      src_path = os.path.join(config_dir, 'obj', 'components', binary);
+
+    if not os.path.exists(src_path):
+        continue
+
+    shutil.copy2(src_path, target_dir)
 
   if component == 'shared_library':
     match = '*.{0}'.format(SHARED_LIBRARY_SUFFIX)
@@ -251,6 +277,10 @@ def copy_binaries(target_arch, component, output_dir):
     else:
       # out/Release/*.a
       for library in glob.glob(os.path.join(config_dir, '*.a')):
+        # Do not include libppapi_cpp.a to avoid compilation error
+        if library.endswith('libppapi_cpp.a'):
+          continue
+
         shutil.copy2(library, target_dir)
 
   if TARGET_PLATFORM in ['linux', 'darwin']:
