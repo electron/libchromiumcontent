@@ -91,6 +91,8 @@ BINARIES = {
     os.path.join('obj', 'base', 'base_static.lib'),
     os.path.join('obj', 'components', 'devtools_discovery.cc.pdb'),
     os.path.join('obj', 'components', 'devtools_http_handler.cc.pdb'),
+    os.path.join('obj', 'components', 'cdm_renderer.lib'),
+    os.path.join('obj', 'components', 'component_updater.lib'),
     os.path.join('obj', 'net', 'http_server.cc.pdb'),
     os.path.join('obj', 'sandbox', 'sandbox.cc.pdb'),
     os.path.join('obj', 'sandbox', 'sandbox.lib'),
