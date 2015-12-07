@@ -1,8 +1,25 @@
 diff --git a/pdf/pdf.cc b/pdf/pdf.cc
-index 1f580e4..939b54d 100644
+index 1f580e4..ce0fa98 100644
 --- a/pdf/pdf.cc
 +++ b/pdf/pdf.cc
-@@ -100,7 +100,12 @@ const void* PPP_GetInterface(const char* interface_name) {
+@@ -18,12 +18,14 @@
+ #include "ppapi/cpp/private/pdf.h"
+ #include "v8/include/v8.h"
+ 
++namespace {
++bool g_sdk_initialized_via_pepper = false;
++}
++
+ namespace chrome_pdf {
+ 
+ namespace {
+ 
+-bool g_sdk_initialized_via_pepper = false;
+-
+ gin::IsolateHolder* g_isolate_holder = nullptr;
+ 
+ void TearDownV8() {
+@@ -100,7 +102,12 @@ const void* PPP_GetInterface(const char* interface_name) {
    return pp::Module::Get()->GetPluginInterface(interface_name);
  }
  
@@ -15,7 +32,7 @@ index 1f580e4..939b54d 100644
  bool RenderPDFPageToDC(const void* pdf_buffer,
                                   int buffer_size,
                                   int page_number,
-@@ -137,6 +142,7 @@ bool RenderPDFPageToDC(const void* pdf_buffer,
+@@ -137,6 +144,7 @@ bool RenderPDFPageToDC(const void* pdf_buffer,
  
  #endif  // OS_WIN
  
