@@ -1,5 +1,5 @@
 diff --git a/content/browser/device_monitor_mac.mm b/content/browser/device_monitor_mac.mm
-index c3c713c..869c04c 100644
+index 36e9a57..87b8889 100644
 --- a/content/browser/device_monitor_mac.mm
 +++ b/content/browser/device_monitor_mac.mm
 @@ -4,7 +4,9 @@
@@ -60,53 +60,29 @@ index c3c713c..869c04c 100644
  }
  
  // Forward declaration for use by CrAVFoundationDeviceObserver.
-diff --git a/media/media.gyp b/media/media.gyp
-index f041c15..ecd7dfb 100644
---- a/media/media.gyp
-+++ b/media/media.gyp
-@@ -574,8 +574,8 @@
-         'video/capture/mac/video_capture_device_factory_mac.mm',
-         'video/capture/mac/video_capture_device_mac.h',
-         'video/capture/mac/video_capture_device_mac.mm',
--        'video/capture/mac/video_capture_device_qtkit_mac.h',
--        'video/capture/mac/video_capture_device_qtkit_mac.mm',
-+        # 'video/capture/mac/video_capture_device_qtkit_mac.h',
-+        # 'video/capture/mac/video_capture_device_qtkit_mac.mm',
-         'video/capture/video_capture_device.cc',
-         'video/capture/video_capture_device.h',
-         'video/capture/video_capture_device_factory.cc',
-@@ -945,7 +945,7 @@
-               '$(SDKROOT)/System/Library/Frameworks/CoreAudio.framework',
-               '$(SDKROOT)/System/Library/Frameworks/CoreVideo.framework',
-               '$(SDKROOT)/System/Library/Frameworks/OpenGL.framework',
--              '$(SDKROOT)/System/Library/Frameworks/QTKit.framework',
-+              # '$(SDKROOT)/System/Library/Frameworks/QTKit.framework',
-             ],
-           },
-         }],
-diff --git a/media/video/capture/mac/video_capture_device_factory_mac.mm b/media/video/capture/mac/video_capture_device_factory_mac.mm
-index 76e14c6..3e63109 100644
---- a/media/video/capture/mac/video_capture_device_factory_mac.mm
-+++ b/media/video/capture/mac/video_capture_device_factory_mac.mm
+diff --git a/media/capture/video/mac/video_capture_device_factory_mac.mm b/media/capture/video/mac/video_capture_device_factory_mac.mm
+index 3d7c795..eb46b84 100644
+--- a/media/capture/video/mac/video_capture_device_factory_mac.mm
++++ b/media/capture/video/mac/video_capture_device_factory_mac.mm
 @@ -15,7 +15,9 @@
- #import "media/video/capture/mac/video_capture_device_avfoundation_mac.h"
- #import "media/video/capture/mac/video_capture_device_decklink_mac.h"
- #include "media/video/capture/mac/video_capture_device_mac.h"
+ #import "media/capture/video/mac/video_capture_device_avfoundation_mac.h"
+ #import "media/capture/video/mac/video_capture_device_decklink_mac.h"
+ #include "media/capture/video/mac/video_capture_device_mac.h"
 +#ifndef MAS_BUILD
- #import "media/video/capture/mac/video_capture_device_qtkit_mac.h"
+ #import "media/capture/video/mac/video_capture_device_qtkit_mac.h"
 +#endif
  
  namespace media {
  
-@@ -53,6 +55,7 @@ EnumerateDevicesUsingQTKit() {
+@@ -55,6 +57,7 @@ EnumerateDevicesUsingQTKit() {
  
    scoped_ptr<VideoCaptureDevice::Names> device_names(
-         new VideoCaptureDevice::Names());
+       new VideoCaptureDevice::Names());
 +#ifndef MAS_BUILD
    NSMutableDictionary* capture_devices =
        [[[NSMutableDictionary alloc] init] autorelease];
    [VideoCaptureDeviceQTKit getDeviceNames:capture_devices];
-@@ -64,6 +67,7 @@ EnumerateDevicesUsingQTKit() {
+@@ -66,6 +69,7 @@ EnumerateDevicesUsingQTKit() {
        name.set_is_blacklisted(true);
      device_names->push_back(name);
    }
@@ -114,21 +90,21 @@ index 76e14c6..3e63109 100644
    return device_names.Pass();
  }
  
-diff --git a/media/video/capture/mac/video_capture_device_mac.mm b/media/video/capture/mac/video_capture_device_mac.mm
-index 521a111..6104cb1 100644
---- a/media/video/capture/mac/video_capture_device_mac.mm
-+++ b/media/video/capture/mac/video_capture_device_mac.mm
+diff --git a/media/capture/video/mac/video_capture_device_mac.mm b/media/capture/video/mac/video_capture_device_mac.mm
+index 8f71b68..fa73d7c 100644
+--- a/media/capture/video/mac/video_capture_device_mac.mm
++++ b/media/capture/video/mac/video_capture_device_mac.mm
 @@ -20,7 +20,9 @@
  #import "media/base/mac/avfoundation_glue.h"
- #import "media/video/capture/mac/platform_video_capturing_mac.h"
- #import "media/video/capture/mac/video_capture_device_avfoundation_mac.h"
+ #import "media/capture/video/mac/platform_video_capturing_mac.h"
+ #import "media/capture/video/mac/video_capture_device_avfoundation_mac.h"
 +#ifndef MAS_BUILD
- #import "media/video/capture/mac/video_capture_device_qtkit_mac.h"
+ #import "media/capture/video/mac/video_capture_device_qtkit_mac.h"
 +#endif
  #include "ui/gfx/geometry/size.h"
  
  @implementation DeviceNameAndTransportType
-@@ -454,8 +456,10 @@ bool VideoCaptureDeviceMac::Init(
+@@ -448,8 +450,10 @@ bool VideoCaptureDeviceMac::Init(
      capture_device_ =
          [[VideoCaptureDeviceAVFoundation alloc] initWithFrameReceiver:this];
    } else {
@@ -139,3 +115,27 @@ index 521a111..6104cb1 100644
    }
  
    if (!capture_device_)
+diff --git a/media/media.gyp b/media/media.gyp
+index a842881..ea723e5 100644
+--- a/media/media.gyp
++++ b/media/media.gyp
+@@ -462,8 +462,8 @@
+         'capture/video/mac/video_capture_device_factory_mac.mm',
+         'capture/video/mac/video_capture_device_mac.h',
+         'capture/video/mac/video_capture_device_mac.mm',
+-        'capture/video/mac/video_capture_device_qtkit_mac.h',
+-        'capture/video/mac/video_capture_device_qtkit_mac.mm',
++        # 'capture/video/mac/video_capture_device_qtkit_mac.h',
++        # 'capture/video/mac/video_capture_device_qtkit_mac.mm',
+         'capture/video/video_capture_device.cc',
+         'capture/video/video_capture_device.h',
+         'capture/video/video_capture_device_factory.cc',
+@@ -987,7 +987,7 @@
+               '$(SDKROOT)/System/Library/Frameworks/CoreAudio.framework',
+               '$(SDKROOT)/System/Library/Frameworks/CoreVideo.framework',
+               '$(SDKROOT)/System/Library/Frameworks/OpenGL.framework',
+-              '$(SDKROOT)/System/Library/Frameworks/QTKit.framework',
++              # '$(SDKROOT)/System/Library/Frameworks/QTKit.framework',
+             ],
+           },
+         }],
