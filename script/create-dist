@@ -360,7 +360,8 @@ def create_zip():
 def make_zip(src, dirs, files, target):
   safe_unlink(target)
   with scoped_cwd(src):
-    zip_file = zipfile.ZipFile(target, 'w', zipfile.ZIP_DEFLATED)
+    zip_file = zipfile.ZipFile(target, 'w', zipfile.ZIP_DEFLATED,
+                               allowZip64=True)
     for dirname in dirs:
       for root, _, filenames in os.walk(dirname):
         for f in filenames:

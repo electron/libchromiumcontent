@@ -1,7 +1,7 @@
-diff --git a/Source/core/paint/ThemePainterMac.mm b/Source/core/paint/ThemePainterMac.mm
-index 090eb12..50c06d9 100644
---- a/Source/core/paint/ThemePainterMac.mm
-+++ b/Source/core/paint/ThemePainterMac.mm
+diff --git a/third_party/WebKit/Source/core/paint/ThemePainterMac.mm b/third_party/WebKit/Source/core/paint/ThemePainterMac.mm
+index 468af11..457bc47 100644
+--- a/third_party/WebKit/Source/core/paint/ThemePainterMac.mm
++++ b/third_party/WebKit/Source/core/paint/ThemePainterMac.mm
 @@ -42,12 +42,14 @@
  
  // The methods in this file are specific to the Mac OS X platform.
@@ -17,7 +17,7 @@ index 090eb12..50c06d9 100644
  
  namespace blink {
  
-@@ -66,7 +68,9 @@ bool ThemePainterMac::paintTextField(LayoutObject* o, const PaintInfo& paintInfo
+@@ -66,7 +68,9 @@ bool ThemePainterMac::paintTextField(const LayoutObject& o, const PaintInfo& pai
      // background. We need WebCore to paint styled backgrounds, so we'll use
      // this AppKit SPI function instead.
      if (!useNSTextFieldCell) {
@@ -27,8 +27,8 @@ index 090eb12..50c06d9 100644
          return false;
      }
  #endif
-@@ -147,7 +151,9 @@ bool ThemePainterMac::paintCapsLockIndicator(LayoutObject*, const PaintInfo& pai
- bool ThemePainterMac::paintTextArea(LayoutObject* o, const PaintInfo& paintInfo, const IntRect& r)
+@@ -147,7 +151,9 @@ bool ThemePainterMac::paintCapsLockIndicator(const LayoutObject&, const PaintInf
+ bool ThemePainterMac::paintTextArea(const LayoutObject& o, const PaintInfo& paintInfo, const IntRect& r)
  {
      LocalCurrentGraphicsContext localContext(paintInfo.context, &paintInfo.rect, r);
 +#ifndef MAS_BUILD
@@ -37,26 +37,26 @@ index 090eb12..50c06d9 100644
      return false;
  }
  
-diff --git a/Source/platform/mac/KillRingMac.mm b/Source/platform/mac/KillRingMac.mm
-index 63fd8f8..de3a3b2 100644
---- a/Source/platform/mac/KillRingMac.mm
-+++ b/Source/platform/mac/KillRingMac.mm
-@@ -32,12 +32,14 @@ extern "C" {
+diff --git a/third_party/WebKit/Source/platform/mac/KillRingMac.mm b/third_party/WebKit/Source/platform/mac/KillRingMac.mm
+index 63fd8f8..a5e2839 100644
+--- a/third_party/WebKit/Source/platform/mac/KillRingMac.mm
++++ b/third_party/WebKit/Source/platform/mac/KillRingMac.mm
+@@ -28,6 +28,7 @@
  
- // Kill ring calls. Would be better to use NSKillRing.h, but that's not available as API or SPI.
+ namespace blink {
  
 +#ifndef MAS_BUILD
- void _NSInitializeKillRing();
- void _NSAppendToKillRing(NSString *);
- void _NSPrependToKillRing(NSString *);
- NSString *_NSYankFromKillRing();
- void _NSNewKillRingSequence();
+ extern "C" {
+ 
+ // Kill ring calls. Would be better to use NSKillRing.h, but that's not available as API or SPI.
+@@ -40,44 +41,59 @@ void _NSNewKillRingSequence();
  void _NSSetKillRingToYankedState();
-+#endif
  
  }
++#endif
  
-@@ -46,38 +48,52 @@ static void initializeKillRingIfNeeded()
+ static void initializeKillRingIfNeeded()
+ {
      static bool initializedKillRing = false;
      if (!initializedKillRing) {
          initializedKillRing = true;

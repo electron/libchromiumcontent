@@ -1,13 +1,29 @@
 diff --git a/pdf/pdf.cc b/pdf/pdf.cc
-index 7aba412..f57902a 100644
+index 1f580e4..ce0fa98 100644
 --- a/pdf/pdf.cc
 +++ b/pdf/pdf.cc
-@@ -78,7 +78,13 @@ const void* PPP_GetInterface(const char* interface_name) {
+@@ -18,12 +18,14 @@
+ #include "ppapi/cpp/private/pdf.h"
+ #include "v8/include/v8.h"
+ 
++namespace {
++bool g_sdk_initialized_via_pepper = false;
++}
++
+ namespace chrome_pdf {
+ 
+ namespace {
+ 
+-bool g_sdk_initialized_via_pepper = false;
+-
+ gin::IsolateHolder* g_isolate_holder = nullptr;
+ 
+ void TearDownV8() {
+@@ -100,7 +102,12 @@ const void* PPP_GetInterface(const char* interface_name) {
    return pp::Module::Get()->GetPluginInterface(interface_name);
  }
  
 +}  // namespace chrome_pdf
-+
 +
 +extern "C" {
 +
@@ -16,7 +32,7 @@ index 7aba412..f57902a 100644
  bool RenderPDFPageToDC(const void* pdf_buffer,
                                   int buffer_size,
                                   int page_number,
-@@ -115,6 +121,7 @@ bool RenderPDFPageToDC(const void* pdf_buffer,
+@@ -137,6 +144,7 @@ bool RenderPDFPageToDC(const void* pdf_buffer,
  
  #endif  // OS_WIN
  
@@ -24,14 +40,8 @@ index 7aba412..f57902a 100644
  bool GetPDFDocInfo(const void* pdf_buffer,
                     int buffer_size, int* page_count,
                     double* max_page_width) {
-@@ -173,4 +180,4 @@ bool RenderPDFPageToBitmap(const void* pdf_buffer,
-   return ret;
- }
- 
--}  // namespace chrome_pdf
-+}
 diff --git a/pdf/pdf.gyp b/pdf/pdf.gyp
-index f47e33a..26207ea 100644
+index bb6a36f..508ac16 100644
 --- a/pdf/pdf.gyp
 +++ b/pdf/pdf.gyp
 @@ -6,7 +6,7 @@
@@ -43,7 +53,7 @@ index f47e33a..26207ea 100644
        'dependencies': [
          '../base/base.gyp:base',
          '../components/components.gyp:ui_zoom',
-@@ -14,6 +14,7 @@
+@@ -15,6 +15,7 @@
          '../net/net.gyp:net',
          '../ppapi/ppapi.gyp:ppapi_cpp_objects',
          '../ppapi/ppapi.gyp:ppapi_internal_module',
@@ -52,10 +62,10 @@ index f47e33a..26207ea 100644
        ],
        'ldflags': [ '-L<(PRODUCT_DIR)',],
 diff --git a/pdf/pdf.h b/pdf/pdf.h
-index 37e72e5..6a31fc6 100644
+index 37e72e5..57d673c 100644
 --- a/pdf/pdf.h
 +++ b/pdf/pdf.h
-@@ -8,6 +8,13 @@
+@@ -8,6 +8,12 @@
  #include "ppapi/c/ppb.h"
  #include "ppapi/cpp/module.h"
  
@@ -65,11 +75,10 @@ index 37e72e5..6a31fc6 100644
 +#define PDF_EXPORT
 +#endif // defined(WIN32)
 +
-+
  namespace chrome_pdf {
  
  class PDFModule : public pp::Module {
-@@ -25,6 +32,7 @@ int PPP_InitializeModule(PP_Module module_id,
+@@ -25,6 +31,7 @@ int PPP_InitializeModule(PP_Module module_id,
  void PPP_ShutdownModule();
  const void* PPP_GetInterface(const char* interface_name);
  
@@ -77,12 +86,11 @@ index 37e72e5..6a31fc6 100644
  #if defined(OS_WIN)
  // |pdf_buffer| is the buffer that contains the entire PDF document to be
  //     rendered.
-@@ -107,7 +115,7 @@ bool RenderPDFPageToBitmap(const void* pdf_buffer,
+@@ -107,6 +114,7 @@ bool RenderPDFPageToBitmap(const void* pdf_buffer,
                             int bitmap_height,
                             int dpi,
                             bool autorotate);
--
 +#endif
+ 
  }  // namespace chrome_pdf
  
- #endif  // PDF_PDF_H_

@@ -1,8 +1,8 @@
 diff --git a/ffmpeg.gyp b/ffmpeg.gyp
-index 31997bc..741d37a 100755
+index 294dd2e..e9db509 100755
 --- a/ffmpeg.gyp
 +++ b/ffmpeg.gyp
-@@ -414,14 +414,6 @@
+@@ -418,14 +418,6 @@
                      '_snprintf=avpriv_snprintf',
                      'vsnprintf=avpriv_vsnprintf',
                    ],
@@ -17,7 +17,7 @@ index 31997bc..741d37a 100755
                    # Fix warnings about a local symbol being inefficiently imported.
                    'msvs_settings': {
                      'VCCLCompilerTool': {
-@@ -431,6 +423,14 @@
+@@ -435,6 +427,14 @@
                        ],
                      },
                    },

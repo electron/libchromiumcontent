@@ -1,5 +1,5 @@
 diff --git a/content/browser/accessibility/browser_accessibility_cocoa.mm b/content/browser/accessibility/browser_accessibility_cocoa.mm
-index c76d2c4..b0807bf 100644
+index ea4db4a..1472d11 100644
 --- a/content/browser/accessibility/browser_accessibility_cocoa.mm
 +++ b/content/browser/accessibility/browser_accessibility_cocoa.mm
 @@ -19,10 +19,12 @@
@@ -15,7 +15,7 @@ index c76d2c4..b0807bf 100644
  
  using ui::AXNodeData;
  using content::AccessibilityMatchPredicate;
-@@ -422,7 +424,9 @@ bool InitializeAccessibilityTreeSearch(
+@@ -420,7 +422,9 @@ bool InitializeAccessibilityTreeSearch(
  
  - (void)detach {
    if (browserAccessibility_) {
@@ -26,10 +26,10 @@ index c76d2c4..b0807bf 100644
    }
  }
 diff --git a/content/common/sandbox_mac.mm b/content/common/sandbox_mac.mm
-index 6466b04..e8e582b 100644
+index 4dc7d94..78ee602 100644
 --- a/content/common/sandbox_mac.mm
 +++ b/content/common/sandbox_mac.mm
-@@ -41,10 +41,12 @@ extern "C" {
+@@ -41,6 +41,7 @@ extern "C" {
  #include "ui/base/layout.h"
  #include "ui/gl/gl_surface.h"
  
@@ -37,12 +37,44 @@ index 6466b04..e8e582b 100644
  extern "C" {
  void CGSSetDenyWindowServerConnections(bool);
  void CGSShutdownServerConnections();
+@@ -54,6 +55,7 @@ int sandbox_apply(void* profile);
+ void sandbox_free_params(void* params);
+ void sandbox_free_profile(void* profile);
  };
 +#endif
  
  namespace content {
  namespace {
-@@ -345,8 +347,10 @@ void Sandbox::SandboxWarmup(int sandbox_type) {
+@@ -154,15 +156,20 @@ bool SandboxCompiler::InsertStringParam(const std::string& key,
+ void SandboxCompiler::FreeSandboxResources(void* profile,
+                                            void* params,
+                                            char* error) {
++#ifndef MAS_BUILD
+   if (error)
+     sandbox_free_error(error);
+   if (params)
+     sandbox_free_params(params);
+   if (profile)
+     sandbox_free_profile(profile);
++#endif
+ }
+ 
+ bool SandboxCompiler::CompileAndApplyProfile(std::string* error) {
++#ifdef MAS_BUILD
++  return false;
++#else
+   char* error_internal = nullptr;
+   void* profile = nullptr;
+   void* params = nullptr;
+@@ -203,6 +210,7 @@ bool SandboxCompiler::CompileAndApplyProfile(std::string* error) {
+   int result = sandbox_apply(profile);
+   FreeSandboxResources(profile, params, error_internal);
+   return result == 0;
++#endif
+ }
+ 
+ // static
+@@ -400,8 +408,10 @@ void Sandbox::SandboxWarmup(int sandbox_type) {
      // 10.8 and higher because doing it on earlier OSes causes layout tests to
      // fail <http://crbug.com/397642#c48>. This may cause two log messages to
      // be printed to the system logger on certain OS versions.
@@ -54,7 +86,7 @@ index 6466b04..e8e582b 100644
  }
  
 diff --git a/net/dns/dns_config_service_posix.cc b/net/dns/dns_config_service_posix.cc
-index 02877e7..973e485 100644
+index 4300dfc..7536c96 100644
 --- a/net/dns/dns_config_service_posix.cc
 +++ b/net/dns/dns_config_service_posix.cc
 @@ -202,6 +202,7 @@ class DnsConfigServicePosix::Watcher {
@@ -65,10 +97,10 @@ index 02877e7..973e485 100644
      if (!config_watcher_.Watch(base::Bind(&Watcher::OnConfigChanged,
                                            base::Unretained(this)))) {
        LOG(ERROR) << "DNS config watch failed to start.";
-@@ -219,6 +220,7 @@ class DnsConfigServicePosix::Watcher {
-                                 DNS_CONFIG_WATCH_FAILED_TO_START_HOSTS,
+@@ -221,6 +222,7 @@ class DnsConfigServicePosix::Watcher {
                                  DNS_CONFIG_WATCH_MAX);
      }
+ #endif
 +#endif
      return success;
    }
