@@ -60,6 +60,7 @@ BINARIES = {
     'libdevtools_http_handler.a',
     'libhttp_server.a',
     'libdesktop_capture.a',
+    'libdesktop_capture_differ_sse2.a',
     'librtc_base.a',
     'librtc_base_approved.a',
     'libwebrtc_common.a',
@@ -115,6 +116,14 @@ BINARIES = {
     os.path.join('obj', 'third_party', 'webrtc', 'webrtc_common.lib'),
     os.path.join('obj', 'third_party', 'webrtc', 'webrtc_common.cc.pdb'),
   ],
+}
+
+ARCH_BLACKLIST = {
+  'arm': [
+    'libdesktop_capture_differ_sse2.a',
+  ],
+  'x64': [],
+  'ia32': [],
 }
 
 SYMBOLS = {
@@ -200,6 +209,11 @@ OTHER_DIRS = [
 def main():
   args = parse_args()
   target_arch = args.target_arch
+
+  # Some libraries are not available for certain arch.
+  for lib in ARCH_BLACKLIST[target_arch]:
+    if lib in BINARIES[TARGET_PLATFORM]:
+      BINARIES[TARGET_PLATFORM].remove(lib)
 
   rm_rf(DIST_DIR)
   os.makedirs(DIST_DIR)
