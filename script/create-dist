@@ -60,6 +60,7 @@ BINARIES = {
     'libdevtools_http_handler.a',
     'libhttp_server.a',
     'libdesktop_capture.a',
+    'libdesktop_capture_differ_sse2.a',
     'librtc_base.a',
     'librtc_base_approved.a',
     'libwebrtc_common.a',
