@@ -81,6 +81,7 @@ BINARIES = {
     'librtc_base_approved.a',
     'libwebrtc_common.a',
     'libyuv.a',
+    'libyuv_neon.a',
     'libsystem_wrappers.a',
   ],
   'win32': [
@@ -122,8 +123,12 @@ ARCH_BLACKLIST = {
   'arm': [
     'libdesktop_capture_differ_sse2.a',
   ],
-  'x64': [],
-  'ia32': [],
+  'x64': [
+    'libyuv_neon.a',
+  ],
+  'ia32': [
+    'libyuv_neon.a',
+  ],
 }
 
 SYMBOLS = {
