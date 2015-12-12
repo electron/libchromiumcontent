@@ -1,0 +1,13 @@
+diff --git a/content/app/content_main_runner.cc b/content/app/content_main_runner.cc
+index f893d6a..844fed4 100644
+--- a/content/app/content_main_runner.cc
++++ b/content/app/content_main_runner.cc
+@@ -197,7 +197,7 @@ void CommonSubprocessInit(const std::string& process_type) {
+   setlocale(LC_NUMERIC, "C");
+ #endif
+ 
+-#if !defined(OFFICIAL_BUILD)
++#if 0
+   // Print stack traces to stderr when crashes occur. This opens up security
+   // holes so it should never be enabled for official builds.
+   base::debug::EnableInProcessStackDumping();

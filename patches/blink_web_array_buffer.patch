@@ -1,0 +1,113 @@
+diff --git a/third_party/WebKit/Source/core/dom/DOMArrayBuffer.h b/third_party/WebKit/Source/core/dom/DOMArrayBuffer.h
+index 583be56..7ad9107 100644
+--- a/third_party/WebKit/Source/core/dom/DOMArrayBuffer.h
++++ b/third_party/WebKit/Source/core/dom/DOMArrayBuffer.h
+@@ -30,6 +30,10 @@ public:
+     {
+         return create(WTF::ArrayBuffer::create(contents));
+     }
++    static PassRefPtr<DOMArrayBuffer> createExternal(void* source, unsigned byteLength)
++    {
++        return adoptRef(new DOMArrayBuffer(source, byteLength));
++    }
+ 
+     // Only for use by XMLHttpRequest::responseArrayBuffer and
+     // Internals::serializeObject.
+@@ -54,6 +58,10 @@ private:
+         : DOMArrayBufferBase(buffer)
+     {
+     }
++    DOMArrayBuffer(void* source, unsigned byteLength)
++        : DOMArrayBufferBase(source, byteLength)
++    {
++    }
+ };
+ 
+ } // namespace blink
+diff --git a/third_party/WebKit/Source/core/dom/DOMArrayBufferBase.h b/third_party/WebKit/Source/core/dom/DOMArrayBufferBase.h
+index 6c73bf5..1368a5e 100644
+--- a/third_party/WebKit/Source/core/dom/DOMArrayBufferBase.h
++++ b/third_party/WebKit/Source/core/dom/DOMArrayBufferBase.h
+@@ -19,9 +19,24 @@ public:
+     const WTF::ArrayBuffer* buffer() const { return m_buffer.get(); }
+     WTF::ArrayBuffer* buffer() { return m_buffer.get(); }
+ 
+-    const void* data() const { return buffer()->data(); }
+-    void* data() { return buffer()->data(); }
+-    unsigned byteLength() const { return buffer()->byteLength(); }
++    const void* data() const {
++      if (m_isExternal)
++          return m_source;
++      else
++          return buffer()->data();
++    }
++    void* data() {
++        if (m_isExternal)
++            return m_source;
++        else
++            return buffer()->data();
++    }
++    unsigned byteLength() const {
++        if (m_isExternal)
++            return m_byteLength;
++        else
++            return buffer()->byteLength();
++    }
+     bool transfer(WTF::ArrayBufferContents& result) { return buffer()->transfer(result); }
+     bool shareContentsWith(WTF::ArrayBufferContents& result) { return buffer()->shareContentsWith(result); }
+     bool isNeutered() const { return buffer()->isNeutered(); }
+@@ -35,12 +50,25 @@ public:
+ 
+ protected:
+     explicit DOMArrayBufferBase(PassRefPtr<WTF::ArrayBuffer> buffer)
+-        : m_buffer(buffer)
++        : m_buffer(buffer),
++          m_isExternal(false),
++          m_source(nullptr),
++          m_byteLength(0)
+     {
+         ASSERT(m_buffer);
+     }
++    DOMArrayBufferBase(void* source, unsigned byteLength)
++        : m_buffer(WTF::ArrayBuffer::create(source, byteLength)),
++          m_isExternal(true),
++          m_source(source),
++          m_byteLength(byteLength)
++    {
++    }
+ 
+     RefPtr<WTF::ArrayBuffer> m_buffer;
++    bool m_isExternal;
++    void* m_source;
++    unsigned m_byteLength;
+ };
+ 
+ } // namespace blink
+diff --git a/third_party/WebKit/Source/web/WebArrayBuffer.cpp b/third_party/WebKit/Source/web/WebArrayBuffer.cpp
+index 6ff8368..122fdf1 100644
+--- a/third_party/WebKit/Source/web/WebArrayBuffer.cpp
++++ b/third_party/WebKit/Source/web/WebArrayBuffer.cpp
+@@ -41,6 +41,11 @@ WebArrayBuffer WebArrayBuffer::create(unsigned numElements, unsigned elementByte
+     return WebArrayBuffer(DOMArrayBuffer::create(numElements, elementByteSize));
+ }
+ 
++WebArrayBuffer WebArrayBuffer::createExternal(void* source, unsigned byteLength)
++{
++    return WebArrayBuffer(DOMArrayBuffer::createExternal(source, byteLength));
++}
++
+ void WebArrayBuffer::reset()
+ {
+     m_private.reset();
+diff --git a/third_party/WebKit/public/web/WebArrayBuffer.h b/third_party/WebKit/public/web/WebArrayBuffer.h
+index 883e62f..9b9c62a 100644
+--- a/third_party/WebKit/public/web/WebArrayBuffer.h
++++ b/third_party/WebKit/public/web/WebArrayBuffer.h
+@@ -55,6 +55,7 @@ public:
+     }
+ 
+     BLINK_EXPORT static WebArrayBuffer create(unsigned numElements, unsigned elementByteSize);
++    BLINK_EXPORT static WebArrayBuffer createExternal(void* source, unsigned byteLength);
+ 
+     BLINK_EXPORT void reset();
+     BLINK_EXPORT void assign(const WebArrayBuffer&);
