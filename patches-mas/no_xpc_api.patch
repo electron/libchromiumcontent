@@ -1,0 +1,133 @@
+diff --git a/sandbox/mac/launchd_interception_server.cc b/sandbox/mac/launchd_interception_server.cc
+index f466e77..e69c7d1 100644
+--- a/sandbox/mac/launchd_interception_server.cc
++++ b/sandbox/mac/launchd_interception_server.cc
+@@ -169,8 +169,10 @@ void LaunchdInterceptionServer::ForwardMessage(IPCMessage request) {
+   // as if it were coming from the sandbox host process (this).
+   if (xpc_launchd_) {
+     // xpc_dictionary_set_mach_send increments the send right count.
++#ifndef MAS_BUILD
+     xpc_dictionary_set_mach_send(request.xpc, "domain-port",
+                                  sandbox_->real_bootstrap_port());
++#endif
+   }
+ 
+   message_server_->ForwardMessage(request, sandbox_->real_bootstrap_port());
+diff --git a/sandbox/mac/os_compatibility.cc b/sandbox/mac/os_compatibility.cc
+index f1ad528..4dc9769 100644
+--- a/sandbox/mac/os_compatibility.cc
++++ b/sandbox/mac/os_compatibility.cc
+@@ -182,7 +182,9 @@ class OSCompatibility_10_10 : public OSCompatibility {
+ 
+   void WriteServiceLookUpReply(IPCMessage message,
+                                mach_port_t service_port) override {
++#ifndef MAS_BUILD
+     xpc_dictionary_set_mach_send(message.xpc, "port", service_port);
++#endif
+   }
+ 
+   bool IsSwapIntegerReadOnly(const IPCMessage message) override {
+diff --git a/sandbox/mac/pre_exec_delegate.cc b/sandbox/mac/pre_exec_delegate.cc
+index adf40a0..2a11c60 100644
+--- a/sandbox/mac/pre_exec_delegate.cc
++++ b/sandbox/mac/pre_exec_delegate.cc
+@@ -70,7 +70,9 @@ xpc_object_t PreExecDelegate::CreateBootstrapLookUpMessage() {
+     xpc_dictionary_set_uint64(dictionary, "routine", 207);
+     // Add a NULL port so that the slot in the dictionary is already
+     // allocated.
++#ifndef MAS_BUILD
+     xpc_dictionary_set_mach_send(dictionary, "domain-port", MACH_PORT_NULL);
++#endif
+     return dictionary;
+   }
+ 
+@@ -79,6 +81,7 @@ xpc_object_t PreExecDelegate::CreateBootstrapLookUpMessage() {
+ 
+ kern_return_t PreExecDelegate::DoBootstrapLookUp(mach_port_t* out_port) {
+   if (is_yosemite_or_later_) {
++#ifndef MAS_BUILD
+     xpc_dictionary_set_mach_send(look_up_message_, "domain-port",
+         bootstrap_port);
+ 
+@@ -94,6 +97,9 @@ kern_return_t PreExecDelegate::DoBootstrapLookUp(mach_port_t* out_port) {
+       *out_port = xpc_mach_send_get_right(port_value);
+       return *out_port != MACH_PORT_NULL ? KERN_SUCCESS : KERN_INVALID_RIGHT;
+     }
++#else
++    return KERN_SUCCESS;
++#endif
+   } else {
+     // On non-XPC launchd systems, bootstrap_look_up() is MIG-based and
+     // generally safe.
+diff --git a/sandbox/mac/xpc_message_server.cc b/sandbox/mac/xpc_message_server.cc
+index e161b5a..4006d47 100644
+--- a/sandbox/mac/xpc_message_server.cc
++++ b/sandbox/mac/xpc_message_server.cc
+@@ -50,7 +50,9 @@ bool XPCMessageServer::Initialize() {
+ 
+ pid_t XPCMessageServer::GetMessageSenderPID(IPCMessage request) {
+   audit_token_t token;
++#ifndef MAS_BUILD
+   xpc_dictionary_get_audit_token(request.xpc, &token);
++#endif
+   // TODO(rsesek): In the 10.7 SDK, there's audit_token_to_pid().
+   pid_t sender_pid;
+   audit_token_to_au32(token,
+@@ -71,22 +73,26 @@ bool XPCMessageServer::SendReply(IPCMessage reply) {
+   if (!reply.xpc)
+     return false;
+ 
++#ifndef MAS_BUILD
+   int rv = xpc_pipe_routine_reply(reply.xpc);
+   if (rv) {
+     LOG(ERROR) << "Failed to xpc_pipe_routine_reply(): " << rv;
+     return false;
+   }
++#endif
+   return true;
+ }
+ 
+ void XPCMessageServer::ForwardMessage(IPCMessage request,
+                                       mach_port_t destination) {
++#ifndef MAS_BUILD
+   xpc_pipe_t pipe = xpc_pipe_create_from_port(destination, 0);
+   int rv = xpc_pipe_routine_forward(pipe, request.xpc);
+   if (rv) {
+     LOG(ERROR) << "Failed to xpc_pipe_routine_forward(): " << rv;
+   }
+   xpc_release(pipe);
++#endif
+ }
+ 
+ void XPCMessageServer::RejectMessage(IPCMessage request, int error_code) {
+@@ -104,11 +110,13 @@ mach_port_t XPCMessageServer::GetServerPort() const {
+ 
+ void XPCMessageServer::ReceiveMessage() {
+   IPCMessage request;
++#ifndef MAS_BUILD
+   int rv = xpc_pipe_receive(server_port_, &request.xpc);
+   if (rv) {
+     LOG(ERROR) << "Failed to xpc_pipe_receive(): " << rv;
+     return;
+   }
++#endif
+ 
+   demuxer_->DemuxMessage(request);
+ 
+diff --git a/sandbox/mac/xpc_private_stubs.sig b/sandbox/mac/xpc_private_stubs.sig
+index b8e1c50..2118aea 100644
+--- a/sandbox/mac/xpc_private_stubs.sig
++++ b/sandbox/mac/xpc_private_stubs.sig
+@@ -6,6 +6,7 @@
+ // used for both forward declarations of private symbols and to use with
+ // tools/generate_stubs for creating a dynamic library loader.
+ 
++#ifndef MAS_BUILD
+ // Dictionary manipulation.
+ void xpc_dictionary_set_mach_send(xpc_object_t dictionary, const char* name, mach_port_t port);
+ void xpc_dictionary_get_audit_token(xpc_object_t dictionary, audit_token_t* token);
+@@ -20,3 +21,4 @@ int xpc_pipe_routine(xpc_pipe_t pipe, xpc_object_t request, xpc_object_t* reply)
+ int xpc_pipe_routine_reply(xpc_object_t reply);
+ int xpc_pipe_simpleroutine(xpc_pipe_t pipe, xpc_object_t message);
+ int xpc_pipe_routine_forward(xpc_pipe_t forward_to, xpc_object_t request);
++#endif
