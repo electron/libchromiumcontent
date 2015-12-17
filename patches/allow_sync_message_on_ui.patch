@@ -1,0 +1,13 @@
+diff --git a/content/public/browser/browser_message_filter.cc b/content/public/browser/browser_message_filter.cc
+index 9b4cbd1..0935bd67 100644
+--- a/content/public/browser/browser_message_filter.cc
++++ b/content/public/browser/browser_message_filter.cc
+@@ -157,7 +157,7 @@ base::TaskRunner* BrowserMessageFilter::OverrideTaskRunnerForMessage(
+ 
+ bool BrowserMessageFilter::CheckCanDispatchOnUI(const IPC::Message& message,
+                                                 IPC::Sender* sender) {
+-#if defined(OS_WIN)
++#if 0
+   // On Windows there's a potential deadlock with sync messsages going in
+   // a circle from browser -> plugin -> renderer -> browser.
+   // On Linux we can avoid this by avoiding sync messages from browser->plugin.
