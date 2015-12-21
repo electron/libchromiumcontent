@@ -68,12 +68,12 @@ def main():
       if (args.static and
           not os.path.exists(os.path.join(args.path, 'static_library'))):
         download(args.path, base_url, commit, STATIC_LIBRARY_FILENAME)
-      with open(os.path.join(args.path, '.target_arch'), 'w') as f:
-        f.write(args.target_arch)
       generate_filenames_gypi(os.path.join(args.path, 'filenames.gypi'),
                               os.path.join(args.path, 'src'),
                               os.path.join(args.path, 'shared_library'),
                               os.path.join(args.path, 'static_library'))
+    with open(os.path.join(args.path, '.target_arch'), 'w') as f:
+      f.write(args.target_arch)
   except ProgramError as e:
     return e.message
 
