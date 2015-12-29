@@ -102,6 +102,7 @@ BINARIES = {
     'pdf.dll',
     'widevinecdm.dll',
     'widevinecdm.dll.lib',
+    'widevinecdmadapter.dll',
     os.path.join('gen', 'ui', 'resources', 'ui_unscaled_resources.rc'),
     os.path.join('obj', 'base', 'base_static.cc.pdb'),
     os.path.join('obj', 'base', 'base_static.lib'),
