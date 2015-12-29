@@ -68,6 +68,8 @@ BINARIES = {
     'libsystem_wrappers.a',
     'libcdm_renderer.a',
     'libcomponent_updater.a',
+    'libwidevinecdm.dylib',
+    'widevinecdmadapter.plugin',
   ],
   'linux': [
     'chromedriver',
@@ -98,6 +100,8 @@ BINARIES = {
     'libyuv.lib',
     'mksnapshot.exe',
     'pdf.dll',
+    'widevinecdm.dll',
+    'widevinecdm.dll.lib',
     os.path.join('gen', 'ui', 'resources', 'ui_unscaled_resources.rc'),
     os.path.join('obj', 'base', 'base_static.cc.pdb'),
     os.path.join('obj', 'base', 'base_static.lib'),
