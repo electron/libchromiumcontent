@@ -260,20 +260,7 @@ def copy_binaries(target_arch, component, output_dir):
   mkdir_p(target_dir)
 
   for binary in BINARIES['all'] + BINARIES[TARGET_PLATFORM]:
-    src_path = os.path.join(config_dir, binary)
-
-    if component == 'shared_library' and \
-       TARGET_PLATFORM == 'linux' and  \
-       binary in ('libcdm_renderer.a', 'libcomponent_updater.a'):
-      # libcdm_renderer.a and libcomponent_updater.a on
-      # linux and for shared_library
-      # are stored in obj/components
-      src_path = os.path.join(config_dir, 'obj', 'components', binary);
-
-    if not os.path.exists(src_path):
-        continue
-
-    shutil.copy2(src_path, target_dir)
+    shutil.copy2(os.path.join(config_dir, binary), target_dir)
 
   if component == 'shared_library':
     match = '*.{0}'.format(SHARED_LIBRARY_SUFFIX)
@@ -323,10 +310,6 @@ def copy_binaries(target_arch, component, output_dir):
     else:
       # out/Release/*.a
       for library in glob.glob(os.path.join(config_dir, '*.a')):
-        # Do not include libppapi_cpp.a to avoid compilation error
-        if library.endswith('libppapi_cpp.a'):
-          continue
-
         shutil.copy2(library, target_dir)
 
   if TARGET_PLATFORM in ['linux', 'darwin']:
