@@ -39,6 +39,7 @@ EXCLUDE_STATIC_LIBRARIES = {
     'libv8_nosnapshot.a',
   ],
   'linux': [
+    'libppapi_cpp.a',
     'libprotobuf_full_do_not_use.a',
     'libgenperf_libs.a',
     'libv8_nosnapshot.a',
