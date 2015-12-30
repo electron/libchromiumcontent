@@ -6,6 +6,7 @@ import errno
 import fnmatch
 import glob
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -240,6 +241,7 @@ def main():
       output_dir = os.path.join(SRC_DIR, get_output_dir(target_arch, component))
       copy_binaries(target_arch, component, output_dir)
       copy_generated_sources(target_arch, component, output_dir)
+      copy_locales(target_arch, component, output_dir)
 
   copy_sources()
   generate_licenses()
@@ -331,6 +333,15 @@ def copy_generated_sources(target_arch, component, output_dir):
                  relative_to=os.path.join(output_dir, config, 'gen'),
                  destination=os.path.join(target_dir, 'gen'))
 
+def copy_locales(target_arch, component, output_dir):
+  config = get_configuration(target_arch)
+  target_dir = os.path.join(MAIN_DIR, component, 'locales')
+  mkdir_p(target_dir)
+  src_dir = os.path.join(output_dir, config, 'gen', 'content', 'app', 'strings')
+  for src_file in glob.glob(os.path.join(src_dir, 'content_strings_*.pak')):
+    filename = os.path.basename(src_file)
+    new_name = re.sub('content_strings_', '', filename)
+    shutil.copy2(src_file, os.path.join(target_dir, new_name))
 
 def copy_sources():
   for include_path in INCLUDE_DIRS:
