@@ -3,6 +3,8 @@
     # Enalbe using proprietary codecs.
     'proprietary_codecs': 1,
     'ffmpeg_branding': 'Chrome',
+    # Enable support for Widevine CDM.
+    'enable_widevine': 1,
     # Using libc++ requires building for >= 10.7.
     'mac_deployment_target': '10.8',
     # The 10.8 SDK does not work well with C++11.
