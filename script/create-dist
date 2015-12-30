@@ -67,7 +67,6 @@ BINARIES = {
     'libyuv.a',
     'libsystem_wrappers.a',
     'libcdm_renderer.a',
-    'libcomponent_updater.a',
   ],
   'linux': [
     'chromedriver',
@@ -86,7 +85,6 @@ BINARIES = {
     'libyuv_neon.a',
     'libsystem_wrappers.a',
     'libcdm_renderer.a',
-    'libcomponent_updater.a',
   ],
   'win32': [
     'chromedriver.exe',
@@ -105,8 +103,6 @@ BINARIES = {
     os.path.join('obj', 'components', 'devtools_http_handler.lib'),
     os.path.join('obj', 'components', 'cdm_renderer.cc.pdb'),
     os.path.join('obj', 'components', 'cdm_renderer.lib'),
-    os.path.join('obj', 'components', 'component_updater.cc.pdb '),
-    os.path.join('obj', 'components', 'component_updater.lib'),
     os.path.join('obj', 'net', 'http_server.cc.pdb'),
     os.path.join('obj', 'net', 'http_server.lib'),
     os.path.join('obj', 'sandbox', 'sandbox.cc.pdb'),
