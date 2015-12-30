@@ -18,7 +18,10 @@ VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
 SRC_DIR = os.path.join(VENDOR_DIR, 'chromium', 'src')
 CHROMIUMCONTENT_SOURCE_DIR = os.path.join(SOURCE_ROOT, 'chromiumcontent')
 CHROMIUMCONTENT_DESTINATION_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
-COMPONENTS = ['static_library', 'shared_library']
+FLAVORS = [
+  { 'config': 'Release', 'component': 'static_library' },
+  { 'config': 'Debug', 'component': 'shared_library' },
+]
 
 TARBALL_REPO = 'zcbenz/chromium-source-tarball'
 TARBALL_URL = 'https://github.com/{0}/releases/download/{1}/chromium-{1}.tar.xz'
@@ -185,8 +188,8 @@ def run_gyp(target_arch):
   relative_dir = os.path.relpath(CHROMIUMCONTENT_DESTINATION_DIR, SRC_DIR)
   args = [sys.executable, gyp, '-Ichromiumcontent/chromiumcontent.gypi',
           os.path.join(relative_dir, 'chromiumcontent.gyp')]
-  for component in COMPONENTS:
-    subprocess.call(args, env=gyp_env(target_arch, component))
+  for flavor in FLAVORS:
+    subprocess.call(args, env=gyp_env(target_arch, flavor['component']))
 
 
 def xz():

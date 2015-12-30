@@ -11,7 +11,10 @@ from lib.util import get_configuration, get_output_dir
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
 TARGETS = ['chromiumcontent_all']
-COMPONENTS = ['static_library', 'shared_library']
+FLAVORS = [
+  { 'config': 'Release', 'component': 'static_library' },
+  { 'config': 'Debug', 'component': 'shared_library' },
+]
 
 NINJA = os.path.join(VENDOR_DIR, 'depot_tools', 'ninja')
 if sys.platform == 'win32':
@@ -24,11 +27,11 @@ def main():
 
   os.chdir(SOURCE_ROOT)
 
-  for component in COMPONENTS:
-    if args.component == 'all' or args.component == component:
+  for flavor in FLAVORS:
+    if args.component == 'all' or args.component == flavor['component']:
       out_dir = os.path.join(VENDOR_DIR, 'chromium', 'src',
-                             get_output_dir(target_arch, component))
-      config = get_configuration(target_arch)
+                             get_output_dir(target_arch, flavor['component']))
+      config = get_configuration(flavor['config'], target_arch)
       config_dir = os.path.relpath(os.path.join(out_dir, config))
       subprocess.check_call([NINJA, '-C', config_dir] + TARGETS)
 

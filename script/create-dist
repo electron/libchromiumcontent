@@ -43,7 +43,10 @@ STATIC_LIBRARY_SUFFIX = {
   'win32': 'lib',
 }[TARGET_PLATFORM]
 
-COMPONENTS = ['static_library', 'shared_library']
+FLAVORS = [
+  { 'config': 'Release', 'component': 'static_library' },
+  { 'config': 'Debug', 'component': 'shared_library' },
+]
 BINARIES = {
   'all': [
     'content_shell.pak',
@@ -231,11 +234,11 @@ def main():
   rm_rf(DIST_DIR)
   os.makedirs(DIST_DIR)
 
-  for component in COMPONENTS:
-    if args.component == 'all' or args.component == component:
-      output_dir = os.path.join(SRC_DIR, get_output_dir(target_arch, component))
-      copy_binaries(target_arch, component, output_dir)
-      copy_generated_sources(target_arch, component, output_dir)
+  for flavor in FLAVORS:
+    if args.component == 'all' or args.component == flavor['component']:
+      output_dir = os.path.join(SRC_DIR, get_output_dir(target_arch, flavor['component']))
+      copy_binaries(target_arch, flavor, output_dir)
+      copy_generated_sources(target_arch, flavor, output_dir)
 
   copy_sources()
   generate_licenses()
@@ -250,15 +253,15 @@ def parse_args():
   return parser.parse_args()
 
 
-def copy_binaries(target_arch, component, output_dir):
-  config_dir = os.path.join(output_dir, get_configuration(target_arch))
-  target_dir = os.path.join(MAIN_DIR, component)
+def copy_binaries(target_arch, flavor, output_dir):
+  config_dir = os.path.join(output_dir, get_configuration(flavor['config'], target_arch))
+  target_dir = os.path.join(MAIN_DIR, flavor['component'])
   mkdir_p(target_dir)
 
   for binary in BINARIES['all'] + BINARIES[TARGET_PLATFORM]:
     shutil.copy2(os.path.join(config_dir, binary), target_dir)
 
-  if component == 'shared_library':
+  if flavor['component'] == 'shared_library':
     match = '*.{0}'.format(SHARED_LIBRARY_SUFFIX)
   else:
     match = '*.{0}'.format(STATIC_LIBRARY_SUFFIX)
@@ -269,7 +272,7 @@ def copy_binaries(target_arch, component, output_dir):
       shutil.copy2(library, target_dir)
 
   if TARGET_PLATFORM == 'win32':
-    if component == 'shared_library':
+    if flavor['component'] == 'shared_library':
       # out/Release/*.dll(.lib)
       for dll in glob.glob(os.path.join(config_dir, '*.dll')):
         lib = dll + '.lib'
@@ -299,7 +302,7 @@ def copy_binaries(target_arch, component, output_dir):
           shutil.copy2(os.path.join(root, filename), target_dir)
 
   if TARGET_PLATFORM == 'linux':
-    if component == 'shared_library':
+    if flavor['component'] == 'shared_library':
       # out/Release/lib/*.so
       for library in glob.glob(os.path.join(config_dir, 'lib', '*.so')):
         shutil.copy2(library, target_dir)
@@ -314,14 +317,14 @@ def copy_binaries(target_arch, component, output_dir):
       run_strip(target_arch, os.path.join(target_dir, os.path.basename(binary)))
     # We do not need debug info in "shared_library" build, since it will only
     # be used for Release build.
-    if component == 'shared_library':
+    if flavor['component'] == 'shared_library':
       for library in glob.glob(os.path.join(target_dir, match)):
         run_strip(target_arch, library)
 
 
-def copy_generated_sources(target_arch, component, output_dir):
-  config = get_configuration(target_arch)
-  target_dir = os.path.join(MAIN_DIR, component)
+def copy_generated_sources(target_arch, flavor, output_dir):
+  config = get_configuration(flavor['config'], target_arch)
+  target_dir = os.path.join(MAIN_DIR, flavor['component'])
   for include_path in GENERATED_INCLUDE_DIRS:
     copy_headers(include_path,
                  relative_to=os.path.join(output_dir, config, 'gen'),
