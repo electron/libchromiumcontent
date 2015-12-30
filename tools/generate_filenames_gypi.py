@@ -25,13 +25,18 @@ STATIC_LIBRARY_SUFFIX = {
 
 EXCLUDE_SHARED_LIBRARIES = {
   'darwin': [
+    'libwidevinecdm.dylib',
   ],
   'linux': [
+    'libwidevinecdm.so',
+    'libwidevinecdmadapter.so',
   ],
   'win32': [
     'd3dcompiler_47.dll',
     'libEGL.dll',
     'libGLESv2.dll',
+    'widevinecdm.dll',
+    'widevinecdmadapter.dll',
   ],
 }[TARGET_PLATFORM]
 EXCLUDE_STATIC_LIBRARIES = {
@@ -47,6 +52,8 @@ EXCLUDE_STATIC_LIBRARIES = {
   'win32': [
     'libEGL.dll.lib',
     'libGLESv2.dll.lib',
+    'widevinecdm.dll.lib',
+    'widevinecdmadapter.dll.lib',
   ],
 }[TARGET_PLATFORM]
 
