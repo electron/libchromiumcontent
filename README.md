@@ -12,26 +12,9 @@ TODO
 
 ### Prerequisites
 
-* Python 2.7
-
-#### Mac
-
-* Xcode 5.1
-
-#### Windows
-
-* Visual Studio 2013 Professional Update 4
-
-#### Linux
-
-##### CentOS 6.5
-
-`sudo yum install -y pciutils-devel git tar gcc pkg-config atk-devel pulseaudio-libs-devel gdk-devel gdk-pixbuf2-devel gdk-pixbuf2 pygtk2-devel libXtst-devel libXScrnSaver-devel dbus-devel GConf2-devel libgnome-keyring-devel libexif-devel gperf`
-
-##### Ubuntu 14.04
-
-`sudo apt-get install -y build-essential bison libasound2-dev libatk1.0-dev libcups2-dev libexif-dev
- libgconf2-dev libgnome-keyring-dev libgtk2.0-dev libpci-dev libpulse libxtst-dev gperf`
+* [Linux](https://chromium.googlesource.com/chromium/src/+/master/docs/linux_build_instructions_prerequisites.md)
+* [Mac](https://chromium.googlesource.com/chromium/src/+/master/docs/mac_build_instructions.md#Prerequisites)
+* [Windows](http://dev.chromium.org/developers/how-tos/build-instructions-windows)
 
 ### One-time setup
 
