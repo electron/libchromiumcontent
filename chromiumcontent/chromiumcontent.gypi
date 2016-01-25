@@ -137,6 +137,13 @@
           '-Wno-sentinel',
         ],
       }],
+      ['_target_name=="ui_base"', {
+        'xcode_settings': {
+          'WARNING_CFLAGS': [
+            '-Wno-partial-availability',
+          ],
+        },
+      }],
     ],
   },
 }
