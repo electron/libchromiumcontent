@@ -1,5 +1,5 @@
 diff --git a/sandbox/mac/launchd_interception_server.cc b/sandbox/mac/launchd_interception_server.cc
-index f466e77..e69c7d1 100644
+index 6ce61f6..0b2bb43 100644
 --- a/sandbox/mac/launchd_interception_server.cc
 +++ b/sandbox/mac/launchd_interception_server.cc
 @@ -169,8 +169,10 @@ void LaunchdInterceptionServer::ForwardMessage(IPCMessage request) {
@@ -60,7 +60,7 @@ index adf40a0..2a11c60 100644
      // On non-XPC launchd systems, bootstrap_look_up() is MIG-based and
      // generally safe.
 diff --git a/sandbox/mac/xpc_message_server.cc b/sandbox/mac/xpc_message_server.cc
-index e161b5a..4006d47 100644
+index d811e5d..df21859 100644
 --- a/sandbox/mac/xpc_message_server.cc
 +++ b/sandbox/mac/xpc_message_server.cc
 @@ -50,7 +50,9 @@ bool XPCMessageServer::Initialize() {
@@ -105,7 +105,7 @@ index e161b5a..4006d47 100644
  void XPCMessageServer::ReceiveMessage() {
    IPCMessage request;
 +#ifndef MAS_BUILD
-   int rv = xpc_pipe_receive(server_port_, &request.xpc);
+   int rv = xpc_pipe_receive(server_port_.get(), &request.xpc);
    if (rv) {
      LOG(ERROR) << "Failed to xpc_pipe_receive(): " << rv;
      return;
