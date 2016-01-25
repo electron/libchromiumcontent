@@ -57,6 +57,7 @@ BINARIES = {
   'darwin': [
     'chromedriver',
     'mksnapshot',
+    'libffmpeg.dylib',
     'libdevtools_discovery.a',
     'libdevtools_http_handler.a',
     'libhttp_server.a',
@@ -86,10 +87,12 @@ BINARIES = {
     'libyuv_neon.a',
     'libsystem_wrappers.a',
     'libcdm_renderer.a',
+    os.path.join('lib', 'libffmpeg.so'),
   ],
   'win32': [
     'chromedriver.exe',
     'd3dcompiler_47.dll',
+    'ffmpeg.dll',
     'libEGL.dll',
     'libGLESv2.dll',
     'libyuv.lib',

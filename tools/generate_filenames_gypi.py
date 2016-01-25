@@ -41,15 +41,19 @@ EXCLUDE_SHARED_LIBRARIES = {
 }[TARGET_PLATFORM]
 EXCLUDE_STATIC_LIBRARIES = {
   'darwin': [
+    'libffmpeg_yasm.a',
     'libv8_nosnapshot.a',
   ],
   'linux': [
+    'libffmpeg_yasm.a',
     'libppapi_cpp.a',
     'libprotobuf_full_do_not_use.a',
     'libgenperf_libs.a',
     'libv8_nosnapshot.a',
   ],
   'win32': [
+    'ffmpeg.dll.lib',
+    'ffmpeg_yasm.lib',
     'libEGL.dll.lib',
     'libGLESv2.dll.lib',
     'widevinecdm.dll.lib',
