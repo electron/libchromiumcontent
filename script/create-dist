@@ -217,7 +217,6 @@ OTHER_HEADERS = [
   'ui/events/keycodes/dom/keycode_converter_data.inc',
 ]
 OTHER_SOURCES = [
-  'content/app/startup_helper_win.cc',
 ]
 OTHER_DIRS = [
   os.path.join('ui', 'resources', 'cursors'),
