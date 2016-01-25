@@ -91,11 +91,11 @@ index 3d7c795..eb46b84 100644
  }
  
 diff --git a/media/capture/video/mac/video_capture_device_mac.mm b/media/capture/video/mac/video_capture_device_mac.mm
-index 8f71b68..fa73d7c 100644
+index 34c38f7..15a5658 100644
 --- a/media/capture/video/mac/video_capture_device_mac.mm
 +++ b/media/capture/video/mac/video_capture_device_mac.mm
-@@ -20,7 +20,9 @@
- #import "media/base/mac/avfoundation_glue.h"
+@@ -21,7 +21,9 @@
+ #include "media/base/timestamp_constants.h"
  #import "media/capture/video/mac/platform_video_capturing_mac.h"
  #import "media/capture/video/mac/video_capture_device_avfoundation_mac.h"
 +#ifndef MAS_BUILD
@@ -104,7 +104,7 @@ index 8f71b68..fa73d7c 100644
  #include "ui/gfx/geometry/size.h"
  
  @implementation DeviceNameAndTransportType
-@@ -448,8 +450,10 @@ bool VideoCaptureDeviceMac::Init(
+@@ -451,8 +453,10 @@ bool VideoCaptureDeviceMac::Init(
      capture_device_ =
          [[VideoCaptureDeviceAVFoundation alloc] initWithFrameReceiver:this];
    } else {
@@ -116,10 +116,10 @@ index 8f71b68..fa73d7c 100644
  
    if (!capture_device_)
 diff --git a/media/media.gyp b/media/media.gyp
-index a842881..ea723e5 100644
+index b56a23b..5c4932c 100644
 --- a/media/media.gyp
 +++ b/media/media.gyp
-@@ -462,8 +462,8 @@
+@@ -461,8 +461,8 @@
          'capture/video/mac/video_capture_device_factory_mac.mm',
          'capture/video/mac/video_capture_device_mac.h',
          'capture/video/mac/video_capture_device_mac.mm',
@@ -130,7 +130,7 @@ index a842881..ea723e5 100644
          'capture/video/video_capture_device.cc',
          'capture/video/video_capture_device.h',
          'capture/video/video_capture_device_factory.cc',
-@@ -987,7 +987,7 @@
+@@ -990,7 +990,7 @@
                '$(SDKROOT)/System/Library/Frameworks/CoreAudio.framework',
                '$(SDKROOT)/System/Library/Frameworks/CoreVideo.framework',
                '$(SDKROOT)/System/Library/Frameworks/OpenGL.framework',
