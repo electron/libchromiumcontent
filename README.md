@@ -2,7 +2,7 @@
 
 A single, shared library that includes the [Chromium Content
 module](http://www.chromium.org/developers/content-module) and all its
-dependencies (e.g., WebKit, V8, etc.).
+dependencies (e.g., Blink, V8, etc.).
 
 ## Using it in your app
 
