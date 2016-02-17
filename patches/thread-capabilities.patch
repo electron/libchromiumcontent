@@ -1,0 +1,13 @@
+diff --git a/sandbox/linux/services/credentials.cc b/sandbox/linux/services/credentials.cc
+index dd26472..6324ef5 100644
+--- a/sandbox/linux/services/credentials.cc
++++ b/sandbox/linux/services/credentials.cc
+@@ -324,8 +324,6 @@ pid_t Credentials::ForkAndDropCapabilitiesInChild() {
+     return pid;
+   }
+ 
+-  // Since we just forked, we are single threaded.
+-  PCHECK(DropAllCapabilitiesOnCurrentThread());
+   return 0;
+ }
+
