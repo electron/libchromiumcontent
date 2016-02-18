@@ -1,8 +1,9 @@
 {
   'variables': {
+    # Don't use nacl.
+    'disable_nacl': 1,
     # Enalbe using proprietary codecs.
     'proprietary_codecs': 1,
-    'ffmpeg_branding': 'Chrome',
     # Build ffmpeg as shared library.
     'ffmpeg_component': 'shared_library',
     # Enable support for Widevine CDM.

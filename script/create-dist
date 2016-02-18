@@ -242,6 +242,7 @@ def main():
       copy_generated_sources(target_arch, component, output_dir)
       copy_locales(target_arch, component, output_dir)
 
+  copy_ffmpeg(target_arch)
   copy_sources()
   generate_licenses()
   create_zip()
@@ -359,6 +360,23 @@ def copy_sources():
   sk_user_config = os.path.join(SRC_DIR, 'third_party', 'skia', 'include',
                                 'config', 'SkUserConfig.h')
   shutil.copy2(sk_user_config, DIST_SRC_DIR)
+
+
+def copy_ffmpeg(target_arch):
+  output_dir = os.path.join(SRC_DIR,
+                            get_output_dir(target_arch, 'ffmpeg'),
+                            get_configuration(target_arch))
+  if TARGET_PLATFORM == 'darwin':
+    binary = 'libffmpeg.dylib'
+  elif TARGET_PLATFORM == 'linux':
+    binary = os.path.join('lib', 'libffmpeg.so')
+  elif TARGET_PLATFORM == 'win32':
+    binary = 'ffmpeg.dll'
+
+  target_dir = os.path.join(MAIN_DIR, 'ffmpeg')
+  mkdir_p(target_dir)
+  shutil.copy2(os.path.join(output_dir, binary), target_dir)
+
 
 
 def copy_headers(relative_path, relative_to, destination):

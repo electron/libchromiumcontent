@@ -4,6 +4,10 @@ import sys
 
 
 def get_output_dir(target_arch, component):
+  # Build in "out_ffmpeg" for Chromium branding of ffmpeg.
+  if component == 'ffmpeg':
+    return 'out_ffmpeg'
+
   # Build in "out_component" for component build.
   output_dir = 'out'
   if component == 'shared_library':
@@ -14,6 +18,7 @@ def get_output_dir(target_arch, component):
     output_dir += '_32'
   elif target_arch == 'arm':
     output_dir += '_arm'
+
   return output_dir
 
 
