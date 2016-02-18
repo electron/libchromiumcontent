@@ -3,6 +3,8 @@
     # Enalbe using proprietary codecs.
     'proprietary_codecs': 1,
     'ffmpeg_branding': 'Chrome',
+    # Build ffmpeg as shared library.
+    'ffmpeg_component': 'shared_library',
     # Enable support for Widevine CDM.
     'enable_widevine': 1,
     # Using libc++ requires building for >= 10.7.
