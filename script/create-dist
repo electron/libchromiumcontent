@@ -438,7 +438,7 @@ def generate_licenses():
 def create_zip():
   print 'Zipping shared_library builds...'
   p = os.path.join(SOURCE_ROOT, 'libchromiumcontent.zip')
-  make_zip(MAIN_DIR, ['src', 'shared_library'], ['LICENSES.chromium.html'], p)
+  make_zip(MAIN_DIR, ['src', 'ffmpeg', 'shared_library'], ['LICENSES.chromium.html'], p)
   print 'Zipping static_library builds...'
   p = os.path.join(SOURCE_ROOT, 'libchromiumcontent-static.zip')
   make_zip(MAIN_DIR, ['static_library'], [], p)
