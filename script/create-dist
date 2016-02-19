@@ -93,6 +93,7 @@ BINARIES = {
     'chromedriver.exe',
     'd3dcompiler_47.dll',
     'ffmpeg.dll',
+    'ffmpeg.dll.lib',
     'libEGL.dll',
     'libGLESv2.dll',
     'libyuv.lib',
