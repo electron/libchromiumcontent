@@ -1,0 +1,179 @@
+diff --git a/base/mac/sdk_forward_declarations.h b/base/mac/sdk_forward_declarations.h
+index 057e951..4ffb388 100644
+--- a/base/mac/sdk_forward_declarations.h
++++ b/base/mac/sdk_forward_declarations.h
+@@ -224,6 +224,26 @@ enum { NSWorkspaceLaunchWithErrorPresentation = 0x00000040 };
+
+ #endif  // MAC_OS_X_VERSION_10_9
+
++#if !defined(MAC_OS_X_VERSION_10_11) || \
++    MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_11
++
++enum {
++  NSPressureBehaviorUnknown = -1,
++  NSPressureBehaviorPrimaryDefault = 0,
++  NSPressureBehaviorPrimaryClick = 1,
++  NSPressureBehaviorPrimaryGeneric = 2,
++  NSPressureBehaviorPrimaryAccelerator = 3,
++  NSPressureBehaviorPrimaryDeepClick = 5,
++  NSPressureBehaviorPrimaryDeepDrag = 6
++};
++typedef NSInteger NSPressureBehavior;
++
++@interface NSPressureConfiguration : NSObject
++- (instancetype)initWithPressureBehavior:(NSPressureBehavior)pressureBehavior;
++@end
++
++#endif // MAC_OS_X_VERSION_10_11
++
+ // ----------------------------------------------------------------------------
+ // Define NSStrings only available in newer versions of the OSX SDK to force
+ // them to be statically linked.
+@@ -495,22 +515,13 @@ BASE_EXPORT extern NSString* const NSAppearanceNameVibrantDark;
+ - (void)viewDidLoad;
+ @end
+
+-enum {
+-  NSPressureBehaviorUnknown = -1,
+-  NSPressureBehaviorPrimaryDefault = 0,
+-  NSPressureBehaviorPrimaryClick = 1,
+-  NSPressureBehaviorPrimaryGeneric = 2,
+-  NSPressureBehaviorPrimaryAccelerator = 3,
+-  NSPressureBehaviorPrimaryDeepClick = 5,
+-  NSPressureBehaviorPrimaryDeepDrag = 6
+-};
+-typedef NSInteger NSPressureBehavior;
++#endif  // MAC_OS_X_VERSION_10_10
+
+-@interface NSPressureConfiguration : NSObject
+-- (instancetype)initWithPressureBehavior:(NSPressureBehavior)pressureBehavior;
+-@end
+
+-@class NSPressureConfiguration;
++// Once Chrome no longer supports OSX 10.10.2, everything within this
++// preprocessor block can be removed.
++#if !defined(MAC_OS_X_VERSION_10_10_3) || \
++    MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_10_3
+
+ @interface NSView (YosemiteSDK)
+ - (void)setPressureConfiguration:(NSPressureConfiguration*)aConfiguration;
+diff --git a/chrome/browser/ui/BUILD.gn b/chrome/browser/ui/BUILD.gn
+index 3e5991d..f5d9ac6 100644
+--- a/chrome/browser/ui/BUILD.gn
++++ b/chrome/browser/ui/BUILD.gn
+@@ -11,6 +11,13 @@ gypi_values = exec_script("//build/gypi_to_gn.py",
+                           "scope",
+                           [ "../../chrome_browser_ui.gypi" ])
+
++config("ui_warnings") {
++  if (is_clang) {
++    # TODO(thakis): Remove this once http://crbug.com/383820 is figured out
++    cflags = [ "-Wno-nonnull" ]
++  }
++}
++
+ source_set("ui") {
+   output_name = "browser_ui"
+
+@@ -19,6 +26,7 @@ source_set("ui") {
+   libs = []
+
+   configs += [
++    ":ui_warnings",
+     "//build/config:precompiled_headers",
+     "//build/config/compiler:wexit_time_destructors",
+     "//third_party/WebKit/public:debug_devtools",
+diff --git a/content/shell/BUILD.gn b/content/shell/BUILD.gn
+index 5e4fb6e..9246b47 100644
+--- a/content/shell/BUILD.gn
++++ b/content/shell/BUILD.gn
+@@ -21,6 +21,13 @@ declare_args() {
+   content_shell_version = "19.77.34.5"
+ }
+
++config("content_shell_lib_warnings") {
++  if (is_clang) {
++    # TODO(thakis): Remove this once http://crbug.com/383820 is figured out
++    cflags = [ "-Wno-nonnull" ]
++  }
++}
++
+ static_library("content_shell_lib") {
+   testonly = true
+   sources = [
+@@ -177,6 +184,7 @@ static_library("content_shell_lib") {
+   ]
+
+   configs += [
++    ":content_shell_lib_warnings",
+     "//build/config:precompiled_headers",
+
+     # TODO(jschuh): crbug.com/167187 fix size_t to int truncations.
+diff --git a/media/cast/sender/audio_encoder.cc b/media/cast/sender/audio_encoder.cc
+index 879b476..f521b51 100644
+--- a/media/cast/sender/audio_encoder.cc
++++ b/media/cast/sender/audio_encoder.cc
+@@ -519,10 +519,10 @@
+     }
+
+     if (AudioFileInitializeWithCallbacks(this,
+-                                         nullptr,
++                                         &FileReadCallback,
+                                          &FileWriteCallback,
+-                                         nullptr,
+-                                         nullptr,
++                                         &FileGetSizeCallback,
++                                         &FileSetSizeCallback,
+                                          kAudioFileAAC_ADTSType,
+                                          &out_asbd,
+                                          0,
+@@ -642,6 +642,17 @@
+     return noErr;
+   }
+
++  // The AudioFile read callback function.
++  static OSStatus FileReadCallback(void* in_encoder,
++                                   SInt64 in_position,
++                                   UInt32 in_size,
++                                   void* in_buffer,
++                                   UInt32* out_size) {
++    // This class only does writing.
++    NOTREACHED();
++    return kAudioFileNotOpenError;
++  }
++
+   // The AudioFile write callback function. Appends the data to the encoder's
+   // current |output_buffer_|.
+   static OSStatus FileWriteCallback(void* in_encoder,
+@@ -662,6 +673,18 @@
+     return noErr;
+   }
+
++  // The AudioFile getsize callback function.
++  static SInt64 FileGetSizeCallback(void* in_encoder) {
++    // This class only does writing.
++    NOTREACHED();
++    return 0;
++  }
++
++  // The AudioFile setsize callback function.
++  static OSStatus FileSetSizeCallback(void* in_encoder, SInt64 in_size) {
++    return noErr;
++  }
++
+   // Buffer that holds one AAC access unit worth of samples. The input callback
+   // function provides samples from this buffer via |input_bus_| to the encoder.
+   const scoped_ptr<AudioBus> input_buffer_;
+diff --git a/chrome/browser/platform_util_mac.mm b/chrome/browser/platform_util_mac.mm
+index e156ad0..507b23b 100644
+--- a/chrome/browser/platform_util_mac.mm
++++ b/chrome/browser/platform_util_mac.mm
+@@ -27,7 +27,7 @@ void ShowItemInFolder(Profile* profile, const base::FilePath& full_path) {
+   DCHECK([NSThread isMainThread]);
+   NSString* path_string = base::SysUTF8ToNSString(full_path.value());
+   if (!path_string || ![[NSWorkspace sharedWorkspace] selectFile:path_string
+-                                        inFileViewerRootedAtPath:nil])
++                                        inFileViewerRootedAtPath:@""])
+     LOG(WARNING) << "NSWorkspace failed to select file " << full_path.value();
+ }
+
