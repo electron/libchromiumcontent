@@ -1,0 +1,13 @@
+diff --git a/third_party/WebKit/Source/core/dom/ScriptedAnimationController.cpp b/third_party/WebKit/Source/core/dom/ScriptedAnimationController.cpp
+index c3175fc..9e095ab 100644
+--- a/third_party/WebKit/Source/core/dom/ScriptedAnimationController.cpp
++++ b/third_party/WebKit/Source/core/dom/ScriptedAnimationController.cpp
+@@ -66,7 +66,7 @@ DEFINE_TRACE(ScriptedAnimationController)
+ 
+ void ScriptedAnimationController::suspend()
+ {
+-    ++m_suspendCount;
++    // ++m_suspendCount;
+ }
+ 
+ void ScriptedAnimationController::resume()
