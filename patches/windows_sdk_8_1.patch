@@ -1,0 +1,166 @@
+diff --git a/build/common.gypi b/build/common.gypi
+index 2063a6c..e6f0e33 100644
+--- a/build/common.gypi
++++ b/build/common.gypi
+@@ -1523,7 +1523,7 @@
+     'sas_dll_exists': '<!pymod_do_main(dir_exists "<(sas_dll_path)")',
+     'wix_exists': '<!pymod_do_main(dir_exists "<(wix_path)")',
+ 
+-    'windows_sdk_path%': 'C:/Program Files (x86)/Windows Kits/10',
++    'windows_sdk_path%': 'C:/Program Files (x86)/Windows Kits/8.1',
+     'directx_sdk_default_path': '<(DEPTH)/third_party/directxsdk/files',
+ 
+     # Whether we are using the rlz library or not.  Platforms like Android send
+@@ -2889,9 +2889,9 @@
+           '__STD_C',
+           '_CRT_SECURE_NO_DEPRECATE',
+           '_SCL_SECURE_NO_DEPRECATE',
+-          # This define is required to pull in the new Win 10 interfaces from
++          # This define is required to pull in the new Win8 interfaces from
+           # system headers like ShObjIdl.h.
+-          'NTDDI_VERSION=0x0A000000',
++          'NTDDI_VERSION=0x06030000',
+           # This is required for ATL to use XP-safe versions of its functions.
+           '_USING_V110_SDK71_',
+         ],
+@@ -3320,17 +3320,17 @@
+             'MinimumRequiredVersion': '5.02',  # Server 2003.
+             'TargetMachine': '17', # x86 - 64
+             'AdditionalLibraryDirectories!':
+-              ['<(windows_sdk_path)/Lib/10.0.10240.0/um/x86'],
++              ['<(windows_sdk_path)/Lib/win8/um/x86'],
+             'AdditionalLibraryDirectories':
+-              ['<(windows_sdk_path)/Lib/10.0.10240.0/um/x64'],
++              ['<(windows_sdk_path)/Lib/win8/um/x64'],
+             # Doesn't exist x64 SDK. Should use oleaut32 in any case.
+             'IgnoreDefaultLibraryNames': [ 'olepro32.lib' ],
+           },
+           'VCLibrarianTool': {
+             'AdditionalLibraryDirectories!':
+-              ['<(windows_sdk_path)/Lib/10.0.10240.0/um/x86'],
++              ['<(windows_sdk_path)/Lib/win8/um/x86'],
+             'AdditionalLibraryDirectories':
+-              ['<(windows_sdk_path)/Lib/10.0.10240.0/um/x64'],
++              ['<(windows_sdk_path)/Lib/win8/um/x64'],
+             'TargetMachine': '17', # x64
+           },
+         },
+@@ -5550,8 +5550,8 @@
+     ['OS=="win"', {
+       'target_defaults': {
+         'defines': [
+-          '_WIN32_WINNT=0x0A00',
+-          'WINVER=0x0A00',
++          '_WIN32_WINNT=0x0603',
++          'WINVER=0x0603',
+           'WIN32',
+           '_WINDOWS',
+           'NOMINMAX',
+@@ -5661,9 +5661,9 @@
+           }],
+         ],
+         'msvs_system_include_dirs': [
+-          '<(windows_sdk_path)/Include/10.0.10240.0/shared',
+-          '<(windows_sdk_path)/Include/10.0.10240.0/um',
+-          '<(windows_sdk_path)/Include/10.0.10240.0/winrt',
++          '<(windows_sdk_path)/Include/shared',
++          '<(windows_sdk_path)/Include/um',
++          '<(windows_sdk_path)/Include/winrt',
+           '$(VSInstallDir)/VC/atlmfc/include',
+         ],
+         'msvs_cygwin_shell': 0,
+diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
+index bdbf7ea..254000b 100644
+--- a/build/config/win/BUILD.gn
++++ b/build/config/win/BUILD.gn
+@@ -101,7 +101,7 @@ config("runtime_library") {
+     "_ATL_NO_OPENGL",
+     "_WINDOWS",
+     "CERT_CHAIN_PARA_HAS_EXTRA_FIELDS",
+-    "NTDDI_VERSION=0x0A000000",
++    "NTDDI_VERSION=0x06030000",
+     "PSAPI_VERSION=1",
+     "WIN32",
+     "_SECURE_ATL",
+@@ -142,8 +142,8 @@ config("runtime_library") {
+ # targets need to manually override it for their compiles.
+ config("winver") {
+   defines = [
+-    "_WIN32_WINNT=0x0A00",
+-    "WINVER=0x0A00",
++    "_WIN32_WINNT=0x0603",
++    "WINVER=0x0603",
+   ]
+ }
+ 
+diff --git a/build/vs_toolchain.py b/build/vs_toolchain.py
+index 6a0e6c9..2e64931 100755
+--- a/build/vs_toolchain.py
++++ b/build/vs_toolchain.py
+@@ -273,7 +273,7 @@ def _GetDesiredVsToolchainHashes():
+     return ['524956ec6e64e68fead3773e3ce318537657b404']
+   else:
+     # Default to VS2013.
+-    return ['9ff97c632ae1fee0c98bcd53e71770eb3a0d8deb']
++    return ['ee7d718ec60c2dc5d255bbe325909c2021a7efef']
+ 
+ 
+ def ShouldUpdateToolchain():
+diff --git a/chrome/browser/ui/views/tabs/window_finder_win.cc b/chrome/browser/ui/views/tabs/window_finder_win.cc
+index c32dba6..80a4d76 100644
+--- a/chrome/browser/ui/views/tabs/window_finder_win.cc
++++ b/chrome/browser/ui/views/tabs/window_finder_win.cc
+@@ -153,6 +153,29 @@ class TopMostFinder : public BaseWindowFinder {
+ 
+ // LocalProcessWindowFinder ---------------------------------------------------
+ 
++// Copied from ShObjIdl.h in 10.0.10240.0 SDK. This can be removed once we
++// update to the newer SDK.
++#if NTDDI_VERSION < 0x0A000000
++class DECLSPEC_UUID("aa509086-5ca9-4c25-8f95-589d3c07b48a")
++    VirtualDesktopManager;
++
++MIDL_INTERFACE("a5cd92ff-29be-454c-8d04-d82879fb3f1b")
++IVirtualDesktopManager : public IUnknown {
++ public:
++  virtual HRESULT STDMETHODCALLTYPE IsWindowOnCurrentVirtualDesktop(
++      /* [in] */ __RPC__in HWND topLevelWindow,
++      /* [out] */ __RPC__out BOOL * onCurrentDesktop) = 0;
++
++  virtual HRESULT STDMETHODCALLTYPE GetWindowDesktopId(
++      /* [in] */ __RPC__in HWND topLevelWindow,
++      /* [out] */ __RPC__out GUID * desktopId) = 0;
++
++  virtual HRESULT STDMETHODCALLTYPE MoveWindowToDesktop(
++      /* [in] */ __RPC__in HWND topLevelWindow,
++      /* [in] */ __RPC__in REFGUID desktopId) = 0;
++};
++#endif  // NTDDI_VERSION < 0x0A000000
++
+ // Helper class to determine if a particular point contains a window from our
+ // process.
+ class LocalProcessWindowFinder : public BaseWindowFinder {
+diff --git a/third_party/usrsctp/usrsctp.gyp b/third_party/usrsctp/usrsctp.gyp
+index 9533fb8..7940f3b 100644
+--- a/third_party/usrsctp/usrsctp.gyp
++++ b/third_party/usrsctp/usrsctp.gyp
+@@ -131,15 +131,15 @@
+           'defines': [
+             '__Userspace_os_Windows',
+             # Manually setting WINVER and _WIN32_WINNT is needed because Chrome
+-            # sets WINVER to a newer version of Windows. But compiling usrsctp
+-            # this way would be incompatible with Windows XP.
++            # sets WINVER to a newer version of  windows. But compiling usrsctp
++            # this way would is incompatible  with windows XP.
+             'WINVER=0x0502',
+             '_WIN32_WINNT=0x0502',
+           ],
+           'defines!': [
+             # Remove Chrome's WINVER defines to avoid redefinition warnings.
+-            'WINVER=0x0A00',
+-            '_WIN32_WINNT=0x0A00',
++            'WINVER=0x0603',
++            '_WIN32_WINNT=0x0603',
+           ],
+           'cflags!': [ '/W3', '/WX' ],
+           'cflags': [ '/w' ],
