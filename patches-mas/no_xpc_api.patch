@@ -1,8 +1,8 @@
 diff --git a/sandbox/mac/launchd_interception_server.cc b/sandbox/mac/launchd_interception_server.cc
-index 6ce61f6..0b2bb43 100644
+index 69231b5..1c07cf1 100644
 --- a/sandbox/mac/launchd_interception_server.cc
 +++ b/sandbox/mac/launchd_interception_server.cc
-@@ -169,8 +169,10 @@ void LaunchdInterceptionServer::ForwardMessage(IPCMessage request) {
+@@ -172,8 +172,10 @@ void LaunchdInterceptionServer::ForwardMessage(IPCMessage request) {
    // as if it were coming from the sandbox host process (this).
    if (xpc_launchd_) {
      // xpc_dictionary_set_mach_send increments the send right count.
@@ -14,10 +14,10 @@ index 6ce61f6..0b2bb43 100644
  
    message_server_->ForwardMessage(request, sandbox_->real_bootstrap_port());
 diff --git a/sandbox/mac/os_compatibility.cc b/sandbox/mac/os_compatibility.cc
-index f1ad528..4dc9769 100644
+index 5ddf6a5..1b85e2c 100644
 --- a/sandbox/mac/os_compatibility.cc
 +++ b/sandbox/mac/os_compatibility.cc
-@@ -182,7 +182,9 @@ class OSCompatibility_10_10 : public OSCompatibility {
+@@ -184,7 +184,9 @@ class OSCompatibility_10_10 : public OSCompatibility {
  
    void WriteServiceLookUpReply(IPCMessage message,
                                 mach_port_t service_port) override {
@@ -28,10 +28,10 @@ index f1ad528..4dc9769 100644
  
    bool IsSwapIntegerReadOnly(const IPCMessage message) override {
 diff --git a/sandbox/mac/pre_exec_delegate.cc b/sandbox/mac/pre_exec_delegate.cc
-index adf40a0..2a11c60 100644
+index 9d777d3..5a46ac0 100644
 --- a/sandbox/mac/pre_exec_delegate.cc
 +++ b/sandbox/mac/pre_exec_delegate.cc
-@@ -70,7 +70,9 @@ xpc_object_t PreExecDelegate::CreateBootstrapLookUpMessage() {
+@@ -71,7 +71,9 @@ xpc_object_t PreExecDelegate::CreateBootstrapLookUpMessage() {
      xpc_dictionary_set_uint64(dictionary, "routine", 207);
      // Add a NULL port so that the slot in the dictionary is already
      // allocated.
@@ -41,7 +41,7 @@ index adf40a0..2a11c60 100644
      return dictionary;
    }
  
-@@ -79,6 +81,7 @@ xpc_object_t PreExecDelegate::CreateBootstrapLookUpMessage() {
+@@ -80,6 +82,7 @@ xpc_object_t PreExecDelegate::CreateBootstrapLookUpMessage() {
  
  kern_return_t PreExecDelegate::DoBootstrapLookUp(mach_port_t* out_port) {
    if (is_yosemite_or_later_) {
@@ -49,7 +49,7 @@ index adf40a0..2a11c60 100644
      xpc_dictionary_set_mach_send(look_up_message_, "domain-port",
          bootstrap_port);
  
-@@ -94,6 +97,9 @@ kern_return_t PreExecDelegate::DoBootstrapLookUp(mach_port_t* out_port) {
+@@ -95,6 +98,9 @@ kern_return_t PreExecDelegate::DoBootstrapLookUp(mach_port_t* out_port) {
        *out_port = xpc_mach_send_get_right(port_value);
        return *out_port != MACH_PORT_NULL ? KERN_SUCCESS : KERN_INVALID_RIGHT;
      }
@@ -60,10 +60,10 @@ index adf40a0..2a11c60 100644
      // On non-XPC launchd systems, bootstrap_look_up() is MIG-based and
      // generally safe.
 diff --git a/sandbox/mac/xpc_message_server.cc b/sandbox/mac/xpc_message_server.cc
-index d811e5d..df21859 100644
+index 1375310..6cdec4d 100644
 --- a/sandbox/mac/xpc_message_server.cc
 +++ b/sandbox/mac/xpc_message_server.cc
-@@ -50,7 +50,9 @@ bool XPCMessageServer::Initialize() {
+@@ -54,7 +54,9 @@ void XPCMessageServer::Shutdown() {
  
  pid_t XPCMessageServer::GetMessageSenderPID(IPCMessage request) {
    audit_token_t token;
@@ -73,7 +73,7 @@ index d811e5d..df21859 100644
    // TODO(rsesek): In the 10.7 SDK, there's audit_token_to_pid().
    pid_t sender_pid;
    audit_token_to_au32(token,
-@@ -71,22 +73,26 @@ bool XPCMessageServer::SendReply(IPCMessage reply) {
+@@ -75,22 +77,26 @@ bool XPCMessageServer::SendReply(IPCMessage reply) {
    if (!reply.xpc)
      return false;
  
@@ -100,7 +100,7 @@ index d811e5d..df21859 100644
  }
  
  void XPCMessageServer::RejectMessage(IPCMessage request, int error_code) {
-@@ -104,11 +110,13 @@ mach_port_t XPCMessageServer::GetServerPort() const {
+@@ -108,11 +114,13 @@ mach_port_t XPCMessageServer::GetServerPort() const {
  
  void XPCMessageServer::ReceiveMessage() {
    IPCMessage request;
