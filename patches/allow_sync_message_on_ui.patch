@@ -1,8 +1,8 @@
 diff --git a/content/public/browser/browser_message_filter.cc b/content/public/browser/browser_message_filter.cc
-index 9b4cbd1..0935bd67 100644
+index b2482cd..fd7304f 100644
 --- a/content/public/browser/browser_message_filter.cc
 +++ b/content/public/browser/browser_message_filter.cc
-@@ -157,7 +157,7 @@ base::TaskRunner* BrowserMessageFilter::OverrideTaskRunnerForMessage(
+@@ -159,7 +159,7 @@ base::TaskRunner* BrowserMessageFilter::OverrideTaskRunnerForMessage(
  
  bool BrowserMessageFilter::CheckCanDispatchOnUI(const IPC::Message& message,
                                                  IPC::Sender* sender) {
