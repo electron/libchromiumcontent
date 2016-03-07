@@ -1,16 +1,16 @@
 diff --git a/third_party/WebKit/Source/bindings/core/v8/V8RecursionScope.h b/third_party/WebKit/Source/bindings/core/v8/V8RecursionScope.h
-index 18a1094..0d9a58b 100644
+index ff3c133..366bb9c 100644
 --- a/third_party/WebKit/Source/bindings/core/v8/V8RecursionScope.h
 +++ b/third_party/WebKit/Source/bindings/core/v8/V8RecursionScope.h
-@@ -56,7 +56,6 @@ namespace blink {
+@@ -57,7 +57,6 @@ namespace blink {
  //
  // http://www.whatwg.org/specs/web-apps/current-work/#perform-a-microtask-checkpoint
- class V8RecursionScope {
+ class CORE_EXPORT V8RecursionScope {
 -    STACK_ALLOCATED();
  public:
      explicit V8RecursionScope(v8::Isolate* isolate)
          : m_isolate(isolate)
-@@ -115,7 +114,7 @@ public:
+@@ -116,7 +115,7 @@ public:
      };
  
  private:
@@ -20,10 +20,10 @@ index 18a1094..0d9a58b 100644
      v8::Isolate* m_isolate;
  };
 diff --git a/third_party/WebKit/Source/web/WebScopedMicrotaskSuppression.cpp b/third_party/WebKit/Source/web/WebScopedMicrotaskSuppression.cpp
-index 7171212..629233b 100644
+index a719a9c..752fd82 100644
 --- a/third_party/WebKit/Source/web/WebScopedMicrotaskSuppression.cpp
 +++ b/third_party/WebKit/Source/web/WebScopedMicrotaskSuppression.cpp
-@@ -37,6 +37,27 @@
+@@ -36,6 +36,27 @@
  
  namespace blink {
  
