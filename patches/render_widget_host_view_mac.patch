@@ -1,8 +1,8 @@
 diff --git a/content/browser/renderer_host/render_widget_host_view_mac.mm b/content/browser/renderer_host/render_widget_host_view_mac.mm
-index 2537db7..fecc7fd 100644
+index ef38d30..5e39434 100644
 --- a/content/browser/renderer_host/render_widget_host_view_mac.mm
 +++ b/content/browser/renderer_host/render_widget_host_view_mac.mm
-@@ -83,6 +83,7 @@
+@@ -84,6 +84,7 @@
  #include "ui/gfx/geometry/size_conversions.h"
  #include "ui/gfx/scoped_ns_graphics_context_save_gstate_mac.h"
  #include "ui/gfx/screen.h"
@@ -10,7 +10,7 @@ index 2537db7..fecc7fd 100644
  #include "ui/gl/gl_switches.h"
  
  using content::BrowserAccessibility;
-@@ -134,6 +135,11 @@ RenderWidgetHostViewMac* GetRenderWidgetHostViewToUse(
+@@ -135,6 +136,11 @@ RenderWidgetHostViewMac* GetRenderWidgetHostViewToUse(
  
  }  // namespace
  
@@ -22,7 +22,7 @@ index 2537db7..fecc7fd 100644
  // These are not documented, so use only after checking -respondsToSelector:.
  @interface NSApplication (UndocumentedSpeechMethods)
  - (void)speakString:(NSString*)string;
-@@ -529,9 +535,11 @@ RenderWidgetHostViewMac::RenderWidgetHostViewMac(RenderWidgetHost* widget,
+@@ -530,9 +536,11 @@ RenderWidgetHostViewMac::RenderWidgetHostViewMac(RenderWidgetHost* widget,
    // Paint this view host with |background_color_| when there is no content
    // ready to draw.
    background_layer_.reset([[CALayer alloc] init]);
@@ -34,7 +34,7 @@ index 2537db7..fecc7fd 100644
    [cocoa_view_ setLayer:background_layer_];
    [cocoa_view_ setWantsLayer:YES];
  
-@@ -625,6 +633,8 @@ void RenderWidgetHostViewMac::EnsureBrowserCompositorView() {
+@@ -626,6 +634,8 @@ void RenderWidgetHostViewMac::EnsureBrowserCompositorView() {
      browser_compositor_->Unsuspend();
      browser_compositor_state_ = BrowserCompositorActive;
    }
@@ -43,7 +43,7 @@ index 2537db7..fecc7fd 100644
  }
  
  void RenderWidgetHostViewMac::SuspendBrowserCompositorView() {
-@@ -1868,6 +1878,9 @@ void RenderWidgetHostViewMac::OnDisplayMetricsChanged(
+@@ -1869,6 +1879,9 @@ void RenderWidgetHostViewMac::OnDisplayMetricsChanged(
  }
  
  - (BOOL)acceptsFirstMouse:(NSEvent*)theEvent {
@@ -53,7 +53,7 @@ index 2537db7..fecc7fd 100644
    return [self acceptsMouseEventsWhenInactive];
  }
  
-@@ -2008,6 +2021,7 @@ void RenderWidgetHostViewMac::OnDisplayMetricsChanged(
+@@ -2005,6 +2018,7 @@ void RenderWidgetHostViewMac::OnDisplayMetricsChanged(
    if (EventIsReservedBySystem(theEvent))
      return NO;
  
@@ -61,7 +61,7 @@ index 2537db7..fecc7fd 100644
    // If we return |NO| from this function, cocoa will send the key event to
    // the menu and only if the menu does not process the event to |keyDown:|. We
    // want to send the event to a renderer _before_ sending it to the menu, so
-@@ -2021,6 +2035,7 @@ void RenderWidgetHostViewMac::OnDisplayMetricsChanged(
+@@ -2018,6 +2032,7 @@ void RenderWidgetHostViewMac::OnDisplayMetricsChanged(
      DCHECK(![[NSApp mainMenu] performKeyEquivalent:theEvent]);
      return NO;
    }
@@ -69,7 +69,7 @@ index 2537db7..fecc7fd 100644
  
    // Command key combinations are sent via performKeyEquivalent rather than
    // keyDown:. We just forward this on and if WebCore doesn't want to handle
-@@ -2740,6 +2755,9 @@ void RenderWidgetHostViewMac::OnDisplayMetricsChanged(
+@@ -2737,6 +2752,9 @@ void RenderWidgetHostViewMac::OnDisplayMetricsChanged(
  // move) for the given event. Customize here to be more selective about which
  // key presses to autohide on.
  + (BOOL)shouldAutohideCursorForEvent:(NSEvent*)event {
@@ -79,7 +79,7 @@ index 2537db7..fecc7fd 100644
    return ([event type] == NSKeyDown &&
               !([event modifierFlags] & NSCommandKeyMask)) ? YES : NO;
  }
-@@ -2895,9 +2913,11 @@ void RenderWidgetHostViewMac::OnDisplayMetricsChanged(
+@@ -2892,9 +2910,11 @@ void RenderWidgetHostViewMac::OnDisplayMetricsChanged(
  // Since this implementation doesn't have to wait any IPC calls, this doesn't
  // make any key-typing jank. --hbono 7/23/09
  //
@@ -91,7 +91,7 @@ index 2537db7..fecc7fd 100644
  
  - (NSArray *)validAttributesForMarkedText {
    // This code is just copied from WebKit except renaming variables.
-@@ -2906,7 +2926,9 @@ extern NSString *NSTextInputReplacementRangeAttributeName;
+@@ -2903,7 +2923,9 @@ extern NSString *NSTextInputReplacementRangeAttributeName;
          NSUnderlineStyleAttributeName,
          NSUnderlineColorAttributeName,
          NSMarkedClauseSegmentAttributeName,
@@ -101,17 +101,14 @@ index 2537db7..fecc7fd 100644
          nil]);
    }
    return validAttributesForMarkedText_.get();
-@@ -3436,7 +3458,12 @@ extern NSString *NSTextInputReplacementRangeAttributeName;
+@@ -3433,6 +3455,10 @@ extern NSString *NSTextInputReplacementRangeAttributeName;
  }
  
  - (BOOL)isOpaque {
--  return opaque_;
 +  bool wantsTransparent = ui::GpuSwitchingManager::UseTransparent() ||
 +                          (self.window && ![self.window isOpaque]);
 +  if (wantsTransparent)
 +    return NO;
-+  else
-+    return opaque_;
+   return opaque_;
  }
  
- // "-webkit-app-region: drag | no-drag" is implemented on Mac by excluding
