@@ -1,8 +1,8 @@
 diff --git a/content/browser/accessibility/browser_accessibility_cocoa.mm b/content/browser/accessibility/browser_accessibility_cocoa.mm
-index ea4db4a..1472d11 100644
+index 78c8c01..bd7a217 100644
 --- a/content/browser/accessibility/browser_accessibility_cocoa.mm
 +++ b/content/browser/accessibility/browser_accessibility_cocoa.mm
-@@ -19,10 +19,12 @@
+@@ -20,10 +20,12 @@
  #include "content/public/common/content_client.h"
  #import "ui/accessibility/platform/ax_platform_node_mac.h"
  
@@ -15,7 +15,7 @@ index ea4db4a..1472d11 100644
  
  using ui::AXNodeData;
  using content::AccessibilityMatchPredicate;
-@@ -420,7 +422,9 @@ bool InitializeAccessibilityTreeSearch(
+@@ -421,7 +423,9 @@ bool InitializeAccessibilityTreeSearch(
  
  - (void)detach {
    if (browserAccessibility_) {
@@ -26,10 +26,10 @@ index ea4db4a..1472d11 100644
    }
  }
 diff --git a/content/common/sandbox_mac.mm b/content/common/sandbox_mac.mm
-index 4dc7d94..78ee602 100644
+index ca915a7..b6b23a2 100644
 --- a/content/common/sandbox_mac.mm
 +++ b/content/common/sandbox_mac.mm
-@@ -41,6 +41,7 @@ extern "C" {
+@@ -43,6 +43,7 @@ extern "C" {
  #include "ui/base/layout.h"
  #include "ui/gl/gl_surface.h"
  
@@ -37,7 +37,7 @@ index 4dc7d94..78ee602 100644
  extern "C" {
  void CGSSetDenyWindowServerConnections(bool);
  void CGSShutdownServerConnections();
-@@ -54,6 +55,7 @@ int sandbox_apply(void* profile);
+@@ -56,6 +57,7 @@ int sandbox_apply(void* profile);
  void sandbox_free_params(void* params);
  void sandbox_free_profile(void* profile);
  };
@@ -45,7 +45,7 @@ index 4dc7d94..78ee602 100644
  
  namespace content {
  namespace {
-@@ -154,15 +156,20 @@ bool SandboxCompiler::InsertStringParam(const std::string& key,
+@@ -156,15 +158,20 @@ bool SandboxCompiler::InsertStringParam(const std::string& key,
  void SandboxCompiler::FreeSandboxResources(void* profile,
                                             void* params,
                                             char* error) {
@@ -66,7 +66,7 @@ index 4dc7d94..78ee602 100644
    char* error_internal = nullptr;
    void* profile = nullptr;
    void* params = nullptr;
-@@ -203,6 +210,7 @@ bool SandboxCompiler::CompileAndApplyProfile(std::string* error) {
+@@ -205,6 +212,7 @@ bool SandboxCompiler::CompileAndApplyProfile(std::string* error) {
    int result = sandbox_apply(profile);
    FreeSandboxResources(profile, params, error_internal);
    return result == 0;
@@ -74,7 +74,7 @@ index 4dc7d94..78ee602 100644
  }
  
  // static
-@@ -400,8 +408,10 @@ void Sandbox::SandboxWarmup(int sandbox_type) {
+@@ -402,8 +410,10 @@ void Sandbox::SandboxWarmup(int sandbox_type) {
      // 10.8 and higher because doing it on earlier OSes causes layout tests to
      // fail <http://crbug.com/397642#c48>. This may cause two log messages to
      // be printed to the system logger on certain OS versions.
@@ -86,7 +86,7 @@ index 4dc7d94..78ee602 100644
  }
  
 diff --git a/net/dns/dns_config_service_posix.cc b/net/dns/dns_config_service_posix.cc
-index 4300dfc..7536c96 100644
+index 31a4061..ca4d1a9 100644
 --- a/net/dns/dns_config_service_posix.cc
 +++ b/net/dns/dns_config_service_posix.cc
 @@ -202,6 +202,7 @@ class DnsConfigServicePosix::Watcher {
@@ -106,18 +106,18 @@ index 4300dfc..7536c96 100644
    }
  
 diff --git a/ui/gfx/font_fallback_mac.mm b/ui/gfx/font_fallback_mac.mm
-index d312f8b..7e5f5bb 100644
+index aa66729..1ae4016 100644
 --- a/ui/gfx/font_fallback_mac.mm
 +++ b/ui/gfx/font_fallback_mac.mm
-@@ -13,6 +13,7 @@
- #import "base/mac/mac_util.h"
+@@ -14,6 +14,7 @@
  #import "base/strings/sys_string_conversions.h"
+ #include "ui/gfx/font.h"
  
 +#ifndef MAS_BUILD
  // CTFontCopyDefaultCascadeListForLanguages() doesn't exist in the 10.6 SDK.
  // There is only the following. It doesn't exist in the public header files,
  // but is an exported symbol so should always link.
-@@ -39,6 +40,7 @@ CFArrayRef CTFontCopyDefaultCascadeListForLanguagesWrapper(
+@@ -40,6 +41,7 @@ CFArrayRef CTFontCopyDefaultCascadeListForLanguagesWrapper(
  }
  
  }  // namespace
@@ -125,15 +125,15 @@ index d312f8b..7e5f5bb 100644
  
  namespace gfx {
  
-@@ -78,7 +80,11 @@ std::vector<std::string> GetFallbackFontFamilies(
+@@ -56,7 +58,11 @@ std::vector<Font> GetFallbackFonts(const Font& font) {
        stringArrayForKey:@"AppleLanguages"];
    CFArrayRef languages_cf = base::mac::NSToCFCast(languages);
    base::ScopedCFTypeRef<CFArrayRef> cascade_list(
 +#ifndef MAS_BUILD
-       CTFontCopyDefaultCascadeListForLanguagesWrapper(base_font, languages_cf));
+       CTFontCopyDefaultCascadeListForLanguagesWrapper(
 +#else
-+      CTFontCopyDefaultCascadeListForLanguages(base_font, languages_cf));
++      CTFontCopyDefaultCascadeListForLanguages(
 +#endif
+           static_cast<CTFontRef>(font.GetNativeFont()), languages_cf));
  
-   std::vector<std::string> fallback_fonts;
- 
+   std::vector<Font> fallback_fonts;
