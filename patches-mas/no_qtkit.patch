@@ -1,5 +1,5 @@
 diff --git a/content/browser/device_monitor_mac.mm b/content/browser/device_monitor_mac.mm
-index 36e9a57..87b8889 100644
+index 248b99d..c3e1a3e 100644
 --- a/content/browser/device_monitor_mac.mm
 +++ b/content/browser/device_monitor_mac.mm
 @@ -4,7 +4,9 @@
@@ -12,7 +12,7 @@ index 36e9a57..87b8889 100644
  
  #include <set>
  
-@@ -150,6 +152,7 @@ class QTKitMonitorImpl : public DeviceMonitorMacImpl {
+@@ -151,6 +153,7 @@ class QTKitMonitorImpl : public DeviceMonitorMacImpl {
  
  QTKitMonitorImpl::QTKitMonitorImpl(content::DeviceMonitorMac* monitor)
      : DeviceMonitorMacImpl(monitor) {
@@ -20,7 +20,7 @@ index 36e9a57..87b8889 100644
    NSNotificationCenter* nc = [NSNotificationCenter defaultCenter];
    device_arrival_ =
        [nc addObserverForName:QTCaptureDeviceWasConnectedNotification
-@@ -169,25 +172,31 @@ QTKitMonitorImpl::QTKitMonitorImpl(content::DeviceMonitorMac* monitor)
+@@ -170,25 +173,31 @@ QTKitMonitorImpl::QTKitMonitorImpl(content::DeviceMonitorMac* monitor)
                         queue:nil
                    usingBlock:^(NSNotification* notification) {
                        OnAttributeChanged(notification);}];
@@ -52,7 +52,7 @@ index 36e9a57..87b8889 100644
    std::vector<DeviceInfo> snapshot_devices;
  
    NSArray* devices = [QTCaptureDevice inputDevices];
-@@ -212,6 +221,7 @@ void QTKitMonitorImpl::OnDeviceChanged() {
+@@ -213,6 +222,7 @@ void QTKitMonitorImpl::OnDeviceChanged() {
          DeviceInfo([[device uniqueID] UTF8String], device_type));
    }
    ConsolidateDevicesListAndNotify(snapshot_devices);
@@ -61,10 +61,10 @@ index 36e9a57..87b8889 100644
  
  // Forward declaration for use by CrAVFoundationDeviceObserver.
 diff --git a/media/capture/video/mac/video_capture_device_factory_mac.mm b/media/capture/video/mac/video_capture_device_factory_mac.mm
-index 3d7c795..eb46b84 100644
+index 5d92f7e..09b4d13 100644
 --- a/media/capture/video/mac/video_capture_device_factory_mac.mm
 +++ b/media/capture/video/mac/video_capture_device_factory_mac.mm
-@@ -15,7 +15,9 @@
+@@ -19,7 +19,9 @@
  #import "media/capture/video/mac/video_capture_device_avfoundation_mac.h"
  #import "media/capture/video/mac/video_capture_device_decklink_mac.h"
  #include "media/capture/video/mac/video_capture_device_mac.h"
@@ -74,7 +74,7 @@ index 3d7c795..eb46b84 100644
  
  namespace media {
  
-@@ -55,6 +57,7 @@ EnumerateDevicesUsingQTKit() {
+@@ -59,6 +61,7 @@ EnumerateDevicesUsingQTKit() {
  
    scoped_ptr<VideoCaptureDevice::Names> device_names(
        new VideoCaptureDevice::Names());
@@ -82,19 +82,19 @@ index 3d7c795..eb46b84 100644
    NSMutableDictionary* capture_devices =
        [[[NSMutableDictionary alloc] init] autorelease];
    [VideoCaptureDeviceQTKit getDeviceNames:capture_devices];
-@@ -66,6 +69,7 @@ EnumerateDevicesUsingQTKit() {
+@@ -70,6 +73,7 @@ EnumerateDevicesUsingQTKit() {
        name.set_is_blacklisted(true);
      device_names->push_back(name);
    }
 +#endif
-   return device_names.Pass();
+   return device_names;
  }
  
 diff --git a/media/capture/video/mac/video_capture_device_mac.mm b/media/capture/video/mac/video_capture_device_mac.mm
-index 34c38f7..15a5658 100644
+index 432fbfb..e9932c5 100644
 --- a/media/capture/video/mac/video_capture_device_mac.mm
 +++ b/media/capture/video/mac/video_capture_device_mac.mm
-@@ -21,7 +21,9 @@
+@@ -27,7 +27,9 @@
  #include "media/base/timestamp_constants.h"
  #import "media/capture/video/mac/platform_video_capturing_mac.h"
  #import "media/capture/video/mac/video_capture_device_avfoundation_mac.h"
@@ -104,7 +104,7 @@ index 34c38f7..15a5658 100644
  #include "ui/gfx/geometry/size.h"
  
  @implementation DeviceNameAndTransportType
-@@ -451,8 +453,10 @@ bool VideoCaptureDeviceMac::Init(
+@@ -457,8 +459,10 @@ bool VideoCaptureDeviceMac::Init(
      capture_device_ =
          [[VideoCaptureDeviceAVFoundation alloc] initWithFrameReceiver:this];
    } else {
@@ -116,26 +116,23 @@ index 34c38f7..15a5658 100644
  
    if (!capture_device_)
 diff --git a/media/media.gyp b/media/media.gyp
-index b56a23b..5c4932c 100644
+index 6c1b76e..0cab40c 100644
 --- a/media/media.gyp
 +++ b/media/media.gyp
-@@ -461,8 +461,8 @@
+@@ -488,8 +488,6 @@
          'capture/video/mac/video_capture_device_factory_mac.mm',
          'capture/video/mac/video_capture_device_mac.h',
          'capture/video/mac/video_capture_device_mac.mm',
 -        'capture/video/mac/video_capture_device_qtkit_mac.h',
 -        'capture/video/mac/video_capture_device_qtkit_mac.mm',
-+        # 'capture/video/mac/video_capture_device_qtkit_mac.h',
-+        # 'capture/video/mac/video_capture_device_qtkit_mac.mm',
          'capture/video/video_capture_device.cc',
          'capture/video/video_capture_device.h',
          'capture/video/video_capture_device_factory.cc',
-@@ -990,7 +990,7 @@
+@@ -1009,7 +1007,6 @@
                '$(SDKROOT)/System/Library/Frameworks/CoreAudio.framework',
                '$(SDKROOT)/System/Library/Frameworks/CoreVideo.framework',
                '$(SDKROOT)/System/Library/Frameworks/OpenGL.framework',
 -              '$(SDKROOT)/System/Library/Frameworks/QTKit.framework',
-+              # '$(SDKROOT)/System/Library/Frameworks/QTKit.framework',
              ],
            },
          }],
