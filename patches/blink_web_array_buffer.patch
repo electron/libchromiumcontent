@@ -84,10 +84,10 @@ index 6c73bf5..1368a5e 100644
  
  } // namespace blink
 diff --git a/third_party/WebKit/Source/web/WebArrayBuffer.cpp b/third_party/WebKit/Source/web/WebArrayBuffer.cpp
-index 6ff8368..122fdf1 100644
+index b54776f..48ea74c 100644
 --- a/third_party/WebKit/Source/web/WebArrayBuffer.cpp
 +++ b/third_party/WebKit/Source/web/WebArrayBuffer.cpp
-@@ -41,6 +41,11 @@ WebArrayBuffer WebArrayBuffer::create(unsigned numElements, unsigned elementByte
+@@ -40,6 +40,11 @@ WebArrayBuffer WebArrayBuffer::create(unsigned numElements, unsigned elementByte
      return WebArrayBuffer(DOMArrayBuffer::create(numElements, elementByteSize));
  }
  
