@@ -1,8 +1,8 @@
 diff --git a/ui/gl/gpu_switching_manager.cc b/ui/gl/gpu_switching_manager.cc
-index a178509..71995f9 100644
+index 0f87470..d21c721 100644
 --- a/ui/gl/gpu_switching_manager.cc
 +++ b/ui/gl/gpu_switching_manager.cc
-@@ -16,6 +16,12 @@
+@@ -17,6 +17,12 @@
  
  namespace ui {
  
@@ -15,7 +15,7 @@ index a178509..71995f9 100644
  struct GpuSwitchingManager::PlatformSpecific {
  #if defined(OS_MACOSX)
    CGLPixelFormatObj discrete_pixel_format;
-@@ -27,6 +33,16 @@ GpuSwitchingManager* GpuSwitchingManager::GetInstance() {
+@@ -28,6 +34,16 @@ GpuSwitchingManager* GpuSwitchingManager::GetInstance() {
    return base::Singleton<GpuSwitchingManager>::get();
  }
  
@@ -33,10 +33,10 @@ index a178509..71995f9 100644
      : gpu_switching_option_(gfx::PreferIntegratedGpu),
        gpu_switching_option_set_(false),
 diff --git a/ui/gl/gpu_switching_manager.h b/ui/gl/gpu_switching_manager.h
-index 6327798..9b3caa0 100644
+index 7849d4a..f75863d 100644
 --- a/ui/gl/gpu_switching_manager.h
 +++ b/ui/gl/gpu_switching_manager.h
-@@ -20,6 +20,9 @@ class GL_EXPORT GpuSwitchingManager {
+@@ -24,6 +24,9 @@ class GL_EXPORT GpuSwitchingManager {
    // Getter for the singleton. This will return NULL on failure.
    static GpuSwitchingManager* GetInstance();
  
