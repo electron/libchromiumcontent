@@ -42,9 +42,6 @@
             'arm_version': 7,
             'arm_float_abi': 'hard',
           }],
-          ['target_arch=="ia32"', {
-            'sysroot': '<!(cd <(DEPTH) && pwd -P)/build/linux/debian_wheezy_i386-sysroot',
-          }],
         ],
       }],
     ],
