@@ -50,6 +50,7 @@ EXCLUDE_STATIC_LIBRARIES = {
     'libprotobuf_full_do_not_use.a',
     'libgenperf_libs.a',
     'libv8_nosnapshot.a',
+    'libtranslator_static.a',
   ],
   'win32': [
     'ffmpeg.dll.lib',
