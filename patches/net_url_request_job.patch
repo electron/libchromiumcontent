@@ -1,12 +1,12 @@
 diff --git a/net/url_request/url_request_job.h b/net/url_request/url_request_job.h
-index 82b1363..ac06294 100644
+index 2fbf70e..bffbf7e 100644
 --- a/net/url_request/url_request_job.h
 +++ b/net/url_request/url_request_job.h
-@@ -305,6 +305,7 @@ class NET_EXPORT URLRequestJob
+@@ -289,6 +289,7 @@ class NET_EXPORT URLRequestJob : public base::PowerObserver {
    void OnCallToDelegate();
    void OnCallToDelegateComplete();
  
 + public:
-   // Called to read raw (pre-filtered) data from this Job.
-   // If returning true, data was read from the job.  buf will contain
-   // the data, and bytes_read will receive the number of bytes read.
+   // Called to read raw (pre-filtered) data from this Job. Reads at most
+   // |buf_size| bytes into |buf|.
+   // Possible return values:

@@ -84,7 +84,6 @@ BINARIES = {
     'librtc_base_approved.a',
     'libwebrtc_common.a',
     'libyuv.a',
-    'libyuv_neon.a',
     'libsystem_wrappers.a',
     'libcdm_renderer.a',
     os.path.join('lib', 'libffmpeg.so'),
@@ -98,7 +97,6 @@ BINARIES = {
     'libGLESv2.dll',
     'libyuv.lib',
     'mksnapshot.exe',
-    'pdf.dll',
     os.path.join('gen', 'ui', 'resources', 'ui_unscaled_resources.rc'),
     os.path.join('obj', 'base', 'base_static.cc.pdb'),
     os.path.join('obj', 'base', 'base_static.lib'),
@@ -108,23 +106,63 @@ BINARIES = {
     os.path.join('obj', 'components', 'devtools_http_handler.lib'),
     os.path.join('obj', 'components', 'cdm_renderer.cc.pdb'),
     os.path.join('obj', 'components', 'cdm_renderer.lib'),
+    os.path.join('obj', 'content', 'sandbox_helper_win.cc.pdb'),
+    os.path.join('obj', 'content', 'sandbox_helper_win.lib'),
     os.path.join('obj', 'net', 'http_server.cc.pdb'),
     os.path.join('obj', 'net', 'http_server.lib'),
+    os.path.join('obj', 'pdf', 'pdf.cc.pdb'),
+    os.path.join('obj', 'pdf', 'pdf.lib'),
     os.path.join('obj', 'sandbox', 'sandbox.cc.pdb'),
     os.path.join('obj', 'sandbox', 'sandbox.lib'),
     os.path.join('obj', 'third_party', 'libyuv', 'libyuv.cc.pdb'),
-    os.path.join('obj', 'third_party', 'webrtc', 'base', 'rtc_base.lib'),
+    os.path.join('obj', 'third_party', 'pdfium', 'pdfium.cc.pdb'),
+    os.path.join('obj', 'third_party', 'pdfium', 'pdfium.lib'),
+    os.path.join('obj', 'third_party', 'pdfium', 'fdrm.cc.pdb'),
+    os.path.join('obj', 'third_party', 'pdfium', 'fdrm.lib'),
+    os.path.join('obj', 'third_party', 'pdfium', 'formfiller.cc.pdb'),
+    os.path.join('obj', 'third_party', 'pdfium', 'formfiller.lib'),
+    os.path.join('obj', 'third_party', 'pdfium', 'fpdfapi.cc.pdb'),
+    os.path.join('obj', 'third_party', 'pdfium', 'fpdfapi.lib'),
+    os.path.join('obj', 'third_party', 'pdfium', 'fpdfdoc.cc.pdb'),
+    os.path.join('obj', 'third_party', 'pdfium', 'fpdfdoc.lib'),
+    os.path.join('obj', 'third_party', 'pdfium', 'fpdftext.cc.pdb'),
+    os.path.join('obj', 'third_party', 'pdfium', 'fpdftext.lib'),
+    os.path.join('obj', 'third_party', 'pdfium', 'fxcodec.cc.pdb'),
+    os.path.join('obj', 'third_party', 'pdfium', 'fxcodec.lib'),
+    os.path.join('obj', 'third_party', 'pdfium', 'fxcrt.cc.pdb'),
+    os.path.join('obj', 'third_party', 'pdfium', 'fxcrt.lib'),
+    os.path.join('obj', 'third_party', 'pdfium', 'fxedit.cc.pdb'),
+    os.path.join('obj', 'third_party', 'pdfium', 'fxedit.lib'),
+    os.path.join('obj', 'third_party', 'pdfium', 'fxge.cc.pdb'),
+    os.path.join('obj', 'third_party', 'pdfium', 'fxge.lib'),
+    os.path.join('obj', 'third_party', 'pdfium', 'javascript.cc.pdb'),
+    os.path.join('obj', 'third_party', 'pdfium', 'javascript.lib'),
+    os.path.join('obj', 'third_party', 'pdfium', 'pdfwindow.cc.pdb'),
+    os.path.join('obj', 'third_party', 'pdfium', 'pdfwindow.lib'),
+    os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'bigint.cc.pdb'),
+    os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'bigint.lib'),
+    os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'fx_agg.cc.pdb'),
+    os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'fx_agg.lib'),
+    os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'fx_freetype.c.pdb'),
+    os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'fx_freetype.lib'),
+    os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'fx_lcms2.c.pdb'),
+    os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'fx_lcms2.lib'),
+    os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'fx_libopenjpeg.c.pdb'),
+    os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'fx_libopenjpeg.lib'),
+    os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'fx_zlib.c.pdb'),
+    os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'fx_zlib.lib'),
     os.path.join('obj', 'third_party', 'webrtc', 'base', 'rtc_base.cc.pdb'),
-    os.path.join('obj', 'third_party', 'webrtc', 'base', 'rtc_base_approved.lib'),
+    os.path.join('obj', 'third_party', 'webrtc', 'base', 'rtc_base.lib'),
     os.path.join('obj', 'third_party', 'webrtc', 'base', 'rtc_base_approved.cc.pdb'),
-    os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture.lib'),
+    os.path.join('obj', 'third_party', 'webrtc', 'base', 'rtc_base_approved.lib'),
     os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture.cc.pdb'),
-    os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture_differ_sse2.lib'),
+    os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture.lib'),
     os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture_differ_sse2.cc.pdb'),
-    os.path.join('obj', 'third_party', 'webrtc', 'system_wrappers', 'system_wrappers.lib'),
+    os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture_differ_sse2.lib'),
     os.path.join('obj', 'third_party', 'webrtc', 'system_wrappers', 'system_wrappers.cc.pdb'),
-    os.path.join('obj', 'third_party', 'webrtc', 'webrtc_common.lib'),
+    os.path.join('obj', 'third_party', 'webrtc', 'system_wrappers', 'system_wrappers.lib'),
     os.path.join('obj', 'third_party', 'webrtc', 'webrtc_common.cc.pdb'),
+    os.path.join('obj', 'third_party', 'webrtc', 'webrtc_common.lib'),
   ],
 }
 
@@ -133,10 +171,8 @@ ARCH_BLACKLIST = {
     'libdesktop_capture_differ_sse2.a',
   ],
   'x64': [
-    'libyuv_neon.a',
   ],
   'ia32': [
-    'libyuv_neon.a',
   ],
 }
 
@@ -217,7 +253,6 @@ OTHER_HEADERS = [
   'ui/events/keycodes/dom/keycode_converter_data.inc',
 ]
 OTHER_SOURCES = [
-  'content/app/startup_helper_win.cc',
 ]
 OTHER_DIRS = [
   os.path.join('ui', 'resources', 'cursors'),
@@ -286,18 +321,6 @@ def copy_binaries(target_arch, component, output_dir):
     else:
       # On Windows static libraries are placed under subdirs under "obj".
       for root, _, filenames in os.walk(os.path.join(config_dir, 'obj')):
-        # Filter out dependencies of pdf.dll:
-        #   out/Release/obj/third_party/pdfium/*
-        #   out/Release/obj/components/ui_zoom.*
-        #   out/Release/obj/ppapi/ppapi_cpp_objects.*
-        #   out/Release/obj/ppapi/ppapi_internal_module.*
-        def is_pdf_library(filename):
-          full_path = os.path.join(root, filename)
-          return fnmatch.fnmatch(full_path, '*/third_party/pdfium/*') or \
-                 fnmatch.fnmatch(full_path, '*/component/ui_zoom.*') or \
-                 fnmatch.fnmatch(full_path, '*/ppapi/ppapi_cpp_objects.*') or \
-                 fnmatch.fnmatch(full_path, '*/ppapi/ppapi_internal_module.*')
-        filenames = [f for f in filenames if not is_pdf_library(f)]
         # out/Release/obj/**/*.lib
         for filename in fnmatch.filter(filenames, '*.lib'):
           shutil.copy2(os.path.join(root, filename), target_dir)

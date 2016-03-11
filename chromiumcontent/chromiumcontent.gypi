@@ -10,8 +10,6 @@
     'enable_widevine': 1,
     # Using libc++ requires building for >= 10.7.
     'mac_deployment_target': '10.8',
-    # The 10.8 SDK does not work well with C++11.
-    'mac_sdk_min': '10.9',
     # Use the standard way of linking with msvc runtime.
     'win_use_allocator_shim': 0,
     'win_release_RuntimeLibrary': '2',
@@ -43,9 +41,6 @@
           ['target_arch=="arm"', {
             'arm_version': 7,
             'arm_float_abi': 'hard',
-          }],
-          ['target_arch=="ia32"', {
-            'sysroot': '<!(cd <(DEPTH) && pwd -P)/build/linux/debian_wheezy_i386-sysroot',
           }],
         ],
       }],
@@ -138,6 +133,13 @@
         'cflags': [
           '-Wno-sentinel',
         ],
+      }],
+      ['_target_name=="ui_base"', {
+        'xcode_settings': {
+          'WARNING_CFLAGS': [
+            '-Wno-partial-availability',
+          ],
+        },
       }],
     ],
   },

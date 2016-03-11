@@ -1,8 +1,8 @@
 diff --git a/chrome/chrome_resources.gyp b/chrome/chrome_resources.gyp
-index bf21b16..0a107df 100644
+index d78b04f..960daa9 100644
 --- a/chrome/chrome_resources.gyp
 +++ b/chrome/chrome_resources.gyp
-@@ -603,16 +603,16 @@
+@@ -669,16 +669,6 @@
        # GN version: //chrome/test/data/resources:webui_test_resources
        'target_name': 'webui_test_resources',
        'type': 'none',
@@ -12,20 +12,10 @@ index bf21b16..0a107df 100644
 -          'variables': {
 -            'grit_grd_file': 'test/data/webui_test_resources.grd',
 -          },
--          'includes': [ '../build/grit_action.gypi' ],
+-          'includes': [ 'chrome_grit_action.gypi' ],
 -        },
 -      ],
 -      'includes': [ '../build/grit_target.gypi' ],
-+      # 'actions': [
-+      #   {
-+      #     'action_name': 'generate_webui_test_resources',
-+      #     'variables': {
-+      #       'grit_grd_file': 'test/data/webui_test_resources.grd',
-+      #     },
-+      #     'includes': [ '../build/grit_action.gypi' ],
-+      #   },
-+      # ],
-+      # 'includes': [ '../build/grit_target.gypi' ],
      },
      {
        # GN version: //chrome:browser_tests_pak

@@ -1,29 +1,20 @@
 diff --git a/third_party/WebKit/Source/bindings/core/v8/V8RecursionScope.h b/third_party/WebKit/Source/bindings/core/v8/V8RecursionScope.h
-index da691d5..a9f982a 100644
+index ff3c133..030722e 100644
 --- a/third_party/WebKit/Source/bindings/core/v8/V8RecursionScope.h
 +++ b/third_party/WebKit/Source/bindings/core/v8/V8RecursionScope.h
-@@ -56,7 +56,6 @@ namespace blink {
+@@ -57,7 +57,6 @@ namespace blink {
  //
  // http://www.whatwg.org/specs/web-apps/current-work/#perform-a-microtask-checkpoint
- class V8RecursionScope {
+ class CORE_EXPORT V8RecursionScope {
 -    STACK_ALLOCATED();
  public:
      explicit V8RecursionScope(v8::Isolate* isolate)
          : m_isolate(isolate)
-@@ -115,7 +114,7 @@ public:
-     };
- 
- private:
--    void didLeaveScriptContext();
-+    CORE_EXPORT void didLeaveScriptContext();
- 
-     v8::Isolate* m_isolate;
- };
 diff --git a/third_party/WebKit/Source/web/WebScopedMicrotaskSuppression.cpp b/third_party/WebKit/Source/web/WebScopedMicrotaskSuppression.cpp
-index 7171212..629233b 100644
+index a719a9c..752fd82 100644
 --- a/third_party/WebKit/Source/web/WebScopedMicrotaskSuppression.cpp
 +++ b/third_party/WebKit/Source/web/WebScopedMicrotaskSuppression.cpp
-@@ -37,6 +37,27 @@
+@@ -36,6 +36,27 @@
  
  namespace blink {
  
@@ -52,7 +43,7 @@ index 7171212..629233b 100644
  class WebScopedMicrotaskSuppression::Impl : public V8RecursionScope::MicrotaskSuppression {
  public:
 diff --git a/third_party/WebKit/public/web/WebScopedMicrotaskSuppression.h b/third_party/WebKit/public/web/WebScopedMicrotaskSuppression.h
-index 8347ddf..f9e028b 100644
+index dd96fc6..2644834 100644
 --- a/third_party/WebKit/public/web/WebScopedMicrotaskSuppression.h
 +++ b/third_party/WebKit/public/web/WebScopedMicrotaskSuppression.h
 @@ -71,6 +71,23 @@ private:
@@ -76,6 +67,6 @@ index 8347ddf..f9e028b 100644
 +    WebPrivateOwnPtr<Impl> m_impl;
 +};
 +
- } // WebKit
+ } // namespace blink
  
  #endif
