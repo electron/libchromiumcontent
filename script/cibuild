@@ -21,12 +21,12 @@ def main():
   print 'OS version:', os_version()
 
   if sys.platform in ['win32', 'cygwin']:
-    return (run_ci(['-t', 'ia32']) or
-            run_ci(['-t', 'x64']))
+    return (run_ci(['-t', 'x64']) or
+            run_ci(['-t', 'ia32']))
   elif sys.platform == 'linux2':
-    return (run_ci(['-t', 'ia32']) or
-            run_ci(['-t', 'arm']) or
-            run_ci(['-t', 'x64']))
+    return (run_ci(['-t', 'x64']) or
+            run_ci(['-t', 'ia32']) or
+            run_ci(['-t', 'arm']))
   else:
     return run_ci([])
 
