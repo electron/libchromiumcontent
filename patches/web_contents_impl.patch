@@ -1,8 +1,24 @@
 diff --git a/content/browser/web_contents/web_contents_impl.cc b/content/browser/web_contents/web_contents_impl.cc
-index b5b0b78..aac6876 100644
+index b5b0b78..1c42b6c 100644
 --- a/content/browser/web_contents/web_contents_impl.cc
 +++ b/content/browser/web_contents/web_contents_impl.cc
-@@ -4353,6 +4353,7 @@ void WebContentsImpl::RendererUnresponsive(
+@@ -1820,10 +1820,14 @@ void WebContentsImpl::CreateNewWindow(
+       static_cast<SessionStorageNamespaceImpl*>(session_storage_namespace);
+   CHECK(session_storage_namespace_impl->IsFromContext(dom_storage_context));
+ 
++  WindowContainerType window_container_type = WINDOW_CONTAINER_TYPE_NORMAL;
++  if (params.disposition == NEW_BACKGROUND_TAB)
++    window_container_type = WINDOW_CONTAINER_TYPE_BACKGROUND;
++
+   if (delegate_ &&
+       !delegate_->ShouldCreateWebContents(
+           this, route_id, main_frame_route_id, main_frame_widget_route_id,
+-          params.window_container_type, params.frame_name, params.target_url,
++          window_container_type, params.frame_name, params.target_url,
+           partition_id, session_storage_namespace)) {
+     if (route_id != MSG_ROUTING_NONE &&
+         !RenderViewHost::FromID(render_process_id, route_id)) {
+@@ -4353,6 +4357,7 @@ void WebContentsImpl::RendererUnresponsive(
  
    if (rfhi->is_waiting_for_beforeunload_ack() ||
        rfhi->IsWaitingForUnloadACK()) {
@@ -10,7 +26,7 @@ index b5b0b78..aac6876 100644
      // Hang occurred while firing the beforeunload/unload handler.
      // Pretend the handler fired so tab closing continues as if it had.
      GetRenderViewHost()->set_sudden_termination_allowed(true);
-@@ -4372,6 +4373,7 @@ void WebContentsImpl::RendererUnresponsive(
+@@ -4372,6 +4377,7 @@ void WebContentsImpl::RendererUnresponsive(
      }
      if (close)
        Close();
