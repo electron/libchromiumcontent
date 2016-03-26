@@ -34,7 +34,7 @@
         # provide, tcmalloc by default.  Disabling tcmalloc here also prevents
         # any conflicts when linking to binaries or libraries that don't use
         # tcmalloc.
-        'linux_use_tcmalloc': 0,
+        'use_allocator': 'none',
         # Force using gold linker.
         'linux_use_bundled_gold': 1,
         'conditions': [
