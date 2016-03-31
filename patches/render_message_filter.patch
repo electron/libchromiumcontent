@@ -1,0 +1,36 @@
+diff --git a/content/browser/renderer_host/render_message_filter.cc b/content/browser/renderer_host/render_message_filter.cc
+index cec7b8b..4d701ee 100644
+--- a/content/browser/renderer_host/render_message_filter.cc
++++ b/content/browser/renderer_host/render_message_filter.cc
+@@ -235,6 +235,7 @@ void RenderMessageFilter::OnCreateWindow(
+           params.opener_top_level_frame_url,
+           params.opener_security_origin,
+           params.window_container_type,
++          params.frame_name,
+           params.target_url,
+           params.referrer,
+           params.disposition,
+diff --git a/content/public/browser/content_browser_client.cc b/content/public/browser/content_browser_client.cc
+index 3f6d970..a74d251 100644
+--- a/content/public/browser/content_browser_client.cc
++++ b/content/public/browser/content_browser_client.cc
+@@ -284,6 +284,7 @@ bool ContentBrowserClient::CanCreateWindow(
+     const GURL& opener_top_level_frame_url,
+     const GURL& source_origin,
+     WindowContainerType container_type,
++    const std::string& frame_name,
+     const GURL& target_url,
+     const Referrer& referrer,
+     WindowOpenDisposition disposition,
+diff --git a/content/public/browser/content_browser_client.h b/content/public/browser/content_browser_client.h
+index 7326ffa..4aaa8bd 100644
+--- a/content/public/browser/content_browser_client.h
++++ b/content/public/browser/content_browser_client.h
+@@ -521,6 +521,7 @@ class CONTENT_EXPORT ContentBrowserClient {
+                                const GURL& opener_top_level_frame_url,
+                                const GURL& source_origin,
+                                WindowContainerType container_type,
++                               const std::string& frame_name,
+                                const GURL& target_url,
+                                const Referrer& referrer,
+                                WindowOpenDisposition disposition,
