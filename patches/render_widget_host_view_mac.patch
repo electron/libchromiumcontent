@@ -1,5 +1,5 @@
 diff --git a/content/browser/renderer_host/render_widget_host_view_mac.mm b/content/browser/renderer_host/render_widget_host_view_mac.mm
-index ef38d30..5e39434 100644
+index ef38d30..5fcce17 100644
 --- a/content/browser/renderer_host/render_widget_host_view_mac.mm
 +++ b/content/browser/renderer_host/render_widget_host_view_mac.mm
 @@ -84,6 +84,7 @@
@@ -26,11 +26,11 @@ index ef38d30..5e39434 100644
    // Paint this view host with |background_color_| when there is no content
    // ready to draw.
    background_layer_.reset([[CALayer alloc] init]);
-+  if ([cocoa_view() isOpaque]) {
++#if 0
    // Set the default color to be white. This is the wrong thing to do, but many
    // UI components expect this view to be opaque.
    [background_layer_ setBackgroundColor:CGColorGetConstantColor(kCGColorWhite)];
-+  }
++#endif
    [cocoa_view_ setLayer:background_layer_];
    [cocoa_view_ setWantsLayer:YES];
  
