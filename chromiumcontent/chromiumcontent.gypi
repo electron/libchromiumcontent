@@ -30,11 +30,6 @@
         # Make Linux build contain debug symbols, this flag will add '-g' to
         # cflags.
         'linux_dump_symbols': 1,
-        # The Linux build of libchromiumcontent.so depends on, but doesn't
-        # provide, tcmalloc by default.  Disabling tcmalloc here also prevents
-        # any conflicts when linking to binaries or libraries that don't use
-        # tcmalloc.
-        'linux_use_tcmalloc': 0,
         # Force using gold linker.
         'linux_use_bundled_gold': 1,
         'conditions': [
