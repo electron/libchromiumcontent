@@ -32,6 +32,7 @@
         '<(DEPTH)/components/components.gyp:cdm_renderer',
         '<(DEPTH)/components/components.gyp:devtools_discovery',
         '<(DEPTH)/components/components.gyp:devtools_http_handler',
+        '<(DEPTH)/components/components.gyp:security_state',
         '<(DEPTH)/content/content.gyp:content',
         '<(DEPTH)/content/content.gyp:content_app_both',
         '<(DEPTH)/content/content_shell_and_tests.gyp:content_shell_pak',
