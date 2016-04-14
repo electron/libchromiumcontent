@@ -118,6 +118,8 @@ BINARIES = {
     os.path.join('obj', 'pdf', 'pdf.lib'),
     os.path.join('obj', 'sandbox', 'sandbox.cc.pdb'),
     os.path.join('obj', 'sandbox', 'sandbox.lib'),
+    os.path.join('obj', 'third_party', 'libjpeg_turbo', 'libjpeg.c.pdb'),
+    os.path.join('obj', 'third_party', 'libjpeg_turbo', 'libjpeg.lib'),
     os.path.join('obj', 'third_party', 'libyuv', 'libyuv.cc.pdb'),
     os.path.join('obj', 'third_party', 'pdfium', 'pdfium.cc.pdb'),
     os.path.join('obj', 'third_party', 'pdfium', 'pdfium.lib'),
