@@ -99,7 +99,7 @@ def install_sysroot():
   for arch in ('arm', 'amd64', 'i386'):
     install = os.path.join(SRC_DIR, 'build', 'linux', 'sysroot_scripts',
                            'install-sysroot.py')
-    subprocess.check_call([install, '--arch', arch])
+    subprocess.check_call([sys.executable, install, '--arch', arch])
 
 
 def tar_xf(filename):
