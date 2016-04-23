@@ -20,7 +20,7 @@ CHROMIUMCONTENT_SOURCE_DIR = os.path.join(SOURCE_ROOT, 'chromiumcontent')
 CHROMIUMCONTENT_DESTINATION_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
 COMPONENTS = ['static_library', 'shared_library', 'ffmpeg']
 
-TARBALL_REPO = 'zcbenz/chromium-source-tarball'
+TARBALL_REPO = 'brave/chromium-source-tarball'
 TARBALL_URL = 'https://github.com/{0}/releases/download/{1}/chromium-{1}.tar.xz'
 
 
