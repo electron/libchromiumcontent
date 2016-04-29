@@ -393,13 +393,6 @@ def copy_sources():
   for path in OTHER_DIRS:
     copy_dir(path, relative_to=SRC_DIR, destination=DIST_SRC_DIR)
 
-  # Some headers assume this file is at the top of the include path. Rather
-  # than forcing client apps to set up their include path specially, we'll
-  # just copy it to the top.
-  sk_user_config = os.path.join(SRC_DIR, 'third_party', 'skia', 'include',
-                                'config', 'SkUserConfig.h')
-  shutil.copy2(sk_user_config, DIST_SRC_DIR)
-
 
 def copy_ffmpeg(target_arch):
   output_dir = os.path.join(SRC_DIR,
