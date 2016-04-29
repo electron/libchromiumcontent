@@ -145,7 +145,6 @@ BINARIES = {
     os.path.join('obj', 'third_party', 'pdfium', 'fxcrt.lib'),
     os.path.join('obj', 'third_party', 'pdfium', 'fxedit.cc.pdb'),
     os.path.join('obj', 'third_party', 'pdfium', 'fxedit.lib'),
-    os.path.join('obj', 'third_party', 'pdfium', 'fxge.c.pdb'),
     os.path.join('obj', 'third_party', 'pdfium', 'fxge.cc.pdb'),
     os.path.join('obj', 'third_party', 'pdfium', 'fxge.lib'),
     os.path.join('obj', 'third_party', 'pdfium', 'javascript.cc.pdb'),
