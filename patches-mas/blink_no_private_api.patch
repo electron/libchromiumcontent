@@ -1,5 +1,5 @@
 diff --git a/third_party/WebKit/Source/core/paint/ThemePainterMac.mm b/third_party/WebKit/Source/core/paint/ThemePainterMac.mm
-index 8c9157c..0230b9ac6 100644
+index 7424cb6..cbaf670c 100644
 --- a/third_party/WebKit/Source/core/paint/ThemePainterMac.mm
 +++ b/third_party/WebKit/Source/core/paint/ThemePainterMac.mm
 @@ -41,12 +41,14 @@
@@ -17,7 +17,7 @@ index 8c9157c..0230b9ac6 100644
  
  namespace blink {
  
-@@ -65,7 +67,9 @@ bool ThemePainterMac::paintTextField(const LayoutObject& o, const PaintInfo& pai
+@@ -71,7 +73,9 @@ bool ThemePainterMac::paintTextField(const LayoutObject& o, const PaintInfo& pai
      // background. We need WebCore to paint styled backgrounds, so we'll use
      // this AppKit SPI function instead.
      if (!useNSTextFieldCell) {
@@ -27,7 +27,7 @@ index 8c9157c..0230b9ac6 100644
          return false;
      }
  #endif
-@@ -146,7 +150,9 @@ bool ThemePainterMac::paintCapsLockIndicator(const LayoutObject&, const PaintInf
+@@ -152,7 +156,9 @@ bool ThemePainterMac::paintCapsLockIndicator(const LayoutObject&, const PaintInf
  bool ThemePainterMac::paintTextArea(const LayoutObject& o, const PaintInfo& paintInfo, const IntRect& r)
  {
      LocalCurrentGraphicsContext localContext(paintInfo.context, &paintInfo.cullRect().m_rect, r);
