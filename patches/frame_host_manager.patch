@@ -1,8 +1,8 @@
 diff --git a/content/browser/frame_host/render_frame_host_manager.cc b/content/browser/frame_host/render_frame_host_manager.cc
-index 093dd4a..e5cbc7a 100644
+index 96b27bd..88fc503 100644
 --- a/content/browser/frame_host/render_frame_host_manager.cc
 +++ b/content/browser/frame_host/render_frame_host_manager.cc
-@@ -1183,6 +1183,16 @@ SiteInstance* RenderFrameHostManager::GetSiteInstanceForNavigation(
+@@ -1166,6 +1166,16 @@ SiteInstance* RenderFrameHostManager::GetSiteInstanceForNavigation(
      bool dest_is_view_source_mode) {
    SiteInstance* current_instance = render_frame_host_->GetSiteInstance();
  
@@ -20,10 +20,10 @@ index 093dd4a..e5cbc7a 100644
    if (current_instance->GetSiteURL().SchemeIs(kGuestScheme))
      return current_instance;
 diff --git a/content/public/browser/content_browser_client.h b/content/public/browser/content_browser_client.h
-index 5ecc56e..7326ffa 100644
+index d0858f2..dd3f0e6 100644
 --- a/content/public/browser/content_browser_client.h
 +++ b/content/public/browser/content_browser_client.h
-@@ -148,6 +148,13 @@ class CONTENT_EXPORT ContentBrowserClient {
+@@ -152,6 +152,13 @@ class CONTENT_EXPORT ContentBrowserClient {
   public:
    virtual ~ContentBrowserClient() {}
  
