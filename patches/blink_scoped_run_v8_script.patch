@@ -1,8 +1,8 @@
 diff --git a/third_party/WebKit/Source/bindings/core/v8/V8RecursionScope.h b/third_party/WebKit/Source/bindings/core/v8/V8RecursionScope.h
-index ff3c133..030722e 100644
+index dd9a51f..22299c3 100644
 --- a/third_party/WebKit/Source/bindings/core/v8/V8RecursionScope.h
 +++ b/third_party/WebKit/Source/bindings/core/v8/V8RecursionScope.h
-@@ -57,7 +57,6 @@ namespace blink {
+@@ -56,7 +56,6 @@ namespace blink {
  //
  // http://www.whatwg.org/specs/web-apps/current-work/#perform-a-microtask-checkpoint
  class CORE_EXPORT V8RecursionScope {
