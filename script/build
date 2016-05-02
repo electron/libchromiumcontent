@@ -26,6 +26,8 @@ def main():
 
   for component in COMPONENTS:
     if args.component == 'all' or args.component == component:
+      if component == 'shared_library' and args.no_shared_library:
+        continue
       out_dir = os.path.join(VENDOR_DIR, 'chromium', 'src',
                              get_output_dir(target_arch, component))
       config = get_configuration(target_arch)
@@ -41,6 +43,8 @@ def parse_args():
   parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
   parser.add_argument('-c', '--component', default='all',
                       help='static_library or shared_library or all')
+  parser.add_argument('-R', '--no_shared_library', action='store_true',
+                      help='Do not build shared library version')
   return parser.parse_args()
 
 
