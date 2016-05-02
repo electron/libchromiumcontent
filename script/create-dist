@@ -22,9 +22,6 @@ SRC_DIR = os.path.join(SOURCE_ROOT, 'vendor', 'chromium', 'src')
 # Almost everything goes into the main zip file...
 MAIN_DIR = os.path.join(DIST_DIR, 'main')
 DIST_SRC_DIR = os.path.join(MAIN_DIR, 'src')
-# ...except symbols, which are so huge we want to be able to download them
-# separately.
-SYMBOLS_DIR = os.path.join(DIST_DIR, 'symbols')
 
 TARGET_PLATFORM = {
   'cygwin': 'win32',
@@ -296,7 +293,8 @@ def main():
   copy_ffmpeg(target_arch)
   copy_sources()
   generate_licenses()
-  create_zip()
+  if not args.no_zip:
+    create_zip()
 
 
 def parse_args():
@@ -304,6 +302,8 @@ def parse_args():
   parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
   parser.add_argument('-c', '--component', default='all',
                       help='static_library or shared_library or all')
+  parser.add_argument('--no_zip', action='store_true',
+                      help='Do not create zip distribution')
   return parser.parse_args()
 
 
