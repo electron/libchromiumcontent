@@ -38,12 +38,6 @@ def main():
       if (not os.path.isdir(args.libcc_source_path)):
         print "Error: Directory does not exist:", args.libcc_source_path
         sys.exit(0)
-      elif (not os.path.isdir(args.libcc_shared_library_path)):
-        print "Error: Directory does not exist:", args.libcc_shared_library_path
-        sys.exit(0)
-      elif (not os.path.isdir(args.libcc_static_library_path)):
-        print "Error: Directory does not exist:", args.libcc_static_library_path
-        sys.exit(0)
       generate_filenames_gypi(os.path.join(args.path, 'filenames.gypi'),
                               args.libcc_source_path,
                               args.libcc_shared_library_path,
