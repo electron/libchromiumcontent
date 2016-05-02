@@ -38,12 +38,14 @@ def main():
   return (apply_patches() or
           copy_chromiumcontent_files() or
           update_clang() or
-          run_gyp(target_arch))
+          run_gyp(target_arch, args.defines))
 
 
 def parse_args():
   parser = argparse.ArgumentParser(description='Update build configuration')
   parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
+  parser.add_argument('--defines', default='',
+                      help='The definetions passed to gyp')
   return parser.parse_args()
 
 
@@ -111,13 +113,13 @@ def tar_xf(filename):
   os.remove(tar_name)
 
 
-def gyp_env(target_arch, component):
+def gyp_env(target_arch, component, gyp_defines):
   env = os.environ.copy()
 
   if component == 'ffmpeg':
-    gyp_defines = 'ffmpeg_branding=Chromium'
+    gyp_defines += ' ffmpeg_branding=Chromium'
   else:
-    gyp_defines = 'ffmpeg_branding=Chrome component={0}'.format(component)
+    gyp_defines += ' ffmpeg_branding=Chrome component={0}'.format(component)
 
   env['GYP_GENERATORS'] = 'ninja'
 
@@ -180,14 +182,14 @@ def update_clang():
   return subprocess.call([sys.executable, update])
 
 
-def run_gyp(target_arch):
+def run_gyp(target_arch, defines):
   os.chdir(SRC_DIR)
   gyp = os.path.join('build', 'gyp_chromium')
   relative_dir = os.path.relpath(CHROMIUMCONTENT_DESTINATION_DIR, SRC_DIR)
   args = [sys.executable, gyp, '-Ichromiumcontent/chromiumcontent.gypi',
           os.path.join(relative_dir, 'chromiumcontent.gyp')]
   for component in COMPONENTS:
-    subprocess.call(args, env=gyp_env(target_arch, component))
+    subprocess.call(args, env=gyp_env(target_arch, component, defines))
 
 
 def xz():
