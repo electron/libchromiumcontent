@@ -1,0 +1,68 @@
+diff --git a/url/url_util.cc b/url/url_util.cc
+index cbb252f..d7ec5ac 100644
+--- a/url/url_util.cc
++++ b/url/url_util.cc
+@@ -11,6 +11,7 @@
+ #include "base/debug/leak_annotations.h"
+ #include "base/logging.h"
+ #include "base/strings/string_util.h"
++#include "base/synchronization/lock.h"
+ #include "url/url_canon_internal.h"
+ #include "url/url_file.h"
+ #include "url/url_util_internal.h"
+@@ -42,6 +43,9 @@ std::vector<SchemeWithType>* standard_schemes = NULL;
+ // See the LockStandardSchemes declaration in the header.
+ bool standard_schemes_locked = false;
+ 
++// Lock to ensure thread safety of accessing standard_schemes.
++base::Lock lock;
++
+ // This template converts a given character type to the corresponding
+ // StringPiece type.
+ template<typename CHAR> struct CharToStringPiece {
+@@ -58,6 +62,7 @@ template<> struct CharToStringPiece<base::char16> {
+ void InitStandardSchemes() {
+   if (standard_schemes)
+     return;
++  base::AutoLock auto_lock(lock);
+   standard_schemes = new std::vector<SchemeWithType>;
+   for (int i = 0; i < kNumStandardURLSchemes; i++)
+     standard_schemes->push_back(kStandardURLSchemes[i]);
+@@ -88,6 +93,8 @@ bool DoIsStandard(const CHAR* spec,
+     return false;  // Empty or invalid schemes are non-standard.
+ 
+   InitStandardSchemes();
++  {
++  base::AutoLock auto_lock(lock);
+   for (size_t i = 0; i < standard_schemes->size(); i++) {
+     if (base::LowerCaseEqualsASCII(
+             typename CharToStringPiece<CHAR>::Piece(
+@@ -97,6 +104,7 @@ bool DoIsStandard(const CHAR* spec,
+       return true;
+     }
+   }
++  }
+   return false;
+ }
+ 
+@@ -372,6 +380,7 @@ void Initialize() {
+ 
+ void Shutdown() {
+   if (standard_schemes) {
++    base::AutoLock auto_lock(lock);
+     delete standard_schemes;
+     standard_schemes = NULL;
+   }
+@@ -404,11 +413,11 @@ void AddStandardScheme(const char* new_scheme,
+   SchemeWithType scheme_with_type;
+   scheme_with_type.scheme = dup_scheme;
+   scheme_with_type.type = type;
++  base::AutoLock auto_lock(lock);
+   standard_schemes->push_back(scheme_with_type);
+ }
+ 
+ void LockStandardSchemes() {
+-  standard_schemes_locked = true;
+ }
+ 
+ bool IsStandard(const char* spec, const Component& scheme) {
