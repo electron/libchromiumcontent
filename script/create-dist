@@ -142,7 +142,6 @@ BINARIES = {
     os.path.join('obj', 'third_party', 'pdfium', 'fxcrt.lib'),
     os.path.join('obj', 'third_party', 'pdfium', 'fxedit.cc.pdb'),
     os.path.join('obj', 'third_party', 'pdfium', 'fxedit.lib'),
-    os.path.join('obj', 'third_party', 'pdfium', 'fxge.c.pdb'),
     os.path.join('obj', 'third_party', 'pdfium', 'fxge.cc.pdb'),
     os.path.join('obj', 'third_party', 'pdfium', 'fxge.lib'),
     os.path.join('obj', 'third_party', 'pdfium', 'javascript.cc.pdb'),
@@ -210,6 +209,7 @@ INCLUDE_DIRS = [
   'components/devtools_discovery',
   'components/devtools_http_handler',
   'components/os_crypt',
+  'components/prefs',
   'components/security_state',
   'components/update_client',
   'content/browser',
@@ -392,13 +392,6 @@ def copy_sources():
 
   for path in OTHER_DIRS:
     copy_dir(path, relative_to=SRC_DIR, destination=DIST_SRC_DIR)
-
-  # Some headers assume this file is at the top of the include path. Rather
-  # than forcing client apps to set up their include path specially, we'll
-  # just copy it to the top.
-  sk_user_config = os.path.join(SRC_DIR, 'third_party', 'skia', 'include',
-                                'config', 'SkUserConfig.h')
-  shutil.copy2(sk_user_config, DIST_SRC_DIR)
 
 
 def copy_ffmpeg(target_arch):

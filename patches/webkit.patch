@@ -1,0 +1,13 @@
+diff --git a/third_party/WebKit/public/web/WebLocalFrame.h b/third_party/WebKit/public/web/WebLocalFrame.h
+index 17cba72..a44d8f9 100644
+--- a/third_party/WebKit/public/web/WebLocalFrame.h
++++ b/third_party/WebKit/public/web/WebLocalFrame.h
+@@ -126,7 +126,7 @@ public:
+     // Navigation State -------------------------------------------------------
+ 
+     // Returns true if the current frame's load event has not completed.
+-    virtual bool isLoading() const = 0;
++    virtual bool isLoading() const override = 0;
+ 
+     // Returns true if any resource load is currently in progress. Exposed
+     // primarily for use in layout tests. You probably want isLoading()

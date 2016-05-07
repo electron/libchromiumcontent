@@ -1,8 +1,8 @@
 diff --git a/content/browser/renderer_host/render_message_filter.cc b/content/browser/renderer_host/render_message_filter.cc
-index cec7b8b..4d701ee 100644
+index 29ab868..fe60d60 100644
 --- a/content/browser/renderer_host/render_message_filter.cc
 +++ b/content/browser/renderer_host/render_message_filter.cc
-@@ -235,6 +235,7 @@ void RenderMessageFilter::OnCreateWindow(
+@@ -254,6 +254,7 @@ void RenderMessageFilter::OnCreateWindow(
            params.opener_top_level_frame_url,
            params.opener_security_origin,
            params.window_container_type,
@@ -11,10 +11,10 @@ index cec7b8b..4d701ee 100644
            params.referrer,
            params.disposition,
 diff --git a/content/public/browser/content_browser_client.cc b/content/public/browser/content_browser_client.cc
-index 3f6d970..a74d251 100644
+index 8ec8c8c..94d5979 100644
 --- a/content/public/browser/content_browser_client.cc
 +++ b/content/public/browser/content_browser_client.cc
-@@ -284,6 +284,7 @@ bool ContentBrowserClient::CanCreateWindow(
+@@ -294,6 +294,7 @@ bool ContentBrowserClient::CanCreateWindow(
      const GURL& opener_top_level_frame_url,
      const GURL& source_origin,
      WindowContainerType container_type,
@@ -23,10 +23,10 @@ index 3f6d970..a74d251 100644
      const Referrer& referrer,
      WindowOpenDisposition disposition,
 diff --git a/content/public/browser/content_browser_client.h b/content/public/browser/content_browser_client.h
-index 7326ffa..4aaa8bd 100644
+index dd3f0e6..623906a 100644
 --- a/content/public/browser/content_browser_client.h
 +++ b/content/public/browser/content_browser_client.h
-@@ -521,6 +521,7 @@ class CONTENT_EXPORT ContentBrowserClient {
+@@ -532,6 +532,7 @@ class CONTENT_EXPORT ContentBrowserClient {
                                 const GURL& opener_top_level_frame_url,
                                 const GURL& source_origin,
                                 WindowContainerType container_type,

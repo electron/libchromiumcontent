@@ -28,7 +28,7 @@
       # will not build.
       'type': 'shared_library',
       'dependencies': [
-        '<(DEPTH)/base/base.gyp:base_prefs',
+        '<(DEPTH)/components/prefs/prefs.gyp:prefs',
         '<(DEPTH)/components/components.gyp:cdm_renderer',
         '<(DEPTH)/components/components.gyp:devtools_discovery',
         '<(DEPTH)/components/components.gyp:devtools_http_handler',

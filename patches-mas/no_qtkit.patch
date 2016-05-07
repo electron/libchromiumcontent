@@ -1,10 +1,10 @@
-diff --git a/content/browser/device_monitor_mac.mm b/content/browser/device_monitor_mac.mm
-index 248b99d..c3e1a3e 100644
---- a/content/browser/device_monitor_mac.mm
-+++ b/content/browser/device_monitor_mac.mm
+diff --git a/media/capture/device_monitor_mac.mm b/media/capture/device_monitor_mac.mm
+index aab9884..8951a44 100644
+--- a/media/capture/device_monitor_mac.mm
++++ b/media/capture/device_monitor_mac.mm
 @@ -4,7 +4,9 @@
  
- #include "content/browser/device_monitor_mac.h"
+ #include "media/capture/device_monitor_mac.h"
  
 +#ifndef MAS_BUILD
  #import <QTKit/QTKit.h>
@@ -12,18 +12,18 @@ index 248b99d..c3e1a3e 100644
  
  #include <set>
  
-@@ -151,6 +153,7 @@ class QTKitMonitorImpl : public DeviceMonitorMacImpl {
+@@ -143,6 +145,7 @@ class QTKitMonitorImpl : public DeviceMonitorMacImpl {
  
- QTKitMonitorImpl::QTKitMonitorImpl(content::DeviceMonitorMac* monitor)
+ QTKitMonitorImpl::QTKitMonitorImpl(media::DeviceMonitorMac* monitor)
      : DeviceMonitorMacImpl(monitor) {
 +#ifndef MAS_BUILD
    NSNotificationCenter* nc = [NSNotificationCenter defaultCenter];
    device_arrival_ =
        [nc addObserverForName:QTCaptureDeviceWasConnectedNotification
-@@ -170,25 +173,31 @@ QTKitMonitorImpl::QTKitMonitorImpl(content::DeviceMonitorMac* monitor)
-                        queue:nil
+@@ -165,23 +168,29 @@ QTKitMonitorImpl::QTKitMonitorImpl(media::DeviceMonitorMac* monitor)
                    usingBlock:^(NSNotification* notification) {
-                       OnAttributeChanged(notification);}];
+                     OnAttributeChanged(notification);
+                   }];
 +#endif
  }
  
@@ -36,12 +36,10 @@ index 248b99d..c3e1a3e 100644
 +#endif
  }
  
- void QTKitMonitorImpl::OnAttributeChanged(
-     NSNotification* notification) {
+ void QTKitMonitorImpl::OnAttributeChanged(NSNotification* notification) {
 +#ifndef MAS_BUILD
-   if ([[[notification userInfo]
-          objectForKey:QTCaptureDeviceChangedAttributeKey]
-       isEqualToString:QTCaptureDeviceSuspendedAttribute]) {
+   if ([[[notification userInfo] objectForKey:QTCaptureDeviceChangedAttributeKey]
+           isEqualToString:QTCaptureDeviceSuspendedAttribute]) {
      OnDeviceChanged();
    }
 +#endif
@@ -52,7 +50,7 @@ index 248b99d..c3e1a3e 100644
    std::vector<DeviceInfo> snapshot_devices;
  
    NSArray* devices = [QTCaptureDevice inputDevices];
-@@ -213,6 +222,7 @@ void QTKitMonitorImpl::OnDeviceChanged() {
+@@ -206,6 +215,7 @@ void QTKitMonitorImpl::OnDeviceChanged() {
          DeviceInfo([[device uniqueID] UTF8String], device_type));
    }
    ConsolidateDevicesListAndNotify(snapshot_devices);
@@ -116,19 +114,10 @@ index 432fbfb..e9932c5 100644
  
    if (!capture_device_)
 diff --git a/media/media.gyp b/media/media.gyp
-index 6c1b76e..0cab40c 100644
+index 329f0c7..26c6597 100644
 --- a/media/media.gyp
 +++ b/media/media.gyp
-@@ -488,8 +488,6 @@
-         'capture/video/mac/video_capture_device_factory_mac.mm',
-         'capture/video/mac/video_capture_device_mac.h',
-         'capture/video/mac/video_capture_device_mac.mm',
--        'capture/video/mac/video_capture_device_qtkit_mac.h',
--        'capture/video/mac/video_capture_device_qtkit_mac.mm',
-         'capture/video/video_capture_device.cc',
-         'capture/video/video_capture_device.h',
-         'capture/video/video_capture_device_factory.cc',
-@@ -1009,7 +1007,6 @@
+@@ -956,7 +956,6 @@
                '$(SDKROOT)/System/Library/Frameworks/CoreAudio.framework',
                '$(SDKROOT)/System/Library/Frameworks/CoreVideo.framework',
                '$(SDKROOT)/System/Library/Frameworks/OpenGL.framework',
