@@ -63,6 +63,8 @@
         4275,
         # 'GetVersionExW': was declared deprecated
         4996,
+        # result of 32-bit shift implicitly converted to 64 bits
+        4334,
     ],
     'xcode_settings': {
       'WARNING_CFLAGS': [
