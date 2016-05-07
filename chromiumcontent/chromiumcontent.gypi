@@ -37,6 +37,13 @@
             'arm_version': 7,
             'arm_float_abi': 'hard',
           }],
+          ['target_arch=="ia32"', {
+            # The |character_data_generator| target depends on |icuuc#host|, and
+            # for ia32 targets the latter always builds ia32 binaries for x64
+            # host.
+            # We should be able to remove this after switching to GN build.
+            'generate_character_data': 0,
+          }],
         ],
       }],
     ],
