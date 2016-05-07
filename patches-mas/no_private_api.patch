@@ -93,8 +93,8 @@ index ab84b22..a502efc 100644
    ~Watcher() {}
  
    bool Watch() {
-+#ifndef MAS_BUILD
      bool success = true;
++#ifndef MAS_BUILD
      if (!config_watcher_.Watch(base::Bind(&Watcher::OnConfigChanged,
                                            base::Unretained(this)))) {
 @@ -220,6 +221,7 @@ class DnsConfigServicePosix::Watcher {
