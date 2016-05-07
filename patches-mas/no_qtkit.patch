@@ -1,3 +1,18 @@
+diff --git a/media/capture.gypi b/media/capture.gypi
+index f326b1c..c7a2257 100644
+--- a/media/capture.gypi
++++ b/media/capture.gypi
+@@ -54,8 +54,8 @@
+       'capture/video/mac/video_capture_device_factory_mac.mm',
+       'capture/video/mac/video_capture_device_mac.h',
+       'capture/video/mac/video_capture_device_mac.mm',
+-      'capture/video/mac/video_capture_device_qtkit_mac.h',
+-      'capture/video/mac/video_capture_device_qtkit_mac.mm',
++      # 'capture/video/mac/video_capture_device_qtkit_mac.h',
++      # 'capture/video/mac/video_capture_device_qtkit_mac.mm',
+       'capture/video/video_capture_device.cc',
+       'capture/video/video_capture_device.h',
+       'capture/video/video_capture_device_factory.cc',
 diff --git a/media/capture/device_monitor_mac.mm b/media/capture/device_monitor_mac.mm
 index aab9884..8951a44 100644
 --- a/media/capture/device_monitor_mac.mm
