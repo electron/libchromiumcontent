@@ -10,6 +10,7 @@ import tarfile
 import tempfile
 import urllib2
 
+from lib.util import get_vs_env
 from lib.config import get_output_dir
 
 
@@ -130,6 +131,12 @@ def gyp_env(target_arch, component, gyp_defines):
     env['GYP_MSVS_VERSION'] = '2015'
     # Use Windows 10 SDK.
     env['WINDOWSSDKDIR'] = 'C:\\Program Files (x86)\\Windows Kits\\10'
+    # Set build env for VS.
+    if target_arch == 'x64':
+      vs_env = get_vs_env('14.0', 'x86_amd64')
+    elif target_arch == 'ia32':
+      vs_env = get_vs_env('14.0', 'amd64_x86')
+    env.update(vs_env)
   elif sys.platform == 'linux2' and target_arch in ('arm', 'ia32'):
     # ARM build requires cross compilation.
     env['GYP_CROSSCOMPILE'] = '1'
