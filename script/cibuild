@@ -5,6 +5,8 @@ import platform
 import subprocess
 import sys
 
+from lib.util import get_vs_env
+
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 # We're in JENKINS_ROOT/workspace/libchromiumcontent. Walk up to JENKINS_ROOT.
@@ -16,9 +18,6 @@ def main():
   if not os.path.isfile(S3_CREDENTIALS_FILE):
     return 'Error: Can\'t find {0}'.format(S3_CREDENTIALS_FILE)
   copy_to_environment(S3_CREDENTIALS_FILE)
-
-  print 'Python version:', platform.python_version()
-  print 'OS version:', os_version()
 
   if sys.platform in ['win32', 'cygwin']:
     return (run_ci(['-t', 'x64']) or
@@ -51,6 +50,15 @@ def os_version():
 
 
 def run_ci(args):
+  if sys.platform in ['win32', 'cygwin']:
+    target_arch = args[1]
+    # Set build env for VS.
+    if target_arch == 'x64':
+      vs_env = get_vs_env('14.0', 'x86_amd64')
+    elif target_arch == 'ia32':
+      vs_env = get_vs_env('14.0', 'amd64_x86')
+    os.environ.update(vs_env)
+
   return (run_script('bootstrap') or
           run_script('update', args) or
           run_script('build', args) or

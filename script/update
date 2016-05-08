@@ -10,7 +10,7 @@ import tarfile
 import tempfile
 import urllib2
 
-from lib.util import get_output_dir
+from lib.config import get_output_dir
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -124,11 +124,10 @@ def gyp_env(target_arch, component, gyp_defines):
   env['GYP_GENERATORS'] = 'ninja'
 
   if sys.platform in ['win32', 'cygwin']:
-    # Don't use the auto-installed VS2013 Express toolchain from depot_tools.
-    # We have our own.
+    # Do not let Chromium download their own toolchains.
     env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
-    # Use VS2013.
-    env['GYP_MSVS_VERSION'] = '2013'
+    # Use VS 2015.
+    env['GYP_MSVS_VERSION'] = '2015'
     # Use Windows 10 SDK.
     env['WINDOWSSDKDIR'] = 'C:\\Program Files (x86)\\Windows Kits\\10'
   elif sys.platform == 'linux2' and target_arch in ('arm', 'ia32'):
