@@ -1,0 +1,46 @@
+diff --git a/source/common/unicode/unistr.h b/source/common/unicode/unistr.h
+index c98aec7..85b035a 100644
+--- a/source/common/unicode/unistr.h
++++ b/source/common/unicode/unistr.h
+@@ -2851,7 +2851,7 @@ public:
+   /** Construct an empty UnicodeString.
+    * @stable ICU 2.0
+    */
+-  inline UnicodeString();
++  UnicodeString();
+ 
+   /**
+    * Construct a UnicodeString with capacity to hold <TT>capacity</TT> UChars
+@@ -3602,16 +3602,6 @@ UnicodeString::getArrayStart() const
+ { return (fFlags&kUsingStackBuffer) ? fUnion.fStackBuffer : fUnion.fFields.fArray; }
+ 
+ //========================================
+-// Default constructor
+-//========================================
+-
+-inline
+-UnicodeString::UnicodeString()
+-  : fShortLength(0),
+-    fFlags(kShortString)
+-{}
+-
+-//========================================
+ // Read-only implementation methods
+ //========================================
+ inline int32_t
+diff --git a/source/common/unistr.cpp b/source/common/unistr.cpp
+index f103e81..ce1452e 100644
+--- a/source/common/unistr.cpp
++++ b/source/common/unistr.cpp
+@@ -144,7 +144,10 @@ UnicodeString::releaseArray() {
+ // Constructors
+ //========================================
+ 
+-// The default constructor is inline in unistr.h.
++UnicodeString::UnicodeString()
++  : fShortLength(0),
++    fFlags(kShortString)
++{}
+ 
+ UnicodeString::UnicodeString(int32_t capacity, UChar32 c, int32_t count)
+   : fShortLength(0),
