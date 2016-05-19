@@ -19,21 +19,3 @@ index 4358082..f382e8e 100644
    // We do not currently swap processes for navigations in webview tag guests.
    if (current_instance->GetSiteURL().SchemeIs(kGuestScheme))
      return current_instance;
-diff --git a/content/public/browser/content_browser_client.h b/content/public/browser/content_browser_client.h
-index 8b111979..4ae02b0 100644
---- a/content/public/browser/content_browser_client.h
-+++ b/content/public/browser/content_browser_client.h
-@@ -137,6 +137,13 @@ class CONTENT_EXPORT ContentBrowserClient {
-  public:
-   virtual ~ContentBrowserClient() {}
- 
-+  // Electron: Allows overriding the SiteInstance when navigating.
-+  virtual void OverrideSiteInstanceForNavigation(
-+      BrowserContext* browser_context,
-+      SiteInstance* current_instance,
-+      const GURL& dest_url,
-+      SiteInstance** new_instance) {}
-+
-   // Allows the embedder to set any number of custom BrowserMainParts
-   // implementations for the browser startup code. See comments in
-   // browser_main_parts.h.

@@ -1,8 +1,8 @@
 diff --git a/content/browser/renderer_host/render_message_filter.cc b/content/browser/renderer_host/render_message_filter.cc
-index 29ab868..fe60d60 100644
+index 8d5ae8e..461e693 100644
 --- a/content/browser/renderer_host/render_message_filter.cc
 +++ b/content/browser/renderer_host/render_message_filter.cc
-@@ -254,6 +254,7 @@ void RenderMessageFilter::OnCreateWindow(
+@@ -262,6 +262,7 @@ void RenderMessageFilter::OnCreateWindow(
            params.opener_top_level_frame_url,
            params.opener_security_origin,
            params.window_container_type,
@@ -11,10 +11,10 @@ index 29ab868..fe60d60 100644
            params.referrer,
            params.disposition,
 diff --git a/content/public/browser/content_browser_client.cc b/content/public/browser/content_browser_client.cc
-index 8ec8c8c..94d5979 100644
+index 23fd868..46d8a77 100644
 --- a/content/public/browser/content_browser_client.cc
 +++ b/content/public/browser/content_browser_client.cc
-@@ -294,6 +294,7 @@ bool ContentBrowserClient::CanCreateWindow(
+@@ -277,6 +277,7 @@ bool ContentBrowserClient::CanCreateWindow(
      const GURL& opener_top_level_frame_url,
      const GURL& source_origin,
      WindowContainerType container_type,
@@ -23,10 +23,24 @@ index 8ec8c8c..94d5979 100644
      const Referrer& referrer,
      WindowOpenDisposition disposition,
 diff --git a/content/public/browser/content_browser_client.h b/content/public/browser/content_browser_client.h
-index dd3f0e6..623906a 100644
+index 8b111979..c579491 100644
 --- a/content/public/browser/content_browser_client.h
 +++ b/content/public/browser/content_browser_client.h
-@@ -532,6 +532,7 @@ class CONTENT_EXPORT ContentBrowserClient {
+@@ -137,6 +137,13 @@ class CONTENT_EXPORT ContentBrowserClient {
+  public:
+   virtual ~ContentBrowserClient() {}
+ 
++  // Electron: Allows overriding the SiteInstance when navigating.
++  virtual void OverrideSiteInstanceForNavigation(
++      BrowserContext* browser_context,
++      SiteInstance* current_instance,
++      const GURL& dest_url,
++      SiteInstance** new_instance) {}
++
+   // Allows the embedder to set any number of custom BrowserMainParts
+   // implementations for the browser startup code. See comments in
+   // browser_main_parts.h.
+@@ -508,6 +515,7 @@ class CONTENT_EXPORT ContentBrowserClient {
                                 const GURL& opener_top_level_frame_url,
                                 const GURL& source_origin,
                                 WindowContainerType container_type,
