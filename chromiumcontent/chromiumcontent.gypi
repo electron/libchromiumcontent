@@ -12,7 +12,6 @@
     'mac_deployment_target': '10.8',
     # Use the standard way of linking with msvc runtime.
     'win_use_allocator_shim': 0,
-    'win_release_RuntimeLibrary': '2',
     # The V8 libraries.
     'v8_libraries': '["v8", "v8_snapshot", "v8_nosnapshot", "v8_external_snapshot", "v8_base", "v8_libbase", "v8_libplatform"]',
     # The icu libraries.
@@ -120,16 +119,6 @@
           'V8_SHARED',
           'BUILDING_V8_SHARED',
         ],
-        # Override src/v8/build/toolchain.gypi's RuntimeLibrary setting.
-        'configurations': {
-          'Release': {
-            'msvs_settings': {
-              'VCCLCompilerTool': {
-                'RuntimeLibrary': '<(win_release_RuntimeLibrary)',
-              },
-            },
-          },
-        },
       }],
       ['_target_name in ["gtk2ui"]', {
         'type': 'static_library',
