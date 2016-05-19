@@ -14,10 +14,10 @@ index 69231b5..1c07cf1 100644
  
    message_server_->ForwardMessage(request, sandbox_->real_bootstrap_port());
 diff --git a/sandbox/mac/os_compatibility.cc b/sandbox/mac/os_compatibility.cc
-index 5ddf6a5..1b85e2c 100644
+index 538efef..527d7e7 100644
 --- a/sandbox/mac/os_compatibility.cc
 +++ b/sandbox/mac/os_compatibility.cc
-@@ -184,7 +184,9 @@ class OSCompatibility_10_10 : public OSCompatibility {
+@@ -167,7 +167,9 @@ class OSCompatibility_10_10 : public OSCompatibility {
  
    void WriteServiceLookUpReply(IPCMessage message,
                                 mach_port_t service_port) override {
@@ -60,10 +60,10 @@ index 9d777d3..5a46ac0 100644
      // On non-XPC launchd systems, bootstrap_look_up() is MIG-based and
      // generally safe.
 diff --git a/sandbox/mac/xpc_message_server.cc b/sandbox/mac/xpc_message_server.cc
-index 1375310..6cdec4d 100644
+index 273419b..595abce 100644
 --- a/sandbox/mac/xpc_message_server.cc
 +++ b/sandbox/mac/xpc_message_server.cc
-@@ -54,7 +54,9 @@ void XPCMessageServer::Shutdown() {
+@@ -52,7 +52,9 @@ void XPCMessageServer::Shutdown() {
  
  pid_t XPCMessageServer::GetMessageSenderPID(IPCMessage request) {
    audit_token_t token;
@@ -73,7 +73,7 @@ index 1375310..6cdec4d 100644
    // TODO(rsesek): In the 10.7 SDK, there's audit_token_to_pid().
    pid_t sender_pid;
    audit_token_to_au32(token,
-@@ -75,22 +77,26 @@ bool XPCMessageServer::SendReply(IPCMessage reply) {
+@@ -73,22 +75,26 @@ bool XPCMessageServer::SendReply(IPCMessage reply) {
    if (!reply.xpc)
      return false;
  
@@ -100,34 +100,19 @@ index 1375310..6cdec4d 100644
  }
  
  void XPCMessageServer::RejectMessage(IPCMessage request, int error_code) {
-@@ -108,11 +114,13 @@ mach_port_t XPCMessageServer::GetServerPort() const {
+@@ -105,6 +111,7 @@ mach_port_t XPCMessageServer::GetServerPort() const {
+ }
  
  void XPCMessageServer::ReceiveMessage() {
-   IPCMessage request;
 +#ifndef MAS_BUILD
+   IPCMessage request;
    int rv = xpc_pipe_receive(server_port_.get(), &request.xpc);
    if (rv) {
-     LOG(ERROR) << "Failed to xpc_pipe_receive(): " << rv;
-     return;
+@@ -119,6 +126,7 @@ void XPCMessageServer::ReceiveMessage() {
+     xpc_release(reply_message_);
+     reply_message_ = NULL;
    }
 +#endif
+ }
  
-   demuxer_->DemuxMessage(request);
- 
-diff --git a/sandbox/mac/xpc_private_stubs.sig b/sandbox/mac/xpc_private_stubs.sig
-index b8e1c50..2118aea 100644
---- a/sandbox/mac/xpc_private_stubs.sig
-+++ b/sandbox/mac/xpc_private_stubs.sig
-@@ -6,6 +6,7 @@
- // used for both forward declarations of private symbols and to use with
- // tools/generate_stubs for creating a dynamic library loader.
- 
-+#ifndef MAS_BUILD
- // Dictionary manipulation.
- void xpc_dictionary_set_mach_send(xpc_object_t dictionary, const char* name, mach_port_t port);
- void xpc_dictionary_get_audit_token(xpc_object_t dictionary, audit_token_t* token);
-@@ -20,3 +21,4 @@ int xpc_pipe_routine(xpc_pipe_t pipe, xpc_object_t request, xpc_object_t* reply)
- int xpc_pipe_routine_reply(xpc_object_t reply);
- int xpc_pipe_simpleroutine(xpc_pipe_t pipe, xpc_object_t message);
- int xpc_pipe_routine_forward(xpc_pipe_t forward_to, xpc_object_t request);
-+#endif
+ }  // namespace sandbox
