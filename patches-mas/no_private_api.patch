@@ -1,21 +1,79 @@
+diff --git a/content/browser/accessibility/browser_accessibility_cocoa.h b/content/browser/accessibility/browser_accessibility_cocoa.h
+index eaa99c5..f596a52 100644
+--- a/content/browser/accessibility/browser_accessibility_cocoa.h
++++ b/content/browser/accessibility/browser_accessibility_cocoa.h
+@@ -84,7 +84,9 @@
+ @property(nonatomic, readonly) NSNumber* enabled;
+ // Returns a text marker that points to the last character in the document that
+ // can be selected with Voiceover.
++#ifndef MAS_BUILD
+ @property(nonatomic, readonly) id endTextMarker;
++#endif
+ @property(nonatomic, readonly) NSNumber* expanded;
+ @property(nonatomic, readonly) NSNumber* focused;
+ @property(nonatomic, readonly) NSString* help;
+@@ -112,11 +114,15 @@
+ @property(nonatomic, readonly) NSValue* rowIndexRange;
+ @property(nonatomic, readonly) NSArray* rows;
+ @property(nonatomic, readonly) NSArray* selectedChildren;
++#ifndef MAS_BUILD
+ @property(nonatomic, readonly) id selectedTextMarkerRange;
++#endif
+ @property(nonatomic, readonly) NSValue* size;
+ // Returns a text marker that points to the first character in the document that
+ // can be selected with Voiceover.
++#ifndef MAS_BUILD
+ @property(nonatomic, readonly) id startTextMarker;
++#endif
+ // A string indicating the subrole of this object as far as accessibility
+ // is concerned.
+ @property(nonatomic, readonly) NSString* subrole;
 diff --git a/content/browser/accessibility/browser_accessibility_cocoa.mm b/content/browser/accessibility/browser_accessibility_cocoa.mm
-index 947575e..c577069b 100644
+index 947575e..3f7a8a7 100644
 --- a/content/browser/accessibility/browser_accessibility_cocoa.mm
 +++ b/content/browser/accessibility/browser_accessibility_cocoa.mm
-@@ -84,10 +84,12 @@ const int kAXResultsLimitNoLimit = -1;
- 
- extern "C" {
+@@ -82,6 +82,7 @@
+ // VoiceOver uses -1 to mean "no limit" for AXResultsLimit.
+ const int kAXResultsLimitNoLimit = -1;
  
 +#ifndef MAS_BUILD
+ extern "C" {
+ 
  // See http://openradar.appspot.com/9896491. This SPI has been tested on 10.5,
- // 10.6, and 10.7. It allows accessibility clients to observe events posted on
- // this object.
- void NSAccessibilityUnregisterUniqueIdForUIElement(id element);
+@@ -195,6 +196,7 @@ bool GetTextMarkerRange(AXTextMarkerRangeRef marker_range,
+   return base::SysUTF16ToNSString(BrowserAccessibilityManager::GetTextForRange(
+       *start_object, start_offset, *end_object, end_offset));
+ }
 +#endif
  
- // The following are private accessibility APIs required for cursor navigation
- // and text selection. VoiceOver started relying on them in Mac OS X 10.11.
-@@ -490,7 +492,9 @@ bool InitializeAccessibilityTreeSearch(
+ // Returns an autoreleased copy of the AXNodeData's attribute.
+ NSString* NSStringForStringAttribute(
+@@ -415,7 +417,9 @@ + (void)initialize {
+       {NSAccessibilityDisclosureLevelAttribute, @"disclosureLevel"},
+       {NSAccessibilityDisclosedRowsAttribute, @"disclosedRows"},
+       {NSAccessibilityEnabledAttribute, @"enabled"},
++#ifndef MAS_BUILD
+       {NSAccessibilityEndTextMarkerAttribute, @"endTextMarker"},
++#endif
+       {NSAccessibilityExpandedAttribute, @"expanded"},
+       {NSAccessibilityFocusedAttribute, @"focused"},
+       {NSAccessibilityHeaderAttribute, @"header"},
+@@ -438,10 +442,14 @@ + (void)initialize {
+       {NSAccessibilityRowsAttribute, @"rows"},
+       // TODO(aboxhall): expose
+       // NSAccessibilityServesAsTitleForUIElementsAttribute
++#ifndef MAS_BUILD
+       {NSAccessibilityStartTextMarkerAttribute, @"startTextMarker"},
++#endif
+       {NSAccessibilitySelectedChildrenAttribute, @"selectedChildren"},
++#ifndef MAS_BUILD
+       {NSAccessibilitySelectedTextMarkerRangeAttribute,
+        @"selectedTextMarkerRange"},
++#endif
+       {NSAccessibilitySizeAttribute, @"size"},
+       {NSAccessibilitySortDirectionAttribute, @"sortDirection"},
+       {NSAccessibilitySubroleAttribute, @"subrole"},
+@@ -490,7 +498,9 @@ - (id)initWithObject:(BrowserAccessibility*)accessibility {
  
  - (void)detach {
    if (browserAccessibility_) {
@@ -25,11 +83,101 @@ index 947575e..c577069b 100644
      browserAccessibility_ = NULL;
    }
  }
+@@ -740,6 +750,7 @@ - (NSNumber*)enabled {
+       GetState(browserAccessibility_, ui::AX_STATE_ENABLED)];
+ }
+ 
++#ifndef MAS_BUILD
+ // Returns a text marker that points to the last character in the document that
+ // can be selected with VoiceOver.
+ - (id)endTextMarker {
+@@ -767,6 +778,7 @@ - (id)endTextMarker {
+   return CreateTextMarker(*last_text_object,
+                           last_text_object->GetText().length());
+ }
++#endif
+ 
+ - (NSNumber*)expanded {
+   return [NSNumber numberWithBool:
+@@ -1280,6 +1292,7 @@ - (NSArray*)selectedChildren {
+   return ret;
+ }
+ 
++#ifndef MAS_BUILD
+ - (id)selectedTextMarkerRange {
+   if (!browserAccessibility_)
+     return nil;
+@@ -1306,6 +1319,7 @@ - (id)selectedTextMarkerRange {
+   return CreateTextMarkerRange(*anchorObject, anchorOffset, *focusObject,
+                                focusOffset);
+ }
++#endif
+ 
+ - (NSValue*)size {
+   gfx::Rect bounds = browserAccessibility_->GetLocalBoundsRect();
+@@ -1337,6 +1351,7 @@ - (NSString*)sortDirection {
+   return nil;
+ }
+ 
++#ifndef MAS_BUILD
+ // Returns a text marker that points to the first character in the document that
+ // can be selected with VoiceOver.
+ - (id)startTextMarker {
+@@ -1363,6 +1378,7 @@ - (id)startTextMarker {
+ 
+   return CreateTextMarker(*first_text_object, 0);
+ }
++#endif
+ 
+ // Returns a subrole based upon the role.
+ - (NSString*) subrole {
+@@ -1745,6 +1761,7 @@ - (id)accessibilityAttributeValue:(NSString*)attribute
+     return nil;
+   }
+ 
++#ifndef MAS_BUILD
+   if ([attribute isEqualToString:@"AXUIElementForTextMarker"]) {
+     BrowserAccessibility* object;
+     int offset;
+@@ -1834,6 +1851,7 @@ - (id)accessibilityAttributeValue:(NSString*)attribute
+     NSString* text = GetTextForTextMarkerRange(parameter);
+     return [NSNumber numberWithInt:[text length]];
+   }
++#endif
+ 
+   if ([attribute isEqualToString:
+       NSAccessibilityBoundsForRangeParameterizedAttribute]) {
+diff --git a/content/browser/accessibility/browser_accessibility_manager_mac.mm b/content/browser/accessibility/browser_accessibility_manager_mac.mm
+index 712de43..36a954a 100644
+--- a/content/browser/accessibility/browser_accessibility_manager_mac.mm
++++ b/content/browser/accessibility/browser_accessibility_manager_mac.mm
+@@ -69,8 +69,10 @@
+     @"AXTextSelectionGranularity";
+ NSString* const NSAccessibilityTextSelectionChangedFocus =
+     @"AXTextSelectionChangedFocus";
++#ifndef MAS_BUILD
+ NSString* const NSAccessibilitySelectedTextMarkerRangeAttribute =
+     @"AXSelectedTextMarkerRange";
++#endif
+ NSString* const NSAccessibilityTextChangeElement = @"AXTextChangeElement";
+ 
+ }  // namespace
+@@ -320,8 +322,10 @@
+     focus_object = focus_object->GetClosestPlatformObject();
+     auto native_focus_object = focus_object->ToBrowserAccessibilityCocoa();
+     if (native_focus_object) {
++#ifndef MAS_BUILD
+       [user_info setObject:[native_focus_object selectedTextMarkerRange]
+                     forKey:NSAccessibilitySelectedTextMarkerRangeAttribute];
++#endif
+       [user_info setObject:native_focus_object
+                     forKey:NSAccessibilityTextChangeElement];
+     }
 diff --git a/content/common/sandbox_mac.mm b/content/common/sandbox_mac.mm
 index ca915a7..b6b23a2 100644
 --- a/content/common/sandbox_mac.mm
 +++ b/content/common/sandbox_mac.mm
-@@ -43,6 +43,7 @@ extern "C" {
+@@ -43,6 +43,7 @@
  #include "ui/base/layout.h"
  #include "ui/gl/gl_surface.h"
  
@@ -37,7 +185,7 @@ index ca915a7..b6b23a2 100644
  extern "C" {
  void CGSSetDenyWindowServerConnections(bool);
  void CGSShutdownServerConnections();
-@@ -56,6 +57,7 @@ int sandbox_apply(void* profile);
+@@ -56,6 +57,7 @@
  void sandbox_free_params(void* params);
  void sandbox_free_profile(void* profile);
  };
@@ -45,7 +193,7 @@ index ca915a7..b6b23a2 100644
  
  namespace content {
  namespace {
-@@ -156,15 +158,20 @@ bool SandboxCompiler::InsertStringParam(const std::string& key,
+@@ -156,15 +158,20 @@ NOINLINE void FatalStringQuoteException(const std::string& str) {
  void SandboxCompiler::FreeSandboxResources(void* profile,
                                             void* params,
                                             char* error) {
@@ -66,7 +214,7 @@ index ca915a7..b6b23a2 100644
    char* error_internal = nullptr;
    void* profile = nullptr;
    void* params = nullptr;
-@@ -205,6 +212,7 @@ bool SandboxCompiler::CompileAndApplyProfile(std::string* error) {
+@@ -205,6 +212,7 @@ NOINLINE void FatalStringQuoteException(const std::string& str) {
    int result = sandbox_apply(profile);
    FreeSandboxResources(profile, params, error_internal);
    return result == 0;
@@ -74,7 +222,7 @@ index ca915a7..b6b23a2 100644
  }
  
  // static
-@@ -402,8 +410,10 @@ void Sandbox::SandboxWarmup(int sandbox_type) {
+@@ -402,8 +410,10 @@ NOINLINE void FatalStringQuoteException(const std::string& str) {
      // 10.8 and higher because doing it on earlier OSes causes layout tests to
      // fail <http://crbug.com/397642#c48>. This may cause two log messages to
      // be printed to the system logger on certain OS versions.
@@ -86,17 +234,17 @@ index ca915a7..b6b23a2 100644
  }
  
 diff --git a/net/dns/dns_config_service_posix.cc b/net/dns/dns_config_service_posix.cc
-index ab84b22..a502efc 100644
+index ab84b22..8da47b8 100644
 --- a/net/dns/dns_config_service_posix.cc
 +++ b/net/dns/dns_config_service_posix.cc
-@@ -200,6 +200,7 @@ class DnsConfigServicePosix::Watcher {
-   ~Watcher() {}
+@@ -201,6 +201,7 @@ class DnsConfigServicePosix::Watcher {
  
    bool Watch() {
      bool success = true;
 +#ifndef MAS_BUILD
      if (!config_watcher_.Watch(base::Bind(&Watcher::OnConfigChanged,
                                            base::Unretained(this)))) {
+       LOG(ERROR) << "DNS config watch failed to start.";
 @@ -220,6 +221,7 @@ class DnsConfigServicePosix::Watcher {
                                  DNS_CONFIG_WATCH_MAX);
      }
@@ -125,7 +273,7 @@ index aa66729..1ae4016 100644
  
  namespace gfx {
  
-@@ -56,7 +58,11 @@ std::vector<Font> GetFallbackFonts(const Font& font) {
+@@ -56,7 +58,11 @@ CFArrayRef CTFontCopyDefaultCascadeListForLanguagesWrapper(
        stringArrayForKey:@"AppleLanguages"];
    CFArrayRef languages_cf = base::mac::NSToCFCast(languages);
    base::ScopedCFTypeRef<CFArrayRef> cascade_list(
