@@ -1,8 +1,8 @@
 diff --git a/content/browser/accessibility/browser_accessibility_cocoa.h b/content/browser/accessibility/browser_accessibility_cocoa.h
-index eaa99c5..f596a52 100644
+index 9923734..a0202a4 100644
 --- a/content/browser/accessibility/browser_accessibility_cocoa.h
 +++ b/content/browser/accessibility/browser_accessibility_cocoa.h
-@@ -84,7 +84,9 @@
+@@ -87,7 +87,9 @@
  @property(nonatomic, readonly) NSNumber* enabled;
  // Returns a text marker that points to the last character in the document that
  // can be selected with Voiceover.
@@ -11,15 +11,16 @@ index eaa99c5..f596a52 100644
 +#endif
  @property(nonatomic, readonly) NSNumber* expanded;
  @property(nonatomic, readonly) NSNumber* focused;
- @property(nonatomic, readonly) NSString* help;
-@@ -112,11 +114,15 @@
- @property(nonatomic, readonly) NSValue* rowIndexRange;
- @property(nonatomic, readonly) NSArray* rows;
+ @property(nonatomic, readonly) NSNumber* grabbed;
+@@ -123,12 +125,16 @@
  @property(nonatomic, readonly) NSArray* selectedChildren;
+ @property(nonatomic, readonly) NSString* selectedText;
+ @property(nonatomic, readonly) NSValue* selectedTextRange;
 +#ifndef MAS_BUILD
  @property(nonatomic, readonly) id selectedTextMarkerRange;
 +#endif
  @property(nonatomic, readonly) NSValue* size;
+ @property(nonatomic, readonly) NSString* sortDirection;
  // Returns a text marker that points to the first character in the document that
  // can be selected with Voiceover.
 +#ifndef MAS_BUILD
@@ -29,10 +30,10 @@ index eaa99c5..f596a52 100644
  // is concerned.
  @property(nonatomic, readonly) NSString* subrole;
 diff --git a/content/browser/accessibility/browser_accessibility_cocoa.mm b/content/browser/accessibility/browser_accessibility_cocoa.mm
-index 947575e..3f7a8a7 100644
+index 1ae72bd..920425c 100644
 --- a/content/browser/accessibility/browser_accessibility_cocoa.mm
 +++ b/content/browser/accessibility/browser_accessibility_cocoa.mm
-@@ -82,6 +82,7 @@
+@@ -98,6 +98,7 @@
  // VoiceOver uses -1 to mean "no limit" for AXResultsLimit.
  const int kAXResultsLimitNoLimit = -1;
  
@@ -40,7 +41,7 @@ index 947575e..3f7a8a7 100644
  extern "C" {
  
  // See http://openradar.appspot.com/9896491. This SPI has been tested on 10.5,
-@@ -195,6 +196,7 @@ bool GetTextMarkerRange(AXTextMarkerRangeRef marker_range,
+@@ -211,6 +212,7 @@ bool GetTextMarkerRange(AXTextMarkerRangeRef marker_range,
    return base::SysUTF16ToNSString(BrowserAccessibilityManager::GetTextForRange(
        *start_object, start_offset, *end_object, end_offset));
  }
@@ -48,24 +49,27 @@ index 947575e..3f7a8a7 100644
  
  // Returns an autoreleased copy of the AXNodeData's attribute.
  NSString* NSStringForStringAttribute(
-@@ -415,7 +417,9 @@ + (void)initialize {
-       {NSAccessibilityDisclosureLevelAttribute, @"disclosureLevel"},
+@@ -438,7 +440,9 @@ + (void)initialize {
        {NSAccessibilityDisclosedRowsAttribute, @"disclosedRows"},
+       {NSAccessibilityDropEffectsAttribute, @"dropEffects"},
        {NSAccessibilityEnabledAttribute, @"enabled"},
 +#ifndef MAS_BUILD
        {NSAccessibilityEndTextMarkerAttribute, @"endTextMarker"},
 +#endif
        {NSAccessibilityExpandedAttribute, @"expanded"},
        {NSAccessibilityFocusedAttribute, @"focused"},
-       {NSAccessibilityHeaderAttribute, @"header"},
-@@ -438,10 +442,14 @@ + (void)initialize {
+       {NSAccessibilityGrabbedAttribute, @"grabbed"},
+@@ -466,13 +470,17 @@ + (void)initialize {
        {NSAccessibilityRowsAttribute, @"rows"},
        // TODO(aboxhall): expose
        // NSAccessibilityServesAsTitleForUIElementsAttribute
 +#ifndef MAS_BUILD
        {NSAccessibilityStartTextMarkerAttribute, @"startTextMarker"},
 +#endif
+       {NSAccessibilitySelectedAttribute, @"selected"},
        {NSAccessibilitySelectedChildrenAttribute, @"selectedChildren"},
+       {NSAccessibilitySelectedTextAttribute, @"selectedText"},
+       {NSAccessibilitySelectedTextRangeAttribute, @"selectedTextRange"},
 +#ifndef MAS_BUILD
        {NSAccessibilitySelectedTextMarkerRangeAttribute,
         @"selectedTextMarkerRange"},
@@ -73,17 +77,18 @@ index 947575e..3f7a8a7 100644
        {NSAccessibilitySizeAttribute, @"size"},
        {NSAccessibilitySortDirectionAttribute, @"sortDirection"},
        {NSAccessibilitySubroleAttribute, @"subrole"},
-@@ -490,7 +498,9 @@ - (id)initWithObject:(BrowserAccessibility*)accessibility {
+@@ -511,8 +519,10 @@ - (instancetype)initWithObject:(BrowserAccessibility*)accessibility {
+ }
  
  - (void)detach {
-   if (browserAccessibility_) {
 +#ifndef MAS_BUILD
+   if (browserAccessibility_)
      NSAccessibilityUnregisterUniqueIdForUIElement(self);
 +#endif
-     browserAccessibility_ = NULL;
-   }
+   browserAccessibility_ = nullptr;
  }
-@@ -740,6 +750,7 @@ - (NSNumber*)enabled {
+ 
+@@ -803,6 +813,7 @@ - (NSNumber*)enabled {
        GetState(browserAccessibility_, ui::AX_STATE_ENABLED)];
  }
  
@@ -91,31 +96,31 @@ index 947575e..3f7a8a7 100644
  // Returns a text marker that points to the last character in the document that
  // can be selected with VoiceOver.
  - (id)endTextMarker {
-@@ -767,6 +778,7 @@ - (id)endTextMarker {
+@@ -830,6 +841,7 @@ - (id)endTextMarker {
    return CreateTextMarker(*last_text_object,
                            last_text_object->GetText().length());
  }
 +#endif
  
  - (NSNumber*)expanded {
-   return [NSNumber numberWithBool:
-@@ -1280,6 +1292,7 @@ - (NSArray*)selectedChildren {
-   return ret;
+   if (![self instanceActive])
+@@ -1481,6 +1493,7 @@ - (NSValue*)selectedTextRange {
+   return [NSValue valueWithRange:NSMakeRange(selStart, selLength)];
  }
  
 +#ifndef MAS_BUILD
  - (id)selectedTextMarkerRange {
-   if (!browserAccessibility_)
+   if (![self instanceActive])
      return nil;
-@@ -1306,6 +1319,7 @@ - (id)selectedTextMarkerRange {
+@@ -1507,6 +1520,7 @@ - (id)selectedTextMarkerRange {
    return CreateTextMarkerRange(*anchorObject, anchorOffset, *focusObject,
                                 focusOffset);
  }
 +#endif
  
  - (NSValue*)size {
-   gfx::Rect bounds = browserAccessibility_->GetLocalBoundsRect();
-@@ -1337,6 +1351,7 @@ - (NSString*)sortDirection {
+   if (![self instanceActive])
+@@ -1539,6 +1553,7 @@ - (NSString*)sortDirection {
    return nil;
  }
  
@@ -123,7 +128,7 @@ index 947575e..3f7a8a7 100644
  // Returns a text marker that points to the first character in the document that
  // can be selected with VoiceOver.
  - (id)startTextMarker {
-@@ -1363,6 +1378,7 @@ - (id)startTextMarker {
+@@ -1565,6 +1580,7 @@ - (id)startTextMarker {
  
    return CreateTextMarker(*first_text_object, 0);
  }
@@ -131,7 +136,7 @@ index 947575e..3f7a8a7 100644
  
  // Returns a subrole based upon the role.
  - (NSString*) subrole {
-@@ -1745,6 +1761,7 @@ - (id)accessibilityAttributeValue:(NSString*)attribute
+@@ -1945,6 +1961,7 @@ - (id)accessibilityAttributeValue:(NSString*)attribute
      return nil;
    }
  
@@ -139,7 +144,7 @@ index 947575e..3f7a8a7 100644
    if ([attribute isEqualToString:@"AXUIElementForTextMarker"]) {
      BrowserAccessibility* object;
      int offset;
-@@ -1834,6 +1851,7 @@ - (id)accessibilityAttributeValue:(NSString*)attribute
+@@ -2034,6 +2051,7 @@ - (id)accessibilityAttributeValue:(NSString*)attribute
      NSString* text = GetTextForTextMarkerRange(parameter);
      return [NSNumber numberWithInt:[text length]];
    }
@@ -148,10 +153,10 @@ index 947575e..3f7a8a7 100644
    if ([attribute isEqualToString:
        NSAccessibilityBoundsForRangeParameterizedAttribute]) {
 diff --git a/content/browser/accessibility/browser_accessibility_manager_mac.mm b/content/browser/accessibility/browser_accessibility_manager_mac.mm
-index 712de43..36a954a 100644
+index e43122e..1e0ef69 100644
 --- a/content/browser/accessibility/browser_accessibility_manager_mac.mm
 +++ b/content/browser/accessibility/browser_accessibility_manager_mac.mm
-@@ -69,8 +69,10 @@
+@@ -81,8 +81,10 @@
      @"AXTextSelectionGranularity";
  NSString* const NSAccessibilityTextSelectionChangedFocus =
      @"AXTextSelectionChangedFocus";
@@ -160,12 +165,12 @@ index 712de43..36a954a 100644
      @"AXSelectedTextMarkerRange";
 +#endif
  NSString* const NSAccessibilityTextChangeElement = @"AXTextChangeElement";
- 
- }  // namespace
-@@ -320,8 +322,10 @@
+ NSString* const NSAccessibilityTextEditType = @"AXTextEditType";
+ NSString* const NSAccessibilityTextChangeValue = @"AXTextChangeValue";
+@@ -415,8 +417,10 @@
      focus_object = focus_object->GetClosestPlatformObject();
-     auto native_focus_object = focus_object->ToBrowserAccessibilityCocoa();
-     if (native_focus_object) {
+     auto native_focus_object = ToBrowserAccessibilityCocoa(focus_object);
+     if (native_focus_object && [native_focus_object instanceActive]) {
 +#ifndef MAS_BUILD
        [user_info setObject:[native_focus_object selectedTextMarkerRange]
                      forKey:NSAccessibilitySelectedTextMarkerRangeAttribute];
@@ -174,7 +179,7 @@ index 712de43..36a954a 100644
                      forKey:NSAccessibilityTextChangeElement];
      }
 diff --git a/content/common/sandbox_mac.mm b/content/common/sandbox_mac.mm
-index ca915a7..b6b23a2 100644
+index 6a7f2cf..b73447a 100644
 --- a/content/common/sandbox_mac.mm
 +++ b/content/common/sandbox_mac.mm
 @@ -43,6 +43,7 @@
@@ -185,48 +190,40 @@ index ca915a7..b6b23a2 100644
  extern "C" {
  void CGSSetDenyWindowServerConnections(bool);
  void CGSShutdownServerConnections();
-@@ -56,6 +57,7 @@
- void sandbox_free_params(void* params);
- void sandbox_free_profile(void* profile);
+@@ -52,6 +53,7 @@ int sandbox_init_with_parameters(const char* profile,
+                                  const char* const parameters[],
+                                  char** errorbuf);
  };
 +#endif
  
  namespace content {
  namespace {
-@@ -156,15 +158,20 @@ NOINLINE void FatalStringQuoteException(const std::string& str) {
- void SandboxCompiler::FreeSandboxResources(void* profile,
-                                            void* params,
-                                            char* error) {
-+#ifndef MAS_BUILD
-   if (error)
-     sandbox_free_error(error);
-   if (params)
-     sandbox_free_params(params);
-   if (profile)
-     sandbox_free_profile(profile);
-+#endif
+@@ -142,6 +144,7 @@ NOINLINE void FatalStringQuoteException(const std::string& str) {
  }
  
  bool SandboxCompiler::CompileAndApplyProfile(std::string* error) {
-+#ifdef MAS_BUILD
-+  return false;
-+#else
++#ifndef MAS_BUILD
    char* error_internal = nullptr;
-   void* profile = nullptr;
-   void* params = nullptr;
-@@ -205,6 +212,7 @@ NOINLINE void FatalStringQuoteException(const std::string& str) {
-   int result = sandbox_apply(profile);
-   FreeSandboxResources(profile, params, error_internal);
-   return result == 0;
+   std::vector<const char*> params;
+ 
+@@ -161,6 +164,7 @@ NOINLINE void FatalStringQuoteException(const std::string& str) {
+ #pragma clang diagnostic pop
+     return false;
+   }
 +#endif
+   return true;
  }
  
- // static
-@@ -402,8 +410,10 @@ NOINLINE void FatalStringQuoteException(const std::string& str) {
-     // 10.8 and higher because doing it on earlier OSes causes layout tests to
-     // fail <http://crbug.com/397642#c48>. This may cause two log messages to
-     // be printed to the system logger on certain OS versions.
+@@ -353,6 +357,7 @@ NOINLINE void FatalStringQuoteException(const std::string& str) {
+ 
+   if (sandbox_type == SANDBOX_TYPE_RENDERER &&
+       base::mac::IsOSMountainLionOrLater()) {
 +#ifndef MAS_BUILD
+     // Now disconnect from WindowServer, after all objects have been warmed up.
+     // Shutting down the connection requires connecting to WindowServer,
+     // so do this before actually engaging the sandbox. This is only done on
+@@ -361,6 +366,7 @@ NOINLINE void FatalStringQuoteException(const std::string& str) {
+     // be printed to the system logger on certain OS versions.
      CGSSetDenyWindowServerConnections(true);
      CGSShutdownServerConnections();
 +#endif
@@ -234,10 +231,10 @@ index ca915a7..b6b23a2 100644
  }
  
 diff --git a/net/dns/dns_config_service_posix.cc b/net/dns/dns_config_service_posix.cc
-index ab84b22..8da47b8 100644
+index 28c471e..581eeb2 100644
 --- a/net/dns/dns_config_service_posix.cc
 +++ b/net/dns/dns_config_service_posix.cc
-@@ -201,6 +201,7 @@ class DnsConfigServicePosix::Watcher {
+@@ -208,6 +208,7 @@ class DnsConfigServicePosix::Watcher {
  
    bool Watch() {
      bool success = true;
@@ -245,10 +242,10 @@ index ab84b22..8da47b8 100644
      if (!config_watcher_.Watch(base::Bind(&Watcher::OnConfigChanged,
                                            base::Unretained(this)))) {
        LOG(ERROR) << "DNS config watch failed to start.";
-@@ -220,6 +221,7 @@ class DnsConfigServicePosix::Watcher {
+@@ -229,6 +230,7 @@ class DnsConfigServicePosix::Watcher {
                                  DNS_CONFIG_WATCH_MAX);
      }
- #endif
+ #endif  // !defined(OS_ANDROID) && !defined(OS_IOS)
 +#endif
      return success;
    }
