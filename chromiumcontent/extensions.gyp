@@ -24,7 +24,7 @@
         '<(DEPTH)/components/components.gyp:url_matcher',
         '<(DEPTH)/components/components.gyp:user_prefs',
         '<(DEPTH)/components/components.gyp:web_cache_browser',
-        '<(DEPTH)/components/components.gyp:web_cache_common',
+        '<(DEPTH)/components/components.gyp:web_cache_mojo_bindings',
         '<(DEPTH)/components/components.gyp:web_modal',
         '<(DEPTH)/extensions/browser/api/api_registration.gyp:extensions_api_registration',
         '<(DEPTH)/extensions/common/api/api.gyp:extensions_api',
