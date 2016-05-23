@@ -3,7 +3,8 @@
 import os
 import glob
 import shutil
-from lib.util import get_configuration, get_output_dir
+import lib.util
+from lib.config import get_configuration
 
 SOURCE_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), '..'))
 DIST_DIR = os.path.join(SOURCE_ROOT, 'dist')
@@ -36,7 +37,6 @@ BINARIES = {
     'libguest_view_renderer.a',
     'libleveldatabase.a',
     'libmojo_cpp_bindings.a',
-    'libmojo_environment_chromium.a',
     'libmojo_js_bindings.a',
     'libpref_registry.a',
     'libre2.a',
@@ -45,7 +45,7 @@ BINARIES = {
     'libui_zoom.a',
     'libvariations.a',
     'libweb_cache_browser.a',
-    'libweb_cache_common.a',
+    'libweb_cache_mojo_bindings.a',
     'libweb_modal.a',
     'libxml2.a',
     'libzlib_x86_simd.a',
@@ -71,7 +71,6 @@ BINARIES = {
     'libguest_view_renderer.a',
     'libleveldatabase.a',
     'libmojo_cpp_bindings.a',
-    'libmojo_environment_chromium.a',
     'libmojo_js_bindings.a',
     'libpref_registry.a',
     'libre2.a',
@@ -80,7 +79,7 @@ BINARIES = {
     'libui_zoom.a',
     'libvariations.a',
     'libweb_cache_browser.a',
-    'libweb_cache_common.a',
+    'libweb_cache_mojo_bindings.a',
     'libweb_modal.a',
     'libxml2.a',
     'libzlib_x86_simd.a',
@@ -105,7 +104,6 @@ BINARIES = {
     os.path.join('obj', 'components', 'guest_view_renderer.lib'),
     os.path.join('obj', 'third_party', 'leveldatabase', 'leveldatabase.lib'),
     os.path.join('obj', 'mojo', 'mojo_cpp_bindings.lib'),
-    os.path.join('obj', 'mojo', 'mojo_environment_chromium.lib'),
     os.path.join('obj', 'mojo', 'mojo_js_bindings.lib'),
     os.path.join('obj', 'components', 'pref_registry.lib'),
     os.path.join('obj', 'third_party', 're2', 're2.lib'),
@@ -114,7 +112,7 @@ BINARIES = {
     os.path.join('obj', 'components', 'ui_zoom.lib'),
     os.path.join('obj', 'components', 'variations.lib'),
     os.path.join('obj', 'components', 'web_cache_browser.lib'),
-    os.path.join('obj', 'components', 'web_cache_common.lib'),
+    os.path.join('obj', 'components', 'web_cache_mojo_bindings.lib'),
     os.path.join('obj', 'components', 'web_modal.lib'),
     os.path.join('obj', 'third_party', 'libxml', 'libxml2.lib'),
     os.path.join('obj', 'third_party', 'zlib', 'zlib_x86_simd.lib')
