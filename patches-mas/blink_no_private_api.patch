@@ -1,8 +1,8 @@
 diff --git a/third_party/WebKit/Source/core/paint/ThemePainterMac.mm b/third_party/WebKit/Source/core/paint/ThemePainterMac.mm
-index 7424cb6..cbaf670c 100644
+index 6c63ca8..eff87fe 100644
 --- a/third_party/WebKit/Source/core/paint/ThemePainterMac.mm
 +++ b/third_party/WebKit/Source/core/paint/ThemePainterMac.mm
-@@ -41,12 +41,14 @@
+@@ -40,12 +40,14 @@
  
  // The methods in this file are specific to the Mac OS X platform.
  
@@ -17,7 +17,7 @@ index 7424cb6..cbaf670c 100644
  
  namespace blink {
  
-@@ -71,7 +73,9 @@ bool ThemePainterMac::paintTextField(const LayoutObject& o, const PaintInfo& pai
+@@ -70,7 +72,9 @@
      // background. We need WebCore to paint styled backgrounds, so we'll use
      // this AppKit SPI function instead.
      if (!useNSTextFieldCell) {
@@ -27,7 +27,7 @@ index 7424cb6..cbaf670c 100644
          return false;
      }
  #endif
-@@ -152,7 +156,9 @@ bool ThemePainterMac::paintCapsLockIndicator(const LayoutObject&, const PaintInf
+@@ -151,7 +155,9 @@
  bool ThemePainterMac::paintTextArea(const LayoutObject& o, const PaintInfo& paintInfo, const IntRect& r)
  {
      LocalCurrentGraphicsContext localContext(paintInfo.context, &paintInfo.cullRect().m_rect, r);
@@ -49,7 +49,7 @@ index e605276..0de45bb 100644
  extern "C" {
  
  // Kill ring calls. Would be better to use NSKillRing.h, but that's not available as API or SPI.
-@@ -39,44 +40,59 @@ void _NSNewKillRingSequence();
+@@ -39,44 +40,59 @@
  void _NSSetKillRingToYankedState();
  
  }

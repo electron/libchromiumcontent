@@ -25,7 +25,7 @@ index 583be56..7ad9107 100644
  
  } // namespace blink
 diff --git a/third_party/WebKit/Source/core/dom/DOMArrayBufferBase.h b/third_party/WebKit/Source/core/dom/DOMArrayBufferBase.h
-index 6c73bf5..1368a5e 100644
+index 1ad25ca..7f13590 100644
 --- a/third_party/WebKit/Source/core/dom/DOMArrayBufferBase.h
 +++ b/third_party/WebKit/Source/core/dom/DOMArrayBufferBase.h
 @@ -19,9 +19,24 @@ public:
@@ -66,7 +66,7 @@ index 6c73bf5..1368a5e 100644
 +          m_source(nullptr),
 +          m_byteLength(0)
      {
-         ASSERT(m_buffer);
+         DCHECK(m_buffer);
      }
 +    DOMArrayBufferBase(void* source, unsigned byteLength)
 +        : m_buffer(WTF::ArrayBuffer::create(source, byteLength)),

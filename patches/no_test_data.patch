@@ -1,8 +1,8 @@
 diff --git a/chrome/chrome_resources.gyp b/chrome/chrome_resources.gyp
-index 8b4ecc5..c51ee44 100644
+index dc41d41..9025877 100644
 --- a/chrome/chrome_resources.gyp
 +++ b/chrome/chrome_resources.gyp
-@@ -661,16 +661,6 @@
+@@ -653,16 +653,6 @@
        # GN version: //chrome/test/data/resources:webui_test_resources
        'target_name': 'webui_test_resources',
        'type': 'none',

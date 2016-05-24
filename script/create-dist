@@ -257,6 +257,7 @@ GENERATED_INCLUDE_DIRS = [
   'content',
   'mojo',
   'net',
+  'third_party/WebKit',
   'ui',
 ]
 OTHER_HEADERS = [

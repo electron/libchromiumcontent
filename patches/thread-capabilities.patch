@@ -1,14 +1,15 @@
 diff --git a/sandbox/linux/services/credentials.cc b/sandbox/linux/services/credentials.cc
-index 76038af..3569070 100644
+index 0e569fa..cada9e58 100644
 --- a/sandbox/linux/services/credentials.cc
 +++ b/sandbox/linux/services/credentials.cc
-@@ -327,9 +327,6 @@ pid_t Credentials::ForkAndDropCapabilitiesInChild() {
-   if (pid != 0) {
+@@ -327,8 +327,10 @@ pid_t Credentials::ForkAndDropCapabilitiesInChild() {
      return pid;
    }
--
--  // Since we just forked, we are single threaded.
--  PCHECK(DropAllCapabilitiesOnCurrentThread());
+ 
++#if 0
+   // Since we just forked, we are single threaded.
+   PCHECK(DropAllCapabilitiesOnCurrentThread());
++#endif
    return 0;
  }
  

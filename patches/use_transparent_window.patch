@@ -33,10 +33,10 @@ index 0f87470..d21c721 100644
      : gpu_switching_option_(gfx::PreferIntegratedGpu),
        gpu_switching_option_set_(false),
 diff --git a/ui/gl/gpu_switching_manager.h b/ui/gl/gpu_switching_manager.h
-index 7849d4a..f75863d 100644
+index 92e865a..fb61094 100644
 --- a/ui/gl/gpu_switching_manager.h
 +++ b/ui/gl/gpu_switching_manager.h
-@@ -24,6 +24,9 @@ class GL_EXPORT GpuSwitchingManager {
+@@ -25,6 +25,9 @@ class GL_EXPORT GpuSwitchingManager {
    // Getter for the singleton. This will return NULL on failure.
    static GpuSwitchingManager* GetInstance();
  
