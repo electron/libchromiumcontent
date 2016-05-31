@@ -217,6 +217,7 @@ INCLUDE_DIRS = [
   'content/public',
   'content/renderer',
   'crypto',
+  'device/bluetooth',
   'ipc',
   'gin',
   'gpu',
