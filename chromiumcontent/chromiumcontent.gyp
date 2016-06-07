@@ -6,6 +6,7 @@
       'dependencies': [
         'chromiumcontent',
         '<(DEPTH)/chrome/chrome.gyp:chromedriver',
+        'extensions.gyp:extensions',
       ],
       'conditions': [
         ['OS=="linux"', {
