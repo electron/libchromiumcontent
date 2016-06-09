@@ -105,7 +105,7 @@ BINARIES = {
     os.path.join('obj', 'components', 'guest_view_common.lib'),
     os.path.join('obj', 'components', 'guest_view_renderer.lib'),
     os.path.join('obj', 'third_party', 'leveldatabase', 'leveldatabase.lib'),
-    os.path.join('obj', 'mojo', 'libmojo_cpp_system.lib'),
+    os.path.join('obj', 'mojo', 'mojo_cpp_system.lib'),
     os.path.join('obj', 'mojo', 'mojo_cpp_bindings.lib'),
     os.path.join('obj', 'mojo', 'mojo_js_bindings.lib'),
     os.path.join('obj', 'components', 'pref_registry.lib'),
