@@ -132,6 +132,7 @@ INCLUDE_DIRS = [
   'sync/api',
   'sync/base',
   'sync/internal_api',
+  'components/content_settings',
   'components/user_prefs',
   'components/pref_registry',
   'components/syncable_prefs',
