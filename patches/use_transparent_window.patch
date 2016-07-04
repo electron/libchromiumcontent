@@ -1,8 +1,8 @@
 diff --git a/ui/gl/gpu_switching_manager.cc b/ui/gl/gpu_switching_manager.cc
-index 0f87470..d21c721 100644
+index 758ed91..25b211f 100644
 --- a/ui/gl/gpu_switching_manager.cc
 +++ b/ui/gl/gpu_switching_manager.cc
-@@ -17,6 +17,12 @@
+@@ -16,6 +16,12 @@
  
  namespace ui {
  
@@ -15,7 +15,7 @@ index 0f87470..d21c721 100644
  struct GpuSwitchingManager::PlatformSpecific {
  #if defined(OS_MACOSX)
    CGLPixelFormatObj discrete_pixel_format;
-@@ -28,6 +34,16 @@ GpuSwitchingManager* GpuSwitchingManager::GetInstance() {
+@@ -27,6 +33,16 @@ GpuSwitchingManager* GpuSwitchingManager::GetInstance() {
    return base::Singleton<GpuSwitchingManager>::get();
  }
  
@@ -33,7 +33,7 @@ index 0f87470..d21c721 100644
      : gpu_switching_option_(gfx::PreferIntegratedGpu),
        gpu_switching_option_set_(false),
 diff --git a/ui/gl/gpu_switching_manager.h b/ui/gl/gpu_switching_manager.h
-index 92e865a..fb61094 100644
+index 913962b..ad65e77 100644
 --- a/ui/gl/gpu_switching_manager.h
 +++ b/ui/gl/gpu_switching_manager.h
 @@ -25,6 +25,9 @@ class GL_EXPORT GpuSwitchingManager {
