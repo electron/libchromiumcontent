@@ -1,9 +1,9 @@
 diff --git a/content/browser/frame_host/render_frame_host_manager.cc b/content/browser/frame_host/render_frame_host_manager.cc
-index 4358082..f382e8e 100644
+index 60be821..985da13 100644
 --- a/content/browser/frame_host/render_frame_host_manager.cc
 +++ b/content/browser/frame_host/render_frame_host_manager.cc
 @@ -1142,6 +1142,16 @@ RenderFrameHostManager::GetSiteInstanceForNavigation(
-     bool dest_is_view_source_mode) {
+ 
    SiteInstance* current_instance = render_frame_host_->GetSiteInstance();
  
 +  // Gives user a chance to pass a custom side instance.
