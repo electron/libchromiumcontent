@@ -1,14 +1,14 @@
 diff --git a/third_party/WebKit/Source/core/dom/DOMArrayBuffer.h b/third_party/WebKit/Source/core/dom/DOMArrayBuffer.h
-index e436a07..12cd132 100644
+index e436a07..872df7f 100644
 --- a/third_party/WebKit/Source/core/dom/DOMArrayBuffer.h
 +++ b/third_party/WebKit/Source/core/dom/DOMArrayBuffer.h
 @@ -30,6 +30,10 @@ public:
      {
          return create(WTF::ArrayBuffer::create(contents));
      }
-+    static PassRefPtr<DOMArrayBuffer> createExternal(void* source, unsigned byteLength)
++    static DOMArrayBuffer* createExternal(void* source, unsigned byteLength)
 +    {
-+        return adoptRef(new DOMArrayBuffer(source, byteLength));
++        return new DOMArrayBuffer(source, byteLength);
 +    }
  
      // Only for use by XMLHttpRequest::responseArrayBuffer and
