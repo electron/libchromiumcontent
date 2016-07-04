@@ -28,7 +28,7 @@ def main():
     if args.component == 'all' or args.component == component:
       if component == 'shared_library' and args.no_shared_library:
         continue
-      out_dir = os.path.join(VENDOR_DIR, 'chromium', 'src',
+      out_dir = os.path.join(SOURCE_ROOT, 'src',
                              get_output_dir(target_arch, component))
       config = get_configuration(target_arch)
       config_dir = os.path.relpath(os.path.join(out_dir, config))

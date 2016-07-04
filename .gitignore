@@ -2,5 +2,6 @@
 *.swp
 *.pyc
 /dist/
+/src/
 /libchromiumcontent.zip
 /libchromiumcontent-static.zip
