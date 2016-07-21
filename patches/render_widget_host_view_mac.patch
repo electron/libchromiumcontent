@@ -1,5 +1,5 @@
 diff --git a/content/browser/renderer_host/render_widget_host_view_mac.mm b/content/browser/renderer_host/render_widget_host_view_mac.mm
-index 86481a9..6842f8b 100644
+index bc7ed53..1b5570e 100644
 --- a/content/browser/renderer_host/render_widget_host_view_mac.mm
 +++ b/content/browser/renderer_host/render_widget_host_view_mac.mm
 @@ -87,6 +87,7 @@
@@ -22,7 +22,7 @@ index 86481a9..6842f8b 100644
  // These are not documented, so use only after checking -respondsToSelector:.
  @interface NSApplication (UndocumentedSpeechMethods)
  - (void)speakString:(NSString*)string;
-@@ -574,7 +580,9 @@ float FlipYFromRectToScreen(float y, float rect_height) {
+@@ -579,7 +585,9 @@ float FlipYFromRectToScreen(float y, float rect_height) {
    background_layer_.reset([[CALayer alloc] init]);
    // Set the default color to be white. This is the wrong thing to do, but many
    // UI components expect this view to be opaque.
@@ -32,7 +32,7 @@ index 86481a9..6842f8b 100644
    [cocoa_view_ setLayer:background_layer_];
    [cocoa_view_ setWantsLayer:YES];
  
-@@ -664,6 +672,8 @@ float FlipYFromRectToScreen(float y, float rect_height) {
+@@ -669,6 +677,8 @@ float FlipYFromRectToScreen(float y, float rect_height) {
      browser_compositor_->Unsuspend();
      browser_compositor_state_ = BrowserCompositorActive;
    }
@@ -41,7 +41,7 @@ index 86481a9..6842f8b 100644
  }
  
  void RenderWidgetHostViewMac::SuspendBrowserCompositorView() {
-@@ -1909,6 +1919,9 @@ - (BOOL)acceptsMouseEventsWhenInactive {
+@@ -1914,6 +1924,9 @@ - (BOOL)acceptsMouseEventsWhenInactive {
  }
  
  - (BOOL)acceptsFirstMouse:(NSEvent*)theEvent {
@@ -51,7 +51,7 @@ index 86481a9..6842f8b 100644
    return [self acceptsMouseEventsWhenInactive];
  }
  
-@@ -2045,6 +2058,7 @@ - (BOOL)performKeyEquivalent:(NSEvent*)theEvent {
+@@ -2050,6 +2063,7 @@ - (BOOL)performKeyEquivalent:(NSEvent*)theEvent {
    if (EventIsReservedBySystem(theEvent))
      return NO;
  
@@ -59,7 +59,7 @@ index 86481a9..6842f8b 100644
    // If we return |NO| from this function, cocoa will send the key event to
    // the menu and only if the menu does not process the event to |keyDown:|. We
    // want to send the event to a renderer _before_ sending it to the menu, so
-@@ -2058,6 +2072,7 @@ - (BOOL)performKeyEquivalent:(NSEvent*)theEvent {
+@@ -2063,6 +2077,7 @@ - (BOOL)performKeyEquivalent:(NSEvent*)theEvent {
      DCHECK(![[NSApp mainMenu] performKeyEquivalent:theEvent]);
      return NO;
    }
@@ -67,7 +67,7 @@ index 86481a9..6842f8b 100644
  
    // Command key combinations are sent via performKeyEquivalent rather than
    // keyDown:. We just forward this on and if WebCore doesn't want to handle
-@@ -2808,6 +2823,9 @@ - (RenderWidgetHostViewMac*)renderWidgetHostViewMac {
+@@ -2813,6 +2828,9 @@ - (RenderWidgetHostViewMac*)renderWidgetHostViewMac {
  // move) for the given event. Customize here to be more selective about which
  // key presses to autohide on.
  + (BOOL)shouldAutohideCursorForEvent:(NSEvent*)event {
@@ -77,7 +77,7 @@ index 86481a9..6842f8b 100644
    return ([event type] == NSKeyDown &&
               !([event modifierFlags] & NSCommandKeyMask)) ? YES : NO;
  }
-@@ -2964,9 +2982,11 @@ - (id)accessibilityFocusedUIElement {
+@@ -2969,9 +2987,11 @@ - (id)accessibilityFocusedUIElement {
  // Since this implementation doesn't have to wait any IPC calls, this doesn't
  // make any key-typing jank. --hbono 7/23/09
  //
@@ -89,7 +89,7 @@ index 86481a9..6842f8b 100644
  
  - (NSArray *)validAttributesForMarkedText {
    // This code is just copied from WebKit except renaming variables.
-@@ -2975,7 +2995,9 @@ - (NSArray *)validAttributesForMarkedText {
+@@ -2980,7 +3000,9 @@ - (NSArray *)validAttributesForMarkedText {
          NSUnderlineStyleAttributeName,
          NSUnderlineColorAttributeName,
          NSMarkedClauseSegmentAttributeName,
@@ -99,7 +99,7 @@ index 86481a9..6842f8b 100644
          nil]);
    }
    return validAttributesForMarkedText_.get();
-@@ -3426,6 +3448,10 @@ - (BOOL)readSelectionFromPasteboard:(NSPasteboard*)pboard {
+@@ -3431,6 +3453,10 @@ - (BOOL)readSelectionFromPasteboard:(NSPasteboard*)pboard {
  }
  
  - (BOOL)isOpaque {
