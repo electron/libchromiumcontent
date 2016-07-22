@@ -1,14 +1,14 @@
 diff --git a/third_party/WebKit/Source/core/dom/DOMArrayBuffer.h b/third_party/WebKit/Source/core/dom/DOMArrayBuffer.h
-index 583be56..7ad9107 100644
+index e436a07..872df7f 100644
 --- a/third_party/WebKit/Source/core/dom/DOMArrayBuffer.h
 +++ b/third_party/WebKit/Source/core/dom/DOMArrayBuffer.h
 @@ -30,6 +30,10 @@ public:
      {
          return create(WTF::ArrayBuffer::create(contents));
      }
-+    static PassRefPtr<DOMArrayBuffer> createExternal(void* source, unsigned byteLength)
++    static DOMArrayBuffer* createExternal(void* source, unsigned byteLength)
 +    {
-+        return adoptRef(new DOMArrayBuffer(source, byteLength));
++        return new DOMArrayBuffer(source, byteLength);
 +    }
  
      // Only for use by XMLHttpRequest::responseArrayBuffer and
@@ -25,7 +25,7 @@ index 583be56..7ad9107 100644
  
  } // namespace blink
 diff --git a/third_party/WebKit/Source/core/dom/DOMArrayBufferBase.h b/third_party/WebKit/Source/core/dom/DOMArrayBufferBase.h
-index 1ad25ca..7f13590 100644
+index b969516..d465623 100644
 --- a/third_party/WebKit/Source/core/dom/DOMArrayBufferBase.h
 +++ b/third_party/WebKit/Source/core/dom/DOMArrayBufferBase.h
 @@ -19,9 +19,24 @@ public:
@@ -56,7 +56,7 @@ index 1ad25ca..7f13590 100644
      bool transfer(WTF::ArrayBufferContents& result) { return buffer()->transfer(result); }
      bool shareContentsWith(WTF::ArrayBufferContents& result) { return buffer()->shareContentsWith(result); }
      bool isNeutered() const { return buffer()->isNeutered(); }
-@@ -35,12 +50,25 @@ public:
+@@ -37,12 +52,25 @@ public:
  
  protected:
      explicit DOMArrayBufferBase(PassRefPtr<WTF::ArrayBuffer> buffer)
@@ -84,10 +84,10 @@ index 1ad25ca..7f13590 100644
  
  } // namespace blink
 diff --git a/third_party/WebKit/Source/web/WebArrayBuffer.cpp b/third_party/WebKit/Source/web/WebArrayBuffer.cpp
-index b54776f..48ea74c 100644
+index 471ce6a..29b0bbd 100644
 --- a/third_party/WebKit/Source/web/WebArrayBuffer.cpp
 +++ b/third_party/WebKit/Source/web/WebArrayBuffer.cpp
-@@ -40,6 +40,11 @@ WebArrayBuffer WebArrayBuffer::create(unsigned numElements, unsigned elementByte
+@@ -39,6 +39,11 @@ WebArrayBuffer WebArrayBuffer::create(unsigned numElements, unsigned elementByte
      return WebArrayBuffer(DOMArrayBuffer::create(numElements, elementByteSize));
  }
  
@@ -100,10 +100,10 @@ index b54776f..48ea74c 100644
  {
      m_private.reset();
 diff --git a/third_party/WebKit/public/web/WebArrayBuffer.h b/third_party/WebKit/public/web/WebArrayBuffer.h
-index 883e62f..9b9c62a 100644
+index 668bbfd..85a6c28 100644
 --- a/third_party/WebKit/public/web/WebArrayBuffer.h
 +++ b/third_party/WebKit/public/web/WebArrayBuffer.h
-@@ -55,6 +55,7 @@ public:
+@@ -51,6 +51,7 @@ public:
      }
  
      BLINK_EXPORT static WebArrayBuffer create(unsigned numElements, unsigned elementByteSize);

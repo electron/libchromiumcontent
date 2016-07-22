@@ -153,10 +153,10 @@ index 1ae72bd..920425c 100644
    if ([attribute isEqualToString:
        NSAccessibilityBoundsForRangeParameterizedAttribute]) {
 diff --git a/content/browser/accessibility/browser_accessibility_manager_mac.mm b/content/browser/accessibility/browser_accessibility_manager_mac.mm
-index e43122e..1e0ef69 100644
+index c389a5c..1b34553 100644
 --- a/content/browser/accessibility/browser_accessibility_manager_mac.mm
 +++ b/content/browser/accessibility/browser_accessibility_manager_mac.mm
-@@ -81,8 +81,10 @@
+@@ -83,8 +83,10 @@
      @"AXTextSelectionGranularity";
  NSString* const NSAccessibilityTextSelectionChangedFocus =
      @"AXTextSelectionChangedFocus";
@@ -167,7 +167,7 @@ index e43122e..1e0ef69 100644
  NSString* const NSAccessibilityTextChangeElement = @"AXTextChangeElement";
  NSString* const NSAccessibilityTextEditType = @"AXTextEditType";
  NSString* const NSAccessibilityTextChangeValue = @"AXTextChangeValue";
-@@ -415,8 +417,10 @@
+@@ -425,8 +427,10 @@
      focus_object = focus_object->GetClosestPlatformObject();
      auto native_focus_object = ToBrowserAccessibilityCocoa(focus_object);
      if (native_focus_object && [native_focus_object instanceActive]) {
@@ -179,26 +179,23 @@ index e43122e..1e0ef69 100644
                      forKey:NSAccessibilityTextChangeElement];
      }
 diff --git a/content/common/sandbox_mac.mm b/content/common/sandbox_mac.mm
-index 6a7f2cf..b73447a 100644
+index ab87ff4..d58ec66d4 100644
 --- a/content/common/sandbox_mac.mm
 +++ b/content/common/sandbox_mac.mm
-@@ -43,6 +43,7 @@
+@@ -41,10 +41,12 @@
  #include "ui/base/layout.h"
- #include "ui/gl/gl_surface.h"
+ #include "ui/gl/init/gl_factory.h"
  
 +#ifndef MAS_BUILD
  extern "C" {
  void CGSSetDenyWindowServerConnections(bool);
  void CGSShutdownServerConnections();
-@@ -52,6 +53,7 @@ int sandbox_init_with_parameters(const char* profile,
-                                  const char* const parameters[],
-                                  char** errorbuf);
  };
 +#endif
  
  namespace content {
  namespace {
-@@ -142,6 +144,7 @@ NOINLINE void FatalStringQuoteException(const std::string& str) {
+@@ -135,6 +137,7 @@ NOINLINE void FatalStringQuoteException(const std::string& str) {
  }
  
  bool SandboxCompiler::CompileAndApplyProfile(std::string* error) {
@@ -206,15 +203,15 @@ index 6a7f2cf..b73447a 100644
    char* error_internal = nullptr;
    std::vector<const char*> params;
  
-@@ -161,6 +164,7 @@ NOINLINE void FatalStringQuoteException(const std::string& str) {
- #pragma clang diagnostic pop
+@@ -151,6 +154,7 @@ NOINLINE void FatalStringQuoteException(const std::string& str) {
+     sandbox::Seatbelt::FreeError(error_internal);
      return false;
    }
 +#endif
    return true;
  }
  
-@@ -353,6 +357,7 @@ NOINLINE void FatalStringQuoteException(const std::string& str) {
+@@ -343,6 +347,7 @@ NOINLINE void FatalStringQuoteException(const std::string& str) {
  
    if (sandbox_type == SANDBOX_TYPE_RENDERER &&
        base::mac::IsOSMountainLionOrLater()) {
@@ -222,7 +219,7 @@ index 6a7f2cf..b73447a 100644
      // Now disconnect from WindowServer, after all objects have been warmed up.
      // Shutting down the connection requires connecting to WindowServer,
      // so do this before actually engaging the sandbox. This is only done on
-@@ -361,6 +366,7 @@ NOINLINE void FatalStringQuoteException(const std::string& str) {
+@@ -351,6 +356,7 @@ NOINLINE void FatalStringQuoteException(const std::string& str) {
      // be printed to the system logger on certain OS versions.
      CGSSetDenyWindowServerConnections(true);
      CGSShutdownServerConnections();
@@ -231,7 +228,7 @@ index 6a7f2cf..b73447a 100644
  }
  
 diff --git a/net/dns/dns_config_service_posix.cc b/net/dns/dns_config_service_posix.cc
-index 28c471e..581eeb2 100644
+index ba8a369..7c48676 100644
 --- a/net/dns/dns_config_service_posix.cc
 +++ b/net/dns/dns_config_service_posix.cc
 @@ -208,6 +208,7 @@ class DnsConfigServicePosix::Watcher {
@@ -250,35 +247,3 @@ index 28c471e..581eeb2 100644
      return success;
    }
  
-diff --git a/ui/gfx/font_fallback_mac.mm b/ui/gfx/font_fallback_mac.mm
-index aa66729..1ae4016 100644
---- a/ui/gfx/font_fallback_mac.mm
-+++ b/ui/gfx/font_fallback_mac.mm
-@@ -14,6 +14,7 @@
- #import "base/strings/sys_string_conversions.h"
- #include "ui/gfx/font.h"
- 
-+#ifndef MAS_BUILD
- // CTFontCopyDefaultCascadeListForLanguages() doesn't exist in the 10.6 SDK.
- // There is only the following. It doesn't exist in the public header files,
- // but is an exported symbol so should always link.
-@@ -40,6 +41,7 @@ CFArrayRef CTFontCopyDefaultCascadeListForLanguagesWrapper(
- }
- 
- }  // namespace
-+#endif
- 
- namespace gfx {
- 
-@@ -56,7 +58,11 @@ CFArrayRef CTFontCopyDefaultCascadeListForLanguagesWrapper(
-       stringArrayForKey:@"AppleLanguages"];
-   CFArrayRef languages_cf = base::mac::NSToCFCast(languages);
-   base::ScopedCFTypeRef<CFArrayRef> cascade_list(
-+#ifndef MAS_BUILD
-       CTFontCopyDefaultCascadeListForLanguagesWrapper(
-+#else
-+      CTFontCopyDefaultCascadeListForLanguages(
-+#endif
-           static_cast<CTFontRef>(font.GetNativeFont()), languages_cf));
- 
-   std::vector<Font> fallback_fonts;

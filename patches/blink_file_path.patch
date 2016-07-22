@@ -1,8 +1,8 @@
 diff --git a/third_party/WebKit/Source/core/fileapi/File.idl b/third_party/WebKit/Source/core/fileapi/File.idl
-index 666b073..afc7de8 100644
+index 69c41cf..0bbf8e5 100644
 --- a/third_party/WebKit/Source/core/fileapi/File.idl
 +++ b/third_party/WebKit/Source/core/fileapi/File.idl
-@@ -33,6 +33,7 @@
+@@ -35,6 +35,7 @@ typedef (ArrayBuffer or ArrayBufferView or Blob or USVString) BlobPart;
      Exposed=(Window,Worker),
  ] interface File : Blob {
      readonly attribute DOMString name;

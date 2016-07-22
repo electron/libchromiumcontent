@@ -9,7 +9,7 @@ SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 PATCHES_DIR = os.path.join(SOURCE_ROOT, 'patches')
 PATCHES_MAS_DIR = os.path.join(SOURCE_ROOT, 'patches-mas')
 VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
-SRC_DIR = os.path.join(VENDOR_DIR, 'chromium', 'src')
+SRC_DIR = os.path.join(SOURCE_ROOT, 'src')
 PATCH_PY = os.path.join(VENDOR_DIR, 'python-patch', 'patch.py')
 
 

@@ -1,8 +1,8 @@
 diff --git a/content/browser/renderer_host/render_message_filter.cc b/content/browser/renderer_host/render_message_filter.cc
-index 8d5ae8e..461e693 100644
+index 172a80d..15e170b 100644
 --- a/content/browser/renderer_host/render_message_filter.cc
 +++ b/content/browser/renderer_host/render_message_filter.cc
-@@ -262,6 +262,7 @@ void RenderMessageFilter::OnCreateWindow(
+@@ -291,6 +291,7 @@ void RenderMessageFilter::OnCreateWindow(
            params.opener_top_level_frame_url,
            params.opener_security_origin,
            params.window_container_type,
@@ -11,10 +11,10 @@ index 8d5ae8e..461e693 100644
            params.referrer,
            params.disposition,
 diff --git a/content/public/browser/content_browser_client.cc b/content/public/browser/content_browser_client.cc
-index 23fd868..46d8a77 100644
+index d8c321b..f060cf7 100644
 --- a/content/public/browser/content_browser_client.cc
 +++ b/content/public/browser/content_browser_client.cc
-@@ -277,6 +277,7 @@ bool ContentBrowserClient::CanCreateWindow(
+@@ -281,6 +281,7 @@ bool ContentBrowserClient::CanCreateWindow(
      const GURL& opener_top_level_frame_url,
      const GURL& source_origin,
      WindowContainerType container_type,
@@ -23,10 +23,10 @@ index 23fd868..46d8a77 100644
      const Referrer& referrer,
      WindowOpenDisposition disposition,
 diff --git a/content/public/browser/content_browser_client.h b/content/public/browser/content_browser_client.h
-index 8b111979..c579491 100644
+index 7a61399c..c665d45 100644
 --- a/content/public/browser/content_browser_client.h
 +++ b/content/public/browser/content_browser_client.h
-@@ -137,6 +137,13 @@ class CONTENT_EXPORT ContentBrowserClient {
+@@ -139,6 +139,13 @@ class CONTENT_EXPORT ContentBrowserClient {
   public:
    virtual ~ContentBrowserClient() {}
  
@@ -40,7 +40,7 @@ index 8b111979..c579491 100644
    // Allows the embedder to set any number of custom BrowserMainParts
    // implementations for the browser startup code. See comments in
    // browser_main_parts.h.
-@@ -508,6 +515,7 @@ class CONTENT_EXPORT ContentBrowserClient {
+@@ -510,6 +517,7 @@ class CONTENT_EXPORT ContentBrowserClient {
                                 const GURL& opener_top_level_frame_url,
                                 const GURL& source_origin,
                                 WindowContainerType container_type,
