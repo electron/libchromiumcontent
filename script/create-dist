@@ -180,6 +180,8 @@ ARCH_BLACKLIST = {
     'libdesktop_capture_differ_sse2.a',
   ],
   'x64': [
+    'libprotobuf_full_do_not_use.a',
+    'libprotoc_lib.a',
   ],
   'ia32': [
   ],
