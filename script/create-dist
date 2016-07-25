@@ -238,6 +238,7 @@ INCLUDE_DIRS = [
   'storage',
   'testing',
   'third_party/boringssl',
+  'third_party/khronos',
   'third_party/WebKit/Source/platform',
   'third_party/WebKit/Source/wtf',
   'third_party/WebKit/public',
