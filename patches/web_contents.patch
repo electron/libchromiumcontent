@@ -1,0 +1,102 @@
+diff --git a/content/browser/web_contents/web_contents_impl.cc b/content/browser/web_contents/web_contents_impl.cc
+index e41ef9f..18d110f 100644
+--- a/content/browser/web_contents/web_contents_impl.cc
++++ b/content/browser/web_contents/web_contents_impl.cc
+@@ -1459,29 +1459,38 @@ void WebContentsImpl::Init(const WebContents::CreateParams& params) {
+   WebContentsViewDelegate* delegate =
+       GetContentClient()->browser()->GetWebContentsViewDelegate(this);
+
++  if (params.view && params.delegate_view) {
++    view_.reset(params.view);
++    render_view_host_delegate_view_ = params.delegate_view;
++  }
++
++  if (!view_) {
++
+ #if defined(MOJO_SHELL_CLIENT)
+-  if (MojoShellConnection::Get() &&
+-      base::CommandLine::ForCurrentProcess()->HasSwitch(
+-          switches::kUseMusInRenderer)) {
+-    mus::Window* mus_window = aura::GetMusWindow(params.context);
+-    if (mus_window) {
+-      view_.reset(new WebContentsViewMus(mus_window, this, delegate,
+-                                         &render_view_host_delegate_view_));
++    if (MojoShellConnection::Get() &&
++        base::CommandLine::ForCurrentProcess()->HasSwitch(
++            switches::kUseMusInRenderer)) {
++      mus::Window* mus_window = aura::GetMusWindow(params.context);
++      if (mus_window) {
++        view_.reset(new WebContentsViewMus(mus_window, this, delegate,
++                                           &render_view_host_delegate_view_));
++      }
+     }
+-  }
+ #endif
+
+-  if (!view_) {
+-    view_.reset(CreateWebContentsView(this, delegate,
+-                                      &render_view_host_delegate_view_));
+-  }
++    if (!view_) {
++      view_.reset(CreateWebContentsView(this, delegate,
++                                        &render_view_host_delegate_view_));
++    }
+
+-  if (browser_plugin_guest_ &&
+-      !BrowserPluginGuestMode::UseCrossProcessFramesForGuests()) {
+-    view_.reset(new WebContentsViewGuest(this, browser_plugin_guest_.get(),
+-                                         std::move(view_),
+-                                         &render_view_host_delegate_view_));
++    if (browser_plugin_guest_ &&
++        !BrowserPluginGuestMode::UseCrossProcessFramesForGuests()) {
++      view_.reset(new WebContentsViewGuest(this, browser_plugin_guest_.get(),
++                                           std::move(view_),
++                                           &render_view_host_delegate_view_));
++    }
+   }
++
+   CHECK(render_view_host_delegate_view_);
+   CHECK(view_.get());
+
+@@ -4464,6 +4473,7 @@ void WebContentsImpl::RendererUnresponsive(
+
+   if (rfhi->is_waiting_for_beforeunload_ack() ||
+       rfhi->IsWaitingForUnloadACK()) {
++#if 0
+     // Hang occurred while firing the beforeunload/unload handler.
+     // Pretend the handler fired so tab closing continues as if it had.
+     GetRenderViewHost()->set_sudden_termination_allowed(true);
+@@ -4483,6 +4493,7 @@ void WebContentsImpl::RendererUnresponsive(
+     }
+     if (close)
+       Close();
++#endif
+     return;
+   }
+
+diff --git a/content/public/browser/web_contents.h b/content/public/browser/web_contents.h
+index 7c46c73..4510c1f 100644
+--- a/content/public/browser/web_contents.h
++++ b/content/public/browser/web_contents.h
+@@ -55,8 +55,10 @@ class PageState;
+ class RenderFrameHost;
+ class RenderProcessHost;
+ class RenderViewHost;
++class RenderViewHostDelegateView;
+ class RenderWidgetHostView;
+ class WebContentsDelegate;
++class WebContentsView;
+ struct CustomContextMenuContext;
+ struct DropData;
+ struct Manifest;
+@@ -147,6 +149,10 @@ class WebContents : public PageNavigator,
+     // RenderFrame, have already been created on the renderer side, and
+     // WebContents construction should take this into account.
+     bool renderer_initiated_creation;
++
++    //Optionally specify the view and delegate view.
++    content::WebContentsView* view;
++    content::RenderViewHostDelegateView* delegate_view;
+   };
+
+   // Creates a new WebContents.
