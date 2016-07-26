@@ -1,9 +1,9 @@
 diff --git a/content/browser/compositor/gpu_process_transport_factory.cc b/content/browser/compositor/gpu_process_transport_factory.cc
-index 9a4ad65..ee44b2a 100644
+index ea713fd..1c6c496 100644
 --- a/content/browser/compositor/gpu_process_transport_factory.cc
 +++ b/content/browser/compositor/gpu_process_transport_factory.cc
-@@ -130,6 +130,13 @@ GpuProcessTransportFactory::CreateOffscreenCommandBufferContext() {
- scoped_ptr<cc::SoftwareOutputDevice>
+@@ -188,6 +188,12 @@ GpuProcessTransportFactory::~GpuProcessTransportFactory() {
+ std::unique_ptr<cc::SoftwareOutputDevice>
  GpuProcessTransportFactory::CreateSoftwareOutputDevice(
      ui::Compositor* compositor) {
 +  if (compositor->delegate()) {
@@ -12,12 +12,11 @@ index 9a4ad65..ee44b2a 100644
 +    if (output_device)
 +      return output_device;
 +  }
-+
  #if defined(MOJO_RUNNER_CLIENT)
    if (IsRunningInMojoShell()) {
-     return scoped_ptr<cc::SoftwareOutputDevice>(
+     return std::unique_ptr<cc::SoftwareOutputDevice>(
 diff --git a/ui/compositor/compositor.h b/ui/compositor/compositor.h
-index acae0be..d028ebe 100644
+index a6245da..3319891 100644
 --- a/ui/compositor/compositor.h
 +++ b/ui/compositor/compositor.h
 @@ -17,6 +17,7 @@
@@ -28,8 +27,8 @@ index acae0be..d028ebe 100644
  #include "cc/surfaces/surface_sequence.h"
  #include "cc/trees/layer_tree_host_client.h"
  #include "cc/trees/layer_tree_host_single_thread_client.h"
-@@ -152,6 +153,17 @@ class COMPOSITOR_EXPORT CompositorBeginFrameObserver {
-   virtual void OnSendBeginFrame(const cc::BeginFrameArgs& args) = 0;
+@@ -156,6 +157,17 @@ class COMPOSITOR_EXPORT CompositorLock
+   DISALLOW_COPY_AND_ASSIGN(CompositorLock);
  };
 
 +class COMPOSITOR_EXPORT CompositorDelegate {
@@ -46,22 +45,22 @@ index acae0be..d028ebe 100644
  // Compositor object to take care of GPU painting.
  // A Browser compositor object is responsible for generating the final
  // displayable form of pixels comprising a single widget's contents. It draws an
-@@ -172,6 +184,9 @@ class COMPOSITOR_EXPORT Compositor
+@@ -176,6 +188,9 @@ class COMPOSITOR_EXPORT Compositor
    // Schedules a redraw of the layer tree associated with this compositor.
    void ScheduleDraw();
 
 +  CompositorDelegate* delegate() const { return delegate_; }
-+  void SetDelegate(CompositorDelegate* delegate) { delegate_ =delegate; }
++  void SetDelegate(CompositorDelegate* delegate) { delegate_ = delegate; }
 +
    // Sets the root of the layer tree drawn by this Compositor. The root layer
    // must have no parent. The compositor's root layer is reset if the root layer
    // is destroyed. NULL can be passed to reset the root layer, in which case the
-@@ -346,6 +361,8 @@ class COMPOSITOR_EXPORT Compositor
+@@ -344,6 +359,8 @@ class COMPOSITOR_EXPORT Compositor
+   gfx::Size size_;
 
    ui::ContextFactory* context_factory_;
-
-+  CompositorDelegate* delegate_ = nullptr;
 +
++  CompositorDelegate* delegate_ = nullptr;
+
    // The root of the Layer tree drawn by this compositor.
    Layer* root_layer_;
-
