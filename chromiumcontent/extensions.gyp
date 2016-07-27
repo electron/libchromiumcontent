@@ -6,6 +6,7 @@
       'dependencies': [
         '<(DEPTH)/chrome/common/extensions/api/api.gyp:chrome_api',
         '<(DEPTH)/chrome/chrome_resources.gyp:packed_resources',
+        '<(DEPTH)/services/shell/shell_public.gyp:shell_public',
         '<(DEPTH)/components/components.gyp:browsing_data',
         '<(DEPTH)/components/components.gyp:content_settings_core_common',
         '<(DEPTH)/components/components.gyp:crx_file',
