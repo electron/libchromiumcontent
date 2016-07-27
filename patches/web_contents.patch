@@ -113,3 +113,18 @@ index 6aa00e6..e1b94b3 100644
    };
 
    // Creates a new WebContents.
+diff --git a/content/public/browser/web_contents.cc b/content/public/browser/web_contents.cc
+index 69190cf..05d2250 100644
+--- a/content/public/browser/web_contents.cc
++++ b/content/public/browser/web_contents.cc
+@@ -28,7 +28,9 @@ WebContents::CreateParams::CreateParams(BrowserContext* context,
+       initially_hidden(false),
+       guest_delegate(nullptr),
+       context(nullptr),
+-      renderer_initiated_creation(false) {}
++      renderer_initiated_creation(false),
++      view(nullptr),
++      delegate_view(nullptr) {}
+
+ WebContents::CreateParams::CreateParams(const CreateParams& other) = default;
+ 
