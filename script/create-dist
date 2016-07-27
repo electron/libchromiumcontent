@@ -214,6 +214,7 @@ INCLUDE_DIRS = [
   'components/component_updater',
   'components/devtools_discovery',
   'components/devtools_http_handler',
+  'components/display_compositor',
   'components/os_crypt',
   'components/prefs',
   'components/security_state',
