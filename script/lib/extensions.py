@@ -143,6 +143,7 @@ INCLUDE_DIRS = [
 GENERATED_INCLUDE_DIRS = [
   'chrome',
   'extensions',
+  'services',
 ]
 OTHER_HEADERS = [
   'chrome/common/chrome_isolated_world_ids.h',
