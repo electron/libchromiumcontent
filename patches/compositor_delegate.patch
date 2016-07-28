@@ -16,7 +16,7 @@ index ea713fd..1c6c496 100644
    if (IsRunningInMojoShell()) {
      return std::unique_ptr<cc::SoftwareOutputDevice>(
 diff --git a/ui/compositor/compositor.h b/ui/compositor/compositor.h
-index a6245da..3319891 100644
+index a6245da..48aad02 100644
 --- a/ui/compositor/compositor.h
 +++ b/ui/compositor/compositor.h
 @@ -17,6 +17,7 @@
@@ -27,16 +27,14 @@ index a6245da..3319891 100644
  #include "cc/surfaces/surface_sequence.h"
  #include "cc/trees/layer_tree_host_client.h"
  #include "cc/trees/layer_tree_host_single_thread_client.h"
-@@ -156,6 +157,17 @@ class COMPOSITOR_EXPORT CompositorLock
+@@ -156,6 +157,15 @@ class COMPOSITOR_EXPORT CompositorLock
    DISALLOW_COPY_AND_ASSIGN(CompositorLock);
  };
 
 +class COMPOSITOR_EXPORT CompositorDelegate {
 + public:
 +  virtual std::unique_ptr<cc::SoftwareOutputDevice> CreateSoftwareOutputDevice(
-+      ui::Compositor* compositor) {
-+    return nullptr;
-+  }
++      ui::Compositor* compositor) = 0;
 +
 + protected:
 +  virtual ~CompositorDelegate() {}
@@ -45,7 +43,7 @@ index a6245da..3319891 100644
  // Compositor object to take care of GPU painting.
  // A Browser compositor object is responsible for generating the final
  // displayable form of pixels comprising a single widget's contents. It draws an
-@@ -176,6 +188,9 @@ class COMPOSITOR_EXPORT Compositor
+@@ -176,6 +186,9 @@ class COMPOSITOR_EXPORT Compositor
    // Schedules a redraw of the layer tree associated with this compositor.
    void ScheduleDraw();
 
@@ -55,12 +53,33 @@ index a6245da..3319891 100644
    // Sets the root of the layer tree drawn by this Compositor. The root layer
    // must have no parent. The compositor's root layer is reset if the root layer
    // is destroyed. NULL can be passed to reset the root layer, in which case the
-@@ -344,6 +359,8 @@ class COMPOSITOR_EXPORT Compositor
-   gfx::Size size_;
+@@ -345,6 +358,8 @@ class COMPOSITOR_EXPORT Compositor
 
    ui::ContextFactory* context_factory_;
-+
-+  CompositorDelegate* delegate_ = nullptr;
 
++  CompositorDelegate* delegate_ = nullptr;
++
    // The root of the Layer tree drawn by this compositor.
    Layer* root_layer_;
+
+diff --git a/content/browser/renderer_host/browser_compositor_view_mac.h b/content/browser/renderer_host/browser_compositor_view_mac.h
+index 5a232f9..ec00b1a 100644
+--- a/content/browser/renderer_host/browser_compositor_view_mac.h
++++ b/content/browser/renderer_host/browser_compositor_view_mac.h
+@@ -8,6 +8,7 @@
+ #include <memory>
+
+ #include "base/macros.h"
++#include "content/common/content_export.h"
+ #include "ui/accelerated_widget_mac/accelerated_widget_mac.h"
+ #include "ui/compositor/compositor.h"
+ #include "ui/compositor/compositor_observer.h"
+@@ -18,7 +19,7 @@ namespace content {
+ // into. This structure is used to efficiently recycle these structures across
+ // tabs (because creating a new ui::Compositor for each tab would be expensive
+ // in terms of time and resources).
+-class BrowserCompositorMac : public ui::CompositorObserver {
++class CONTENT_EXPORT BrowserCompositorMac : public ui::CompositorObserver {
+  public:
+   virtual ~BrowserCompositorMac();
+
