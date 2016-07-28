@@ -268,6 +268,8 @@ GENERATED_INCLUDE_DIRS = [
   'net',
   'third_party/WebKit',
   'ui',
+  'services',
+  'skia',
 ]
 OTHER_HEADERS = [
   'content/common/content_export.h',
