@@ -1,78 +1,30 @@
 diff --git a/content/browser/web_contents/web_contents_impl.cc b/content/browser/web_contents/web_contents_impl.cc
-index 5621f82..43ff64f 100644
+index 5621f82..7e494a4 100644
 --- a/content/browser/web_contents/web_contents_impl.cc
 +++ b/content/browser/web_contents/web_contents_impl.cc
-@@ -1511,37 +1511,44 @@ void WebContentsImpl::Init(const WebContents::CreateParams& params) {
+@@ -1511,6 +1511,12 @@ void WebContentsImpl::Init(const WebContents::CreateParams& params) {
    std::string unique_name = params.main_frame_name;
    frame_tree_.root()->SetFrameName(params.main_frame_name, unique_name);
-
--  WebContentsViewDelegate* delegate =
--      GetContentClient()->browser()->GetWebContentsViewDelegate(this);
+ 
 +  if (params.view && params.delegate_view) {
 +    view_.reset(params.view);
 +    render_view_host_delegate_view_ = params.delegate_view;
 +  }
 +
 +  if (!view_) {
-+    WebContentsViewDelegate* delegate =
-+        GetContentClient()->browser()->GetWebContentsViewDelegate(this);
-
- #if defined(MOJO_SHELL_CLIENT)
--  if (MojoShellConnection::Get() &&
--      base::CommandLine::ForCurrentProcess()->HasSwitch(
--          switches::kUseMusInRenderer)) {
--    mus::Window* mus_window = aura::GetMusWindow(params.context);
--    if (mus_window) {
--      view_.reset(new WebContentsViewMus(mus_window, this, delegate,
--                                         &render_view_host_delegate_view_));
-+    if (MojoShellConnection::Get() &&
-+        base::CommandLine::ForCurrentProcess()->HasSwitch(
-+            switches::kUseMusInRenderer)) {
-+      mus::Window* mus_window = aura::GetMusWindow(params.context);
-+      if (mus_window) {
-+        view_.reset(new WebContentsViewMus(mus_window, this, delegate,
-+                                           &render_view_host_delegate_view_));
-+      }
-     }
--  }
- #endif
-
--  if (!view_) {
--    if (browser_plugin_guest_ &&
--        BrowserPluginGuestMode::UseCrossProcessFramesForGuests()) {
--      view_.reset(new WebContentsViewChildFrame(
--          this, delegate, &render_view_host_delegate_view_));
--    } else {
--      view_.reset(CreateWebContentsView(this, delegate,
--                                        &render_view_host_delegate_view_));
-+    if (!view_) {
-+      if (browser_plugin_guest_ &&
-+          BrowserPluginGuestMode::UseCrossProcessFramesForGuests()) {
-+        view_.reset(new WebContentsViewChildFrame(
-+            this, delegate, &render_view_host_delegate_view_));
-+      } else {
-+        view_.reset(CreateWebContentsView(this, delegate,
-+                                          &render_view_host_delegate_view_));
-+      }
-     }
--  }
-
--  if (browser_plugin_guest_ &&
--      !BrowserPluginGuestMode::UseCrossProcessFramesForGuests()) {
--    view_.reset(new WebContentsViewGuest(this, browser_plugin_guest_.get(),
--                                         std::move(view_),
--                                         &render_view_host_delegate_view_));
-+    if (browser_plugin_guest_ &&
-+        !BrowserPluginGuestMode::UseCrossProcessFramesForGuests()) {
-+      view_.reset(new WebContentsViewGuest(this, browser_plugin_guest_.get(),
-+                                           std::move(view_),
-+                                           &render_view_host_delegate_view_));
-+    }
+   WebContentsViewDelegate* delegate =
+       GetContentClient()->browser()->GetWebContentsViewDelegate(this);
+ 
+@@ -1543,6 +1549,7 @@ void WebContentsImpl::Init(const WebContents::CreateParams& params) {
+                                          std::move(view_),
+                                          &render_view_host_delegate_view_));
    }
++  }  // !view_
    CHECK(render_view_host_delegate_view_);
    CHECK(view_.get());
+ 
 @@ -4561,6 +4568,7 @@ void WebContentsImpl::RendererUnresponsive(
-
+ 
    if (rfhi->is_waiting_for_beforeunload_ack() ||
        rfhi->IsWaitingForUnloadACK()) {
 +#if 0
@@ -86,9 +38,9 @@ index 5621f82..43ff64f 100644
 +#endif
      return;
    }
-
+ 
 diff --git a/content/public/browser/web_contents.h b/content/public/browser/web_contents.h
-index 6aa00e6..e1b94b3 100644
+index 6aa00e6..fd130f6 100644
 --- a/content/public/browser/web_contents.h
 +++ b/content/public/browser/web_contents.h
 @@ -55,8 +55,10 @@ class PageState;
@@ -108,23 +60,8 @@ index 6aa00e6..e1b94b3 100644
      bool renderer_initiated_creation;
 +
 +    // Optionally specify the view and delegate view.
-+    content::WebContentsView* view;
-+    content::RenderViewHostDelegateView* delegate_view;
++    content::WebContentsView* view = nullptr;
++    content::RenderViewHostDelegateView* delegate_view = nullptr;
    };
-
-   // Creates a new WebContents.
-diff --git a/content/public/browser/web_contents.cc b/content/public/browser/web_contents.cc
-index 69190cf..05d2250 100644
---- a/content/public/browser/web_contents.cc
-+++ b/content/public/browser/web_contents.cc
-@@ -28,7 +28,9 @@ WebContents::CreateParams::CreateParams(BrowserContext* context,
-       initially_hidden(false),
-       guest_delegate(nullptr),
-       context(nullptr),
--      renderer_initiated_creation(false) {}
-+      renderer_initiated_creation(false),
-+      view(nullptr),
-+      delegate_view(nullptr) {}
-
- WebContents::CreateParams::CreateParams(const CreateParams& other) = default;
  
+   // Creates a new WebContents.
