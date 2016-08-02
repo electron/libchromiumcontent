@@ -435,8 +435,7 @@ def GenerateCredits(file_template_file, entry_template_file, output_file):
             template = template.replace('{{%s}}' % key, val)
         return template
 
-    root = os.path.join(os.path.dirname(__file__), '..', 'vendor', 'chromium',
-                        'src')
+    root = os.path.join(os.path.dirname(__file__), '..', 'src')
     third_party_dirs = FindThirdPartyDirs(PRUNE_PATHS, root)
 
     if not file_template_file:
