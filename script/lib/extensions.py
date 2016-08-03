@@ -139,6 +139,7 @@ INCLUDE_DIRS = [
   'components/keyed_service',
   'components/web_modal',
   'components/crx_file',
+  'components/ui'
 ]
 GENERATED_INCLUDE_DIRS = [
   'chrome',
