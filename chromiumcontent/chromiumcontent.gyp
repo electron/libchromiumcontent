@@ -7,6 +7,7 @@
         'chromiumcontent',
         '<(DEPTH)/chrome/chrome.gyp:chromedriver',
         'extensions.gyp:extensions',
+        'autofill.gyp:autofill',
       ],
       'conditions': [
         ['OS=="linux"', {
