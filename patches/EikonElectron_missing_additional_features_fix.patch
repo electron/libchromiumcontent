@@ -1,0 +1,50 @@
+Left base folder: C:\Dev\GitHub\libchromiumcontent\src
+Right base folder: C:\Dev\GitHub\chromium52.src.org
+--- content\public\browser\content_browser_client.h	2016-09-02 11:11:01.000000000 +0200
++++ content\public\browser\content_browser_client.h	2016-09-01 14:57:55.000000000 +0200
+@@ -519,12 +519,13 @@
+                                WindowContainerType container_type,
+                                const std::string& frame_name,
+                                const GURL& target_url,
+                                const Referrer& referrer,
+                                WindowOpenDisposition disposition,
+                                const blink::WebWindowFeatures& features,
++							   const std::vector<base::string16>& additional_features,
+                                bool user_gesture,
+                                bool opener_suppressed,
+                                ResourceContext* context,
+                                int render_process_id,
+                                int opener_render_view_id,
+                                int opener_render_frame_id,
+--- content\public\browser\content_browser_client.cc	2016-09-01 11:43:54.000000000 +0200
++++ content\public\browser\content_browser_client.cc	2016-09-02 10:26:29.000000000 +0200
+@@ -283,12 +283,13 @@
+     WindowContainerType container_type,
+     const std::string& frame_name,
+     const GURL& target_url,
+     const Referrer& referrer,
+     WindowOpenDisposition disposition,
+     const blink::WebWindowFeatures& features,
++	const std::vector<base::string16>& additional_features,
+     bool user_gesture,
+     bool opener_suppressed,
+     ResourceContext* context,
+     int render_process_id,
+     int opener_render_view_id,
+     int opener_render_frame_id,
+--- content\browser\renderer_host\render_message_filter.cc	2016-09-01 11:43:54.000000000 +0200
++++ content\browser\renderer_host\render_message_filter.cc	2016-09-01 14:55:31.000000000 +0200
+@@ -293,12 +293,13 @@
+           params.window_container_type,
+           params.frame_name,
+           params.target_url,
+           params.referrer,
+           params.disposition,
+           params.features,
++		  params.additional_features,
+           params.user_gesture,
+           params.opener_suppressed,
+           resource_context_,
+           render_process_id_,
+           params.opener_id,
+           params.opener_render_frame_id,
