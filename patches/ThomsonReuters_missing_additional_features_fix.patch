@@ -1,0 +1,50 @@
+Left base folder: C:\Dev\GitHub\libchromiumcontent\src
+Right base folder: C:\Dev\GitHub\libchromiumcontent\patch-sources\ThomsonReuters_missing_additional_features_fix\53.0.2785.113
+--- content\public\browser\content_browser_client.h	2016-09-16 09:47:51.000000000 +0200
++++ content\public\browser\content_browser_client.h	2016-09-16 09:33:32.000000000 +0200
+@@ -512,12 +512,13 @@
+                                const GURL& source_origin,
+                                WindowContainerType container_type,
+                                const GURL& target_url,
+                                const Referrer& referrer,
+                                WindowOpenDisposition disposition,
+                                const blink::WebWindowFeatures& features,
++							   const std::vector<base::string16>& additional_features,
+                                bool user_gesture,
+                                bool opener_suppressed,
+                                ResourceContext* context,
+                                int render_process_id,
+                                int opener_render_view_id,
+                                int opener_render_frame_id,
+--- content\public\browser\content_browser_client.cc	2016-09-16 09:47:51.000000000 +0200
++++ content\public\browser\content_browser_client.cc	2016-09-16 09:33:14.000000000 +0200
+@@ -285,12 +285,13 @@
+     const GURL& source_origin,
+     WindowContainerType container_type,
+     const GURL& target_url,
+     const Referrer& referrer,
+     WindowOpenDisposition disposition,
+     const blink::WebWindowFeatures& features,
++	const std::vector<base::string16>& additional_features,
+     bool user_gesture,
+     bool opener_suppressed,
+     ResourceContext* context,
+     int render_process_id,
+     int opener_render_view_id,
+     int opener_render_frame_id,
+--- content\browser\renderer_host\render_message_filter.cc	2016-09-16 09:47:51.000000000 +0200
++++ content\browser\renderer_host\render_message_filter.cc	2016-09-16 09:36:51.000000000 +0200
+@@ -258,12 +258,13 @@
+           params.opener_security_origin,
+           params.window_container_type,
+           params.target_url,
+           params.referrer,
+           params.disposition,
+           params.features,
++		  params.additional_features,
+           params.user_gesture,
+           params.opener_suppressed,
+           resource_context_,
+           render_process_id_,
+           params.opener_id,
+           params.opener_render_frame_id,
