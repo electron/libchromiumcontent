@@ -1,8 +1,8 @@
 diff --git a/content/browser/renderer_host/render_widget_host_impl.cc b/content/browser/renderer_host/render_widget_host_impl.cc
-index 46f640f..4be740d 100644
+index cfaa8b5..ef1020d 100644
 --- a/content/browser/renderer_host/render_widget_host_impl.cc
 +++ b/content/browser/renderer_host/render_widget_host_impl.cc
-@@ -177,7 +177,8 @@ RenderWidgetHostImpl::RenderWidgetHostImpl(RenderWidgetHostDelegate* delegate,
+@@ -179,7 +179,8 @@ RenderWidgetHostImpl::RenderWidgetHostImpl(RenderWidgetHostDelegate* delegate,
                                             RenderProcessHost* process,
                                             int32_t routing_id,
                                             bool hidden)
@@ -12,7 +12,7 @@ index 46f640f..4be740d 100644
        destroyed_(false),
        delegate_(delegate),
        owner_delegate_(nullptr),
-@@ -495,6 +496,9 @@ void RenderWidgetHostImpl::WasHidden() {
+@@ -508,6 +509,9 @@ void RenderWidgetHostImpl::WasHidden() {
    if (is_hidden_)
      return;
  
@@ -23,10 +23,10 @@ index 46f640f..4be740d 100644
    is_hidden_ = true;
  
 diff --git a/content/browser/renderer_host/render_widget_host_impl.h b/content/browser/renderer_host/render_widget_host_impl.h
-index 039b268..42c199f 100644
+index eb97ebf..d75edd3 100644
 --- a/content/browser/renderer_host/render_widget_host_impl.h
 +++ b/content/browser/renderer_host/render_widget_host_impl.h
-@@ -116,6 +116,9 @@ class CONTENT_EXPORT RenderWidgetHostImpl : public RenderWidgetHost,
+@@ -122,6 +122,9 @@ class CONTENT_EXPORT RenderWidgetHostImpl : public RenderWidgetHost,
    // RenderWidgetHostImpl.
    static RenderWidgetHostImpl* From(RenderWidgetHost* rwh);
  
