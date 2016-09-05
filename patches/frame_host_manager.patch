@@ -1,8 +1,8 @@
 diff --git a/content/browser/frame_host/render_frame_host_manager.cc b/content/browser/frame_host/render_frame_host_manager.cc
-index 60be821..985da13 100644
+index 5380f6e..f3ab2ad 100644
 --- a/content/browser/frame_host/render_frame_host_manager.cc
 +++ b/content/browser/frame_host/render_frame_host_manager.cc
-@@ -1142,6 +1142,16 @@ RenderFrameHostManager::GetSiteInstanceForNavigation(
+@@ -1176,6 +1176,16 @@ RenderFrameHostManager::GetSiteInstanceForNavigation(
  
    SiteInstance* current_instance = render_frame_host_->GetSiteInstance();
  
