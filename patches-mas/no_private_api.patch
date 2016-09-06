@@ -30,7 +30,7 @@ index 39d89e1..0f7da00 100644
  // is concerned.
  @property(nonatomic, readonly) NSString* subrole;
 diff --git a/content/browser/accessibility/browser_accessibility_cocoa.mm b/content/browser/accessibility/browser_accessibility_cocoa.mm
-index 6b6a156d..a3faece 100644
+index 6b6a156d..b1c080c 100644
 --- a/content/browser/accessibility/browser_accessibility_cocoa.mm
 +++ b/content/browser/accessibility/browser_accessibility_cocoa.mm
 @@ -98,6 +98,7 @@
@@ -136,7 +136,20 @@ index 6b6a156d..a3faece 100644
  
  // Returns a subrole based upon the role.
  - (NSString*) subrole {
-@@ -2029,6 +2045,7 @@ - (id)accessibilityAttributeValue:(NSString*)attribute
+@@ -1907,10 +1923,12 @@ - (NSAttributedString*)attributedValueForRange:(NSRange)range {
+   NSString* value = base::SysUTF16ToNSString(browserAccessibility_->GetValue());
+   NSMutableAttributedString* attributedValue =
+       [[[NSMutableAttributedString alloc] initWithString:value] autorelease];
++#ifndef MAS_BUILD
+   std::vector<const BrowserAccessibility*> textOnlyObjects =
+       BrowserAccessibilityManager::FindTextOnlyObjectsInRange(
+           *browserAccessibility_, *browserAccessibility_);
+   AddMisspelledTextAttributes(textOnlyObjects, attributedValue);
++#endif
+   return [attributedValue attributedSubstringFromRange:range];
+ }
+ 
+@@ -2029,6 +2047,7 @@ - (id)accessibilityAttributeValue:(NSString*)attribute
      return nil;
    }
  
@@ -144,7 +157,7 @@ index 6b6a156d..a3faece 100644
    if ([attribute isEqualToString:@"AXUIElementForTextMarker"]) {
      BrowserAccessibility* object;
      int offset;
-@@ -2196,6 +2213,7 @@ - (id)accessibilityAttributeValue:(NSString*)attribute
+@@ -2196,6 +2215,7 @@ - (id)accessibilityAttributeValue:(NSString*)attribute
      NSString* text = GetTextForTextMarkerRange(parameter);
      return [NSNumber numberWithInt:[text length]];
    }
@@ -152,6 +165,22 @@ index 6b6a156d..a3faece 100644
  
    if ([attribute isEqualToString:
        NSAccessibilityBoundsForRangeParameterizedAttribute]) {
+@@ -2233,6 +2253,7 @@ - (id)accessibilityAttributeValue:(NSString*)attribute
+     return nil;
+   }
+ 
++#ifndef MAS_BUILD
+   if ([attribute
+           isEqualToString:
+               NSAccessibilityLineTextMarkerRangeForTextMarkerParameterizedAttribute]) {
+@@ -2248,6 +2269,7 @@ - (id)accessibilityAttributeValue:(NSString*)attribute
+         object->GetLineStartBoundary(offset, ui::FORWARDS_DIRECTION);
+     return CreateTextMarkerRange(*object, start_offset, *object, end_offset);
+   }
++#endif
+ 
+   return nil;
+ }
 diff --git a/content/browser/accessibility/browser_accessibility_manager_mac.mm b/content/browser/accessibility/browser_accessibility_manager_mac.mm
 index 604e420..be0e041 100644
 --- a/content/browser/accessibility/browser_accessibility_manager_mac.mm
