@@ -266,6 +266,7 @@ INCLUDE_DIRS = [
 GENERATED_INCLUDE_DIRS = [
   'content',
   'mojo',
+  'media',
   'net',
   'third_party/WebKit',
   'ui',
