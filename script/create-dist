@@ -235,6 +235,7 @@ INCLUDE_DIRS = [
   'printing',
   'ppapi',
   'sandbox',
+  'services',
   'skia',
   'storage',
   'testing',
