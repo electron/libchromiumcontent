@@ -15,29 +15,6 @@ index 841fea0..18273af 100644
  #if defined(MOJO_RUNNER_CLIENT)
    if (shell::ShellIsRemote()) {
      return std::unique_ptr<cc::SoftwareOutputDevice>(
-diff --git a/content/browser/renderer_host/browser_compositor_view_mac.h b/content/browser/renderer_host/browser_compositor_view_mac.h
-index 358adff..01d66a0 100644
---- a/content/browser/renderer_host/browser_compositor_view_mac.h
-+++ b/content/browser/renderer_host/browser_compositor_view_mac.h
-@@ -10,6 +10,7 @@
- #include "base/macros.h"
- #include "cc/scheduler/begin_frame_source.h"
- #include "content/browser/renderer_host/delegated_frame_host.h"
-+#include "content/common/content_export.h"
- #include "ui/compositor/compositor.h"
- #include "ui/compositor/compositor_observer.h"
- 
-@@ -49,8 +50,8 @@ class BrowserCompositorMacClient {
- //   is visible.
- // - The RenderWidgetHostViewMac that is used to display these frames is
- //   attached to the NSView hierarchy of an NSWindow.
--class BrowserCompositorMac : public cc::BeginFrameObserver,
--                             public DelegatedFrameHostClient {
-+class CONTENT_EXPORT BrowserCompositorMac : public cc::BeginFrameObserver,
-+                                            public DelegatedFrameHostClient {
-  public:
-   BrowserCompositorMac(
-       ui::AcceleratedWidgetMacNSView* accelerated_widget_mac_ns_view,
 diff --git a/ui/compositor/compositor.h b/ui/compositor/compositor.h
 index ee39c59..86f69e5 100644
 --- a/ui/compositor/compositor.h
