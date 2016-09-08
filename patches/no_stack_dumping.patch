@@ -1,8 +1,8 @@
 diff --git a/content/app/content_main_runner.cc b/content/app/content_main_runner.cc
-index 95b8526..0f8deca 100644
+index 49b9434..3cdcdf6 100644
 --- a/content/app/content_main_runner.cc
 +++ b/content/app/content_main_runner.cc
-@@ -233,7 +233,7 @@ void CommonSubprocessInit(const std::string& process_type) {
+@@ -231,7 +231,7 @@ void CommonSubprocessInit(const std::string& process_type) {
    setlocale(LC_NUMERIC, "C");
  #endif
  

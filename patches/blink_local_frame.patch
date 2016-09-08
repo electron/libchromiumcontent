@@ -1,8 +1,8 @@
 diff --git a/third_party/WebKit/Source/core/frame/LocalFrame.cpp b/third_party/WebKit/Source/core/frame/LocalFrame.cpp
-index ec75129..e0a88ad 100644
+index 5477e36..f49dfa5 100644
 --- a/third_party/WebKit/Source/core/frame/LocalFrame.cpp
 +++ b/third_party/WebKit/Source/core/frame/LocalFrame.cpp
-@@ -330,10 +330,6 @@ void LocalFrame::detach(FrameDetachType type)
+@@ -389,10 +389,6 @@ void LocalFrame::detach(FrameDetachType type)
      m_loader.stopAllLoaders();
      m_loader.detach();
      document()->detach();
@@ -11,9 +11,9 @@ index ec75129..e0a88ad 100644
 -    // - Document::detach()'s deferred widget updates can run script.
 -    ScriptForbiddenScope forbidScript;
      m_loader.clear();
-     if (!client())
-         return;
-@@ -342,6 +338,7 @@ void LocalFrame::detach(FrameDetachType type)
+     // Clear FrameScheduler again in case it is recreated in scripting.
+     m_frameScheduler.reset();
+@@ -403,6 +399,7 @@ void LocalFrame::detach(FrameDetachType type)
      // Notify ScriptController that the frame is closing, since its cleanup ends up calling
      // back to FrameLoaderClient via WindowProxy.
      script().clearForClose();

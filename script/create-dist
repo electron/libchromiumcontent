@@ -224,7 +224,7 @@ INCLUDE_DIRS = [
   'content/public',
   'content/renderer',
   'crypto',
-  'device/bluetooth',
+  'device',
   'ipc',
   'gin',
   'gpu',
@@ -235,6 +235,7 @@ INCLUDE_DIRS = [
   'printing',
   'ppapi',
   'sandbox',
+  'services',
   'skia',
   'storage',
   'testing',
@@ -265,9 +266,11 @@ INCLUDE_DIRS = [
 GENERATED_INCLUDE_DIRS = [
   'content',
   'mojo',
+  'media',
   'net',
   'third_party/WebKit',
   'ui',
+  'url',
   'services',
   'skia',
 ]

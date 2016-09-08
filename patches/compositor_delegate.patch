@@ -1,8 +1,8 @@
 diff --git a/content/browser/compositor/gpu_process_transport_factory.cc b/content/browser/compositor/gpu_process_transport_factory.cc
-index ea713fd..1c6c496 100644
+index 841fea0..18273af 100644
 --- a/content/browser/compositor/gpu_process_transport_factory.cc
 +++ b/content/browser/compositor/gpu_process_transport_factory.cc
-@@ -188,6 +188,12 @@ GpuProcessTransportFactory::~GpuProcessTransportFactory() {
+@@ -189,6 +189,12 @@ GpuProcessTransportFactory::~GpuProcessTransportFactory() {
  std::unique_ptr<cc::SoftwareOutputDevice>
  GpuProcessTransportFactory::CreateSoftwareOutputDevice(
      ui::Compositor* compositor) {
@@ -13,10 +13,10 @@ index ea713fd..1c6c496 100644
 +      return output_device;
 +  }
  #if defined(MOJO_RUNNER_CLIENT)
-   if (IsRunningInMojoShell()) {
+   if (shell::ShellIsRemote()) {
      return std::unique_ptr<cc::SoftwareOutputDevice>(
 diff --git a/ui/compositor/compositor.h b/ui/compositor/compositor.h
-index a6245da..48aad02 100644
+index ee39c59..86f69e5 100644
 --- a/ui/compositor/compositor.h
 +++ b/ui/compositor/compositor.h
 @@ -17,6 +17,7 @@
@@ -27,10 +27,10 @@ index a6245da..48aad02 100644
  #include "cc/surfaces/surface_sequence.h"
  #include "cc/trees/layer_tree_host_client.h"
  #include "cc/trees/layer_tree_host_single_thread_client.h"
-@@ -156,6 +157,15 @@ class COMPOSITOR_EXPORT CompositorLock
+@@ -179,6 +180,15 @@ class COMPOSITOR_EXPORT CompositorLock
    DISALLOW_COPY_AND_ASSIGN(CompositorLock);
  };
-
+ 
 +class COMPOSITOR_EXPORT CompositorDelegate {
 + public:
 +  virtual std::unique_ptr<cc::SoftwareOutputDevice> CreateSoftwareOutputDevice(
@@ -43,43 +43,22 @@ index a6245da..48aad02 100644
  // Compositor object to take care of GPU painting.
  // A Browser compositor object is responsible for generating the final
  // displayable form of pixels comprising a single widget's contents. It draws an
-@@ -176,6 +186,9 @@ class COMPOSITOR_EXPORT Compositor
+@@ -199,6 +209,9 @@ class COMPOSITOR_EXPORT Compositor
    // Schedules a redraw of the layer tree associated with this compositor.
    void ScheduleDraw();
-
+ 
 +  CompositorDelegate* delegate() const { return delegate_; }
 +  void SetDelegate(CompositorDelegate* delegate) { delegate_ = delegate; }
 +
    // Sets the root of the layer tree drawn by this Compositor. The root layer
    // must have no parent. The compositor's root layer is reset if the root layer
    // is destroyed. NULL can be passed to reset the root layer, in which case the
-@@ -345,6 +358,8 @@ class COMPOSITOR_EXPORT Compositor
-
+@@ -368,6 +381,8 @@ class COMPOSITOR_EXPORT Compositor
+ 
    ui::ContextFactory* context_factory_;
-
+ 
 +  CompositorDelegate* delegate_ = nullptr;
 +
    // The root of the Layer tree drawn by this compositor.
    Layer* root_layer_;
-
-diff --git a/content/browser/renderer_host/browser_compositor_view_mac.h b/content/browser/renderer_host/browser_compositor_view_mac.h
-index 5a232f9..ec00b1a 100644
---- a/content/browser/renderer_host/browser_compositor_view_mac.h
-+++ b/content/browser/renderer_host/browser_compositor_view_mac.h
-@@ -8,6 +8,7 @@
- #include <memory>
-
- #include "base/macros.h"
-+#include "content/common/content_export.h"
- #include "ui/accelerated_widget_mac/accelerated_widget_mac.h"
- #include "ui/compositor/compositor.h"
- #include "ui/compositor/compositor_observer.h"
-@@ -18,7 +19,7 @@ namespace content {
- // into. This structure is used to efficiently recycle these structures across
- // tabs (because creating a new ui::Compositor for each tab would be expensive
- // in terms of time and resources).
--class BrowserCompositorMac : public ui::CompositorObserver {
-+class CONTENT_EXPORT BrowserCompositorMac : public ui::CompositorObserver {
-  public:
-   virtual ~BrowserCompositorMac();
-
+ 

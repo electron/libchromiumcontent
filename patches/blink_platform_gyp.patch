@@ -1,0 +1,13 @@
+diff --git a/third_party/WebKit/Source/platform/blink_platform.gyp b/third_party/WebKit/Source/platform/blink_platform.gyp
+index 56cd039..9773838 100644
+--- a/third_party/WebKit/Source/platform/blink_platform.gyp
++++ b/third_party/WebKit/Source/platform/blink_platform.gyp
+@@ -161,7 +161,7 @@
+       '<(DEPTH)/ui/gfx/gfx.gyp:gfx',
+       '<(DEPTH)/ui/gfx/gfx.gyp:gfx_geometry',
+       '<(DEPTH)/url/url.gyp:url_lib',
+-      '<(DEPTH)/url/url.gyp:url_interfaces_mojom_for_blink',
++      '<(DEPTH)/url/url.gyp:url_mojom_for_blink',
+       '<(DEPTH)/v8/src/v8.gyp:v8',
+       '<(libjpeg_gyp_path):libjpeg',
+     ],
