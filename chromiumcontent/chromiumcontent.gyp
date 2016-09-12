@@ -30,6 +30,7 @@
       'dependencies': [
         '<(DEPTH)/components/prefs/prefs.gyp:prefs',
         '<(DEPTH)/components/components.gyp:cdm_renderer',
+        '<(DEPTH)/components/components.gyp:cookie_config',
         '<(DEPTH)/components/components.gyp:devtools_discovery',
         '<(DEPTH)/components/components.gyp:devtools_http_handler',
         '<(DEPTH)/components/components.gyp:security_state',
