@@ -182,7 +182,7 @@ index 6b6a156d..b1c080c 100644
    return nil;
  }
 diff --git a/content/browser/accessibility/browser_accessibility_manager_mac.mm b/content/browser/accessibility/browser_accessibility_manager_mac.mm
-index 604e420..be0e041 100644
+index d0052fa..3f114f1 100644
 --- a/content/browser/accessibility/browser_accessibility_manager_mac.mm
 +++ b/content/browser/accessibility/browser_accessibility_manager_mac.mm
 @@ -83,8 +83,10 @@
@@ -196,7 +196,7 @@ index 604e420..be0e041 100644
  NSString* const NSAccessibilityTextChangeElement = @"AXTextChangeElement";
  NSString* const NSAccessibilityTextEditType = @"AXTextEditType";
  NSString* const NSAccessibilityTextChangeValue = @"AXTextChangeValue";
-@@ -425,8 +427,10 @@
+@@ -432,8 +434,10 @@
      focus_object = focus_object->GetClosestPlatformObject();
      auto native_focus_object = ToBrowserAccessibilityCocoa(focus_object);
      if (native_focus_object && [native_focus_object instanceActive]) {
