@@ -1,5 +1,5 @@
 diff --git a/content/browser/renderer_host/render_widget_host_view_mac.mm b/content/browser/renderer_host/render_widget_host_view_mac.mm
-index 284f4fd..5703616 100644
+index 40a2fe7..3242b3e 100644
 --- a/content/browser/renderer_host/render_widget_host_view_mac.mm
 +++ b/content/browser/renderer_host/render_widget_host_view_mac.mm
 @@ -85,6 +85,7 @@
@@ -32,7 +32,7 @@ index 284f4fd..5703616 100644
    [cocoa_view_ setLayer:background_layer_];
    [cocoa_view_ setWantsLayer:YES];
  
-@@ -1696,6 +1704,9 @@ - (BOOL)acceptsMouseEventsWhenInactive {
+@@ -1700,6 +1708,9 @@ - (BOOL)acceptsMouseEventsWhenInactive {
  }
  
  - (BOOL)acceptsFirstMouse:(NSEvent*)theEvent {
@@ -42,7 +42,7 @@ index 284f4fd..5703616 100644
    return [self acceptsMouseEventsWhenInactive];
  }
  
-@@ -1837,6 +1848,7 @@ - (BOOL)performKeyEquivalent:(NSEvent*)theEvent {
+@@ -1841,6 +1852,7 @@ - (BOOL)performKeyEquivalent:(NSEvent*)theEvent {
    if (EventIsReservedBySystem(theEvent))
      return NO;
  
@@ -50,7 +50,7 @@ index 284f4fd..5703616 100644
    // If we return |NO| from this function, cocoa will send the key event to
    // the menu and only if the menu does not process the event to |keyDown:|. We
    // want to send the event to a renderer _before_ sending it to the menu, so
-@@ -1850,6 +1862,7 @@ - (BOOL)performKeyEquivalent:(NSEvent*)theEvent {
+@@ -1854,6 +1866,7 @@ - (BOOL)performKeyEquivalent:(NSEvent*)theEvent {
      DCHECK(![[NSApp mainMenu] performKeyEquivalent:theEvent]);
      return NO;
    }
@@ -58,7 +58,7 @@ index 284f4fd..5703616 100644
  
    // Command key combinations are sent via performKeyEquivalent rather than
    // keyDown:. We just forward this on and if WebCore doesn't want to handle
-@@ -2605,6 +2618,9 @@ - (RenderWidgetHostViewMac*)renderWidgetHostViewMac {
+@@ -2609,6 +2622,9 @@ - (RenderWidgetHostViewMac*)renderWidgetHostViewMac {
  // move) for the given event. Customize here to be more selective about which
  // key presses to autohide on.
  + (BOOL)shouldAutohideCursorForEvent:(NSEvent*)event {
@@ -68,7 +68,7 @@ index 284f4fd..5703616 100644
    return ([event type] == NSKeyDown &&
               !([event modifierFlags] & NSCommandKeyMask)) ? YES : NO;
  }
-@@ -2761,9 +2777,11 @@ - (id)accessibilityFocusedUIElement {
+@@ -2765,9 +2781,11 @@ - (id)accessibilityFocusedUIElement {
  // Since this implementation doesn't have to wait any IPC calls, this doesn't
  // make any key-typing jank. --hbono 7/23/09
  //
@@ -80,7 +80,7 @@ index 284f4fd..5703616 100644
  
  - (NSArray *)validAttributesForMarkedText {
    // This code is just copied from WebKit except renaming variables.
-@@ -2772,7 +2790,9 @@ - (NSArray *)validAttributesForMarkedText {
+@@ -2776,7 +2794,9 @@ - (NSArray *)validAttributesForMarkedText {
          NSUnderlineStyleAttributeName,
          NSUnderlineColorAttributeName,
          NSMarkedClauseSegmentAttributeName,
@@ -90,7 +90,7 @@ index 284f4fd..5703616 100644
          nil]);
    }
    return validAttributesForMarkedText_.get();
-@@ -3221,6 +3241,10 @@ - (BOOL)readSelectionFromPasteboard:(NSPasteboard*)pboard {
+@@ -3225,6 +3245,10 @@ - (BOOL)readSelectionFromPasteboard:(NSPasteboard*)pboard {
  }
  
  - (BOOL)isOpaque {
