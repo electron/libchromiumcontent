@@ -8,6 +8,7 @@
         '<(DEPTH)/chrome/chrome.gyp:chromedriver',
         'extensions.gyp:extensions',
         'autofill.gyp:autofill',
+        'update_client.gyp:update_client',
       ],
       'conditions': [
         ['OS=="linux"', {
