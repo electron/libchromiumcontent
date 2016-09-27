@@ -81,7 +81,7 @@ index 636147c..d0998e4 100644
                                 const Referrer& referrer,
                                 WindowOpenDisposition disposition,
                                 const blink::WebWindowFeatures& features,
-+							   const std::vector<base::string16>& additional_features,
++                               const std::vector<base::string16>& additional_features,
                                 bool user_gesture,
                                 bool opener_suppressed,
                                 ResourceContext* context,
