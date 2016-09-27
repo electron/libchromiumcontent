@@ -25,9 +25,8 @@ diff --git a/content/public/browser/content_browser_client.cc b/content/public/b
 index 153ad54..d5a0c28 100644
 --- a/content/public/browser/content_browser_client.cc
 +++ b/content/public/browser/content_browser_client.cc
-@@ -284,6 +284,7 @@ bool ContentBrowserClient::CanCreateWindow(
 @@ -281,16 +281,18 @@
- 
+
  bool ContentBrowserClient::CanCreateWindow(
      const GURL& opener_url,
      const GURL& opener_top_level_frame_url,
