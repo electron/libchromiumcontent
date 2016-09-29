@@ -2,7 +2,10 @@ diff --git a/content/browser/renderer_host/render_message_filter.cc b/content/br
 index 3843d88..661179e 100644
 --- a/content/browser/renderer_host/render_message_filter.cc
 +++ b/content/browser/renderer_host/render_message_filter.cc
-@@ -257,6 +257,7 @@ void RenderMessageFilter::OnCreateWindow(
+@@ -254,16 +254,18 @@
+   bool can_create_window =
+       GetContentClient()->browser()->CanCreateWindow(
+           params.opener_url,
            params.opener_top_level_frame_url,
            params.opener_security_origin,
            params.window_container_type,
@@ -10,11 +13,22 @@ index 3843d88..661179e 100644
            params.target_url,
            params.referrer,
            params.disposition,
+           params.features,
++          params.additional_features,
+           params.user_gesture,
+           params.opener_suppressed,
+           resource_context_,
+           render_process_id_,
+           params.opener_id,
+           params.opener_render_frame_id,
 diff --git a/content/public/browser/content_browser_client.cc b/content/public/browser/content_browser_client.cc
 index 153ad54..d5a0c28 100644
 --- a/content/public/browser/content_browser_client.cc
 +++ b/content/public/browser/content_browser_client.cc
-@@ -284,6 +284,7 @@ bool ContentBrowserClient::CanCreateWindow(
+@@ -281,16 +281,18 @@
+
+ bool ContentBrowserClient::CanCreateWindow(
+     const GURL& opener_url,
      const GURL& opener_top_level_frame_url,
      const GURL& source_origin,
      WindowContainerType container_type,
@@ -22,11 +36,22 @@ index 153ad54..d5a0c28 100644
      const GURL& target_url,
      const Referrer& referrer,
      WindowOpenDisposition disposition,
+     const blink::WebWindowFeatures& features,
++    const std::vector<base::string16>& additional_features,
+     bool user_gesture,
+     bool opener_suppressed,
+     ResourceContext* context,
+     int render_process_id,
+     int opener_render_view_id,
+     int opener_render_frame_id,
 diff --git a/content/public/browser/content_browser_client.h b/content/public/browser/content_browser_client.h
 index 636147c..d0998e4 100644
 --- a/content/public/browser/content_browser_client.h
 +++ b/content/public/browser/content_browser_client.h
-@@ -141,6 +141,13 @@ class CONTENT_EXPORT ContentBrowserClient {
+@@ -138,12 +138,19 @@
+ // that either already has a hook out to the embedder, or calls out to one of
+ // the observer interfaces.)
+ class CONTENT_EXPORT ContentBrowserClient {
   public:
    virtual ~ContentBrowserClient() {}
  
@@ -40,7 +65,13 @@ index 636147c..d0998e4 100644
    // Allows the embedder to set any number of custom BrowserMainParts
    // implementations for the browser startup code. See comments in
    // browser_main_parts.h.
-@@ -511,6 +518,7 @@ class CONTENT_EXPORT ContentBrowserClient {
+   virtual BrowserMainParts* CreateBrowserMainParts(
+       const MainFunctionParams& parameters);
+ 
+@@ -508,16 +515,18 @@
+   // the window that is created should be scriptable/in the same process.
+   // This is called on the IO thread.
+   virtual bool CanCreateWindow(const GURL& opener_url,
                                 const GURL& opener_top_level_frame_url,
                                 const GURL& source_origin,
                                 WindowContainerType container_type,
@@ -48,3 +79,11 @@ index 636147c..d0998e4 100644
                                 const GURL& target_url,
                                 const Referrer& referrer,
                                 WindowOpenDisposition disposition,
+                                const blink::WebWindowFeatures& features,
++                               const std::vector<base::string16>& additional_features,
+                                bool user_gesture,
+                                bool opener_suppressed,
+                                ResourceContext* context,
+                                int render_process_id,
+                                int opener_render_view_id,
+                                int opener_render_frame_id,
