@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
+import os
 import sys
 
 
 def get_output_dir(target_arch, component):
   # Build in "out/ffmpeg" for Chromium branding of ffmpeg.
   if component == 'ffmpeg':
-    return 'ffmpeg'
+    return os.path.join('out', 'ffmpeg')
 
   # Build in "out/component" for component build.
   if component == 'shared_library':
@@ -20,7 +21,7 @@ def get_output_dir(target_arch, component):
   elif target_arch == 'arm':
     output_dir += '_arm'
 
-  return output_dir
+  return os.path.join('out', output_dir)
 
 
 def get_configuration(target_arch):

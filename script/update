@@ -207,7 +207,7 @@ def run_gn(target_arch, defines):
   os.chdir(SRC_DIR)
   gn = os.path.join(DEPOT_TOOLS, 'gn.py')
   for component in COMPONENTS:
-    output_dir = os.path.join('out', get_output_dir(target_arch, component))
+    output_dir = get_output_dir(target_arch, component)
     subprocess.call([sys.executable, gn, 'gen', output_dir])
 
 

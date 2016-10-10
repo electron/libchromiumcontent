@@ -10,6 +10,7 @@ from lib.config import get_configuration, get_output_dir
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
+SRC_DIR = os.path.join(SOURCE_ROOT, 'src')
 TARGETS = ['chromiumcontent_all']
 COMPONENTS = ['static_library', 'shared_library', 'ffmpeg']
 
@@ -22,20 +23,17 @@ def main():
   args = parse_args()
   target_arch = args.target_arch
 
-  os.chdir(SOURCE_ROOT)
+  os.chdir(SRC_DIR)
 
   for component in COMPONENTS:
     if args.component == 'all' or args.component == component:
       if component == 'shared_library' and args.no_shared_library:
         continue
-      out_dir = os.path.join(SOURCE_ROOT, 'src',
-                             get_output_dir(target_arch, component))
-      config = get_configuration(target_arch)
-      config_dir = os.path.relpath(os.path.join(out_dir, config))
       target = 'chromiumcontent_all'
       if component == 'ffmpeg':
         target = 'ffmpeg'
-      subprocess.check_call([NINJA, '-C', config_dir, target])
+      output_dir = get_output_dir(target_arch, component)
+      subprocess.check_call([NINJA, '-C', output_dir, target])
 
 
 def parse_args():
