@@ -19,6 +19,7 @@ SRC_DIR = os.path.join(SOURCE_ROOT, 'src')
 CHROMIUMCONTENT_SOURCE_DIR = os.path.join(SOURCE_ROOT, 'chromiumcontent')
 CHROMIUMCONTENT_DESTINATION_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
 COMPONENTS = ['static_library', 'shared_library', 'ffmpeg']
+DEPOT_TOOLS = os.path.join(VENDOR_DIR, 'depot_tools')
 
 TARBALL_REPO = 'zcbenz/chromium-source-tarball'
 TARBALL_URL = 'https://github.com/{0}/releases/download/{1}/chromium-{1}.tar.xz'
@@ -38,7 +39,8 @@ def main():
   return (apply_patches() or
           copy_chromiumcontent_files() or
           update_clang() or
-          run_gyp(target_arch, args.defines))
+          update_gn() or
+          run_gn(target_arch, args.defines))
 
 
 def parse_args():
@@ -184,14 +186,29 @@ def update_clang():
   return subprocess.call([sys.executable, update])
 
 
-def run_gyp(target_arch, defines):
+def update_gn():
   os.chdir(SRC_DIR)
-  gyp = os.path.join('build', 'gyp_chromium')
-  relative_dir = os.path.relpath(CHROMIUMCONTENT_DESTINATION_DIR, SRC_DIR)
-  args = [sys.executable, gyp, '-Ichromiumcontent/chromiumcontent.gypi',
-          os.path.join(relative_dir, 'chromiumcontent.gyp')]
+  download = os.path.join(DEPOT_TOOLS, 'download_from_google_storage.py')
+  if sys.platform in ['win32', 'cygwin']:
+    platform = 'win32'
+    key = 'win'
+  elif sys.platform == 'darwin':
+    platform = 'darwin'
+    key = 'mac'
+  else:
+    platform = 'linux*'
+    key = 'linux64'
+  subprocess.call([sys.executable, download, '--no_resume',
+                   '--platform={0}'.format(platform), '--no_auth', '--bucket',
+                   'chromium-gn', '-s', 'buildtools/{0}/gn.sha1'.format(key)])
+
+
+def run_gn(target_arch, defines):
+  os.chdir(SRC_DIR)
+  gn = os.path.join(DEPOT_TOOLS, 'gn.py')
   for component in COMPONENTS:
-    subprocess.call(args, env=gyp_env(target_arch, component, defines))
+    output_dir = os.path.join('out', get_output_dir(target_arch, component))
+    subprocess.call([sys.executable, gn, 'gen', output_dir])
 
 
 def xz():
