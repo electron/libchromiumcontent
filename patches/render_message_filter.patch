@@ -1,11 +1,8 @@
 diff --git a/content/browser/renderer_host/render_message_filter.cc b/content/browser/renderer_host/render_message_filter.cc
-index 3843d88..661179e 100644
+index 3843d88..0b144f9 100644
 --- a/content/browser/renderer_host/render_message_filter.cc
 +++ b/content/browser/renderer_host/render_message_filter.cc
-@@ -254,16 +254,18 @@
-   bool can_create_window =
-       GetContentClient()->browser()->CanCreateWindow(
-           params.opener_url,
+@@ -257,10 +257,13 @@ void RenderMessageFilter::OnCreateWindow(
            params.opener_top_level_frame_url,
            params.opener_security_origin,
            params.window_container_type,
@@ -15,20 +12,38 @@ index 3843d88..661179e 100644
            params.disposition,
            params.features,
 +          params.additional_features,
++          params.resource_request_body,
            params.user_gesture,
            params.opener_suppressed,
            resource_context_,
-           render_process_id_,
-           params.opener_id,
-           params.opener_render_frame_id,
+diff --git a/content/common/view_messages.h b/content/common/view_messages.h
+index a70cb9c..662836b 100644
+--- a/content/common/view_messages.h
++++ b/content/common/view_messages.h
+@@ -23,6 +23,7 @@
+ #include "content/common/frame_replication_state.h"
+ #include "content/common/navigation_gesture.h"
+ #include "content/common/resize_params.h"
++#include "content/common/resource_request_body_impl.h"
+ #include "content/common/text_input_state.h"
+ #include "content/common/view_message_enums.h"
+ #include "content/public/common/common_param_traits.h"
+@@ -332,6 +333,10 @@ IPC_STRUCT_BEGIN(ViewHostMsg_CreateWindow_Params)
+   // separately from |features| above because we cannot serialize WebStrings
+   // over IPC.
+   IPC_STRUCT_MEMBER(std::vector<base::string16>, additional_features)
++
++  // The request body associated with POST requests.
++  IPC_STRUCT_MEMBER(scoped_refptr<content::ResourceRequestBodyImpl>,
++                    resource_request_body)
+ IPC_STRUCT_END()
+ 
+ IPC_STRUCT_BEGIN(ViewHostMsg_CreateWindow_Reply)
 diff --git a/content/public/browser/content_browser_client.cc b/content/public/browser/content_browser_client.cc
-index 153ad54..d5a0c28 100644
+index 153ad54..baf0d187 100644
 --- a/content/public/browser/content_browser_client.cc
 +++ b/content/public/browser/content_browser_client.cc
-@@ -281,16 +281,18 @@
-
- bool ContentBrowserClient::CanCreateWindow(
-     const GURL& opener_url,
+@@ -284,10 +284,13 @@ bool ContentBrowserClient::CanCreateWindow(
      const GURL& opener_top_level_frame_url,
      const GURL& source_origin,
      WindowContainerType container_type,
@@ -38,20 +53,23 @@ index 153ad54..d5a0c28 100644
      WindowOpenDisposition disposition,
      const blink::WebWindowFeatures& features,
 +    const std::vector<base::string16>& additional_features,
++    const scoped_refptr<ResourceRequestBodyImpl>& body,
      bool user_gesture,
      bool opener_suppressed,
      ResourceContext* context,
-     int render_process_id,
-     int opener_render_view_id,
-     int opener_render_frame_id,
 diff --git a/content/public/browser/content_browser_client.h b/content/public/browser/content_browser_client.h
-index 636147c..d0998e4 100644
+index 636147c..303912f 100644
 --- a/content/public/browser/content_browser_client.h
 +++ b/content/public/browser/content_browser_client.h
-@@ -138,12 +138,19 @@
- // that either already has a hook out to the embedder, or calls out to one of
- // the observer interfaces.)
- class CONTENT_EXPORT ContentBrowserClient {
+@@ -118,6 +118,7 @@ class RenderFrameHost;
+ class RenderProcessHost;
+ class RenderViewHost;
+ class ResourceContext;
++class ResourceRequestBodyImpl;
+ class SiteInstance;
+ class SpeechRecognitionManagerDelegate;
+ class TracingDelegate;
+@@ -141,6 +142,13 @@ class CONTENT_EXPORT ContentBrowserClient {
   public:
    virtual ~ContentBrowserClient() {}
  
@@ -65,13 +83,7 @@ index 636147c..d0998e4 100644
    // Allows the embedder to set any number of custom BrowserMainParts
    // implementations for the browser startup code. See comments in
    // browser_main_parts.h.
-   virtual BrowserMainParts* CreateBrowserMainParts(
-       const MainFunctionParams& parameters);
- 
-@@ -508,16 +515,18 @@
-   // the window that is created should be scriptable/in the same process.
-   // This is called on the IO thread.
-   virtual bool CanCreateWindow(const GURL& opener_url,
+@@ -511,10 +519,13 @@ class CONTENT_EXPORT ContentBrowserClient {
                                 const GURL& opener_top_level_frame_url,
                                 const GURL& source_origin,
                                 WindowContainerType container_type,
@@ -81,9 +93,27 @@ index 636147c..d0998e4 100644
                                 WindowOpenDisposition disposition,
                                 const blink::WebWindowFeatures& features,
 +                               const std::vector<base::string16>& additional_features,
++                               const scoped_refptr<ResourceRequestBodyImpl>& body,
                                 bool user_gesture,
                                 bool opener_suppressed,
                                 ResourceContext* context,
-                                int render_process_id,
-                                int opener_render_view_id,
-                                int opener_render_frame_id,
+diff --git a/content/renderer/render_view_impl.cc b/content/renderer/render_view_impl.cc
+index be61076..af3698f 100644
+--- a/content/renderer/render_view_impl.cc
++++ b/content/renderer/render_view_impl.cc
+@@ -42,6 +42,7 @@
+ #include "content/child/child_shared_bitmap_manager.h"
+ #include "content/child/request_extra_data.h"
+ #include "content/child/v8_value_converter_impl.h"
++#include "content/child/web_url_request_util.h"
+ #include "content/child/webmessageportchannel_impl.h"
+ #include "content/common/content_constants_internal.h"
+ #include "content/common/content_switches_internal.h"
+@@ -1503,6 +1504,7 @@ WebView* RenderViewImpl::createView(WebLocalFrame* creator,
+   params.opener_render_frame_id =
+       RenderFrameImpl::FromWebFrame(creator)->GetRoutingID();
+   params.opener_url = creator->document().url();
++  params.resource_request_body = GetRequestBodyForWebURLRequest(request);
+ 
+   // The browser process uses the top frame's URL for a content settings check
+   // to determine whether the popup is allowed.  If the top frame is remote,
