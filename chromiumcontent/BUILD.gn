@@ -1,0 +1,59 @@
+group("chromiumcontent") {
+  deps = [
+    ":libchromiumcontent",
+    "//chrome/test/chromedriver",
+  ]
+
+  if (is_linux) {
+    deps += [
+      ":chromiumview",
+      "//third_party/speech-dispatcher",
+      "//third_party/mesa:osmesa",
+    ]
+  } else if (is_win) {
+    deps += [
+      ":chromiumview",
+    ]
+  }
+}
+
+# Build as shared_library otherwise some static libraries will not build.
+shared_library("libchromiumcontent") {
+  sources = [ "empty.cc" ]
+
+  deps = [
+    "//components/prefs",
+    "//components/cdm/renderer",
+    "//components/cookie_config",
+    "//components/devtools_discovery",
+    "//components/devtools_http_handler",
+    "//components/security_state",
+    "//content/shell:pak",
+    "//content/shell:copy_shell_resources",
+    "//ppapi/host",
+    "//ppapi/proxy",
+    "//ppapi/shared_impl",
+    "//third_party/webrtc/modules/desktop_capture",
+    "//third_party/widevine/cdm:widevinecdmadapter",
+    "//third_party/widevine/cdm:version_h",
+  ]
+
+  if (is_win) {
+    deps += [
+      "//pdf",
+    ]
+  }
+}
+
+if (is_linux || is_win) {
+  group("chromiumviews") {
+    deps = [
+      "//ui/content_accelerators",
+      "//ui/display",
+      "//ui/display:util",
+      "//ui/views/controls/webview",
+      "//ui/views",
+      "//ui/wm/wm",
+    ]
+  }
+}
