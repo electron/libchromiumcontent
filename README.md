@@ -14,7 +14,7 @@ TODO
 
 * [Linux](https://chromium.googlesource.com/chromium/src/+/master/docs/linux_build_instructions_prerequisites.md)
 * [Mac](https://chromium.googlesource.com/chromium/src/+/master/docs/mac_build_instructions.md#Prerequisites)
-* [Windows](http://dev.chromium.org/developers/how-tos/build-instructions-windows)
+* [Windows](https://chromium.googlesource.com/chromium/src/+/master/docs/windows_build_instructions.md)
 
 ### One-time setup
 
