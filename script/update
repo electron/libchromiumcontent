@@ -115,47 +115,6 @@ def tar_xf(filename):
   os.remove(tar_name)
 
 
-def gyp_env(target_arch, component, gyp_defines):
-  env = os.environ.copy()
-
-  if component == 'ffmpeg':
-    gyp_defines += ' ffmpeg_branding=Chromium'
-  else:
-    gyp_defines += ' ffmpeg_branding=Chrome component={0}'.format(component)
-
-  env['GYP_GENERATORS'] = 'ninja'
-
-  if sys.platform in ['win32', 'cygwin']:
-    # Do not let Chromium download their own toolchains.
-    env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
-    # Use VS 2015.
-    env['GYP_MSVS_VERSION'] = '2015'
-    # Use Windows 10 SDK.
-    env['WINDOWSSDKDIR'] = 'C:\\Program Files (x86)\\Windows Kits\\10'
-  elif sys.platform == 'linux2' and target_arch in ('arm', 'ia32'):
-    # ARM build requires cross compilation.
-    env['GYP_CROSSCOMPILE'] = '1'
-
-  # Whether to build for Mac App Store.
-  if env.has_key('MAS_BUILD'):
-    gyp_defines += ' mac_mas_build=1'
-  else:
-    gyp_defines += ' mac_mas_build=0'
-
-  # Always build on 64-bit machine.
-  gyp_defines += ' host_arch=x64'
-
-  # Build 32-bit or 64-bit.
-  gyp_defines += ' target_arch={0}'.format(target_arch)
-  env['GYP_DEFINES'] = gyp_defines
-
-  # Output directory.
-  output_dir = 'output_dir={0}'.format(get_output_dir(target_arch, component))
-  env['GYP_GENERATOR_FLAGS'] = output_dir
-
-  return env
-
-
 def copy_chromiumcontent_files():
   try:
     os.makedirs(CHROMIUMCONTENT_DESTINATION_DIR)
@@ -204,12 +163,50 @@ def update_gn():
                    'chromium-gn', '-s', 'buildtools/{0}/gn.sha1'.format(key)])
 
 
+def gn_env(target_arch):
+  env = os.environ.copy()
+
+  if sys.platform in ['win32', 'cygwin']:
+    # Do not let Chromium download their own toolchains.
+    env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
+    # Use VS 2015.
+    # TODO(zcbenz): How can we do this in gn?
+    env['GYP_MSVS_VERSION'] = '2015'
+    # Use Windows 10 SDK.
+    env['WINDOWSSDKDIR'] = 'C:\\Program Files (x86)\\Windows Kits\\10'
+  elif sys.platform == 'linux2' and target_arch in ('arm', 'ia32'):
+    # ARM build requires cross compilation.
+    # TODO(zcbenz): How can we do this in gn?
+    env['GYP_CROSSCOMPILE'] = '1'
+
+  return env
+
+
+def gn_args(target_arch, component, gyp_defines):
+  args = []
+  if component == 'ffmpeg':
+    args.append('ffmpeg_branding="Chromium" is_component_build=false')
+  else:
+    args.append('ffmpeg_branding="Chrome"')
+    if component == 'shared_library':
+      args.append('is_component_build=true')
+    else:
+      args.append('is_component_build=false')
+
+  # Build 32-bit or 64-bit.
+  args.append('target_cpu="{0}"'.format(target_arch))
+
+  return ' '.join(args) + gyp_defines
+
+
 def run_gn(target_arch, defines):
   os.chdir(SRC_DIR)
   gn = os.path.join(DEPOT_TOOLS, 'gn.py')
   for component in COMPONENTS:
+    args = gn_args(target_arch, component, defines)
     output_dir = get_output_dir(target_arch, component)
-    subprocess.call([sys.executable, gn, 'gen', output_dir])
+    subprocess.call([sys.executable, gn, 'gen', output_dir,
+                     "--args={0}".format(args)], env=gn_env(target_arch))
 
 
 def xz():
