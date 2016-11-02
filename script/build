@@ -28,7 +28,7 @@ def main():
     if args.component == 'all' or args.component == component:
       if component == 'shared_library' and args.no_shared_library:
         continue
-      target = 'libchromiumcontent'
+      target = 'chromiumcontent'
       if component == 'ffmpeg':
         target = 'ffmpeg'
       output_dir = get_output_dir(target_arch, component)

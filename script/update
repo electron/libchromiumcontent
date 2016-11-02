@@ -184,17 +184,45 @@ def gn_env(target_arch):
 
 def gn_args(target_arch, component, gyp_defines):
   args = []
-  if component == 'ffmpeg':
-    args.append('ffmpeg_branding="Chromium" is_component_build=false')
+
+  # Always do Release build.
+  args.append('is_debug=false')
+
+  # Whether to use component build.
+  if component == 'shared_library':
+    args.append('is_component_build=true')
   else:
-    args.append('ffmpeg_branding="Chrome"')
-    if component == 'shared_library':
-      args.append('is_component_build=true')
-    else:
-      args.append('is_component_build=false')
+    args.append('is_component_build=false is_official_build=true')
+
+  # Media setting.
+  if component == 'ffmpeg':
+    args.append('ffmpeg_branding="Chromium" proprietary_codecs=false')
+  else:
+    args.append('ffmpeg_branding="Chrome" proprietary_codecs=true')
 
   # Build 32-bit or 64-bit.
   args.append('target_cpu="{0}"'.format(target_arch))
+
+  # Electron speicific build configurations:
+  args += [
+    # Disable NaCl.
+    'enable_nacl=false',
+    # Build ffmpeg as shared library.
+    'is_component_ffmpeg=true',
+    # Enable support for Widevine CDM.
+    'enable_widevine=true',
+  ]
+  if sys.platform in ['win32', 'cygwin']:
+    args += [
+      # On Chrome 41 this is disabled on Windows.
+      'v8_use_external_startup_data=true',
+    ]
+  elif sys.platform == 'linux2':
+    args += [
+      # Make Linux build contain debug symbols, this flag will add '-g' to
+      # cflags.
+      'symbol_level=2',
+    ]
 
   return ' '.join(args) + gyp_defines
 
