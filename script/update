@@ -203,6 +203,10 @@ def gn_args(target_arch, component, gyp_defines):
   # Build 32-bit or 64-bit.
   args.append('target_cpu="{0}"'.format(target_arch))
 
+  # Build for Mac App Store:
+  if os.environ.has_key('MAS_BUILD'):
+    args.append('mac_mas_build=true')
+
   # Electron speicific build configurations:
   args += [
     # Disable NaCl.
@@ -211,6 +215,8 @@ def gn_args(target_arch, component, gyp_defines):
     'is_component_ffmpeg=true',
     # Enable support for Widevine CDM.
     'enable_widevine=true',
+    # Force V8 to expose symbols.
+    'v8_enable_backtrace=true',
   ]
   if sys.platform in ['win32', 'cygwin']:
     args += [
