@@ -73,6 +73,7 @@ BINARIES = {
     'libsecurity_state.a',
     'libcookie_config.a',
     'libos_crypt.a',
+    'libdom_keycode_converter.a',
   ],
   'linux': [
     'chromedriver',
@@ -93,6 +94,7 @@ BINARIES = {
     'libsecurity_state.a',
     'libcookie_config.a',
     'libos_crypt.a',
+    'libdom_keycode_converter.a',
     os.path.join('lib', 'libffmpeg.so'),
   ],
   'win32': [
@@ -184,6 +186,8 @@ BINARIES = {
     os.path.join('obj', 'third_party', 'webrtc', 'system_wrappers', 'system_wrappers.lib'),
     os.path.join('obj', 'third_party', 'webrtc', 'webrtc_common.cc.pdb'),
     os.path.join('obj', 'third_party', 'webrtc', 'webrtc_common.lib'),
+    os.path.join('obj', 'ui', 'events', 'dom_keycode_converter.cc.pdb'),
+    os.path.join('obj', 'ui', 'events', 'dom_keycode_converter.lib'),
   ],
 }
 

@@ -45,6 +45,7 @@
         '<(DEPTH)/third_party/webrtc/modules/modules.gyp:desktop_capture',
         '<(DEPTH)/third_party/widevine/cdm/widevine_cdm.gyp:widevinecdmadapter',
         '<(DEPTH)/third_party/widevine/cdm/widevine_cdm.gyp:widevine_cdm_version_h',
+        '<(DEPTH)/ui/events/events.gyp:dom_keycode_converter',
       ],
       'sources': [
         'empty.cc',
