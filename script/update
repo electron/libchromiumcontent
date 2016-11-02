@@ -175,6 +175,7 @@ def copy_chromiumcontent_files():
 
 
 def apply_patches():
+  return # Remove this after the upgrade to gn
   return subprocess.call([sys.executable,
                           os.path.join(SOURCE_ROOT, 'script', 'apply-patches')])
 
