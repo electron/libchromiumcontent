@@ -1,5 +1,5 @@
 diff --git a/third_party/WebKit/Source/core/paint/ThemePainterMac.mm b/third_party/WebKit/Source/core/paint/ThemePainterMac.mm
-index 1c410d6f..de2c091 100644
+index c6e4288..29707d7 100644
 --- a/third_party/WebKit/Source/core/paint/ThemePainterMac.mm
 +++ b/third_party/WebKit/Source/core/paint/ThemePainterMac.mm
 @@ -40,12 +40,14 @@
@@ -27,7 +27,7 @@ index 1c410d6f..de2c091 100644
          return false;
      }
  #endif
-@@ -151,7 +155,9 @@
+@@ -153,7 +157,9 @@
  bool ThemePainterMac::paintTextArea(const LayoutObject& o, const PaintInfo& paintInfo, const IntRect& r)
  {
      LocalCurrentGraphicsContext localContext(paintInfo.context, r);
