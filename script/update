@@ -150,16 +150,16 @@ def update_gn():
   download = os.path.join(DEPOT_TOOLS, 'download_from_google_storage.py')
   if sys.platform in ['win32', 'cygwin']:
     platform = 'win32'
-    key = 'win'
+    key = 'win/gn.exe.sha1'
   elif sys.platform == 'darwin':
     platform = 'darwin'
-    key = 'mac'
+    key = 'mac/gn.sha1'
   else:
     platform = 'linux*'
-    key = 'linux64'
+    key = 'linux64/gn.sha1'
   subprocess.call([sys.executable, download, '--no_resume',
                    '--platform={0}'.format(platform), '--no_auth', '--bucket',
-                   'chromium-gn', '-s', 'buildtools/{0}/gn.sha1'.format(key)])
+                   'chromium-gn', '-s', 'buildtools/{0}'.format(key)])
 
 
 def gn_env(target_arch):
@@ -234,12 +234,17 @@ def gn_args(target_arch, component, gyp_defines):
 
 def run_gn(target_arch, defines):
   os.chdir(SRC_DIR)
-  gn = os.path.join(DEPOT_TOOLS, 'gn.py')
+  if sys.platform in ['win32', 'cygwin']:
+    gn = os.path.join(SRC_DIR, 'buildtools', 'win', 'gn.exe')
+  elif sys.platform == 'linux2':
+    gn = os.path.join(SRC_DIR, 'buildtools', 'linux64', 'gn')
+  elif sys.platform == 'darwin':
+    gn = os.path.join(SRC_DIR, 'buildtools', 'mac', 'gn')
   for component in COMPONENTS:
     args = gn_args(target_arch, component, defines)
     output_dir = get_output_dir(target_arch, component)
-    subprocess.call([sys.executable, gn, 'gen', output_dir,
-                     "--args={0}".format(args)], env=gn_env(target_arch))
+    subprocess.call([gn, 'gen', output_dir, "--args={0}".format(args)],
+                    env=gn_env(target_arch))
 
 
 def xz():
