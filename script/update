@@ -212,8 +212,6 @@ def gn_args(target_arch, component, gyp_defines):
     'enable_nacl=false',
     # Build ffmpeg as shared library.
     'is_component_ffmpeg=true',
-    # Enable support for Widevine CDM.
-    'enable_widevine=true',
     # Force V8 to expose symbols.
     'v8_enable_backtrace=true',
   ]
