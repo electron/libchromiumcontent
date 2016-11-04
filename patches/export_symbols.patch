@@ -1,22 +1,17 @@
 diff --git a/BUILD.gn b/BUILD.gn
-index acc203c..ee1c79c 100644
+index acc203c..a509cbe 100644
 --- a/BUILD.gn
 +++ b/BUILD.gn
-@@ -19,6 +19,8 @@ import("//tools/ipc_fuzzer/ipc_fuzzer.gni")
- import("//v8/gni/v8.gni")
- import("//v8/snapshot_toolchain.gni")
- 
-+import("//chromiumcontent/chromiumcontent.gni")
-+
- if (is_android) {
-   import("//build/config/android/config.gni")
- }
-@@ -30,6 +32,10 @@ declare_args() {
+@@ -30,6 +30,14 @@ declare_args() {
    root_extra_deps = []
  }
  
 +group("chromiumcontent") {
-+  deps = ["//chromiumcontent"]
++  deps = [ "//chromiumcontent" ]
++}
++
++group("ffmpeg") {
++  deps = [ "//third_party/ffmpeg" ]
 +}
 +
  # This file defines the following five main targets:
