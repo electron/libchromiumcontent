@@ -1,3 +1,0 @@
-set_defaults("source_set") {
-  configs = default_compiler_configs
-}
