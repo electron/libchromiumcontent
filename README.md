@@ -1,12 +1,8 @@
 # libchromiumcontent
 
-A single, shared library that includes the [Chromium Content
+Automatially builds and provides prebuilt binaries of [Chromium Content
 module](http://www.chromium.org/developers/content-module) and all its
 dependencies (e.g., Blink, V8, etc.).
-
-## Using it in your app
-
-TODO
 
 ## Development
 
