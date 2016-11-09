@@ -13,8 +13,6 @@ group("chromiumcontent") {
 # Override default compiler settings.
 config("compiler") {
   defines = [
-    # Force exposign V8 symbols.
-    "BUILDING_V8_SHARED",
     # Force exporting icu's symbols.
     "U_COMBINED_IMPLEMENTATION",
     # Defining "U_COMBINED_IMPLEMENTATION" will add "explicit" for some
@@ -23,6 +21,12 @@ config("compiler") {
     "UNISTR_FROM_STRING_EXPLICIT=",
     "U_NO_DEFAULT_INCLUDE_UTF_HEADERS=0",
   ]
+
+  if (!is_component_build) {
+   # Force exposign V8 symbols.
+   defines += [ "BUILDING_V8_SHARED" ]
+  }
+
   # Enable MAS buld.
   if (mac_mas_build) {
     defines += [ "MAS_BUILD" ]
@@ -58,13 +62,12 @@ shared_library("libchromiumcontent") {
     ]
   } else if (is_win) {
     deps += [
-      ":chromiumview",
       "//pdf",
     ]
   }
 }
 
-if (is_linux || is_win) {
+if (is_linux) {
   group("chromiumviews") {
     deps = [
       "//ui/content_accelerators",
