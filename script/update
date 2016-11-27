@@ -264,11 +264,9 @@ def gn_args(target_arch, component, gyp_defines):
 def run_gn(target_arch, defines):
   os.chdir(SRC_DIR)
   if sys.platform in ['win32', 'cygwin']:
-    gn = os.path.join(SRC_DIR, 'buildtools', 'win', 'gn.exe')
-  elif sys.platform == 'linux2':
-    gn = os.path.join(SRC_DIR, 'buildtools', 'linux64', 'gn')
-  elif sys.platform == 'darwin':
-    gn = os.path.join(SRC_DIR, 'buildtools', 'mac', 'gn')
+    gn = os.path.join(SRC_DIR, 'out', 'gn', 'gn.exe')
+  else:
+    gn = os.path.join(SRC_DIR, 'out', 'gn', 'gn')
   for component in COMPONENTS:
     args = gn_args(target_arch, component, defines)
     output_dir = get_output_dir(target_arch, component)
