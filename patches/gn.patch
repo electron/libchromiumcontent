@@ -1,0 +1,26 @@
+diff --git a/tools/gn/functions_target.cc b/tools/gn/functions_target.cc
+index b7ee6fb..5eee500 100644
+--- a/tools/gn/functions_target.cc
++++ b/tools/gn/functions_target.cc
+@@ -682,7 +682,7 @@ Value RunSourceSet(Scope* scope,
+                    const std::vector<Value>& args,
+                    BlockNode* block,
+                    Err* err) {
+-  return ExecuteGenericTarget(functions::kSourceSet, scope, function, args,
++  return ExecuteGenericTarget(functions::kStaticLibrary, scope, function, args,
+                               block, err);
+ }
+ 
+diff --git a/tools/gn/target_generator.cc b/tools/gn/target_generator.cc
+index 7fe64fd..72bfa3a 100644
+--- a/tools/gn/target_generator.cc
++++ b/tools/gn/target_generator.cc
+@@ -128,7 +128,7 @@ void TargetGenerator::GenerateTarget(Scope* scope,
+     generator.Run();
+   } else if (output_type == functions::kSourceSet) {
+     BinaryTargetGenerator generator(target.get(), scope, function_call,
+-                                    Target::SOURCE_SET, err);
++                                    Target::STATIC_LIBRARY, err);
+     generator.Run();
+   } else if (output_type == functions::kStaticLibrary) {
+     BinaryTargetGenerator generator(target.get(), scope, function_call,
