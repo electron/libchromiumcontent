@@ -1,5 +1,5 @@
 diff --git a/tools/gn/binary_target_generator.cc b/tools/gn/binary_target_generator.cc
-index 7828013..d617c0e 100644
+index 7828013..ccc7002 100644
 --- a/tools/gn/binary_target_generator.cc
 +++ b/tools/gn/binary_target_generator.cc
 @@ -30,6 +30,14 @@ BinaryTargetGenerator::~BinaryTargetGenerator() {
@@ -17,3 +17,13 @@ index 7828013..d617c0e 100644
    if (!FillOutputName())
      return;
  
+@@ -74,6 +82,9 @@ void BinaryTargetGenerator::DoRun() {
+ bool BinaryTargetGenerator::FillCompleteStaticLib() {
+   if (target_->output_type() == Target::STATIC_LIBRARY) {
+     const Value* value = scope_->GetValue(variables::kCompleteStaticLib, true);
++    // Always use complete static library.
++    target_->set_complete_static_lib(true);
++    return true;
+     if (!value)
+       return true;
+     if (!value->VerifyTypeIs(Value::BOOLEAN, err_))
