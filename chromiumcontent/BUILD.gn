@@ -23,8 +23,8 @@ config("compiler") {
   ]
 
   if (!is_component_build) {
-   # Force exposign V8 symbols.
-   defines += [ "BUILDING_V8_SHARED" ]
+    # Force exposign V8 symbols.
+    defines += [ "BUILDING_V8_SHARED" ]
   }
 
   # Enable MAS buld.
