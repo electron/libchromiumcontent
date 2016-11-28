@@ -1,16 +1,19 @@
-diff --git a/tools/gn/target_generator.cc b/tools/gn/target_generator.cc
-index 7fe64fd..dd4bfa1 100644
---- a/tools/gn/target_generator.cc
-+++ b/tools/gn/target_generator.cc
-@@ -128,7 +128,10 @@ void TargetGenerator::GenerateTarget(Scope* scope,
-     generator.Run();
-   } else if (output_type == functions::kSourceSet) {
-     BinaryTargetGenerator generator(target.get(), scope, function_call,
--                                    Target::SOURCE_SET, err);
-+                                    target->sources().empty() ?
-+                                    Target::SOURCE_SET :
-+                                    Target::STATIC_LIBRARY,
-+                                    err);
-     generator.Run();
-   } else if (output_type == functions::kStaticLibrary) {
-     BinaryTargetGenerator generator(target.get(), scope, function_call,
+diff --git a/tools/gn/binary_target_generator.cc b/tools/gn/binary_target_generator.cc
+index 7828013..d617c0e 100644
+--- a/tools/gn/binary_target_generator.cc
++++ b/tools/gn/binary_target_generator.cc
+@@ -30,6 +30,14 @@ BinaryTargetGenerator::~BinaryTargetGenerator() {
+ void BinaryTargetGenerator::DoRun() {
+   target_->set_output_type(output_type_);
+ 
++  if (output_type_ == Target::SOURCE_SET &&  // for source_set
++      FillSources() &&  // fill the sources
++      !target_->sources().empty()) {  // and check if it is non-empty
++    // If so change the type to static_library.
++    output_type_ = Target::STATIC_LIBRARY;
++    target_->set_output_type(Target::STATIC_LIBRARY);
++  }
++
+   if (!FillOutputName())
+     return;
+ 
