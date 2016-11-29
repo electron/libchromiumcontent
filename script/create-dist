@@ -12,7 +12,7 @@ import subprocess
 import sys
 import zipfile
 
-from lib.config import get_configuration, get_output_dir
+from lib.config import get_output_dir
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -59,21 +59,20 @@ BINARIES = {
     'chromedriver',
     'mksnapshot',
     'libffmpeg.dylib',
-    'libdevtools_discovery.a',
-    'libdevtools_http_handler.a',
-    'libhttp_server.a',
-    'libdesktop_capture.a',
-    'libdesktop_capture_differ_sse2.a',
-    'librtc_base.a',
-    'librtc_base_approved.a',
-    'libwebrtc_common.a',
-    'libyuv.a',
-    'libsystem_wrappers.a',
-    'libcdm_renderer.a',
-    'libsecurity_state.a',
-    'libcookie_config.a',
-    'libos_crypt.a',
-    'libdom_keycode_converter.a',
+    os.path.join('obj', 'components', 'cookie_config', 'libcookie_config.a'),
+    os.path.join('obj', 'components', 'devtools_discovery', 'libdevtools_discovery.a'),
+    os.path.join('obj', 'components', 'devtools_http_handler', 'libdevtools_http_handler.a'),
+    os.path.join('obj', 'components', 'security_state', 'libsecurity_state.a'),
+    os.path.join('obj', 'components', 'os_crypt', 'libos_crypt.a'),
+    os.path.join('obj', 'net', 'libhttp_server.a'),
+    os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture', 'libdesktop_capture.a'),
+    os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture', 'libdesktop_capture_differ_sse2.a'),
+    os.path.join('obj', 'third_party', 'webrtc', 'base', 'librtc_base.a'),
+    os.path.join('obj', 'third_party', 'webrtc', 'base', 'librtc_base_approved.a'),
+    os.path.join('obj', 'third_party', 'webrtc', 'libwebrtc_common.a'),
+    os.path.join('obj', 'third_party', 'webrtc', 'system_wrappers', 'libsystem_wrappers.a'),
+    os.path.join('obj', 'third_party', 'libyuv', 'libyuv.a'),
+    os.path.join('obj', 'ui', 'events', 'libdom_keycode_converter.a'),
   ],
   'linux': [
     'chromedriver',
@@ -203,19 +202,6 @@ ARCH_BLACKLIST = {
   ],
 }
 
-SYMBOLS = {
-  'darwin': [
-    # OS X has a more complicated symbol creation process. See
-    # create_dsym() and copy_symbols().
-  ],
-  'linux': [
-    'libosmesa.so.dbg',
-  ],
-  'win32': [
-    'libGLESv2.dll.pdb',
-  ],
-}
-
 # Emperically determined to be required by client apps.
 INCLUDE_DIRS = [
   'base',
@@ -342,12 +328,11 @@ def copy_with_blacklist(target_arch, src, dest):
 
 
 def copy_binaries(target_arch, component, output_dir):
-  config_dir = os.path.join(output_dir, get_configuration(target_arch))
   target_dir = os.path.join(MAIN_DIR, component)
   mkdir_p(target_dir)
 
   for binary in BINARIES['all'] + BINARIES[TARGET_PLATFORM]:
-    copy_with_blacklist(target_arch, os.path.join(config_dir, binary), target_dir)
+    copy_with_blacklist(target_arch, os.path.join(output_dir, binary), target_dir)
 
   if component == 'shared_library':
     match = '*.{0}'.format(SHARED_LIBRARY_SUFFIX)
@@ -355,21 +340,28 @@ def copy_binaries(target_arch, component, output_dir):
     match = '*.{0}'.format(STATIC_LIBRARY_SUFFIX)
 
   if TARGET_PLATFORM == 'darwin':
-    # out/Release/*.{dll,lib}
-    for library in glob.glob(os.path.join(config_dir, match)):
-      copy_with_blacklist(target_arch, library, target_dir)
+    if component == 'shared_library':
+      # out/component/*.dylib
+      for library in glob.glob(os.path.join(output_dir, match)):
+        copy_with_blacklist(target_arch, library, target_dir)
+    else:
+      # On Mac static libraries are placed under subdirs under "obj".
+      for root, _, filenames in os.walk(os.path.join(output_dir, 'obj')):
+        # out/component/obj/**/*.a
+        for filename in fnmatch.filter(filenames, '*.a'):
+          copy_with_blacklist(target_arch, os.path.join(root, filename), target_dir)
 
   if TARGET_PLATFORM == 'win32':
     if component == 'shared_library':
       # out/Release/*.dll(.lib)
-      for dll in glob.glob(os.path.join(config_dir, '*.dll')):
+      for dll in glob.glob(os.path.join(output_dir, '*.dll')):
         lib = dll + '.lib'
         if os.path.exists(lib):
           copy_with_blacklist(target_arch, dll, target_dir)
           copy_with_blacklist(target_arch, lib, target_dir)
     else:
       # On Windows static libraries are placed under subdirs under "obj".
-      for root, _, filenames in os.walk(os.path.join(config_dir, 'obj')):
+      for root, _, filenames in os.walk(os.path.join(output_dir, 'obj')):
         # out/Release/obj/**/*.lib
         for filename in fnmatch.filter(filenames, '*.lib'):
           copy_with_blacklist(target_arch, os.path.join(root, filename), target_dir)
@@ -380,11 +372,11 @@ def copy_binaries(target_arch, component, output_dir):
   if TARGET_PLATFORM == 'linux':
     if component == 'shared_library':
       # out/Release/lib/*.so
-      for library in glob.glob(os.path.join(config_dir, 'lib', '*.so')):
+      for library in glob.glob(os.path.join(output_dir, 'lib', '*.so')):
         copy_with_blacklist(target_arch, library, target_dir)
     else:
       # out/Release/*.a
-      for library in glob.glob(os.path.join(config_dir, '*.a')):
+      for library in glob.glob(os.path.join(output_dir, '*.a')):
         copy_with_blacklist(target_arch, library, target_dir)
 
   if TARGET_PLATFORM in ['linux', 'darwin']:
@@ -399,18 +391,16 @@ def copy_binaries(target_arch, component, output_dir):
 
 
 def copy_generated_sources(target_arch, component, output_dir):
-  config = get_configuration(target_arch)
   target_dir = os.path.join(MAIN_DIR, component)
   for include_path in GENERATED_INCLUDE_DIRS:
     copy_headers(include_path,
-                 relative_to=os.path.join(output_dir, config, 'gen'),
+                 relative_to=os.path.join(output_dir, 'gen'),
                  destination=os.path.join(target_dir, 'gen'))
 
 def copy_locales(target_arch, component, output_dir):
-  config = get_configuration(target_arch)
   target_dir = os.path.join(MAIN_DIR, component, 'locales')
   mkdir_p(target_dir)
-  src_dir = os.path.join(output_dir, config, 'gen', 'content', 'app', 'strings')
+  src_dir = os.path.join(output_dir, 'gen', 'content', 'app', 'strings')
   for src_file in glob.glob(os.path.join(src_dir, 'content_strings_*.pak')):
     filename = os.path.basename(src_file)
     new_name = re.sub('content_strings_', '', filename)
@@ -429,9 +419,7 @@ def copy_sources():
 
 
 def copy_ffmpeg(target_arch):
-  output_dir = os.path.join(SRC_DIR,
-                            get_output_dir(target_arch, 'ffmpeg'),
-                            get_configuration(target_arch))
+  output_dir = os.path.join(SRC_DIR, get_output_dir(target_arch, 'ffmpeg'))
   if TARGET_PLATFORM == 'darwin':
     binary = 'libffmpeg.dylib'
   elif TARGET_PLATFORM == 'linux':
