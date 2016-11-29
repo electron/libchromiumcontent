@@ -49,7 +49,9 @@ def main():
           update_clang() or
           update_gn() or
           build_gn() or
-          run_gn(target_arch, args.defines))
+          run_gn('static_library', target_arch, args.defines) or
+          run_gn('shared_library', target_arch, args.defines) or
+          run_gn('ffmpeg', target_arch, args.defines))
 
 
 def parse_args():
@@ -177,18 +179,29 @@ def update_gn():
                    'chromium-gn', '-s', 'buildtools/{0}'.format(key)])
 
 
+def upstream_gn():
+  if sys.platform in ['win32', 'cygwin']:
+    return os.path.join(SRC_DIR, 'buildtools', 'win', 'gn.exe')
+  elif sys.platform == 'linux2':
+    return os.path.join(SRC_DIR, 'buildtools', 'linux64', 'gn')
+  elif sys.platform == 'darwin':
+    return os.path.join(SRC_DIR, 'buildtools', 'mac', 'gn')
+
+
+def modified_gn():
+  if sys.platform in ['win32', 'cygwin']:
+    return os.path.join(SRC_DIR, 'out', 'gn', 'gn.exe')
+  else:
+    return os.path.join(SRC_DIR, 'out', 'gn', 'gn')
+
+
 def build_gn():
   os.chdir(SRC_DIR)
   # Generate target for building gn.
-  if sys.platform in ['win32', 'cygwin']:
-    gn = os.path.join(SRC_DIR, 'buildtools', 'win', 'gn.exe')
-  elif sys.platform == 'linux2':
-    gn = os.path.join(SRC_DIR, 'buildtools', 'linux64', 'gn')
-  elif sys.platform == 'darwin':
-    gn = os.path.join(SRC_DIR, 'buildtools', 'mac', 'gn')
   args = 'is_debug=false is_component_build=false is_official_build=true'
   output_dir = os.path.join('out', 'gn')
-  subprocess.check_call([gn, 'gen', output_dir, "--args={0}".format(args)])
+  subprocess.check_call([upstream_gn(), 'gen', output_dir,
+                         "--args={0}".format(args)])
   # Build gn.
   subprocess.check_call([NINJA, '-C', output_dir, 'gn'])
 
@@ -261,17 +274,16 @@ def gn_args(target_arch, component, gyp_defines):
   return ' '.join(args) + gyp_defines
 
 
-def run_gn(target_arch, defines):
+def run_gn(component, target_arch, defines):
   os.chdir(SRC_DIR)
-  if sys.platform in ['win32', 'cygwin']:
-    gn = os.path.join(SRC_DIR, 'out', 'gn', 'gn.exe')
+  if component == 'static_library':
+    gn = modified_gn()
   else:
-    gn = os.path.join(SRC_DIR, 'out', 'gn', 'gn')
-  for component in COMPONENTS:
-    args = gn_args(target_arch, component, defines)
-    output_dir = get_output_dir(target_arch, component)
-    subprocess.call([gn, 'gen', output_dir, "--args={0}".format(args)],
-                    env=gn_env(target_arch))
+    gn = upstream_gn()
+  args = gn_args(target_arch, component, defines)
+  output_dir = get_output_dir(target_arch, component)
+  subprocess.call([gn, 'gen', output_dir, "--args={0}".format(args)],
+                  env=gn_env(target_arch))
 
 
 def xz():
