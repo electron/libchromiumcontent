@@ -321,10 +321,13 @@ def parse_args():
   return parser.parse_args()
 
 
-def copy_with_blacklist(target_arch, src, dest):
+def copy_with_blacklist(target_arch, base, src, dest):
   if os.path.basename(src) in ARCH_BLACKLIST[target_arch]:
     return
-  shutil.copy2(src, dest)
+  relpath = os.path.relpath(src, base)
+  target_dir = os.path.join(dest, os.path.dirname(relpath))
+  mkdir_p(target_dir)
+  shutil.copy2(src, target_dir)
 
 
 def copy_binaries(target_arch, component, output_dir):
@@ -332,7 +335,8 @@ def copy_binaries(target_arch, component, output_dir):
   mkdir_p(target_dir)
 
   for binary in BINARIES['all'] + BINARIES[TARGET_PLATFORM]:
-    copy_with_blacklist(target_arch, os.path.join(output_dir, binary), target_dir)
+    copy_with_blacklist(target_arch, output_dir,
+                        os.path.join(output_dir, binary), target_dir)
 
   if component == 'shared_library':
     match = '*.{0}'.format(SHARED_LIBRARY_SUFFIX)
@@ -343,13 +347,14 @@ def copy_binaries(target_arch, component, output_dir):
     if component == 'shared_library':
       # out/component/*.dylib
       for library in glob.glob(os.path.join(output_dir, match)):
-        copy_with_blacklist(target_arch, library, target_dir)
+        copy_with_blacklist(target_arch, output_dir, library, target_dir)
     else:
       # On Mac static libraries are placed under subdirs under "obj".
       for root, _, filenames in os.walk(os.path.join(output_dir, 'obj')):
         # out/component/obj/**/*.a
         for filename in fnmatch.filter(filenames, '*.a'):
-          copy_with_blacklist(target_arch, os.path.join(root, filename), target_dir)
+          copy_with_blacklist(target_arch, output_dir,
+                              os.path.join(root, filename), target_dir)
 
   if TARGET_PLATFORM == 'win32':
     if component == 'shared_library':
@@ -357,27 +362,29 @@ def copy_binaries(target_arch, component, output_dir):
       for dll in glob.glob(os.path.join(output_dir, '*.dll')):
         lib = dll + '.lib'
         if os.path.exists(lib):
-          copy_with_blacklist(target_arch, dll, target_dir)
-          copy_with_blacklist(target_arch, lib, target_dir)
+          copy_with_blacklist(target_arch, output_dir, dll, target_dir)
+          copy_with_blacklist(target_arch, output_dir, lib, target_dir)
     else:
       # On Windows static libraries are placed under subdirs under "obj".
       for root, _, filenames in os.walk(os.path.join(output_dir, 'obj')):
         # out/Release/obj/**/*.lib
         for filename in fnmatch.filter(filenames, '*.lib'):
-          copy_with_blacklist(target_arch, os.path.join(root, filename), target_dir)
+          copy_with_blacklist(target_arch, output_dir,
+                              os.path.join(root, filename), target_dir)
         # out/Release/obj/**/*.pdb
         for filename in fnmatch.filter(filenames, '*.pdb'):
-          copy_with_blacklist(target_arch, os.path.join(root, filename), target_dir)
+          copy_with_blacklist(target_arch, output_dir,
+                              os.path.join(root, filename), target_dir)
 
   if TARGET_PLATFORM == 'linux':
     if component == 'shared_library':
       # out/Release/lib/*.so
       for library in glob.glob(os.path.join(output_dir, 'lib', '*.so')):
-        copy_with_blacklist(target_arch, library, target_dir)
+        copy_with_blacklist(target_arch, output_dir, library, target_dir)
     else:
       # out/Release/*.a
       for library in glob.glob(os.path.join(output_dir, '*.a')):
-        copy_with_blacklist(target_arch, library, target_dir)
+        copy_with_blacklist(target_arch, output_dir, library, target_dir)
 
   if TARGET_PLATFORM in ['linux', 'darwin']:
     # Strip the copied binaries since they contain quite large debug info.
