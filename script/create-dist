@@ -190,6 +190,34 @@ BINARIES = {
   ],
 }
 
+BINARIES_BLACKLIST = {
+  'darwin': [
+    'libffmpeg_internal.a',
+    'libffmpeg_yasm.a',
+    'libppapi_cpp.a',
+    'libv8_nosnapshot.a',
+  ],
+  'win32': [
+    'ffmpeg.dll.lib',
+    'ffmpeg_internal.lib',
+    'ffmpeg_yasm.lib',
+    'libEGL.dll.lib',
+    'libGLESv2.dll.lib',
+    'ppapi_cpp.lib',
+    'widevinecdm.dll.lib',
+    'widevinecdmadapter.dll.lib',
+  ],
+  'linux': [
+    'libffmpeg_internal.a',
+    'libffmpeg_yasm.a',
+    'libppapi_cpp.a',
+    'libprotobuf_full_do_not_use.a',
+    'libgenperf_libs.a',
+    'libv8_nosnapshot.a',
+    'libtranslator_static.a',
+  ],
+}
+
 ARCH_BLACKLIST = {
   'arm': [
     'libdesktop_capture_differ_sse2.a',
@@ -289,11 +317,6 @@ def main():
   args = parse_args()
   target_arch = args.target_arch
 
-  # Some libraries are not available for certain arch.
-  for lib in ARCH_BLACKLIST[target_arch]:
-    if lib in BINARIES[TARGET_PLATFORM]:
-      BINARIES[TARGET_PLATFORM].remove(lib)
-
   rm_rf(DIST_DIR)
   os.makedirs(DIST_DIR)
 
@@ -322,6 +345,8 @@ def parse_args():
 
 
 def copy_with_blacklist(target_arch, base, src, dest):
+  if os.path.basename(src) in BINARIES_BLACKLIST[TARGET_PLATFORM]:
+    return
   if os.path.basename(src) in ARCH_BLACKLIST[target_arch]:
     return
   relpath = os.path.relpath(src, base)
