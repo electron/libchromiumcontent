@@ -258,6 +258,8 @@ def gn_args(target_arch, component, gyp_defines):
     'is_component_ffmpeg=true',
     # Force V8 to expose symbols.
     'v8_enable_backtrace=true',
+    # Enable widevine.
+    'enable_widevine=true',
   ]
   if sys.platform in ['win32', 'cygwin']:
     args += [

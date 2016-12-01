@@ -56,6 +56,12 @@ shared_library("libchromiumcontent") {
     "//ui/events:dom_keycode_converter",
   ]
 
+  if (!is_component_build) {
+    deps += [
+      "//content/public/app:both",
+    ]
+  }
+
   if (is_linux) {
     deps += [
       ":chromiumview",
