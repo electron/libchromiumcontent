@@ -372,16 +372,18 @@ def copy_binaries(target_arch, component, output_dir):
 
   if TARGET_PLATFORM == 'darwin':
     if component == 'shared_library':
+      # Shared libraries are put under the root directory.
       # out/component/*.dylib
       for library in glob.glob(os.path.join(output_dir, match)):
         copy_with_blacklist(target_arch, output_dir, library, target_dir)
     else:
-      # On Mac static libraries are placed under subdirs under "obj".
-      for root, _, filenames in os.walk(os.path.join(output_dir, 'obj')):
-        # out/component/obj/**/*.a
-        for filename in fnmatch.filter(filenames, '*.a'):
-          copy_with_blacklist(target_arch, output_dir,
-                              os.path.join(root, filename), target_dir)
+      # Static libraries are placed under subdirs like "obj" and "gen".
+      for sub in ['obj', 'gen']:
+        for root, _, filenames in os.walk(os.path.join(output_dir, sub)):
+          # out/component/obj/**/*.a
+          for filename in fnmatch.filter(filenames, '*.a'):
+            copy_with_blacklist(target_arch, output_dir,
+                                os.path.join(root, filename), target_dir)
 
   if TARGET_PLATFORM == 'win32':
     if component == 'shared_library':
