@@ -1,5 +1,5 @@
 diff --git a/tools/gn/binary_target_generator.cc b/tools/gn/binary_target_generator.cc
-index 7828013..78b127a 100644
+index 7828013..5b9a5dd 100644
 --- a/tools/gn/binary_target_generator.cc
 +++ b/tools/gn/binary_target_generator.cc
 @@ -4,6 +4,7 @@
@@ -10,11 +10,13 @@ index 7828013..78b127a 100644
  #include "tools/gn/config_values_generator.h"
  #include "tools/gn/deps_iterator.h"
  #include "tools/gn/err.h"
-@@ -30,6 +31,27 @@ BinaryTargetGenerator::~BinaryTargetGenerator() {
+@@ -30,6 +31,29 @@ BinaryTargetGenerator::~BinaryTargetGenerator() {
  void BinaryTargetGenerator::DoRun() {
    target_->set_output_type(output_type_);
  
 +  if (output_type_ == Target::SOURCE_SET &&  // for source_set
++      !base::StartsWith(target_->label().name(), "ffmpeg",
++                        base::CompareCase::SENSITIVE) &&  // except ffmpeg
 +      FillSources() &&  // fill the sources
 +      !target_->sources().empty()) {  // and check if it is non-empty
 +    // Check if the target generates libraries.
@@ -38,7 +40,7 @@ index 7828013..78b127a 100644
    if (!FillOutputName())
      return;
  
-@@ -74,6 +96,9 @@ void BinaryTargetGenerator::DoRun() {
+@@ -74,6 +98,9 @@ void BinaryTargetGenerator::DoRun() {
  bool BinaryTargetGenerator::FillCompleteStaticLib() {
    if (target_->output_type() == Target::STATIC_LIBRARY) {
      const Value* value = scope_->GetValue(variables::kCompleteStaticLib, true);
