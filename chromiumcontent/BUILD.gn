@@ -46,6 +46,7 @@ shared_library("libchromiumcontent") {
     "//components/security_state",
     "//content/shell:pak",
     "//content/shell:copy_shell_resources",
+    "//net:net_with_v8",
     "//ppapi/host",
     "//ppapi/proxy",
     "//ppapi/shared_impl",
