@@ -44,6 +44,7 @@ shared_library("libchromiumcontent") {
     "//components/devtools_discovery",
     "//components/devtools_http_handler",
     "//components/security_state",
+    "//content",
     "//content/shell:pak",
     "//content/shell:copy_shell_resources",
     "//net:net_with_v8",
