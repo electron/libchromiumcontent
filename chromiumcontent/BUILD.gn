@@ -33,10 +33,7 @@ config("compiler") {
   }
 }
 
-# Build as shared_library otherwise some static libraries will not build.
-shared_library("libchromiumcontent") {
-  sources = [ "empty.cc" ]
-
+group("libchromiumcontent") {
   deps = [
     "//components/prefs",
     "//components/cdm/renderer",
