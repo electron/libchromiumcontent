@@ -1,0 +1,57 @@
+diff --git a/BUILD.gn b/BUILD.gn
+index 9f75117..9ae3919 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -327,7 +327,7 @@ if (!build_with_chromium) {
+   }
+ }
+ 
+-source_set("webrtc_common") {
++static_library("webrtc_common") {
+   sources = [
+     "audio_sink.h",
+     "common_types.cc",
+diff --git a/modules/desktop_capture/BUILD.gn b/modules/desktop_capture/BUILD.gn
+index 735b460..66b4084 100644
+--- a/modules/desktop_capture/BUILD.gn
++++ b/modules/desktop_capture/BUILD.gn
+@@ -12,7 +12,7 @@ import("../../build/webrtc.gni")
+ use_desktop_capture_differ_sse2 =
+     !is_ios && (current_cpu == "x86" || current_cpu == "x64")
+ 
+-source_set("primitives") {
++static_library("primitives") {
+   sources = [
+     "desktop_capture_types.h",
+     "desktop_frame.cc",
+@@ -26,7 +26,7 @@ source_set("primitives") {
+   public_configs = [ "../..:common_inherited_config" ]
+ }
+ 
+-source_set("desktop_capture") {
++static_library("desktop_capture") {
+   sources = [
+     "cropped_desktop_frame.cc",
+     "cropped_desktop_frame.h",
+@@ -167,7 +167,7 @@ source_set("desktop_capture") {
+ if (use_desktop_capture_differ_sse2) {
+   # Have to be compiled as a separate target because it needs to be compiled
+   # with SSE2 enabled.
+-  source_set("desktop_capture_differ_sse2") {
++  static_library("desktop_capture_differ_sse2") {
+     visibility = [ ":*" ]
+     sources = [
+       "differ_block_sse2.cc",
+diff --git a/system_wrappers/BUILD.gn b/system_wrappers/BUILD.gn
+index 6e1b0ae..8d42dda 100644
+--- a/system_wrappers/BUILD.gn
++++ b/system_wrappers/BUILD.gn
+@@ -13,7 +13,7 @@ if (is_android) {
+ import("//testing/test.gni")
+ import("../build/webrtc.gni")
+ 
+-source_set("system_wrappers") {
++static_library("system_wrappers") {
+   sources = [
+     "include/aligned_array.h",
+     "include/aligned_malloc.h",
