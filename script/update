@@ -271,6 +271,8 @@ def gn_args(target_arch, component, gyp_defines):
       # Make Linux build contain debug symbols, this flag will add '-g' to
       # cflags.
       'symbol_level=2',
+      # Many machines do not have gold linker.
+      'use_gold=false',
     ]
 
   return ' '.join(args) + gyp_defines
