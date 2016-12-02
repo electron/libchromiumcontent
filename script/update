@@ -199,6 +199,9 @@ def build_gn():
   os.chdir(SRC_DIR)
   # Generate target for building gn.
   args = 'is_debug=false is_component_build=false is_official_build=true'
+  # Many machines do not have gold linker.
+  if sys.platform == 'linux2':
+    args += ' use_gold=false'
   output_dir = os.path.join('out', 'gn')
   subprocess.check_call([upstream_gn(), 'gen', output_dir,
                          "--args={0}".format(args)])
