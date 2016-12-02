@@ -65,7 +65,7 @@ shared_library("libchromiumcontent") {
 
   if (is_linux) {
     deps += [
-      ":chromiumview",
+      ":chromiumviews",
       "//third_party/speech-dispatcher",
       "//third_party/mesa:osmesa",
     ]
@@ -76,15 +76,15 @@ shared_library("libchromiumcontent") {
   }
 }
 
-if (is_linux) {
+if (is_linux || is_win) {
   group("chromiumviews") {
     deps = [
       "//ui/content_accelerators",
       "//ui/display",
-      "//ui/display:util",
+      "//ui/display/util",
       "//ui/views/controls/webview",
       "//ui/views",
-      "//ui/wm/wm",
+      "//ui/wm",
     ]
   }
 }
