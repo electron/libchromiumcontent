@@ -79,7 +79,9 @@ BINARIES = {
   'linux': [
     'chromedriver',
     'mksnapshot',
+    'libffmpeg.so',
     'libosmesa.so',
+<<<<<<< 444ea0367fa6299a209bf6cebdbc3f01f65eead8
     'libgtk2ui.a',
     'libdevtools_discovery.a',
     'libdevtools_http_handler.a',
@@ -97,6 +99,23 @@ BINARIES = {
     'libos_crypt.a',
     'libdom_keycode_converter.a',
     os.path.join('lib', 'libffmpeg.so'),
+=======
+    os.path.join('obj', 'components', 'cdm', 'renderer', 'librenderer.a'),
+    os.path.join('obj', 'components', 'cookie_config', 'libcookie_config.a'),
+    os.path.join('obj', 'components', 'devtools_discovery', 'libdevtools_discovery.a'),
+    os.path.join('obj', 'components', 'devtools_http_handler', 'libdevtools_http_handler.a'),
+    os.path.join('obj', 'components', 'security_state', 'libsecurity_state.a'),
+    os.path.join('obj', 'components', 'os_crypt', 'libos_crypt.a'),
+    os.path.join('obj', 'net', 'libhttp_server.a'),
+    os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture', 'libdesktop_capture.a'),
+    os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture', 'libdesktop_capture_differ_sse2.a'),
+    os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture', 'libprimitives.a'),
+    os.path.join('obj', 'third_party', 'webrtc', 'base', 'librtc_base.a'),
+    os.path.join('obj', 'third_party', 'webrtc', 'base', 'librtc_base_approved.a'),
+    os.path.join('obj', 'third_party', 'webrtc', 'libwebrtc_common.a'),
+    os.path.join('obj', 'third_party', 'webrtc', 'system_wrappers', 'libsystem_wrappers.a'),
+    os.path.join('obj', 'third_party', 'libyuv', 'libyuv.a'),
+>>>>>>> Fix binaries paths for Linux
   ],
   'win32': [
     'chromedriver.exe',
@@ -370,21 +389,6 @@ def copy_binaries(target_arch, component, output_dir):
   else:
     match = '*.{0}'.format(STATIC_LIBRARY_SUFFIX)
 
-  if TARGET_PLATFORM == 'darwin':
-    if component == 'shared_library':
-      # Shared libraries are put under the root directory.
-      # out/component/*.dylib
-      for library in glob.glob(os.path.join(output_dir, match)):
-        copy_with_blacklist(target_arch, output_dir, library, target_dir)
-    else:
-      # Static libraries are placed under subdirs like "obj" and "gen".
-      for sub in ['obj', 'gen']:
-        for root, _, filenames in os.walk(os.path.join(output_dir, sub)):
-          # out/component/obj/**/*.a
-          for filename in fnmatch.filter(filenames, '*.a'):
-            copy_with_blacklist(target_arch, output_dir,
-                                os.path.join(root, filename), target_dir)
-
   if TARGET_PLATFORM == 'win32':
     if component == 'shared_library':
       # out/Release/*.dll(.lib)
@@ -405,17 +409,21 @@ def copy_binaries(target_arch, component, output_dir):
           copy_with_blacklist(target_arch, output_dir,
                               os.path.join(root, filename), target_dir)
 
-  if TARGET_PLATFORM == 'linux':
+  if TARGET_PLATFORM in ['linux', 'darwin']:
     if component == 'shared_library':
-      # out/Release/lib/*.so
-      for library in glob.glob(os.path.join(output_dir, 'lib', '*.so')):
+      # Shared libraries are put under the root directory.
+      # out/component/*.dylib
+      for library in glob.glob(os.path.join(output_dir, match)):
         copy_with_blacklist(target_arch, output_dir, library, target_dir)
     else:
-      # out/Release/*.a
-      for library in glob.glob(os.path.join(output_dir, '*.a')):
-        copy_with_blacklist(target_arch, output_dir, library, target_dir)
+      # Static libraries are placed under subdirs like "obj" and "gen".
+      for sub in ['obj', 'gen']:
+        for root, _, filenames in os.walk(os.path.join(output_dir, sub)):
+          # out/component/obj/**/*.a
+          for filename in fnmatch.filter(filenames, match):
+            copy_with_blacklist(target_arch, output_dir,
+                                os.path.join(root, filename), target_dir)
 
-  if TARGET_PLATFORM in ['linux', 'darwin']:
     # Strip the copied binaries since they contain quite large debug info.
     for binary in BINARIES[TARGET_PLATFORM]:
       run_strip(target_arch, os.path.join(target_dir, os.path.basename(binary)))
@@ -459,7 +467,7 @@ def copy_ffmpeg(target_arch):
   if TARGET_PLATFORM == 'darwin':
     binary = 'libffmpeg.dylib'
   elif TARGET_PLATFORM == 'linux':
-    binary = os.path.join('lib', 'libffmpeg.so')
+    binary = 'libffmpeg.so'
   elif TARGET_PLATFORM == 'win32':
     binary = 'ffmpeg.dll'
 
