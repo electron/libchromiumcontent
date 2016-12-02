@@ -63,11 +63,13 @@ group("libchromiumcontent") {
   if (is_linux) {
     deps += [
       ":chromiumviews",
+      "//chrome/browser/ui/libgtk2ui",
       "//third_party/speech-dispatcher",
       "//third_party/mesa:osmesa",
     ]
   } else if (is_win) {
     deps += [
+      ":chromiumviews",
       "//pdf",
     ]
   }
