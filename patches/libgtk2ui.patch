@@ -1,0 +1,13 @@
+diff --git a/chrome/browser/ui/libgtk2ui/BUILD.gn b/chrome/browser/ui/libgtk2ui/BUILD.gn
+index 11e1a9f..61b1cf4 100644
+--- a/chrome/browser/ui/libgtk2ui/BUILD.gn
++++ b/chrome/browser/ui/libgtk2ui/BUILD.gn
+@@ -23,7 +23,7 @@ config("libgtk2ui_warnings") {
+   }
+ }
+ 
+-component("libgtk2ui") {
++static_library("libgtk2ui") {
+   sources = [
+     "app_indicator_icon.cc",
+     "app_indicator_icon.h",
