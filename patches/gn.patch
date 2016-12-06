@@ -1,5 +1,5 @@
 diff --git a/tools/gn/binary_target_generator.cc b/tools/gn/binary_target_generator.cc
-index 7828013..5b9a5dd 100644
+index 7828013..f97860f 100644
 --- a/tools/gn/binary_target_generator.cc
 +++ b/tools/gn/binary_target_generator.cc
 @@ -4,6 +4,7 @@
@@ -10,7 +10,7 @@ index 7828013..5b9a5dd 100644
  #include "tools/gn/config_values_generator.h"
  #include "tools/gn/deps_iterator.h"
  #include "tools/gn/err.h"
-@@ -30,6 +31,29 @@ BinaryTargetGenerator::~BinaryTargetGenerator() {
+@@ -30,6 +31,30 @@ BinaryTargetGenerator::~BinaryTargetGenerator() {
  void BinaryTargetGenerator::DoRun() {
    target_->set_output_type(output_type_);
  
@@ -25,6 +25,7 @@ index 7828013..5b9a5dd 100644
 +      std::string name = file.GetName();
 +      if (base::EndsWith(name, ".c", base::CompareCase::SENSITIVE) ||
 +          base::EndsWith(name, ".cc", base::CompareCase::SENSITIVE) ||
++          base::EndsWith(name, ".cpp", base::CompareCase::SENSITIVE) ||
 +          base::EndsWith(name, ".mm", base::CompareCase::SENSITIVE)) {
 +        generates_binary = true;
 +        break;
@@ -40,7 +41,7 @@ index 7828013..5b9a5dd 100644
    if (!FillOutputName())
      return;
  
-@@ -74,6 +98,9 @@ void BinaryTargetGenerator::DoRun() {
+@@ -74,6 +99,9 @@ void BinaryTargetGenerator::DoRun() {
  bool BinaryTargetGenerator::FillCompleteStaticLib() {
    if (target_->output_type() == Target::STATIC_LIBRARY) {
      const Value* value = scope_->GetValue(variables::kCompleteStaticLib, true);
