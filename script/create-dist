@@ -197,7 +197,6 @@ BINARIES_BLACKLIST = {
   'darwin': [
     'libffmpeg_internal.a',
     'libffmpeg_yasm.a',
-    'libppapi_cpp.a',
     'libv8_nosnapshot.a',
   ],
   'win32': [
@@ -206,18 +205,27 @@ BINARIES_BLACKLIST = {
     'ffmpeg_yasm.lib',
     'libEGL.dll.lib',
     'libGLESv2.dll.lib',
-    'ppapi_cpp.lib',
     'widevinecdm.dll.lib',
     'widevinecdmadapter.dll.lib',
   ],
   'linux': [
     'libffmpeg_internal.a',
     'libffmpeg_yasm.a',
-    'libppapi_cpp.a',
-    'libprotobuf_full_do_not_use.a',
-    'libgenperf_libs.a',
+    'libprotobuf_full.a',
     'libv8_nosnapshot.a',
+    # 'libwebrtc_h264.a',
     'libtranslator_static.a',
+  ],
+}
+
+FILES_BLACKLIST = {
+  'darwin': [
+  ],
+  'win32': [
+  ],
+  'linux': [
+    os.path.join('obj', 'third_party', 'angle', 'src', 'third_party', 'libXNVCtrl', 'libXNVCtrl.a'),
+    os.path.join('obj', 'ppapi', 'cpp', 'libcpp.a'),
   ],
 }
 
@@ -353,6 +361,8 @@ def copy_with_blacklist(target_arch, base, src, dest):
   if os.path.basename(src) in ARCH_BLACKLIST[target_arch]:
     return
   relpath = os.path.relpath(src, base)
+  if relpath in FILES_BLACKLIST[TARGET_PLATFORM]:
+    return
   target_dir = os.path.join(dest, os.path.dirname(relpath))
   mkdir_p(target_dir)
   shutil.copy2(src, target_dir)
