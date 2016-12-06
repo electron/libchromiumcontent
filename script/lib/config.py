@@ -5,14 +5,12 @@ import sys
 
 
 def get_output_dir(target_arch, component):
-  # Build in "out/ffmpeg" for Chromium branding of ffmpeg.
+  # Determine the output dir according to target_arch and component.
   if component == 'ffmpeg':
-    return os.path.join('out', 'ffmpeg')
-
-  # Build in "out/component" for component build.
-  if component == 'shared_library':
+    output_dir = 'ffmpeg'
+  elif component == 'shared_library':
     output_dir = 'component'
-  else:
+  elif component == 'static_library':
     output_dir = 'static'
 
   # Build in "out/component_32" for 32bit target.

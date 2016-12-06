@@ -246,8 +246,12 @@ def gn_args(target_arch, component, gyp_defines):
   else:
     args.append('ffmpeg_branding="Chrome" proprietary_codecs=true')
 
-  # Build 32-bit or 64-bit.
-  args.append('target_cpu="{0}"'.format(target_arch))
+  # Translate target arch.
+  if target_arch == 'ia32':
+    target_cpu = 'x86'
+  else:
+    target_cpu = target_arch
+  args.append('target_cpu="{0}"'.format(target_cpu))
 
   # Build for Mac App Store:
   if os.environ.has_key('MAS_BUILD'):
