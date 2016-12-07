@@ -42,6 +42,8 @@ def main():
 
   if sys.platform == 'linux2':
     install_sysroot()
+  elif sys.platform in ['win32', 'cygwin']:
+    update_toolchain_json()
 
   target_arch = args.target_arch
   return (apply_patches() or
@@ -121,6 +123,12 @@ def install_sysroot():
     install = os.path.join(SRC_DIR, 'build', 'linux', 'sysroot_scripts',
                            'install-sysroot.py')
     subprocess.check_call([sys.executable, install, '--arch', arch])
+
+
+def update_toolchain_json():
+  vs_toolchain = os.path.join(SRC_DIR, 'build', 'vs_toolchain.py')
+  subprocess.check_call([sys.executable, vs_toolchain, 'update'],
+                        env=gn_env())
 
 
 def tar_xf(filename):
@@ -204,26 +212,17 @@ def build_gn():
     args += ' use_gold=false'
   output_dir = os.path.join('out', 'gn')
   subprocess.check_call([upstream_gn(), 'gen', output_dir,
-                         "--args={0}".format(args)])
+                         "--args={0}".format(args)], env=gn_env())
   # Build gn.
-  subprocess.check_call([NINJA, '-C', output_dir, 'gn'])
+  subprocess.check_call([NINJA, '-C', output_dir, 'gn'], env=gn_env())
 
 
-def gn_env(target_arch):
+def gn_env():
   env = os.environ.copy()
 
   if sys.platform in ['win32', 'cygwin']:
     # Do not let Chromium download their own toolchains.
     env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
-    # Use VS 2015.
-    # TODO(zcbenz): How can we do this in gn?
-    env['GYP_MSVS_VERSION'] = '2015'
-    # Use Windows 10 SDK.
-    env['WINDOWSSDKDIR'] = 'C:\\Program Files (x86)\\Windows Kits\\10'
-  elif sys.platform == 'linux2' and target_arch in ('arm', 'ia32'):
-    # ARM build requires cross compilation.
-    # TODO(zcbenz): How can we do this in gn?
-    env['GYP_CROSSCOMPILE'] = '1'
 
   return env
 
@@ -294,7 +293,7 @@ def run_gn(component, target_arch, defines):
   args = gn_args(target_arch, component, defines)
   output_dir = get_output_dir(target_arch, component)
   subprocess.call([gn, 'gen', output_dir, "--args={0}".format(args)],
-                  env=gn_env(target_arch))
+                  env=gn_env())
 
 
 def xz():
