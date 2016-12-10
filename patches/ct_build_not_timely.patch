@@ -1,0 +1,39 @@
+diff --git a/net/quic/crypto/proof_verifier_chromium.cc b/net/quic/crypto/proof_verifier_chromium.cc
+index 096374a..7a0c3f3 100644
+--- a/net/quic/crypto/proof_verifier_chromium.cc
++++ b/net/quic/crypto/proof_verifier_chromium.cc
+@@ -345,6 +345,8 @@ int ProofVerifierChromium::Job::DoVerifyCertComplete(int result) {
+     int ct_result = OK;
+     if (verify_details_->ct_verify_result.cert_policy_compliance !=
+             ct::CertPolicyCompliance::CERT_POLICY_COMPLIES_VIA_SCTS &&
++        verify_details_->ct_verify_result.cert_policy_compliance !=
++            ct::CertPolicyCompliance::CERT_POLICY_BUILD_NOT_TIMELY &&
+         transport_security_state_->ShouldRequireCT(
+             hostname_, cert_verify_result.verified_cert.get(),
+             cert_verify_result.public_key_hashes)) {
+diff --git a/net/socket/ssl_client_socket_impl.cc b/net/socket/ssl_client_socket_impl.cc
+index d1edfbb..79aa8ee 100644
+--- a/net/socket/ssl_client_socket_impl.cc
++++ b/net/socket/ssl_client_socket_impl.cc
+@@ -1819,6 +1819,8 @@ int SSLClientSocketImpl::VerifyCT() {
+
+   if (ct_verify_result_.cert_policy_compliance !=
+           ct::CertPolicyCompliance::CERT_POLICY_COMPLIES_VIA_SCTS &&
++      ct_verify_result_.cert_policy_compliance !=
++          ct::CertPolicyCompliance::CERT_POLICY_BUILD_NOT_TIMELY &&
+       transport_security_state_->ShouldRequireCT(
+           host_and_port_.host(), server_cert_verify_result_.verified_cert.get(),
+           server_cert_verify_result_.public_key_hashes)) {
+diff --git a/net/spdy/spdy_session.cc b/net/spdy/spdy_session.cc
+index 0e61326..78fb546 100644
+--- a/net/spdy/spdy_session.cc
++++ b/net/spdy/spdy_session.cc
+@@ -672,6 +672,8 @@ bool SpdySession::CanPool(TransportSecurityState* transport_security_state,
+
+   if (ssl_info.ct_cert_policy_compliance !=
+           ct::CertPolicyCompliance::CERT_POLICY_COMPLIES_VIA_SCTS &&
++      ssl_info.ct_cert_policy_compliance !=
++          ct::CertPolicyCompliance::CERT_POLICY_BUILD_NOT_TIMELY &&
+       transport_security_state->ShouldRequireCT(
+           new_hostname, ssl_info.cert.get(), ssl_info.public_key_hashes)) {
+     return false;
