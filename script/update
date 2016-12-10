@@ -237,7 +237,7 @@ def gn_args(target_arch, component, gyp_defines):
   if component == 'shared_library':
     args.append('is_component_build=true')
   else:
-    args.append('is_component_build=false is_official_build=true')
+    args.append('is_component_build=false')
 
   # Media setting.
   if component == 'ffmpeg':
