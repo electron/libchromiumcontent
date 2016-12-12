@@ -206,7 +206,6 @@ BINARIES_BLACKLIST = {
     'libffmpeg_yasm.a',
     'libprotobuf_full.a',
     'libv8_nosnapshot.a',
-    # 'libwebrtc_h264.a',
     'libtranslator_static.a',
   ],
 }
@@ -215,6 +214,7 @@ FILES_BLACKLIST = {
   'darwin': [
   ],
   'win32': [
+    os.path.join('obj', 'ppapi', 'cpp', 'cpp.lib'),
   ],
   'linux': [
     os.path.join('obj', 'third_party', 'angle', 'src', 'third_party', 'libXNVCtrl', 'libXNVCtrl.a'),
