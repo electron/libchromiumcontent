@@ -214,7 +214,6 @@ FILES_BLACKLIST = {
   'darwin': [
   ],
   'win32': [
-    os.path.join('obj', 'ppapi', 'cpp', 'cpp.lib'),
   ],
   'linux': [
     os.path.join('obj', 'third_party', 'angle', 'src', 'third_party', 'libXNVCtrl', 'libXNVCtrl.a'),

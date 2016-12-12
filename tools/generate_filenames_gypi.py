@@ -58,7 +58,7 @@ EXCLUDE_STATIC_LIBRARIES = {
     'ffmpeg_yasm.lib',
     'libEGL.dll.lib',
     'libGLESv2.dll.lib',
-    'ppapi_cpp.lib',
+    'cpp.lib',
     'widevinecdm.dll.lib',
     'widevinecdmadapter.dll.lib',
   ],
