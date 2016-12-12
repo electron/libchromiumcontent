@@ -70,14 +70,9 @@ group("libchromiumcontent") {
   } else if (is_win) {
     deps += [
       ":chromiumviews",
+      ":sandbox_helper_win",
       "//pdf",
     ]
-
-    if (is_component_build) {
-      deps += [
-        ":sandbox_helper_win",
-      ]
-    }
   }
 }
 

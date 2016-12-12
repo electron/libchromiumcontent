@@ -227,6 +227,7 @@ FILES_BLACKLIST = {
   'darwin': [
   ],
   'win32': [
+    os.path.join('obj', 'chromiumcontent', 'sandbox_helper_win.lib'),
   ],
   'linux': [
     os.path.join('obj', 'third_party', 'angle', 'src', 'third_party', 'libXNVCtrl', 'libXNVCtrl.a'),
