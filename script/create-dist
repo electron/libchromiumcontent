@@ -383,16 +383,17 @@ def copy_binaries(target_arch, component, output_dir):
           copy_with_blacklist(target_arch, output_dir, dll, target_dir)
           copy_with_blacklist(target_arch, output_dir, lib, target_dir)
     else:
-      # On Windows static libraries are placed under subdirs under "obj".
-      for root, _, filenames in os.walk(os.path.join(output_dir, 'obj')):
-        # out/Release/obj/**/*.lib
-        for filename in fnmatch.filter(filenames, '*.lib'):
-          copy_with_blacklist(target_arch, output_dir,
-                              os.path.join(root, filename), target_dir)
-        # out/Release/obj/**/*.pdb
-        for filename in fnmatch.filter(filenames, '*.pdb'):
-          copy_with_blacklist(target_arch, output_dir,
-                              os.path.join(root, filename), target_dir)
+      # Static libraries are placed under subdirs like "obj" and "gen".
+      for sub in ['obj', 'gen']:
+        for root, _, filenames in os.walk(os.path.join(output_dir, sub)):
+          # out/Release/obj/**/*.lib
+          for filename in fnmatch.filter(filenames, '*.lib'):
+            copy_with_blacklist(target_arch, output_dir,
+                                os.path.join(root, filename), target_dir)
+          # out/Release/obj/**/*.pdb
+          for filename in fnmatch.filter(filenames, '*.pdb'):
+            copy_with_blacklist(target_arch, output_dir,
+                                os.path.join(root, filename), target_dir)
 
   if TARGET_PLATFORM in ['linux', 'darwin']:
     if component == 'shared_library':
