@@ -20,3 +20,16 @@ index 06ec9d1..acc7bbc 100644
    sources = rebase_path(ppapi_sources.cpp_source_files, ".", "..")
    configs += [ "//build/config:precompiled_headers" ]
  }
+diff --git a/ppapi/cpp/private/BUILD.gn b/ppapi/cpp/private/BUILD.gn
+index 0aae3f1..86428ae 100644
+--- a/ppapi/cpp/private/BUILD.gn
++++ b/ppapi/cpp/private/BUILD.gn
+@@ -2,7 +2,7 @@
+ # Use of this source code is governed by a BSD-style license that can be
+ # found in the LICENSE file.
+ 
+-source_set("internal_module") {
++static_library("internal_module") {
+   sources = [
+     "internal_module.cc",
+     "internal_module.h",
