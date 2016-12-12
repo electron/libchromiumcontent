@@ -72,6 +72,12 @@ group("libchromiumcontent") {
       ":chromiumviews",
       "//pdf",
     ]
+
+    if (is_component_build) {
+      deps += [
+        ":sandbox_helper_win",
+      ]
+    }
   }
 }
 
@@ -84,6 +90,19 @@ if (is_linux || is_win) {
       "//ui/views/controls/webview",
       "//ui/views",
       "//ui/wm",
+    ]
+  }
+}
+
+if (is_win) {
+  static_library("sandbox_helper_win") {
+    sources = [
+      "../content/app/sandbox_helper_win.cc",
+      "../content/public/app/sandbox_helper_win.h",
+    ]
+
+    deps = [
+      "//sandbox",
     ]
   }
 }
