@@ -30,7 +30,7 @@ index 39d89e1..0f7da00 100644
  // is concerned.
  @property(nonatomic, readonly) NSString* subrole;
 diff --git a/content/browser/accessibility/browser_accessibility_cocoa.mm b/content/browser/accessibility/browser_accessibility_cocoa.mm
-index 6c7d156..341ccac 100644
+index 6c7d156..1169824 100644
 --- a/content/browser/accessibility/browser_accessibility_cocoa.mm
 +++ b/content/browser/accessibility/browser_accessibility_cocoa.mm
 @@ -104,6 +104,7 @@
@@ -136,15 +136,12 @@ index 6c7d156..341ccac 100644
  
  // Returns a subrole based upon the role.
  - (NSString*) subrole {
-@@ -1945,6 +1961,7 @@ - (NSAttributedString*)attributedValueForRange:(NSRange)range {
-   if (![self instanceActive])
-     return nil;
- 
-+#ifndef MAS_BUILD
-   // We need to get the whole text because a spelling mistake might start or end
-   // outside our range.
+@@ -1950,10 +1966,12 @@ - (NSAttributedString*)attributedValueForRange:(NSRange)range {
    NSString* value = base::SysUTF16ToNSString(browserAccessibility_->GetValue());
-@@ -1954,6 +1971,7 @@ - (NSAttributedString*)attributedValueForRange:(NSRange)range {
+   NSMutableAttributedString* attributedValue =
+       [[[NSMutableAttributedString alloc] initWithString:value] autorelease];
++#ifndef MAS_BUILD
+   std::vector<const BrowserAccessibility*> textOnlyObjects =
        BrowserAccessibilityManager::FindTextOnlyObjectsInRange(
            *browserAccessibility_, *browserAccessibility_);
    AddMisspelledTextAttributes(textOnlyObjects, attributedValue);
