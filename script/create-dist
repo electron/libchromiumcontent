@@ -81,6 +81,7 @@ BINARIES = {
     'mksnapshot',
     'libffmpeg.so',
     'libosmesa.so',
+    os.path.join('clang_x86_v8_arm', 'mksnapshot'),
     os.path.join('obj', 'chrome', 'browser', 'ui', 'libgtk2ui', 'libgtk2ui.a'),
     os.path.join('obj', 'components', 'cdm', 'renderer', 'librenderer.a'),
     os.path.join('obj', 'components', 'cookie_config', 'libcookie_config.a'),
@@ -200,6 +201,7 @@ BINARIES = {
   ],
 }
 
+# TODO: Move all of these to FILES_BLACKLIST.
 BINARIES_BLACKLIST = {
   'darwin': [
     'libffmpeg_internal.a',
@@ -237,13 +239,15 @@ FILES_BLACKLIST = {
 
 ARCH_BLACKLIST = {
   'arm': [
-    'libdesktop_capture_differ_sse2.a',
+    'mksnapshot',
+    os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture', 'libdesktop_capture_differ_sse2.a'),
   ],
   'x64': [
-    'libprotobuf_full_do_not_use.a',
-    'libprotoc_lib.a',
+    os.path.join('clang_x86_v8_arm', 'mksnapshot'),
+    os.path.join('obj', 'third_party', 'protobuf', 'libprotoc_lib.a'),
   ],
   'ia32': [
+    os.path.join('clang_x86_v8_arm', 'mksnapshot'),
   ],
 }
 
@@ -364,9 +368,9 @@ def parse_args():
 def copy_with_blacklist(target_arch, base, src, dest):
   if os.path.basename(src) in BINARIES_BLACKLIST[TARGET_PLATFORM]:
     return
-  if os.path.basename(src) in ARCH_BLACKLIST[target_arch]:
-    return
   relpath = os.path.relpath(src, base)
+  if relpath in ARCH_BLACKLIST[target_arch]:
+    return
   if relpath in FILES_BLACKLIST[TARGET_PLATFORM]:
     return
   target_dir = os.path.join(dest, os.path.dirname(relpath))
