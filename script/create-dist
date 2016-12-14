@@ -472,7 +472,8 @@ def copy_mksnapshot(target_arch, component, output_dir):
   if TARGET_PLATFORM == 'win32':
     target += '.exe'
   shutil.copy2(mksnapshot, target)
-  run_strip(target_arch, target)
+  if TARGET_PLATFORM in ['linux', 'darwin']:
+    run_strip(target_arch, target)
 
 
 def copy_ffmpeg(target_arch):
