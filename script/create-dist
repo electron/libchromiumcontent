@@ -57,7 +57,6 @@ BINARIES = {
   ],
   'darwin': [
     'chromedriver',
-    'mksnapshot',
     'libffmpeg.dylib',
     os.path.join('obj', 'components', 'cdm', 'renderer', 'librenderer.a'),
     os.path.join('obj', 'components', 'cookie_config', 'libcookie_config.a'),
@@ -78,10 +77,8 @@ BINARIES = {
   ],
   'linux': [
     'chromedriver',
-    'mksnapshot',
     'libffmpeg.so',
     'libosmesa.so',
-    os.path.join('clang_x86_v8_arm', 'mksnapshot'),
     os.path.join('obj', 'chrome', 'browser', 'ui', 'libgtk2ui', 'libgtk2ui.a'),
     os.path.join('obj', 'components', 'cdm', 'renderer', 'librenderer.a'),
     os.path.join('obj', 'components', 'cookie_config', 'libcookie_config.a'),
@@ -107,7 +104,6 @@ BINARIES = {
     'ffmpeg.dll.lib',
     'libEGL.dll',
     'libGLESv2.dll',
-    'mksnapshot.exe',
     os.path.join('gen', 'ui', 'resources', 'ui_unscaled_resources.rc'),
     os.path.join('obj', 'base', 'base_static.lib'),
     os.path.join('obj', 'base', 'base_static_cc.pdb'),
@@ -239,15 +235,12 @@ FILES_BLACKLIST = {
 
 ARCH_BLACKLIST = {
   'arm': [
-    'mksnapshot',
     os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture', 'libdesktop_capture_differ_sse2.a'),
   ],
   'x64': [
-    os.path.join('clang_x86_v8_arm', 'mksnapshot'),
     os.path.join('obj', 'third_party', 'protobuf', 'libprotoc_lib.a'),
   ],
   'ia32': [
-    os.path.join('clang_x86_v8_arm', 'mksnapshot'),
   ],
 }
 
@@ -347,6 +340,7 @@ def main():
       copy_binaries(target_arch, component, output_dir)
       copy_generated_sources(target_arch, component, output_dir)
       copy_locales(target_arch, component, output_dir)
+      copy_mksnapshot(target_arch, component, output_dir)
 
   copy_ffmpeg(target_arch)
   copy_sources()
@@ -444,6 +438,7 @@ def copy_generated_sources(target_arch, component, output_dir):
                  relative_to=os.path.join(output_dir, 'gen'),
                  destination=os.path.join(target_dir, 'gen'))
 
+
 def copy_locales(target_arch, component, output_dir):
   target_dir = os.path.join(MAIN_DIR, component, 'locales')
   mkdir_p(target_dir)
@@ -452,6 +447,7 @@ def copy_locales(target_arch, component, output_dir):
     filename = os.path.basename(src_file)
     new_name = re.sub('content_strings_', '', filename)
     shutil.copy2(src_file, os.path.join(target_dir, new_name))
+
 
 def copy_sources():
   for include_path in INCLUDE_DIRS:
@@ -463,6 +459,20 @@ def copy_sources():
 
   for path in OTHER_DIRS:
     copy_dir(path, relative_to=SRC_DIR, destination=DIST_SRC_DIR)
+
+
+def copy_mksnapshot(target_arch, component, output_dir):
+  if TARGET_PLATFORM == 'linux' and target_arch == 'arm':
+    mksnapshot = os.path.join(output_dir, 'clang_x86_v8_arm', 'mksnapshot')
+  elif TARGET_PLATFORM == 'win32' :
+    mksnapshot = os.path.join(output_dir, 'mksnapshot.exe')
+  else:
+    mksnapshot = os.path.join(output_dir, 'mksnapshot')
+  target = os.path.join(MAIN_DIR, component, 'mksnapshot')
+  if TARGET_PLATFORM == 'win32':
+    target += '.exe'
+  shutil.copy2(mksnapshot, target)
+  run_strip(target_arch, target)
 
 
 def copy_ffmpeg(target_arch):
