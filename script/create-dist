@@ -95,6 +95,7 @@ BINARIES = {
     os.path.join('obj', 'third_party', 'webrtc', 'libwebrtc_common.a'),
     os.path.join('obj', 'third_party', 'webrtc', 'system_wrappers', 'libsystem_wrappers.a'),
     os.path.join('obj', 'third_party', 'libyuv', 'libyuv.a'),
+    os.path.join('obj', 'third_party', 'libyuv', 'libyuv_neon.a'),
     os.path.join('obj', 'ui', 'events', 'libdom_keycode_converter.a'),
   ],
   'win32': [
@@ -238,8 +239,10 @@ ARCH_BLACKLIST = {
   ],
   'x64': [
     os.path.join('obj', 'third_party', 'protobuf', 'libprotoc_lib.a'),
+    os.path.join('obj', 'third_party', 'libyuv', 'libyuv_neon.a'),
   ],
   'ia32': [
+    os.path.join('obj', 'third_party', 'libyuv', 'libyuv_neon.a'),
   ],
 }
 
