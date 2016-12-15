@@ -23,7 +23,8 @@ config("compiler") {
   ]
 
   if (!is_component_build) {
-    # Force exposign V8 symbols.
+    # Force exposing V8 symbols on Windows.
+    # (Corresponding part for POSIX is inside script/update.)
     defines += [ "BUILDING_V8_SHARED" ]
   }
 
