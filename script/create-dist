@@ -56,24 +56,10 @@ BINARIES = {
     os.path.join('gen', 'ui', 'views', 'resources', 'views_resources_300_percent.pak'),
   ],
   'darwin': [
-    'chromedriver',
-    'mksnapshot',
+# TODO: Take these from the "ffmpeg" output directory
+#    'chromedriver',
+#    'mksnapshot',
     'libffmpeg.dylib',
-    'libdevtools_discovery.a',
-    'libdevtools_http_handler.a',
-    'libhttp_server.a',
-    'libdesktop_capture.a',
-    'libdesktop_capture_differ_sse2.a',
-    'librtc_base.a',
-    'librtc_base_approved.a',
-    'libwebrtc_common.a',
-    'libyuv.a',
-    'libsystem_wrappers.a',
-    'libcdm_renderer.a',
-    'libsecurity_state.a',
-    'libcookie_config.a',
-    'libos_crypt.a',
-    'libdom_keycode_converter.a',
   ],
   'linux': [
     'chromedriver',
@@ -98,96 +84,15 @@ BINARIES = {
     os.path.join('lib', 'libffmpeg.so'),
   ],
   'win32': [
-    'chromedriver.exe',
+# TODO: Take these from the "ffmpeg" output directory
+#    'chromedriver.exe',
+#    'mksnapshot.exe',
     'd3dcompiler_47.dll',
     'ffmpeg.dll',
     'ffmpeg.dll.lib',
     'libEGL.dll',
     'libGLESv2.dll',
-    'libyuv.lib',
-    'mksnapshot.exe',
     os.path.join('gen', 'ui', 'resources', 'ui_unscaled_resources.rc'),
-    os.path.join('obj', 'base', 'base_static.cc.pdb'),
-    os.path.join('obj', 'base', 'base_static.lib'),
-    os.path.join('obj', 'components', 'devtools_discovery.cc.pdb'),
-    os.path.join('obj', 'components', 'devtools_discovery.lib'),
-    os.path.join('obj', 'components', 'devtools_http_handler.cc.pdb'),
-    os.path.join('obj', 'components', 'devtools_http_handler.lib'),
-    os.path.join('obj', 'components', 'cdm_renderer.cc.pdb'),
-    os.path.join('obj', 'components', 'cdm_renderer.lib'),
-    os.path.join('obj', 'components', 'cookie_config.cc.pdb'),
-    os.path.join('obj', 'components', 'cookie_config.lib'),
-    os.path.join('obj', 'components', 'os_crypt.cc.pdb'),
-    os.path.join('obj', 'components', 'os_crypt.lib'),
-    os.path.join('obj', 'components', 'security_state.cc.pdb'),
-    os.path.join('obj', 'components', 'security_state.lib'),
-    os.path.join('obj', 'content', 'sandbox_helper_win.cc.pdb'),
-    os.path.join('obj', 'content', 'sandbox_helper_win.lib'),
-    os.path.join('obj', 'net', 'http_server.cc.pdb'),
-    os.path.join('obj', 'net', 'http_server.lib'),
-    os.path.join('obj', 'pdf', 'pdf.cc.pdb'),
-    os.path.join('obj', 'pdf', 'pdf.lib'),
-    os.path.join('obj', 'ppapi', 'ppapi_cpp_objects.cc.pdb'),
-    os.path.join('obj', 'ppapi', 'ppapi_cpp_objects.lib'),
-    os.path.join('obj', 'ppapi', 'ppapi_cpp.cc.pdb'),
-    os.path.join('obj', 'ppapi', 'ppapi_cpp.lib'),
-    os.path.join('obj', 'ppapi', 'ppapi_internal_module.cc.pdb'),
-    os.path.join('obj', 'ppapi', 'ppapi_internal_module.lib'),
-    os.path.join('obj', 'sandbox', 'sandbox.cc.pdb'),
-    os.path.join('obj', 'sandbox', 'sandbox.lib'),
-    os.path.join('obj', 'third_party', 'libjpeg_turbo', 'libjpeg.c.pdb'),
-    os.path.join('obj', 'third_party', 'libjpeg_turbo', 'libjpeg.lib'),
-    os.path.join('obj', 'third_party', 'libyuv', 'libyuv.cc.pdb'),
-    os.path.join('obj', 'third_party', 'pdfium', 'pdfium.cc.pdb'),
-    os.path.join('obj', 'third_party', 'pdfium', 'pdfium.lib'),
-    os.path.join('obj', 'third_party', 'pdfium', 'fdrm.cc.pdb'),
-    os.path.join('obj', 'third_party', 'pdfium', 'fdrm.lib'),
-    os.path.join('obj', 'third_party', 'pdfium', 'formfiller.cc.pdb'),
-    os.path.join('obj', 'third_party', 'pdfium', 'formfiller.lib'),
-    os.path.join('obj', 'third_party', 'pdfium', 'fpdfapi.cc.pdb'),
-    os.path.join('obj', 'third_party', 'pdfium', 'fpdfapi.lib'),
-    os.path.join('obj', 'third_party', 'pdfium', 'fpdfdoc.cc.pdb'),
-    os.path.join('obj', 'third_party', 'pdfium', 'fpdfdoc.lib'),
-    os.path.join('obj', 'third_party', 'pdfium', 'fpdftext.cc.pdb'),
-    os.path.join('obj', 'third_party', 'pdfium', 'fpdftext.lib'),
-    os.path.join('obj', 'third_party', 'pdfium', 'fxcodec.cc.pdb'),
-    os.path.join('obj', 'third_party', 'pdfium', 'fxcodec.lib'),
-    os.path.join('obj', 'third_party', 'pdfium', 'fxcrt.cc.pdb'),
-    os.path.join('obj', 'third_party', 'pdfium', 'fxcrt.lib'),
-    os.path.join('obj', 'third_party', 'pdfium', 'fxedit.cc.pdb'),
-    os.path.join('obj', 'third_party', 'pdfium', 'fxedit.lib'),
-    os.path.join('obj', 'third_party', 'pdfium', 'fxge.cc.pdb'),
-    os.path.join('obj', 'third_party', 'pdfium', 'fxge.lib'),
-    os.path.join('obj', 'third_party', 'pdfium', 'javascript.cc.pdb'),
-    os.path.join('obj', 'third_party', 'pdfium', 'javascript.lib'),
-    os.path.join('obj', 'third_party', 'pdfium', 'pdfwindow.cc.pdb'),
-    os.path.join('obj', 'third_party', 'pdfium', 'pdfwindow.lib'),
-    os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'bigint.cc.pdb'),
-    os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'bigint.lib'),
-    os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'fx_agg.cc.pdb'),
-    os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'fx_agg.lib'),
-    os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'fx_freetype.c.pdb'),
-    os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'fx_freetype.lib'),
-    os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'fx_lcms2.c.pdb'),
-    os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'fx_lcms2.lib'),
-    os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'fx_libopenjpeg.c.pdb'),
-    os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'fx_libopenjpeg.lib'),
-    os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'fx_zlib.c.pdb'),
-    os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'fx_zlib.lib'),
-    os.path.join('obj', 'third_party', 'webrtc', 'base', 'rtc_base.cc.pdb'),
-    os.path.join('obj', 'third_party', 'webrtc', 'base', 'rtc_base.lib'),
-    os.path.join('obj', 'third_party', 'webrtc', 'base', 'rtc_base_approved.cc.pdb'),
-    os.path.join('obj', 'third_party', 'webrtc', 'base', 'rtc_base_approved.lib'),
-    os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture.cc.pdb'),
-    os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture.lib'),
-    os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture_differ_sse2.cc.pdb'),
-    os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture_differ_sse2.lib'),
-    os.path.join('obj', 'third_party', 'webrtc', 'system_wrappers', 'system_wrappers.cc.pdb'),
-    os.path.join('obj', 'third_party', 'webrtc', 'system_wrappers', 'system_wrappers.lib'),
-    os.path.join('obj', 'third_party', 'webrtc', 'webrtc_common.cc.pdb'),
-    os.path.join('obj', 'third_party', 'webrtc', 'webrtc_common.lib'),
-    os.path.join('obj', 'ui', 'events', 'dom_keycode_converter.cc.pdb'),
-    os.path.join('obj', 'ui', 'events', 'dom_keycode_converter.lib'),
   ],
 }
 
@@ -355,9 +260,12 @@ def copy_binaries(target_arch, component, output_dir):
     match = '*.{0}'.format(STATIC_LIBRARY_SUFFIX)
 
   if TARGET_PLATFORM == 'darwin':
-    # out/Release/*.{dll,lib}
-    for library in glob.glob(os.path.join(config_dir, match)):
-      copy_with_blacklist(target_arch, library, target_dir)
+    if component == 'shared_library':
+      for library in glob.glob(os.path.join(config_dir, '*.dylib')):
+        copy_with_blacklist(target_arch, library, target_dir)
+    else:
+      for library in glob.glob(os.path.join(config_dir, 'obj', 'chromiumcontent', '*.a')):
+        shutil.copy2(library, target_dir)
 
   if TARGET_PLATFORM == 'win32':
     if component == 'shared_library':
@@ -369,13 +277,9 @@ def copy_binaries(target_arch, component, output_dir):
           copy_with_blacklist(target_arch, lib, target_dir)
     else:
       # On Windows static libraries are placed under subdirs under "obj".
-      for root, _, filenames in os.walk(os.path.join(config_dir, 'obj')):
-        # out/Release/obj/**/*.lib
-        for filename in fnmatch.filter(filenames, '*.lib'):
-          copy_with_blacklist(target_arch, os.path.join(root, filename), target_dir)
-        # out/Release/obj/**/*.pdb
-        for filename in fnmatch.filter(filenames, '*.pdb'):
-          copy_with_blacklist(target_arch, os.path.join(root, filename), target_dir)
+      for library in glob.glob(os.path.join(config_dir, 'obj', 'chromiumcontent', '*.lib')):
+        shutil.copy2(library, target_dir)
+      # TODO: Copy .pdb files
 
   if TARGET_PLATFORM == 'linux':
     if component == 'shared_library':
@@ -405,6 +309,8 @@ def copy_generated_sources(target_arch, component, output_dir):
     copy_headers(include_path,
                  relative_to=os.path.join(output_dir, config, 'gen'),
                  destination=os.path.join(target_dir, 'gen'))
+  shutil.move(os.path.join(target_dir, 'gen', 'content', 'shell', 'grit', 'shell_resources.h'),
+              os.path.join(target_dir, 'gen', 'content', 'grit'))
 
 def copy_locales(target_arch, component, output_dir):
   config = get_configuration(target_arch)

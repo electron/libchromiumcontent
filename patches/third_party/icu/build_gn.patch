@@ -1,0 +1,59 @@
+diff --git a/BUILD.gn b/BUILD.gn
+index f3767c56..264888f0 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -2,6 +2,7 @@
+ # Use of this source code is governed by a BSD-style license that can be
+ # found in the LICENSE file.
+ 
++import("//chromiumcontent/config.gni")
+ import("//third_party/icu/config.gni")
+ 
+ if (is_android) {
+@@ -34,7 +35,7 @@ config("icu_config") {
+     "U_NOEXCEPT=",
+   ]
+ 
+-  if (!is_component_build) {
++  if (!is_component_build && !is_electron_build) {
+     defines += [ "U_STATIC_IMPLEMENTATION" ]
+   }
+ 
+@@ -120,7 +121,7 @@ config("icu_code") {
+   }
+ }
+ 
+-component("icui18n") {
++target(component_electron, "icui18n") {
+   # find  source/i18n -maxdepth 1  ! -type d  | egrep  '\.(c|cpp)$' |\
+   # sort | sed 's/^\(.*\)$/    "\1",/'
+   sources = [
+@@ -325,6 +326,9 @@ component("icui18n") {
+     "source/i18n/ztrans.cpp",
+   ]
+   defines = [ "U_I18N_IMPLEMENTATION" ]
++  if (is_electron_build) {
++    defines += [ "U_COMBINED_IMPLEMENTATION" ]
++  }
+   deps = [
+     ":icuuc",
+   ]
+@@ -351,7 +355,7 @@ component("icui18n") {
+   }
+ }
+ 
+-component("icuuc") {
++target(component_electron, "icuuc") {
+   # find  source/common -maxdepth 1  ! -type d  | egrep  '\.(c|cpp)$' |\
+   # sort | sed 's/^\(.*\)$/    "\1",/'
+   sources = [
+@@ -537,6 +541,9 @@ component("icuuc") {
+     "source/common/wintz.c",
+   ]
+   defines = [ "U_COMMON_IMPLEMENTATION" ]
++  if (is_electron_build) {
++    defines += [ "U_COMBINED_IMPLEMENTATION" ]
++  }
+   deps = [
+     ":icudata",
+   ]
