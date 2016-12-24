@@ -1,0 +1,60 @@
+diff --git a/BUILD.gn b/BUILD.gn
+index 3121dceccf..a99e757b2c 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -2,6 +2,7 @@
+ # Use of this source code is governed by a BSD-style license that can be
+ # found in the LICENSE file.
+ 
++import("//chromiumcontent/config.gni")
+ import("//build/config/android/config.gni")
+ import("//build/config/arm.gni")
+ import("//build/config/dcheck_always_on.gni")
+@@ -74,7 +75,7 @@ config("internal_config") {
+ 
+   include_dirs = [ "." ]
+ 
+-  if (is_component_build) {
++  if (is_component_build || is_electron_build) {
+     defines = [
+       "V8_SHARED",
+       "BUILDING_V8_SHARED",
+@@ -101,7 +102,7 @@ config("libsampler_config") {
+ # This config should only be applied to code using V8 and not any V8 code
+ # itself.
+ config("external_config") {
+-  if (is_component_build) {
++  if (is_component_build || is_electron_build) {
+     defines = [
+       "V8_SHARED",
+       "USING_V8_SHARED",
+@@ -2091,7 +2092,7 @@ group("gn_all") {
+   }
+ }
+ 
+-if (is_component_build) {
++if (is_component_build || is_electron_build) {
+   v8_component("v8") {
+     sources = [
+       "src/v8dll-main.cc",
+diff --git a/gni/v8.gni b/gni/v8.gni
+index 24f65679a4..8b91eed7dc 100644
+--- a/gni/v8.gni
++++ b/gni/v8.gni
+@@ -2,6 +2,7 @@
+ # Use of this source code is governed by a BSD-style license that can be
+ # found in the LICENSE file.
+ 
++import("//chromiumcontent/config.gni")
+ import("//build/config/v8_target_cpu.gni")
+ import("//build/config/sanitizers/sanitizers.gni")
+ 
+@@ -70,7 +71,7 @@ template("v8_executable") {
+ }
+ 
+ template("v8_component") {
+-  component(target_name) {
++  target(component_electron, target_name) {
+     forward_variables_from(invoker, "*", [ "configs" ])
+     configs += invoker.configs
+     configs -= remove_configs
