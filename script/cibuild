@@ -19,6 +19,9 @@ def main():
     return 'Error: Can\'t find {0}'.format(S3_CREDENTIALS_FILE)
   copy_to_environment(S3_CREDENTIALS_FILE)
 
+  if 'TARGET_ARCH' in os.environ:
+    return run_ci(['-t', os.environ['TARGET_ARCH']])
+
   if sys.platform in ['win32', 'cygwin']:
     return (run_ci(['-t', 'x64']) or
             run_ci(['-t', 'ia32']))
