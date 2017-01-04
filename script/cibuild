@@ -23,9 +23,12 @@ def main():
     return (run_ci(['-t', 'x64']) or
             run_ci(['-t', 'ia32']))
   elif sys.platform == 'linux2':
-    return (run_ci(['-t', 'x64']) or
-            run_ci(['-t', 'ia32']) or
-            run_ci(['-t', 'arm']))
+    if 'TARGET_ARCH' in os.environ:
+      return run_ci(['-t', os.environ['TARGET_ARCH']])
+    else:
+      return (run_ci(['-t', 'x64']) or
+              run_ci(['-t', 'ia32']) or
+              run_ci(['-t', 'arm']))
   else:
     return run_ci([])
 
