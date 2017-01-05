@@ -16,14 +16,6 @@ dependencies (e.g., Blink, V8, etc.).
 
     $ script/bootstrap
 
-Assuming you have set up `depot_tools` according to the instructions above,
-checkout Chromium sources and switch to the correct version.
-
-    $ fetch chromium
-    $ cd src
-    $ git checkout $(cat ../VERSION)
-    $ gclient sync --with_branch_heads
-
 ### Building
 
     $ script/update -t x64
