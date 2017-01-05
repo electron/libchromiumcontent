@@ -35,6 +35,29 @@ group("targets") {
       "//ui/views",
       "//ui/views/controls/webview",
     ]
+
+    if (is_component_build) {
+      deps += [
+        ":desktop_capture",
+        ":devtools_discovery",
+        ":devtools_http_handler",
+        ":fx_agg",
+        ":fx_lcms2",
+        ":fx_libopenjpeg",
+        ":fx_zlib",
+        ":libjpeg",
+        ":libyuv",
+        ":ppapi_cpp_objects",
+        ":ppapi_internal_module",
+        ":security_state",
+        ":system_wrappers",
+        ":webrtc_common",
+      ]
+
+      if (is_win) {
+        deps += [ ":sandbox_helper_win" ]
+      }
+    }
   }
 
   # These produce executables we distribute as part of libchromiumcontent.
@@ -51,6 +74,85 @@ group("targets") {
   # We build FFMPEG separately in the default non-component configuration
   if (!is_electron_build && !is_component_build) {
     deps += [ "//third_party/ffmpeg" ]
+  }
+}
+
+if (is_electron_build && is_component_build) {
+  static_library("desktop_capture") {
+      complete_static_lib = true
+      deps = [ "//third_party/webrtc/modules/desktop_capture" ]
+  }
+
+  static_library("devtools_discovery") {
+      complete_static_lib = true
+      deps = [ "//components/devtools_discovery" ]
+  }
+
+  static_library("devtools_http_handler") {
+      complete_static_lib = true
+      deps = [ "//components/devtools_http_handler" ]
+  }
+
+  static_library("fx_agg") {
+      complete_static_lib = true
+      deps = [ "//third_party/pdfium/third_party:fx_agg" ]
+  }
+
+  static_library("fx_lcms2") {
+      complete_static_lib = true
+      deps = [ "//third_party/pdfium/third_party:fx_lcms2" ]
+  }
+
+  static_library("fx_libopenjpeg") {
+      complete_static_lib = true
+      deps = [ "//third_party/pdfium/third_party:fx_libopenjpeg" ]
+  }
+
+  static_library("fx_zlib") {
+      complete_static_lib = true
+      deps = [ "//third_party/pdfium/third_party:fx_zlib" ]
+  }
+
+  static_library("libjpeg") {
+      complete_static_lib = true
+      deps = [ "//third_party:jpeg" ]
+  }
+
+  static_library("libyuv") {
+      complete_static_lib = true
+      deps = [ "//third_party/libyuv" ]
+  }
+
+  static_library("ppapi_cpp_objects") {
+      complete_static_lib = true
+      deps = [ "//ppapi/cpp:objects" ]
+  }
+
+  static_library("ppapi_internal_module") {
+      complete_static_lib = true
+      deps = [ "//ppapi/cpp/private:internal_module" ]
+  }
+
+  static_library("security_state") {
+      complete_static_lib = true
+      deps = [ "//components/security_state" ]
+  }
+
+  static_library("system_wrappers") {
+      complete_static_lib = true
+      deps = [ "//third_party/webrtc/system_wrappers" ]
+  }
+
+  static_library("webrtc_common") {
+      complete_static_lib = true
+      deps = [ "//third_party/webrtc:webrtc_common" ]
+  }
+
+  if (is_win) {
+    static_library("sandbox_helper_win") {
+      complete_static_lib = true
+      deps = [ "//content:sandbox_helper_win" ]
+    }
   }
 }
 
