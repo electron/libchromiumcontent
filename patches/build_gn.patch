@@ -19,3 +19,15 @@ index e5fdb29e858f..01b6973cb494 100644
        ldflags = [
          # Not to strip important symbols by -Wl,-dead_strip.
          "-Wl,-exported_symbol,_PPP_GetInterface",
+diff --git a/third_party/WebKit/Source/platform/BUILD.gn b/third_party/WebKit/Source/platform/BUILD.gn
+index 631aa54..84422a3 100644
+--- a/third_party/WebKit/Source/platform/BUILD.gn
++++ b/third_party/WebKit/Source/platform/BUILD.gn
+@@ -172,6 +172,7 @@ action("character_data") {
+ }
+ 
+ executable("character_data_generator") {
++  configs += [ "//chromiumcontent:build_time_executable" ]
+   sources = [
+     "text/CharacterPropertyDataGenerator.cpp",
+     "text/CharacterPropertyDataGenerator.h",

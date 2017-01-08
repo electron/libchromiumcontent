@@ -36,6 +36,10 @@ group("targets") {
       "//ui/views/controls/webview",
     ]
 
+    if (is_linux) {
+      deps += [ "//chrome/browser/ui/libgtk2ui" ]
+    }
+
     if (is_component_build) {
       deps += [
         ":desktop_capture",
@@ -53,6 +57,10 @@ group("targets") {
         ":system_wrappers",
         ":webrtc_common",
       ]
+
+      if (is_linux) {
+        deps += [ ":libgtk2ui" ]
+      }
 
       if (is_win) {
         deps += [ ":sandbox_helper_win" ]
@@ -146,6 +154,21 @@ if (is_electron_build && is_component_build) {
   static_library("webrtc_common") {
       complete_static_lib = true
       deps = [ "//third_party/webrtc:webrtc_common" ]
+  }
+
+  if (is_linux) {
+    static_library("libgtk2ui") {
+      complete_static_lib = true
+      sources = [
+        "$root_out_dir/obj/chrome/browser/ui/libgtk2ui/libgtk2ui/app_indicator_icon.o",
+        "$root_out_dir/obj/chrome/browser/ui/libgtk2ui/libgtk2ui/app_indicator_icon_menu.o",
+        "$root_out_dir/obj/chrome/browser/ui/libgtk2ui/libgtk2ui/gtk2_util.o",
+        "$root_out_dir/obj/chrome/browser/ui/libgtk2ui/libgtk2ui/gtk2_status_icon.o",
+        "$root_out_dir/obj/chrome/browser/ui/libgtk2ui/libgtk2ui/menu_util.o",
+        "$root_out_dir/obj/chrome/browser/ui/libgtk2ui/libgtk2ui/skia_utils_gtk2.o",
+        "$root_out_dir/obj/chrome/browser/ui/libgtk2ui/libgtk2ui/unity_service.o",
+      ]
+    }
   }
 
   if (is_win) {
@@ -312,4 +335,21 @@ if (is_electron_build && !is_component_build) {
     deps = [ ":targets" ]
   }
 
+}
+
+# There are some executable targets whose products are ran during build.
+# This config is applied to those targets because we need to give them some
+# special treatment.
+config("build_time_executable") {
+  configs = []
+
+  # The executables which have this config applied are dependent on ICU,
+  # which is always a shared library in an Electron build. However, in the
+  # non-component build, Linux executables don't have rpath set to search for
+  # libraries in the executable's directory, so ICU cannot be found. So let's
+  # make sure rpath is set here.
+  # See '//build/config/gcc/BUILD.gn' for details on the rpath setting.
+  if (is_electron_build && is_linux && !is_component_build) {
+    configs += [ "//build/config/gcc:rpath_for_built_shared_libraries" ]
+  }
 }

@@ -1,5 +1,5 @@
 diff --git a/BUILD.gn b/BUILD.gn
-index 3121dceccf..a99e757b2c 100644
+index 3121dce..22a6d02 100644
 --- a/BUILD.gn
 +++ b/BUILD.gn
 @@ -2,6 +2,7 @@
@@ -28,7 +28,15 @@ index 3121dceccf..a99e757b2c 100644
      defines = [
        "V8_SHARED",
        "USING_V8_SHARED",
-@@ -2091,7 +2092,7 @@ group("gn_all") {
+@@ -2044,6 +2045,7 @@ if (current_toolchain == v8_snapshot_toolchain) {
+     ]
+ 
+     configs = [ ":internal_config" ]
++    configs += [ "//chromiumcontent:build_time_executable" ]
+ 
+     deps = [
+       ":v8_base",
+@@ -2091,7 +2093,7 @@ group("gn_all") {
    }
  }
  
@@ -38,7 +46,7 @@ index 3121dceccf..a99e757b2c 100644
      sources = [
        "src/v8dll-main.cc",
 diff --git a/gni/v8.gni b/gni/v8.gni
-index 24f65679a4..8b91eed7dc 100644
+index 24f6567..8b91eed 100644
 --- a/gni/v8.gni
 +++ b/gni/v8.gni
 @@ -2,6 +2,7 @@
