@@ -86,6 +86,12 @@ group("targets") {
 }
 
 if (is_electron_build && is_component_build) {
+
+  # Electron needs some APIs which are not exported from shared libraries
+  # produced by a component build. So we put a copy of the needed symbols in
+  # this set of static libraries. Most can just depend on the respective
+  # source_set target.
+
   static_library("desktop_capture") {
       complete_static_lib = true
       deps = [ "//third_party/webrtc/modules/desktop_capture" ]
@@ -157,6 +163,8 @@ if (is_electron_build && is_component_build) {
   }
 
   if (is_linux) {
+    # The original libgtk2ui target is a shared library, so we must list
+    # the object files instead of just depending on it.
     static_library("libgtk2ui") {
       complete_static_lib = true
       sources = [
@@ -204,9 +212,10 @@ if (is_electron_build && !is_component_build) {
     deps = [ ":targets" ]
   }
 
-  # Due to various limitations of different toolchains (like maximum
-  # lib file size or maximum number of obj files), we produce multiple
-  # static libraries
+  # Normally we would just put everything in a single library plus V8. But
+  # toolchains have various limitations that we would hit - e.g. MSVC cannot
+  # produce a .lib file bigger than 4 GB, LLVM has a limit on the number of
+  # object files on the command line. So we produce multiple libraries.
   group("libs") {
     deps = [
       ":libchromiumcontent",
