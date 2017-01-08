@@ -21,8 +21,11 @@ with open(args.out, 'w') as out:
         out,
         "obj_libchromiumcontent",
         [
+            "build",
+            "chrome/browser/ui/libgtk2ui",
             "content",
             "crypto",
+            "dbus",
             "device",
             "gin",
             "google_apis",
@@ -44,7 +47,7 @@ with open(args.out, 'w') as out:
             "storage",
             "third_party/adobe",
             "third_party/boringssl",
-            "third_party/brotli",
+            "third_party/brotli/brotli",
             "third_party/decklink",
             "third_party/expat",
             "third_party/ffmpeg",
@@ -54,6 +57,7 @@ with open(args.out, 'w') as out:
             "third_party/iccjpeg",
             "third_party/isimpledom",
             "third_party/leveldatabase",
+            "third_party/libXNVCtrl",
             "third_party/libjingle",
             "third_party/libjpeg_turbo",
             "third_party/libpng",
@@ -93,6 +97,7 @@ with open(args.out, 'w') as out:
         out,
         "obj_base",
         [
+            "base/allocator",
             "base/base",
             "base/base_paths",
             "base/base_static",
@@ -201,7 +206,14 @@ with open(args.out, 'w') as out:
         out,
         "obj_webkit",
         [
-            "third_party/WebKit",
+            "third_party/WebKit/public",
+            "third_party/WebKit/Source/platform/heap",
+            "third_party/WebKit/Source/platform/blink_common",
+            "third_party/WebKit/Source/platform/platform",
+            "third_party/WebKit/Source/web",
+            "third_party/WebKit/Source/core",
+            "third_party/WebKit/Source/wtf",
+            "third_party/WebKit/Source/modules",
         ])
 
     gen_list(

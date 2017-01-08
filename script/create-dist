@@ -62,26 +62,10 @@ BINARIES = {
     'libffmpeg.dylib',
   ],
   'linux': [
-    'chromedriver',
-    'mksnapshot',
-    'libosmesa.so',
-    'libgtk2ui.a',
-    'libdevtools_discovery.a',
-    'libdevtools_http_handler.a',
-    'libhttp_server.a',
-    'libdesktop_capture.a',
-    'libdesktop_capture_differ_sse2.a',
-    'librtc_base.a',
-    'librtc_base_approved.a',
-    'libwebrtc_common.a',
-    'libyuv.a',
-    'libsystem_wrappers.a',
-    'libcdm_renderer.a',
-    'libsecurity_state.a',
-    'libcookie_config.a',
-    'libos_crypt.a',
-    'libdom_keycode_converter.a',
-    os.path.join('lib', 'libffmpeg.so'),
+# TODO: Take these from the "ffmpeg" output directory
+#    'chromedriver',
+#    'mksnapshot',
+    'libffmpeg.so',
   ],
   'win32': [
 # TODO: Take these from the "ffmpeg" output directory
@@ -98,6 +82,13 @@ BINARIES = {
 
 BINARIES_SHARED_LIBRARY = {
   'darwin': [
+    os.path.join('obj', 'components', 'cdm', 'renderer', 'librenderer.a'),
+    os.path.join('obj', 'net', 'libhttp_server.a'),
+    os.path.join('obj', 'third_party', 'webrtc', 'base', 'librtc_base.a'),
+    os.path.join('obj', 'third_party', 'webrtc', 'base', 'librtc_base_approved.a'),
+    os.path.join('obj', 'ui', 'events', 'libdom_keycode_converter.a'),
+  ],
+  'linux': [
     os.path.join('obj', 'components', 'cdm', 'renderer', 'librenderer.a'),
     os.path.join('obj', 'net', 'libhttp_server.a'),
     os.path.join('obj', 'third_party', 'webrtc', 'base', 'librtc_base.a'),
@@ -342,11 +333,7 @@ def copy_binaries(target_arch, component, output_dir):
   if TARGET_PLATFORM == 'linux':
     if component == 'shared_library':
       # out/Release/lib/*.so
-      for library in glob.glob(os.path.join(config_dir, 'lib', '*.so')):
-        copy_with_blacklist(target_arch, library, target_dir)
-    else:
-      # out/Release/*.a
-      for library in glob.glob(os.path.join(config_dir, '*.a')):
+      for library in glob.glob(os.path.join(config_dir, '*.so')):
         copy_with_blacklist(target_arch, library, target_dir)
 
   if TARGET_PLATFORM in ['linux', 'darwin']:
@@ -399,7 +386,7 @@ def copy_ffmpeg(target_arch):
   if TARGET_PLATFORM == 'darwin':
     binary = 'libffmpeg.dylib'
   elif TARGET_PLATFORM == 'linux':
-    binary = os.path.join('lib', 'libffmpeg.so')
+    binary = 'libffmpeg.so'
   elif TARGET_PLATFORM == 'win32':
     binary = 'ffmpeg.dll'
 
