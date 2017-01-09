@@ -5,3 +5,5 @@
 /src/
 /libchromiumcontent.zip
 /libchromiumcontent-static.zip
+.gclient
+.gclient_entries
