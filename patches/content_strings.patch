@@ -1,0 +1,44 @@
+diff --git a/content/app/strings/content_strings.grd b/content/app/strings/content_strings.grd
+index e56c685..5964e3f 100644
+--- a/content/app/strings/content_strings.grd
++++ b/content/app/strings/content_strings.grd
+@@ -445,11 +445,11 @@ below:
+       <message name="IDS_AX_MEDIA_HIDE_CLOSED_CAPTIONS_BUTTON" desc="accessibility role description for hide closed captions button">
+         hide closed captions
+       </message>
+-      
++
+       <message name="IDS_AX_MEDIA_CAST_OFF_BUTTON" desc="accessibility role description for remote playback button">
+         play on remote device
+       </message>
+-      
++
+       <message name="IDS_AX_MEDIA_CAST_ON_BUTTON" desc="accessibility role description for remote playback control button">
+         control remote playback
+       </message>
+@@ -521,7 +521,7 @@ below:
+       <message name="IDS_AX_MEDIA_CAST_OFF_BUTTON_HELP" desc="accessibility help description for remote playback button">
+         play on remote device
+       </message>
+-      
++
+       <message name="IDS_AX_MEDIA_CAST_ON_BUTTON_HELP" desc="accessibility help description for remote playback control button">
+         control remote playback
+       </message>
+@@ -609,6 +609,16 @@ below:
+         Please enter a number.
+       </message>
+ 
++      <!-- Audio device strings. -->
++      <message name="IDS_DEFAULT_AUDIO_DEVICE_NAME" desc="System default audio device (microphone or loudspeaker). This is typically presented to users in a drop-down list of device choices.">
++          Default
++      </message>
++      <if expr="is_win">
++        <message name="IDS_COMMUNICATIONS_AUDIO_DEVICE_NAME" desc="System default communications audio device (microphone or loudspeaker). This is typically presented to users in a drop-down list of device choices.">
++          Communications
++        </message>
++      </if>
++
+ <!-- The following IDS_FORM_VALIDATION_* messages were taken from Mozilla's dom.properties file.
+ 
+ # ***** BEGIN LICENSE BLOCK *****
