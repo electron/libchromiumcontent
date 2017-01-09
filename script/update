@@ -208,10 +208,10 @@ def update_gn():
   else:
     platform = 'linux*'
     key = 'linux64/gn.sha1'
-  subprocess.call([sys.executable, download, '--no_resume',
-                   '--platform={0}'.format(platform), '--no_auth', '--bucket',
-                   'chromium-gn', '-s', 'buildtools/{0}'.format(key)],
-                  cwd=SRC_DIR)
+  return subprocess.call([sys.executable, download, '--no_resume',
+                          '--platform={0}'.format(platform), '--no_auth', '--bucket',
+                          'chromium-gn', '-s', 'buildtools/{0}'.format(key)],
+                         cwd=SRC_DIR)
 
 
 def run_gn(target_arch, defines):
