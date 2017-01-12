@@ -126,6 +126,8 @@ BINARIES_SHARED_LIBRARY = {
     os.path.join('obj', 'third_party', 'pdfium', 'fxedit.lib'),
     os.path.join('obj', 'third_party', 'pdfium', 'fxge_cc.pdb'),
     os.path.join('obj', 'third_party', 'pdfium', 'fxge.lib'),
+    os.path.join('obj', 'third_party', 'pdfium', 'fxjs_cc.pdb'),
+    os.path.join('obj', 'third_party', 'pdfium', 'fxjs.lib'),
     os.path.join('obj', 'third_party', 'pdfium', 'javascript_cc.pdb'),
     os.path.join('obj', 'third_party', 'pdfium', 'javascript.lib'),
     os.path.join('obj', 'third_party', 'pdfium', 'pdfwindow_cc.pdb'),
@@ -354,8 +356,6 @@ def copy_generated_sources(target_arch, component, output_dir):
     copy_headers(include_path,
                  relative_to=os.path.join(output_dir, config, 'gen'),
                  destination=os.path.join(target_dir, 'gen'))
-  shutil.move(os.path.join(target_dir, 'gen', 'content', 'shell', 'grit', 'shell_resources.h'),
-              os.path.join(target_dir, 'gen', 'content', 'grit'))
 
 def copy_locales(target_arch, component, output_dir):
   config = get_configuration(target_arch)

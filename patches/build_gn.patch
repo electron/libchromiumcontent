@@ -1,16 +1,21 @@
+diff --git a/build/config/BUILDCONFIG.gn b/build/config/BUILDCONFIG.gn
+index 6390ae91725b..a2d87c5fdcd6 100644
+--- a/build/config/BUILDCONFIG.gn
++++ b/build/config/BUILDCONFIG.gn
+@@ -123,6 +123,8 @@ if (current_os == "") {
+ #   even if the value is overridden, which is wasteful. See first bullet.
+ 
+ declare_args() {
++  is_electron_build = false
++
+   # Set to enable the official build level of optimization. This has nothing
+   # to do with branding, but enables an additional level of optimization above
+   # release (!is_debug). This might be better expressed as a tri-state
 diff --git a/third_party/widevine/cdm/BUILD.gn b/third_party/widevine/cdm/BUILD.gn
-index e5fdb29e858f..01b6973cb494 100644
+index e5fdb29e858f..30040737dbb4 100644
 --- a/third_party/widevine/cdm/BUILD.gn
 +++ b/third_party/widevine/cdm/BUILD.gn
-@@ -2,6 +2,7 @@
- # Use of this source code is governed by a BSD-style license that can be
- # found in the LICENSE file.
- 
-+import("//chromiumcontent/config.gni")
- import("//build/config/chrome_build.gni")
- import("//build/config/features.gni")
- import("//chrome/version.gni")  # TODO layering violation
-@@ -93,7 +94,7 @@ if (widevine_cdm_binary_files != []) {
+@@ -93,7 +93,7 @@ if (widevine_cdm_binary_files != []) {
        "//build/config/sanitizers:deps",
      ]
  
@@ -20,10 +25,10 @@ index e5fdb29e858f..01b6973cb494 100644
          # Not to strip important symbols by -Wl,-dead_strip.
          "-Wl,-exported_symbol,_PPP_GetInterface",
 diff --git a/third_party/WebKit/Source/platform/BUILD.gn b/third_party/WebKit/Source/platform/BUILD.gn
-index 631aa54..84422a3 100644
+index ce25028fe74f..9a887e3c163a 100644
 --- a/third_party/WebKit/Source/platform/BUILD.gn
 +++ b/third_party/WebKit/Source/platform/BUILD.gn
-@@ -172,6 +172,7 @@ action("character_data") {
+@@ -174,6 +174,7 @@ action("character_data") {
  }
  
  executable("character_data_generator") {

@@ -1,8 +1,8 @@
 diff --git a/content/browser/web_contents/web_contents_impl.cc b/content/browser/web_contents/web_contents_impl.cc
-index b9ee451..505c12f 100644
+index b0451e4..0a6457a 100644
 --- a/content/browser/web_contents/web_contents_impl.cc
 +++ b/content/browser/web_contents/web_contents_impl.cc
-@@ -1503,6 +1503,12 @@ void WebContentsImpl::Init(const WebContents::CreateParams& params) {
+@@ -1543,6 +1543,12 @@ void WebContentsImpl::Init(const WebContents::CreateParams& params) {
    std::string unique_name = params.main_frame_name;
    frame_tree_.root()->SetFrameName(params.main_frame_name, unique_name);
  
@@ -15,7 +15,7 @@ index b9ee451..505c12f 100644
    WebContentsViewDelegate* delegate =
        GetContentClient()->browser()->GetWebContentsViewDelegate(this);
  
-@@ -1535,6 +1541,7 @@ void WebContentsImpl::Init(const WebContents::CreateParams& params) {
+@@ -1575,6 +1581,7 @@ void WebContentsImpl::Init(const WebContents::CreateParams& params) {
                                           std::move(view_),
                                           &render_view_host_delegate_view_));
    }
@@ -23,7 +23,7 @@ index b9ee451..505c12f 100644
    CHECK(render_view_host_delegate_view_);
    CHECK(view_.get());
  
-@@ -4652,6 +4659,7 @@ void WebContentsImpl::RendererUnresponsive(
+@@ -4724,6 +4731,7 @@ void WebContentsImpl::RendererUnresponsive(
    // We might have been waiting for both beforeunload and unload ACK.
    // Check if tab is to be unloaded first.
    if (rfhi->IsWaitingForUnloadACK()) {
@@ -31,7 +31,7 @@ index b9ee451..505c12f 100644
      // Hang occurred while firing the unload handler.
      // Pretend the handler fired so tab closing continues as if it had.
      GetRenderViewHost()->set_sudden_termination_allowed(true);
-@@ -4663,6 +4671,7 @@ void WebContentsImpl::RendererUnresponsive(
+@@ -4735,6 +4743,7 @@ void WebContentsImpl::RendererUnresponsive(
      // to recover. Pretend the unload listeners have all fired and close
      // the tab.
      Close();
@@ -40,7 +40,7 @@ index b9ee451..505c12f 100644
    }
  
 diff --git a/content/public/browser/web_contents.h b/content/public/browser/web_contents.h
-index 9ccb6fe..7ffaa63 100644
+index efa8ae5..1e64acb 100644
 --- a/content/public/browser/web_contents.h
 +++ b/content/public/browser/web_contents.h
 @@ -55,8 +55,10 @@ class PageState;

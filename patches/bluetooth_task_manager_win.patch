@@ -1,0 +1,13 @@
+diff --git a/device/bluetooth/bluetooth_task_manager_win.cc b/device/bluetooth/bluetooth_task_manager_win.cc
+index e79294715b9d..62864f869273 100644
+--- a/device/bluetooth/bluetooth_task_manager_win.cc
++++ b/device/bluetooth/bluetooth_task_manager_win.cc
+@@ -154,7 +154,7 @@ base::Lock g_characteristic_value_changed_registrations_lock;
+ 
+ // Function to be registered to OS to monitor Bluetooth LE GATT event. It is
+ // invoked in BluetoothApis.dll thread.
+-void OnGetGattEventWin(BTH_LE_GATT_EVENT_TYPE type,
++void CALLBACK OnGetGattEventWin(BTH_LE_GATT_EVENT_TYPE type,
+                        PVOID event_parameter,
+                        PVOID context) {
+   if (type != CharacteristicValueChangedEvent) {

@@ -38,16 +38,19 @@ with open(args.out, 'w') as out:
             "sandbox",
             "sdch",
             "services/catalog",
+            "services/file",
             "services/shell/public",
             "services/shell/runner",
             "services/shell/shell",
             "services/tracing/public",
+            "services/ui/public",
             "services/user",
             "sql/sql",
             "storage",
             "third_party/adobe",
             "third_party/boringssl",
             "third_party/brotli/brotli",
+            "third_party/ced/ced",
             "third_party/decklink",
             "third_party/expat",
             "third_party/ffmpeg",
@@ -131,6 +134,7 @@ with open(args.out, 'w') as out:
             "components/filesystem",
             "components/leveldb",
             "components/link_header_util",
+            "components/memory_coordinator",
             "components/mime_util",
             "components/mus/clipboard",
             "components/mus/common",
@@ -187,6 +191,7 @@ with open(args.out, 'w') as out:
         "obj_angle",
         [
             "third_party/angle/angle_common",
+            "third_party/angle/angle_image_util",
             "third_party/angle/libANGLE",
             "third_party/angle/libEGL",
             "third_party/angle/libGLESv2",
@@ -213,6 +218,12 @@ with open(args.out, 'w') as out:
             "third_party/WebKit/Source/web",
             "third_party/WebKit/Source/core",
             "third_party/WebKit/Source/wtf",
+        ])
+
+    gen_list(
+        out,
+        "obj_webkitmodules",
+        [
             "third_party/WebKit/Source/modules",
         ])
 

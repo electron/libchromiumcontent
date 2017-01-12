@@ -1,7 +1,3 @@
-if (!defined(is_electron_build)) {
-  is_electron_build = false
-}
-
 if (is_electron_build) {
   component_electron = "shared_library"
 } else {
