@@ -6,6 +6,7 @@ import errno
 import os
 import shutil
 import subprocess
+import sys
 import tarfile
 import tempfile
 import urllib2
@@ -19,15 +20,29 @@ SRC_DIR = os.path.join(SOURCE_ROOT, 'src')
 CHROMIUMCONTENT_SOURCE_DIR = os.path.join(SOURCE_ROOT, 'chromiumcontent')
 CHROMIUMCONTENT_DESTINATION_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
 COMPONENTS = ['static_library', 'shared_library', 'ffmpeg']
+DEPOT_TOOLS = os.path.join(VENDOR_DIR, 'depot_tools')
+
+NINJA = os.path.join(DEPOT_TOOLS, 'ninja')
+if sys.platform == 'win32':
+  NINJA = '{0}.exe'.format(NINJA)
+
+TARBALL_REPO = 'zcbenz/chromium-source-tarball'
+TARBALL_URL = 'https://github.com/{0}/releases/download/{1}/chromium-{1}.tar.xz'
 
 def main():
   args = parse_args()
 
-  version = chromium_version()
-  sync_source(version)
+  if not args.no_download:
+    version = chromium_version()
+    if not is_source_tarball_updated(version):
+      download_source_tarball(version)
+  else:
+    print "Skipping Chromium Source Tarball Download"
 
   if sys.platform == 'linux2':
     install_sysroot()
+  elif sys.platform in ['win32', 'cygwin']:
+    update_toolchain_json()
 
   target_arch = args.target_arch
   return (apply_patches() or
@@ -40,6 +55,12 @@ def main():
 def parse_args():
   parser = argparse.ArgumentParser(description='Update build configuration')
   parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
+  parser.add_argument('-N', '--no-download-source-tarball',
+                      default=False,
+                      required=False,
+                      action='store_true',
+                      dest='no_download',
+                      help='if you fetched chromium directly with depot_tools')
   parser.add_argument('--defines', default='',
                       help='The definetions passed to gyp')
   return parser.parse_args()
@@ -50,28 +71,61 @@ def chromium_version():
     return f.readline().strip()
 
 
-def sync_source(version):
-  # Put vendor/depot_tools on the PATH
-  depot_tools = os.path.join(VENDOR_DIR, 'depot_tools')
-  env = os.environ.copy()
-  env['PATH'] = depot_tools + os.pathsep + env['PATH']
+def is_source_tarball_updated(version):
+  version_file = os.path.join(SRC_DIR, '.version')
+  existing_version = ''
+  try:
+    with open(version_file, 'r') as f:
+      existing_version = f.readline().strip()
+  except IOError as e:
+    if e.errno != errno.ENOENT:
+      raise
+    return False
+  return existing_version == version
 
-  gclient_file = os.path.join(SOURCE_ROOT, '.gclient')
-  if not os.path.exists(gclient_file) or not os.path.exists(SRC_DIR):
-    rm_rf(SRC_DIR)
-    fetch = os.path.join(depot_tools, 'fetch.py')
-    subprocess.check_call([sys.executable, fetch, 'chromium'], env=env)
 
-  gclient = os.path.join(depot_tools, 'gclient.py')
-  subprocess.check_call([sys.executable, gclient, 'sync', '--revision',
-                         'src@' + version, '--with_branch_heads', '--reset'],
-                        env=env)
+def download_source_tarball(version):
+  rm_rf(SRC_DIR)
+
+  dir_name = 'chromium-{0}'.format(version)
+  tar_name = dir_name + '.tar'
+  xz_name = tar_name + '.xz'
+  url = TARBALL_URL.format(TARBALL_REPO, version)
+  with open(xz_name, 'wb+') as t:
+    with contextlib.closing(urllib2.urlopen(url)) as u:
+      while True:
+        chunk = u.read(1024*1024)
+        if not len(chunk):
+            break
+        sys.stderr.write('.')
+        sys.stderr.flush()
+        t.write(chunk)
+
+  sys.stderr.write('\nExtracting...\n')
+  sys.stderr.flush()
+
+  rm_f(tar_name)
+  tar_xf(xz_name)
+  os.rename(dir_name, SRC_DIR)
+  os.remove(xz_name)
+
+  version_file = os.path.join(SRC_DIR, '.version')
+  with open(version_file, 'w+') as f:
+    f.write(version)
+
 
 def install_sysroot():
   for arch in ('arm', 'amd64', 'i386'):
     install = os.path.join(SRC_DIR, 'build', 'linux', 'sysroot_scripts',
                            'install-sysroot.py')
     subprocess.check_call([sys.executable, install, '--arch', arch])
+
+
+def update_toolchain_json():
+  env = os.environ.copy()
+  env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
+  vs_toolchain = os.path.join(SRC_DIR, 'build', 'vs_toolchain.py')
+  subprocess.check_call([sys.executable, vs_toolchain, 'update'], env=env)
 
 
 def tar_xf(filename):
@@ -167,7 +221,8 @@ def run_gyp(target_arch, defines):
 
 
 def update_gn():
-  download = os.path.join(VENDOR_DIR, 'depot_tools', 'download_from_google_storage.py')
+  os.chdir(SRC_DIR)
+  download = os.path.join(DEPOT_TOOLS, 'download_from_google_storage.py')
   if sys.platform in ['win32', 'cygwin']:
     platform = 'win32'
     key = 'win/gn.exe.sha1'
@@ -178,13 +233,19 @@ def update_gn():
     platform = 'linux*'
     key = 'linux64/gn.sha1'
   return subprocess.call([sys.executable, download, '--no_resume',
-                          '--platform={0}'.format(platform), '--no_auth', '--bucket',
-                          'chromium-gn', '-s', 'buildtools/{0}'.format(key)],
+                          '--platform={0}'.format(platform), '--no_auth',
+                          '--bucket', 'chromium-gn',
+                          '-s', 'buildtools/{0}'.format(key)],
                          cwd=SRC_DIR)
 
 
 def run_gn(target_arch, defines):
-  gn = os.path.join(VENDOR_DIR, 'depot_tools', 'gn.py')
+  if sys.platform in ['win32', 'cygwin']:
+    gn = os.path.join(SRC_DIR, 'buildtools', 'win', 'gn.exe')
+  elif sys.platform == 'linux2':
+    gn = os.path.join(SRC_DIR, 'buildtools', 'linux64', 'gn')
+  elif sys.platform == 'darwin':
+    gn = os.path.join(SRC_DIR, 'buildtools', 'mac', 'gn')
 
   env = os.environ.copy()
   if sys.platform in ['win32', 'cygwin']:
@@ -199,7 +260,7 @@ def run_gn(target_arch, defines):
     args = 'import("//chromiumcontent/args/{0}.gn") target_cpu="{1}"'.format(component, target_cpu)
     output_dir = os.path.join(get_output_dir(target_arch, component),
                               get_configuration(target_arch))
-    subprocess.call([sys.executable, gn, 'gen', output_dir, '--args=' + args],
+    subprocess.call([gn, 'gen', output_dir, '--args=' + args],
                     cwd=SRC_DIR, env=env)
 
 
