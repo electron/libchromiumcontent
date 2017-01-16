@@ -367,3 +367,10 @@ config("build_time_executable") {
     configs += [ "//build/config/gcc:rpath_for_built_shared_libraries" ]
   }
 }
+
+# For MAS build, we force defining "MAS_BUILD".
+config("mas_build") {
+  if (getenv("MAS_BUILD") != "") {
+    defines = [ "MAS_BUILD" ]
+  }
+}
