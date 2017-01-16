@@ -56,21 +56,12 @@ BINARIES = {
     os.path.join('gen', 'ui', 'views', 'resources', 'views_resources_300_percent.pak'),
   ],
   'darwin': [
-# TODO: Take these from the "ffmpeg" output directory
-#    'chromedriver',
-#    'mksnapshot',
     'libffmpeg.dylib',
   ],
   'linux': [
-# TODO: Take these from the "ffmpeg" output directory
-#    'chromedriver',
-#    'mksnapshot',
     'libffmpeg.so',
   ],
   'win32': [
-# TODO: Take these from the "ffmpeg" output directory
-#    'chromedriver.exe',
-#    'mksnapshot.exe',
     'd3dcompiler_47.dll',
     'ffmpeg.dll',
     'ffmpeg.dll.lib',
@@ -347,6 +338,21 @@ def copy_binaries(target_arch, component, output_dir):
     if component == 'shared_library':
       for library in glob.glob(os.path.join(target_dir, match)):
         run_strip(target_arch, library)
+
+  # Copy chromedriver and mksnapshot
+  # Take them from the "ffmpeg" config, where they are built with all
+  # dependencies statically linked.
+  if component == 'static_library':
+    if TARGET_PLATFORM == "win32":
+      binaries = [ 'chromedriver.exe', 'mksnapshot.exe' ]
+    else:
+      binaries = [ 'chromedriver', 'mksnapshot' ]
+
+    ffmpeg_output_dir = os.path.join(SRC_DIR,
+                                     get_output_dir(target_arch, 'ffmpeg'),
+                                     get_configuration(target_arch))
+    for binary in binaries:
+      shutil.copy2(os.path.join(ffmpeg_output_dir, binary), target_dir)
 
 
 def copy_generated_sources(target_arch, component, output_dir):
