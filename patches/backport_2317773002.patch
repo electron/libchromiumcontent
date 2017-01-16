@@ -1,0 +1,134 @@
+diff --git a/device/bluetooth/bluetooth_low_energy_win.cc b/device/bluetooth/bluetooth_low_energy_win.cc
+index 77cfc22..29abbad 100644
+--- a/device/bluetooth/bluetooth_low_energy_win.cc
++++ b/device/bluetooth/bluetooth_low_energy_win.cc
+@@ -836,15 +836,20 @@ HRESULT BluetoothLowEnergyWrapper::RegisterGattEvents(
+     base::FilePath& service_path,
+     BTH_LE_GATT_EVENT_TYPE event_type,
+     PVOID event_parameter,
+-    PFNBLUETOOTH_GATT_EVENT_CALLBACK callback,
++    PFNBLUETOOTH_GATT_EVENT_CALLBACK_CORRECTED callback,
+     PVOID context,
+     BLUETOOTH_GATT_EVENT_HANDLE* out_handle) {
+   base::File file(service_path, base::File::FLAG_OPEN | base::File::FLAG_READ);
+   if (!file.IsValid())
+     return HRESULT_FROM_WIN32(ERROR_OPEN_FAILED);
+-  return BluetoothGATTRegisterEvent(file.GetPlatformFile(), event_type,
+-                                    event_parameter, callback, context,
+-                                    out_handle, BLUETOOTH_GATT_FLAG_NONE);
++  // Cast to the official callback type for compatibility with the Windows
++  // 10.0.10586 definition, even though it is incorrect. This cast can be
++  // removed when we mandate building Chromium with the 10.0.14393 SDK or
++  // higher.
++  return BluetoothGATTRegisterEvent(
++      file.GetPlatformFile(), event_type, event_parameter,
++      reinterpret_cast<PFNBLUETOOTH_GATT_EVENT_CALLBACK>(callback), context,
++      out_handle, BLUETOOTH_GATT_FLAG_NONE);
+ }
+ 
+ HRESULT BluetoothLowEnergyWrapper::UnregisterGattEvent(
+diff --git a/device/bluetooth/bluetooth_low_energy_win.h b/device/bluetooth/bluetooth_low_energy_win.h
+index edb17e9..5e819a9 100644
+--- a/device/bluetooth/bluetooth_low_energy_win.h
++++ b/device/bluetooth/bluetooth_low_energy_win.h
+@@ -20,6 +20,21 @@
+ namespace device {
+ namespace win {
+ 
++//
++// Callback function signature for Bluetooth GATT events. This fixes a bug in
++// this typedef in the Windows 10.0.10586 SDK which is missing the CALLBACK
++// modifier. This corrected typedef should be used throughout Chromium except
++// when casting to the 'official' definition when calling Microsoft functions.
++// This allows Chromium to build with 10.0.14393 or later SDKs (which have the
++// fixed typedef) while doing the correct thing even when built with 10.0.10586.
++// The CALLBACK modifier affects how function parameters are cleaned up from the
++// stack and having a mismatch can lead to misalignment of the stack pointer.
++//
++typedef VOID(CALLBACK* PFNBLUETOOTH_GATT_EVENT_CALLBACK_CORRECTED)(
++    _In_ BTH_LE_GATT_EVENT_TYPE EventType,
++    _In_ PVOID EventOutParameter,
++    _In_opt_ PVOID Context);
++
+ // Represents a device registry property value
+ class DEVICE_BLUETOOTH_EXPORT DeviceRegistryPropertyValue {
+  public:
+@@ -181,12 +196,13 @@ class DEVICE_BLUETOOTH_EXPORT BluetoothLowEnergyWrapper {
+   // is the function to be invoked if the event happened. |context| is the input
+   // parameter to be given back through |callback|. |*out_handle| stores the
+   // unique handle in OS for this registration.
+-  virtual HRESULT RegisterGattEvents(base::FilePath& service_path,
+-                                     BTH_LE_GATT_EVENT_TYPE event_type,
+-                                     PVOID event_parameter,
+-                                     PFNBLUETOOTH_GATT_EVENT_CALLBACK callback,
+-                                     PVOID context,
+-                                     BLUETOOTH_GATT_EVENT_HANDLE* out_handle);
++  virtual HRESULT RegisterGattEvents(
++      base::FilePath& service_path,
++      BTH_LE_GATT_EVENT_TYPE event_type,
++      PVOID event_parameter,
++      PFNBLUETOOTH_GATT_EVENT_CALLBACK_CORRECTED callback,
++      PVOID context,
++      BLUETOOTH_GATT_EVENT_HANDLE* out_handle);
+   virtual HRESULT UnregisterGattEvent(BLUETOOTH_GATT_EVENT_HANDLE event_handle);
+ 
+   // Writes |descriptor| value in service with service device path
+diff --git a/device/bluetooth/bluetooth_low_energy_win_fake.cc b/device/bluetooth/bluetooth_low_energy_win_fake.cc
+index dc53c68..d6f64df 100644
+--- a/device/bluetooth/bluetooth_low_energy_win_fake.cc
++++ b/device/bluetooth/bluetooth_low_energy_win_fake.cc
+@@ -250,7 +250,7 @@ HRESULT BluetoothLowEnergyWrapperFake::RegisterGattEvents(
+     base::FilePath& service_path,
+     BTH_LE_GATT_EVENT_TYPE type,
+     PVOID event_parameter,
+-    PFNBLUETOOTH_GATT_EVENT_CALLBACK callback,
++    PFNBLUETOOTH_GATT_EVENT_CALLBACK_CORRECTED callback,
+     PVOID context,
+     BLUETOOTH_GATT_EVENT_HANDLE* out_handle) {
+   // Right now, only CharacteristicValueChangedEvent is supported.
+diff --git a/device/bluetooth/bluetooth_low_energy_win_fake.h b/device/bluetooth/bluetooth_low_energy_win_fake.h
+index ad13f27..c089647 100644
+--- a/device/bluetooth/bluetooth_low_energy_win_fake.h
++++ b/device/bluetooth/bluetooth_low_energy_win_fake.h
+@@ -79,7 +79,7 @@ struct GattDescriptor {
+ struct GattCharacteristicObserver {
+   GattCharacteristicObserver();
+   ~GattCharacteristicObserver();
+-  PFNBLUETOOTH_GATT_EVENT_CALLBACK callback;
++  PFNBLUETOOTH_GATT_EVENT_CALLBACK_CORRECTED callback;
+   PVOID context;
+ };
+ 
+@@ -131,12 +131,13 @@ class BluetoothLowEnergyWrapperFake : public BluetoothLowEnergyWrapper {
+       base::FilePath& service_path,
+       const PBTH_LE_GATT_CHARACTERISTIC characteristic,
+       PBTH_LE_GATT_CHARACTERISTIC_VALUE new_value) override;
+-  HRESULT RegisterGattEvents(base::FilePath& service_path,
+-                             BTH_LE_GATT_EVENT_TYPE type,
+-                             PVOID event_parameter,
+-                             PFNBLUETOOTH_GATT_EVENT_CALLBACK callback,
+-                             PVOID context,
+-                             BLUETOOTH_GATT_EVENT_HANDLE* out_handle) override;
++  HRESULT RegisterGattEvents(
++      base::FilePath& service_path,
++      BTH_LE_GATT_EVENT_TYPE type,
++      PVOID event_parameter,
++      PFNBLUETOOTH_GATT_EVENT_CALLBACK_CORRECTED callback,
++      PVOID context,
++      BLUETOOTH_GATT_EVENT_HANDLE* out_handle) override;
+   HRESULT UnregisterGattEvent(
+       BLUETOOTH_GATT_EVENT_HANDLE event_handle) override;
+   HRESULT WriteDescriptorValue(
+diff --git a/device/bluetooth/bluetooth_task_manager_win.cc b/device/bluetooth/bluetooth_task_manager_win.cc
+index e79294715b9d..62864f869273 100644
+--- a/device/bluetooth/bluetooth_task_manager_win.cc
++++ b/device/bluetooth/bluetooth_task_manager_win.cc
+@@ -154,7 +154,7 @@ base::Lock g_characteristic_value_changed_registrations_lock;
+ 
+ // Function to be registered to OS to monitor Bluetooth LE GATT event. It is
+ // invoked in BluetoothApis.dll thread.
+-void OnGetGattEventWin(BTH_LE_GATT_EVENT_TYPE type,
++void CALLBACK OnGetGattEventWin(BTH_LE_GATT_EVENT_TYPE type,
+                        PVOID event_parameter,
+                        PVOID context) {
+   if (type != CharacteristicValueChangedEvent) {
