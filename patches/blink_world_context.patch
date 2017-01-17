@@ -1,0 +1,79 @@
+diff --git a/third_party/WebKit/Source/web/WebLocalFrameImpl.cpp b/third_party/WebKit/Source/web/WebLocalFrameImpl.cpp
+index 9a9e07e..affccfe 100644
+--- a/third_party/WebKit/Source/web/WebLocalFrameImpl.cpp
++++ b/third_party/WebKit/Source/web/WebLocalFrameImpl.cpp
+@@ -844,6 +844,13 @@ v8::Local<v8::Context> WebLocalFrameImpl::mainWorldScriptContext() const
+     return scriptState->context();
+ }
+ 
++v8::Local<v8::Context> WebLocalFrameImpl::worldScriptContext(v8::Isolate* isolate, int worldID, int extensionGroup) const
++{
++  RefPtr<DOMWrapperWorld> world = DOMWrapperWorld::ensureIsolatedWorld(
++      isolate, worldID, extensionGroup);
++  return ScriptState::forWorld(frame(), *world)->context();
++}
++
+ bool WebFrame::scriptCanAccess(WebFrame* target)
+ {
+     return BindingSecurity::shouldAllowAccessToFrame(mainThreadIsolate(), currentDOMWindow(mainThreadIsolate()), target->toImplBase()->frame(), DoNotReportSecurityError);
+diff --git a/third_party/WebKit/Source/web/WebLocalFrameImpl.h b/third_party/WebKit/Source/web/WebLocalFrameImpl.h
+index 8f1a7ce..9faab81 100644
+--- a/third_party/WebKit/Source/web/WebLocalFrameImpl.h
++++ b/third_party/WebKit/Source/web/WebLocalFrameImpl.h
+@@ -122,6 +122,7 @@ public:
+         int argc,
+         v8::Local<v8::Value> argv[]) override;
+     v8::Local<v8::Context> mainWorldScriptContext() const override;
++    v8::Local<v8::Context> worldScriptContext(v8::Isolate* isolate, int worldID, int extensionGroup) const override;
+     void reload(WebFrameLoadType) override;
+     void reloadWithOverrideURL(const WebURL& overrideUrl, WebFrameLoadType) override;
+     void reloadImage(const WebNode&) override;
+diff --git a/third_party/WebKit/Source/web/WebRemoteFrameImpl.cpp b/third_party/WebKit/Source/web/WebRemoteFrameImpl.cpp
+index 9e4b630..58bc9b3 100644
+--- a/third_party/WebKit/Source/web/WebRemoteFrameImpl.cpp
++++ b/third_party/WebKit/Source/web/WebRemoteFrameImpl.cpp
+@@ -248,6 +248,12 @@ v8::Local<v8::Context> WebRemoteFrameImpl::mainWorldScriptContext() const
+     return v8::Local<v8::Context>();
+ }
+ 
++v8::Local<v8::Context> WebRemoteFrameImpl::worldScriptContext(v8::Isolate* isolate, int worldID, int extensionGroup) const
++{
++    NOTREACHED();
++    return v8::Local<v8::Context>();
++}
++
+ v8::Local<v8::Context> WebRemoteFrameImpl::deprecatedMainWorldScriptContext() const
+ {
+     return toV8Context(frame(), DOMWrapperWorld::mainWorld());
+diff --git a/third_party/WebKit/Source/web/WebRemoteFrameImpl.h b/third_party/WebKit/Source/web/WebRemoteFrameImpl.h
+index d50a7d3..c7f7fb0 100644
+--- a/third_party/WebKit/Source/web/WebRemoteFrameImpl.h
++++ b/third_party/WebKit/Source/web/WebRemoteFrameImpl.h
+@@ -67,6 +67,7 @@ public:
+         v8::Local<v8::Value> argv[]) override;
+     v8::Local<v8::Context> mainWorldScriptContext() const override;
+     v8::Local<v8::Context> deprecatedMainWorldScriptContext() const override;
++    v8::Local<v8::Context> worldScriptContext(v8::Isolate* isolate, int worldID, int extensionGroup) const override;
+     void reload(WebFrameLoadType) override;
+     void reloadWithOverrideURL(const WebURL& overrideUrl, WebFrameLoadType) override;
+     void loadRequest(const WebURLRequest&) override;
+diff --git a/third_party/WebKit/public/web/WebFrame.h b/third_party/WebKit/public/web/WebFrame.h
+index fef5c51..d4c56a5 100644
+--- a/third_party/WebKit/public/web/WebFrame.h
++++ b/third_party/WebKit/public/web/WebFrame.h
+@@ -52,6 +52,7 @@ struct NPObject;
+ namespace v8 {
+ class Context;
+ class Function;
++class Isolate;
+ class Object;
+ class Value;
+ template <class T> class Local;
+@@ -335,6 +336,7 @@ public:
+     // be calling this API.
+     virtual v8::Local<v8::Context> mainWorldScriptContext() const = 0;
+ 
++    virtual v8::Local<v8::Context> worldScriptContext(v8::Isolate* isolate, int worldID, int extensionGroup) const = 0;
+ 
+     // Returns true if the WebFrame currently executing JavaScript has access
+     // to the given WebFrame, or false otherwise.
