@@ -345,6 +345,8 @@ def copy_binaries(target_arch, component, output_dir):
   if component == 'static_library':
     if TARGET_PLATFORM == "win32":
       binaries = [ 'chromedriver.exe', 'mksnapshot.exe' ]
+    elif target_arch == 'arm':
+      binaries = [ 'chromedriver', 'clang_x86_v8_arm/mksnapshot' ]
     else:
       binaries = [ 'chromedriver', 'mksnapshot' ]
 
