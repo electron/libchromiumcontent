@@ -1,6 +1,6 @@
 # libchromiumcontent
 
-Automatially builds and provides prebuilt binaries of [Chromium Content
+Automatically builds and provides prebuilt binaries of [Chromium Content
 module](http://www.chromium.org/developers/content-module) and all its
 dependencies (e.g., Blink, V8, etc.).
 
