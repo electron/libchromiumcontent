@@ -1,5 +1,5 @@
 diff --git a/media/muxers/webm_muxer.cc b/media/muxers/webm_muxer.cc
-index 0633baf60..c134f77ef 100644
+index 0024268..53d8348 100644
 --- a/media/muxers/webm_muxer.cc
 +++ b/media/muxers/webm_muxer.cc
 @@ -234,8 +234,6 @@ void WebmMuxer::AddVideoTrack(const gfx::Size& frame_size, double frame_rate) {

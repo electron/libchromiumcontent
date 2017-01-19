@@ -6,11 +6,12 @@ import errno
 import os
 import shutil
 import subprocess
+import sys
 import tarfile
 import tempfile
 import urllib2
 
-from lib.config import get_output_dir
+from lib.config import get_configuration, get_output_dir
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -19,31 +20,47 @@ SRC_DIR = os.path.join(SOURCE_ROOT, 'src')
 CHROMIUMCONTENT_SOURCE_DIR = os.path.join(SOURCE_ROOT, 'chromiumcontent')
 CHROMIUMCONTENT_DESTINATION_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
 COMPONENTS = ['static_library', 'shared_library', 'ffmpeg']
+DEPOT_TOOLS = os.path.join(VENDOR_DIR, 'depot_tools')
+
+NINJA = os.path.join(DEPOT_TOOLS, 'ninja')
+if sys.platform == 'win32':
+  NINJA = '{0}.exe'.format(NINJA)
 
 TARBALL_REPO = 'zcbenz/chromium-source-tarball'
 TARBALL_URL = 'https://github.com/{0}/releases/download/{1}/chromium-{1}.tar.xz'
 
-
 def main():
   args = parse_args()
 
-  version = chromium_version()
-  if not is_source_tarball_updated(version):
-    download_source_tarball(version)
+  if not args.no_download:
+    version = chromium_version()
+    if not is_source_tarball_updated(version):
+      download_source_tarball(version)
+  else:
+    print "Skipping Chromium Source Tarball Download"
 
   if sys.platform == 'linux2':
     install_sysroot()
+  elif sys.platform in ['win32', 'cygwin']:
+    update_toolchain_json()
 
   target_arch = args.target_arch
   return (apply_patches() or
           copy_chromiumcontent_files() or
           update_clang() or
-          run_gyp(target_arch, args.defines))
+          update_gn() or
+          run_gn(target_arch, args.defines))
 
 
 def parse_args():
   parser = argparse.ArgumentParser(description='Update build configuration')
   parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
+  parser.add_argument('-N', '--no-download-source-tarball',
+                      default=False,
+                      required=False,
+                      action='store_true',
+                      dest='no_download',
+                      help='if you fetched chromium directly with depot_tools')
   parser.add_argument('--defines', default='',
                       help='The definetions passed to gyp')
   return parser.parse_args()
@@ -104,6 +121,13 @@ def install_sysroot():
     subprocess.check_call([sys.executable, install, '--arch', arch])
 
 
+def update_toolchain_json():
+  env = os.environ.copy()
+  env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
+  vs_toolchain = os.path.join(SRC_DIR, 'build', 'vs_toolchain.py')
+  subprocess.check_call([sys.executable, vs_toolchain, 'update'], env=env)
+
+
 def tar_xf(filename):
   subprocess.call([xz(), '-dqk', filename])
   tar_name = filename[:-3]
@@ -111,47 +135,6 @@ def tar_xf(filename):
   tar.extractall()
   tar.close()
   os.remove(tar_name)
-
-
-def gyp_env(target_arch, component, gyp_defines):
-  env = os.environ.copy()
-
-  if component == 'ffmpeg':
-    gyp_defines += ' ffmpeg_branding=Chromium'
-  else:
-    gyp_defines += ' ffmpeg_branding=Chrome component={0}'.format(component)
-
-  env['GYP_GENERATORS'] = 'ninja'
-
-  if sys.platform in ['win32', 'cygwin']:
-    # Do not let Chromium download their own toolchains.
-    env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
-    # Use VS 2015.
-    env['GYP_MSVS_VERSION'] = '2015'
-    # Use Windows 10 SDK.
-    env['WINDOWSSDKDIR'] = 'C:\\Program Files (x86)\\Windows Kits\\10'
-  elif sys.platform == 'linux2' and target_arch in ('arm', 'ia32'):
-    # ARM build requires cross compilation.
-    env['GYP_CROSSCOMPILE'] = '1'
-
-  # Whether to build for Mac App Store.
-  if env.has_key('MAS_BUILD'):
-    gyp_defines += ' mac_mas_build=1'
-  else:
-    gyp_defines += ' mac_mas_build=0'
-
-  # Always build on 64-bit machine.
-  gyp_defines += ' host_arch=x64'
-
-  # Build 32-bit or 64-bit.
-  gyp_defines += ' target_arch={0}'.format(target_arch)
-  env['GYP_DEFINES'] = gyp_defines
-
-  # Output directory.
-  output_dir = 'output_dir={0}'.format(get_output_dir(target_arch, component))
-  env['GYP_GENERATOR_FLAGS'] = output_dir
-
-  return env
 
 
 def copy_chromiumcontent_files():
@@ -162,7 +145,9 @@ def copy_chromiumcontent_files():
       raise
   for dirpath, dirnames, filenames in os.walk(CHROMIUMCONTENT_SOURCE_DIR):
     for dirname in dirnames:
-      mkdir_p(os.path.join(dirpath, dirname))
+      source = os.path.join(dirpath, dirname)
+      relative = os.path.relpath(source, start=CHROMIUMCONTENT_SOURCE_DIR)
+      mkdir_p(os.path.join(CHROMIUMCONTENT_DESTINATION_DIR, relative))
     for filename in filenames:
       source = os.path.join(dirpath, filename)
       relative = os.path.relpath(source, start=CHROMIUMCONTENT_SOURCE_DIR)
@@ -184,14 +169,48 @@ def update_clang():
   return subprocess.call([sys.executable, update])
 
 
-def run_gyp(target_arch, defines):
+def update_gn():
   os.chdir(SRC_DIR)
-  gyp = os.path.join('build', 'gyp_chromium')
-  relative_dir = os.path.relpath(CHROMIUMCONTENT_DESTINATION_DIR, SRC_DIR)
-  args = [sys.executable, gyp, '-Ichromiumcontent/chromiumcontent.gypi',
-          os.path.join(relative_dir, 'chromiumcontent.gyp')]
+  download = os.path.join(DEPOT_TOOLS, 'download_from_google_storage.py')
+  if sys.platform in ['win32', 'cygwin']:
+    platform = 'win32'
+    key = 'win/gn.exe.sha1'
+  elif sys.platform == 'darwin':
+    platform = 'darwin'
+    key = 'mac/gn.sha1'
+  else:
+    platform = 'linux*'
+    key = 'linux64/gn.sha1'
+  return subprocess.call([sys.executable, download, '--no_resume',
+                          '--platform={0}'.format(platform), '--no_auth',
+                          '--bucket', 'chromium-gn',
+                          '-s', 'buildtools/{0}'.format(key)],
+                         cwd=SRC_DIR)
+
+
+def run_gn(target_arch, defines):
+  if sys.platform in ['win32', 'cygwin']:
+    gn = os.path.join(SRC_DIR, 'buildtools', 'win', 'gn.exe')
+  elif sys.platform == 'linux2':
+    gn = os.path.join(SRC_DIR, 'buildtools', 'linux64', 'gn')
+  elif sys.platform == 'darwin':
+    gn = os.path.join(SRC_DIR, 'buildtools', 'mac', 'gn')
+
+  env = os.environ.copy()
+  if sys.platform in ['win32', 'cygwin']:
+    env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
+
+  if target_arch == 'ia32':
+    target_cpu = 'x86'
+  else:
+    target_cpu = target_arch
+
   for component in COMPONENTS:
-    subprocess.call(args, env=gyp_env(target_arch, component, defines))
+    args = 'import("//chromiumcontent/args/{0}.gn") target_cpu="{1}"'.format(component, target_cpu)
+    output_dir = os.path.join(get_output_dir(target_arch, component),
+                              get_configuration(target_arch))
+    subprocess.call([gn, 'gen', output_dir, '--args=' + args],
+                    cwd=SRC_DIR, env=env)
 
 
 def xz():

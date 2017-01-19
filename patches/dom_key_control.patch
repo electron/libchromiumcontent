@@ -1,8 +1,8 @@
 diff --git a/third_party/WebKit/Source/core/editing/EditingBehavior.cpp b/third_party/WebKit/Source/core/editing/EditingBehavior.cpp
-index 39922f8..566ff89 100644
+index fb8c1c8..d29570c 100644
 --- a/third_party/WebKit/Source/core/editing/EditingBehavior.cpp
 +++ b/third_party/WebKit/Source/core/editing/EditingBehavior.cpp
-@@ -244,7 +244,13 @@ bool EditingBehavior::shouldInsertCharacter(const KeyboardEvent& event) const
+@@ -277,7 +277,13 @@ bool EditingBehavior::shouldInsertCharacter(const KeyboardEvent& event) const
      // unexpected behaviour
      if (ch < ' ')
          return false;
@@ -17,16 +17,11 @@ index 39922f8..566ff89 100644
      // Don't insert ASCII character if ctrl w/o alt or meta is on.
      // On Mac, we should ignore events when meta is on (Command-<x>).
      if (ch < 0x80) {
-@@ -260,4 +266,3 @@ bool EditingBehavior::shouldInsertCharacter(const KeyboardEvent& event) const
-     return true;
- }
- } // namespace blink
--
 diff --git a/ui/events/event.cc b/ui/events/event.cc
-index 978d305..98e6329 100644
+index e158a40..4aece12 100644
 --- a/ui/events/event.cc
 +++ b/ui/events/event.cc
-@@ -1092,11 +1092,7 @@ void KeyEvent::ApplyLayout() const {
+@@ -1084,11 +1084,7 @@ void KeyEvent::ApplyLayout() const {
  // so this is a synthetic or native keystroke event.
  // Therefore, perform only the fallback action.
  #elif defined(USE_X11)

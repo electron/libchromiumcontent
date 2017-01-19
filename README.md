@@ -23,14 +23,16 @@ dependencies (e.g., Blink, V8, etc.).
 
 ### Updating project files
 
-If you change `VERSION` to point to a different Chromium release, or modify
-`chromiumcontent.gyp{,i}`, you should run:
+If you switch to a different Chromium release, or modify
+files inside the `chromiumcontent` directory, you should run:
 
     $ script/update
 
 This will regenerate all the project files. Then you can build again.
 
 ### Building for ARM target
+
+> TODO: This section may be out of date, needs review
 
 ```bash
 $ ./script/bootstrap

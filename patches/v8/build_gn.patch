@@ -1,0 +1,60 @@
+diff --git a/BUILD.gn b/BUILD.gn
+index dcefe3706b..92c01ade6c 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -106,7 +106,7 @@ config("internal_config") {
+ 
+   include_dirs = [ "." ]
+ 
+-  if (is_component_build) {
++  if (is_component_build || is_electron_build) {
+     defines = [
+       "V8_SHARED",
+       "BUILDING_V8_SHARED",
+@@ -133,7 +133,7 @@ config("libsampler_config") {
+ # This config should only be applied to code using V8 and not any V8 code
+ # itself.
+ config("external_config") {
+-  if (is_component_build) {
++  if (is_component_build || is_electron_build) {
+     defines = [
+       "V8_SHARED",
+       "USING_V8_SHARED",
+@@ -2229,6 +2229,7 @@ if (current_toolchain == v8_snapshot_toolchain) {
+     ]
+ 
+     configs = [ ":internal_config" ]
++    configs += [ "//chromiumcontent:build_time_executable" ]
+ 
+     deps = [
+       ":v8_base",
+@@ -2301,7 +2302,7 @@ group("gn_all") {
+   }
+ }
+ 
+-if (is_component_build) {
++if (is_component_build || is_electron_build) {
+   v8_component("v8") {
+     sources = [
+       "src/v8dll-main.cc",
+diff --git a/gni/v8.gni b/gni/v8.gni
+index 7ff7f6fb89..8b1757550f 100644
+--- a/gni/v8.gni
++++ b/gni/v8.gni
+@@ -2,6 +2,7 @@
+ # Use of this source code is governed by a BSD-style license that can be
+ # found in the LICENSE file.
+ 
++import("//chromiumcontent/config.gni")
+ import("//build/config/sanitizers/sanitizers.gni")
+ import("//build/config/v8_target_cpu.gni")
+ 
+@@ -99,7 +100,7 @@ template("v8_executable") {
+ }
+ 
+ template("v8_component") {
+-  component(target_name) {
++  target(component_electron, target_name) {
+     forward_variables_from(invoker, "*", [ "configs" ])
+     configs += invoker.configs
+     configs -= v8_remove_configs

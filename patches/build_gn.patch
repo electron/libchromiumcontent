@@ -1,0 +1,46 @@
+diff --git a/build/config/BUILDCONFIG.gn b/build/config/BUILDCONFIG.gn
+index 6390ae9..b113ecd 100644
+--- a/build/config/BUILDCONFIG.gn
++++ b/build/config/BUILDCONFIG.gn
+@@ -123,6 +123,8 @@ if (current_os == "") {
+ #   even if the value is overridden, which is wasteful. See first bullet.
+ 
+ declare_args() {
++  is_electron_build = false
++
+   # Set to enable the official build level of optimization. This has nothing
+   # to do with branding, but enables an additional level of optimization above
+   # release (!is_debug). This might be better expressed as a tri-state
+@@ -477,6 +479,7 @@ default_compiler_configs = [
+   "//build/config/compiler:no_rtti",
+   "//build/config/compiler:runtime_library",
+   "//build/config/sanitizers:default_sanitizer_flags",
++  "//chromiumcontent:mas_build",
+ ]
+ if (is_win) {
+   default_compiler_configs += [
+diff --git a/third_party/widevine/cdm/BUILD.gn b/third_party/widevine/cdm/BUILD.gn
+index e5fdb29..3004073 100644
+--- a/third_party/widevine/cdm/BUILD.gn
++++ b/third_party/widevine/cdm/BUILD.gn
+@@ -93,7 +93,7 @@ if (widevine_cdm_binary_files != []) {
+       "//build/config/sanitizers:deps",
+     ]
+ 
+-    if (is_mac) {
++    if (is_mac && !is_electron_build) {
+       ldflags = [
+         # Not to strip important symbols by -Wl,-dead_strip.
+         "-Wl,-exported_symbol,_PPP_GetInterface",
+diff --git a/third_party/WebKit/Source/platform/BUILD.gn b/third_party/WebKit/Source/platform/BUILD.gn
+index ce25028..9a887e3 100644
+--- a/third_party/WebKit/Source/platform/BUILD.gn
++++ b/third_party/WebKit/Source/platform/BUILD.gn
+@@ -174,6 +174,7 @@ action("character_data") {
+ }
+ 
+ executable("character_data_generator") {
++  configs += [ "//chromiumcontent:build_time_executable" ]
+   sources = [
+     "text/CharacterPropertyDataGenerator.cpp",
+     "text/CharacterPropertyDataGenerator.h",
