@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import glob
+import fnmatch
 import os
 import sys
 
@@ -58,9 +58,9 @@ EXCLUDE_STATIC_LIBRARIES = {
     'ffmpeg_yasm.lib',
     'libEGL.dll.lib',
     'libGLESv2.dll.lib',
-    'ppapi_cpp.lib',
     'widevinecdm.dll.lib',
     'widevinecdmadapter.dll.lib',
+    os.path.join('ppapi', 'cpp', 'cpp.lib'),
   ],
 }[TARGET_PLATFORM]
 
@@ -97,11 +97,21 @@ def main(target_file, code_dir, shared_dir, static_dir):
     f.write(content)
 
 
+def should_include(filename, exclude):
+  for f in exclude:
+    if filename.endswith(f):
+      return False
+  return True
+
+
 def searh_files(src, suffix, exclude):
-  files = glob.glob(os.path.join(src, '*.' + suffix))
-  files = [f for f in files if os.path.basename(f) not in exclude]
-  return ([os.path.abspath(f) for f in files if not is_v8_library(f)],
-          [os.path.abspath(f) for f in files if is_v8_library(f)])
+  files = []
+  for root, _, filenames in os.walk(src):
+    for filename in fnmatch.filter(filenames, '*.' + suffix):
+      files.append(os.path.abspath(os.path.join(root, filename)))
+  files = [f for f in files if should_include(f, exclude)]
+  return ([f for f in files if not is_v8_library(f)],
+          [f for f in files if is_v8_library(f)])
 
 
 def is_v8_library(p):

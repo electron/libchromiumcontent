@@ -1,0 +1,35 @@
+diff --git a/ppapi/cpp/BUILD.gn b/ppapi/cpp/BUILD.gn
+index 06ec9d1..acc7bbc 100644
+--- a/ppapi/cpp/BUILD.gn
++++ b/ppapi/cpp/BUILD.gn
+@@ -6,7 +6,7 @@ import("//ppapi/ppapi_sources.gni")
+ 
+ # Link to this target to get the PPAPI C++ wrapper objects and plugin startup
+ # code. See also "objects" below.
+-source_set("cpp") {
++static_library("cpp") {
+   sources = [
+     "module_embedder.h",
+     "ppp_entrypoints.cc",
+@@ -21,7 +21,7 @@ source_set("cpp") {
+ # Link to this target to get only the PPAPI C++ wrapper objects but not the
+ # plugin startup code. Some plugins need special startup code that they supply
+ # themselves.
+-source_set("objects") {
++static_library("objects") {
+   sources = rebase_path(ppapi_sources.cpp_source_files, ".", "..")
+   configs += [ "//build/config:precompiled_headers" ]
+ }
+diff --git a/ppapi/cpp/private/BUILD.gn b/ppapi/cpp/private/BUILD.gn
+index 0aae3f1..86428ae 100644
+--- a/ppapi/cpp/private/BUILD.gn
++++ b/ppapi/cpp/private/BUILD.gn
+@@ -2,7 +2,7 @@
+ # Use of this source code is governed by a BSD-style license that can be
+ # found in the LICENSE file.
+ 
+-source_set("internal_module") {
++static_library("internal_module") {
+   sources = [
+     "internal_module.cc",
+     "internal_module.h",

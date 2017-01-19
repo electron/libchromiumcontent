@@ -1,25 +1,25 @@
 #!/usr/bin/env python
 
+import os
 import sys
 
 
 def get_output_dir(target_arch, component):
-  # Build in "out_ffmpeg" for Chromium branding of ffmpeg.
+  # Determine the output dir according to target_arch and component.
   if component == 'ffmpeg':
-    return 'out_ffmpeg'
+    output_dir = 'ffmpeg'
+  elif component == 'shared_library':
+    output_dir = 'component'
+  elif component == 'static_library':
+    output_dir = 'static'
 
-  # Build in "out_component" for component build.
-  output_dir = 'out'
-  if component == 'shared_library':
-    output_dir += '_component'
-
-  # Build in "out_32" for 32bit target.
+  # Build in "out/component_32" for 32bit target.
   if target_arch == 'ia32':
     output_dir += '_32'
   elif target_arch == 'arm':
     output_dir += '_arm'
 
-  return output_dir
+  return os.path.join('out', output_dir)
 
 
 def get_configuration(target_arch):

@@ -1,0 +1,104 @@
+declare_args() {
+  # Build for Mac App Store.
+  mac_mas_build = false
+}
+
+group("chromiumcontent") {
+  deps = [
+    ":libchromiumcontent",
+    "//chrome/test/chromedriver",
+  ]
+}
+
+# Override default compiler settings.
+config("compiler") {
+  defines = [
+    # Force exporting icu's symbols.
+    "U_COMBINED_IMPLEMENTATION",
+    # Defining "U_COMBINED_IMPLEMENTATION" will add "explicit" for some
+    # constructors, make sure it doesn' happen.
+    "UNISTR_FROM_CHAR_EXPLICIT=",
+    "UNISTR_FROM_STRING_EXPLICIT=",
+    "U_NO_DEFAULT_INCLUDE_UTF_HEADERS=0",
+  ]
+
+  if (!is_component_build) {
+    # Force exposing V8 symbols on Windows.
+    # (Corresponding part for POSIX is inside script/update.)
+    defines += [ "BUILDING_V8_SHARED" ]
+  }
+
+  # Enable MAS buld.
+  if (mac_mas_build) {
+    defines += [ "MAS_BUILD" ]
+  }
+}
+
+group("libchromiumcontent") {
+  deps = [
+    "//components/prefs",
+    "//components/cdm/renderer",
+    "//components/cookie_config",
+    "//components/devtools_discovery",
+    "//components/devtools_http_handler",
+    "//components/security_state",
+    "//content",
+    "//content/shell:pak",
+    "//content/shell:copy_shell_resources",
+    "//net:net_with_v8",
+    "//ppapi/host",
+    "//ppapi/proxy",
+    "//ppapi/shared_impl",
+    "//third_party/webrtc/modules/desktop_capture",
+    "//third_party/widevine/cdm:widevinecdmadapter",
+    "//third_party/widevine/cdm:version_h",
+    "//ui/events:dom_keycode_converter",
+  ]
+
+  if (!is_component_build) {
+    deps += [
+      "//content/public/app:both",
+    ]
+  }
+
+  if (is_linux) {
+    deps += [
+      ":chromiumviews",
+      "//chrome/browser/ui/libgtk2ui",
+      "//third_party/speech-dispatcher",
+      "//third_party/mesa:osmesa",
+    ]
+  } else if (is_win) {
+    deps += [
+      ":chromiumviews",
+      ":sandbox_helper_win",
+      "//pdf",
+    ]
+  }
+}
+
+if (is_linux || is_win) {
+  group("chromiumviews") {
+    deps = [
+      "//ui/content_accelerators",
+      "//ui/display",
+      "//ui/display/util",
+      "//ui/views/controls/webview",
+      "//ui/views",
+      "//ui/wm",
+    ]
+  }
+}
+
+if (is_win) {
+  static_library("sandbox_helper_win") {
+    sources = [
+      "../content/app/sandbox_helper_win.cc",
+      "../content/public/app/sandbox_helper_win.h",
+    ]
+
+    deps = [
+      "//sandbox",
+    ]
+  }
+}

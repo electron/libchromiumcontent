@@ -1,0 +1,72 @@
+diff --git a/BUILD.gn b/BUILD.gn
+index acc203c..a509cbe 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -30,6 +30,14 @@ declare_args() {
+   root_extra_deps = []
+ }
+ 
++group("chromiumcontent") {
++  deps = [ "//chromiumcontent" ]
++}
++
++group("ffmpeg") {
++  deps = [ "//third_party/ffmpeg" ]
++}
++
+ # This file defines the following five main targets:
+ #
+ # "both_gn_and_gyp" should list every root target (target that nothing else
+diff --git a/build/config/BUILDCONFIG.gn b/build/config/BUILDCONFIG.gn
+index 6390ae9..15375ec 100644
+--- a/build/config/BUILDCONFIG.gn
++++ b/build/config/BUILDCONFIG.gn
+@@ -466,6 +466,7 @@ set_sources_assignment_filter(sources_assignment_filter)
+ 
+ # Holds all configs used for running the compiler.
+ default_compiler_configs = [
++  "//chromiumcontent:compiler",
+   "//build/config:feature_flags",
+   "//build/config/compiler:compiler",
+   "//build/config/compiler:clang_stackrealign",
+diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
+index 5e6d530..6ce4644 100644
+--- a/build/config/compiler/BUILD.gn
++++ b/build/config/compiler/BUILD.gn
+@@ -174,7 +174,7 @@ config("compiler") {
+       # Not exporting C++ inline functions can generally be applied anywhere
+       # so we do so here. Normal function visibility is controlled by
+       # //build/config/gcc:symbol_visibility_hidden.
+-      "-fvisibility-inlines-hidden",
++      # "-fvisibility-inlines-hidden",
+     ]
+ 
+     # Stack protection.
+@@ -1283,8 +1283,8 @@ if (is_win) {
+ 
+       # Put data and code in their own sections, so that unused symbols
+       # can be removed at link time with --gc-sections.
+-      "-fdata-sections",
+-      "-ffunction-sections",
++      # "-fdata-sections",
++      # "-ffunction-sections",
+     ]
+ 
+     common_optimize_on_ldflags += [
+diff --git a/build/config/gcc/BUILD.gn b/build/config/gcc/BUILD.gn
+index 422ec0e..660b9ef 100644
+--- a/build/config/gcc/BUILD.gn
++++ b/build/config/gcc/BUILD.gn
+@@ -21,6 +21,12 @@ config("symbol_visibility_hidden") {
+   # Note that -fvisibility-inlines-hidden is set globally in the compiler
+   # config since that can almost always be applied.
+   cflags = [ "-fvisibility=hidden" ]
++  # Moved from //build/config/compiler/BUILD.gn
++  cflags += [
++    "-fvisibility-inlines-hidden",
++    "-fdata-sections",
++    "-ffunction-sections",
++  ]
+ }
+ 
+ # This config is usually set when :symbol_visibility_hidden is removed.

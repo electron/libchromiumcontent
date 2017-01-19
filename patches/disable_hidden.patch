@@ -1,18 +1,8 @@
 diff --git a/content/browser/renderer_host/render_widget_host_impl.cc b/content/browser/renderer_host/render_widget_host_impl.cc
-index cfaa8b5..ef1020d 100644
+index 413a1840..80521ed9 100644
 --- a/content/browser/renderer_host/render_widget_host_impl.cc
 +++ b/content/browser/renderer_host/render_widget_host_impl.cc
-@@ -179,7 +179,8 @@ RenderWidgetHostImpl::RenderWidgetHostImpl(RenderWidgetHostDelegate* delegate,
-                                            RenderProcessHost* process,
-                                            int32_t routing_id,
-                                            bool hidden)
--    : renderer_initialized_(false),
-+    : disable_hidden_(false),
-+      renderer_initialized_(false),
-       destroyed_(false),
-       delegate_(delegate),
-       owner_delegate_(nullptr),
-@@ -508,6 +509,9 @@ void RenderWidgetHostImpl::WasHidden() {
+@@ -524,6 +524,9 @@ void RenderWidgetHostImpl::WasHidden() {
    if (is_hidden_)
      return;
  
@@ -23,7 +13,7 @@ index cfaa8b5..ef1020d 100644
    is_hidden_ = true;
  
 diff --git a/content/browser/renderer_host/render_widget_host_impl.h b/content/browser/renderer_host/render_widget_host_impl.h
-index eb97ebf..d75edd3 100644
+index 0999abf..c30928b 100644
 --- a/content/browser/renderer_host/render_widget_host_impl.h
 +++ b/content/browser/renderer_host/render_widget_host_impl.h
 @@ -122,6 +122,9 @@ class CONTENT_EXPORT RenderWidgetHostImpl : public RenderWidgetHost,
@@ -31,7 +21,7 @@ index eb97ebf..d75edd3 100644
    static RenderWidgetHostImpl* From(RenderWidgetHost* rwh);
  
 +  // Electron: Prevents the widget from getting hidden.
-+  bool disable_hidden_;
++  bool disable_hidden_ = false;
 +
    void set_hung_renderer_delay(const base::TimeDelta& delay) {
      hung_renderer_delay_ = delay;

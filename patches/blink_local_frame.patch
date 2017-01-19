@@ -1,23 +1,23 @@
 diff --git a/third_party/WebKit/Source/core/frame/LocalFrame.cpp b/third_party/WebKit/Source/core/frame/LocalFrame.cpp
-index 5477e36..f49dfa5 100644
+index f74e510..5c69841 100644
 --- a/third_party/WebKit/Source/core/frame/LocalFrame.cpp
 +++ b/third_party/WebKit/Source/core/frame/LocalFrame.cpp
-@@ -389,10 +389,6 @@ void LocalFrame::detach(FrameDetachType type)
+@@ -372,10 +372,6 @@ void LocalFrame::detach(FrameDetachType type)
      m_loader.stopAllLoaders();
      m_loader.detach();
-     document()->detach();
+     document()->detachLayoutTree();
 -    // This is the earliest that scripting can be disabled:
 -    // - FrameLoader::detach() can fire XHR abort events
--    // - Document::detach()'s deferred widget updates can run script.
+-    // - Document::detachLayoutTree()'s deferred widget updates can run script.
 -    ScriptForbiddenScope forbidScript;
      m_loader.clear();
-     // Clear FrameScheduler again in case it is recreated in scripting.
-     m_frameScheduler.reset();
-@@ -403,6 +399,7 @@ void LocalFrame::detach(FrameDetachType type)
+     if (!client())
+         return;
+@@ -384,6 +380,7 @@ void LocalFrame::detach(FrameDetachType type)
      // Notify ScriptController that the frame is closing, since its cleanup ends up calling
      // back to FrameLoaderClient via WindowProxy.
      script().clearForClose();
 +    ScriptForbiddenScope forbidScript;
      setView(nullptr);
-     willDetachFrameHost();
-     InspectorInstrumentation::frameDetachedFromParent(this);
+ 
+     m_host->eventHandlerRegistry().didRemoveAllEventHandlers(*localDOMWindow());

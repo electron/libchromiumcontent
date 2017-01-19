@@ -1,0 +1,53 @@
+diff --git a/tools/gn/binary_target_generator.cc b/tools/gn/binary_target_generator.cc
+index 7828013..f97860f 100644
+--- a/tools/gn/binary_target_generator.cc
++++ b/tools/gn/binary_target_generator.cc
+@@ -4,6 +4,7 @@
+ 
+ #include "tools/gn/binary_target_generator.h"
+ 
++#include "base/strings/string_util.h"
+ #include "tools/gn/config_values_generator.h"
+ #include "tools/gn/deps_iterator.h"
+ #include "tools/gn/err.h"
+@@ -30,6 +31,30 @@ BinaryTargetGenerator::~BinaryTargetGenerator() {
+ void BinaryTargetGenerator::DoRun() {
+   target_->set_output_type(output_type_);
+ 
++  if (output_type_ == Target::SOURCE_SET &&  // for source_set
++      !base::StartsWith(target_->label().name(), "ffmpeg",
++                        base::CompareCase::SENSITIVE) &&  // except ffmpeg
++      FillSources() &&  // fill the sources
++      !target_->sources().empty()) {  // and check if it is non-empty
++    // Check if the target generates libraries.
++    bool generates_binary = false;
++    for (const auto& file : target_->sources()) {
++      std::string name = file.GetName();
++      if (base::EndsWith(name, ".c", base::CompareCase::SENSITIVE) ||
++          base::EndsWith(name, ".cc", base::CompareCase::SENSITIVE) ||
++          base::EndsWith(name, ".cpp", base::CompareCase::SENSITIVE) ||
++          base::EndsWith(name, ".mm", base::CompareCase::SENSITIVE)) {
++        generates_binary = true;
++        break;
++      }
++    }
++    // If so change the type to static_library.
++    if (generates_binary) {
++      output_type_ = Target::STATIC_LIBRARY;
++      target_->set_output_type(Target::STATIC_LIBRARY);
++    }
++  }
++
+   if (!FillOutputName())
+     return;
+ 
+@@ -74,6 +99,9 @@ void BinaryTargetGenerator::DoRun() {
+ bool BinaryTargetGenerator::FillCompleteStaticLib() {
+   if (target_->output_type() == Target::STATIC_LIBRARY) {
+     const Value* value = scope_->GetValue(variables::kCompleteStaticLib, true);
++    // Always use complete static library.
++    target_->set_complete_static_lib(true);
++    return true;
+     if (!value)
+       return true;
+     if (!value->VerifyTypeIs(Value::BOOLEAN, err_))

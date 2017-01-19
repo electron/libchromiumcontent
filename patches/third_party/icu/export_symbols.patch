@@ -1,0 +1,15 @@
+diff --git a/BUILD.gn b/BUILD.gn
+index 1dd7c61..55602d8 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -38,10 +38,6 @@ config("icu_config") {
+     "U_NOEXCEPT=",
+   ]
+ 
+-  if (!is_component_build) {
+-    defines += [ "U_STATIC_IMPLEMENTATION" ]
+-  }
+-
+   include_dirs = [
+     "source/common",
+     "source/i18n",
