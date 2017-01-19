@@ -1,5 +1,5 @@
 diff --git a/content/browser/frame_host/render_widget_host_view_child_frame.cc b/content/browser/frame_host/render_widget_host_view_child_frame.cc
-index 1831d48..6cd2f3e 100644
+index 1831d48..73d5ca5 100644
 --- a/content/browser/frame_host/render_widget_host_view_child_frame.cc
 +++ b/content/browser/frame_host/render_widget_host_view_child_frame.cc
 @@ -32,7 +32,9 @@
@@ -12,14 +12,16 @@ index 1831d48..6cd2f3e 100644
  #include "third_party/WebKit/public/platform/WebInputEvent.h"
  #include "ui/gfx/geometry/size_conversions.h"
  #include "ui/gfx/geometry/size_f.h"
-@@ -745,4 +747,26 @@ cc::SurfaceId RenderWidgetHostViewChildFrame::SurfaceIdForTesting() const {
+@@ -745,4 +747,28 @@ cc::SurfaceId RenderWidgetHostViewChildFrame::SurfaceIdForTesting() const {
    return cc::SurfaceId(frame_sink_id_, local_frame_id_);
  };
  
 +void RenderWidgetHostViewChildFrame::WillDrawSurface(
-+    const cc::SurfaceId& id,
++    const cc::LocalFrameId& local_frame_id,
 +    const gfx::Rect& damage_rect) {
-+  if (id != surface_id_ || damage_rect.IsEmpty() || !frame_subscriber_.get())
++  if (local_frame_id != local_frame_id_ ||
++      damage_rect.IsEmpty() ||
++      !frame_subscriber_.get())
 +    return;
 +
 +  base::TimeTicks present_time;
@@ -40,15 +42,15 @@ index 1831d48..6cd2f3e 100644
 +
  }  // namespace content
 diff --git a/content/browser/frame_host/render_widget_host_view_child_frame.h b/content/browser/frame_host/render_widget_host_view_child_frame.h
-index 9af289d..ac07908 100644
+index 9af289d..02d2e01 100644
 --- a/content/browser/frame_host/render_widget_host_view_child_frame.h
 +++ b/content/browser/frame_host/render_widget_host_view_child_frame.h
 @@ -194,6 +194,12 @@ class CONTENT_EXPORT RenderWidgetHostViewChildFrame
    void RegisterFrameSinkId();
    void UnregisterFrameSinkId();
  
-+  void WillDrawSurface(
-+      const cc::SurfaceId& id, const gfx::Rect& damage_rect) override;
++  void WillDrawSurface(const cc::LocalFrameId& local_frame_id,
++                       const gfx::Rect& damage_rect) override;
 +  void BeginFrameSubscription(
 +      std::unique_ptr<RenderWidgetHostViewFrameSubscriber> subscriber) override;
 +  void EndFrameSubscription() override;
