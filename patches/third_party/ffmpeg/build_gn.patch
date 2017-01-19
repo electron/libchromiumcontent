@@ -1,0 +1,18 @@
+diff --git a/BUILD.gn b/BUILD.gn
+index 3de144958d..83d9080d0b 100755
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -356,6 +356,13 @@ if (is_component_ffmpeg) {
+     # So we can append below and assume they're defined.
+     ldflags = []
+ 
++    # Chromium's Mac toolchain sets the "install_name" linker parameter only
++    # when "is_component_build" is true, but we want to set even if it's false,
++    # because we are making a dylib which will be distributed inside a bundle.
++    if (!is_component_build && is_mac) {
++      ldflags += [ "-Wl,-install_name,@rpath/libffmpeg.dylib" ]
++    }
++
+     if (is_posix && !is_mac) {
+       # Fixes warnings PIC relocation when building as component.
+       ldflags += [

@@ -22,6 +22,12 @@ def main():
   args = parse_args()
   target_arch = args.target_arch
 
+  env = os.environ.copy()
+  env['PATH'] = os.pathsep.join([os.path.join(VENDOR_DIR, 'depot_tools'),
+                                 env['PATH']])
+  if sys.platform in ['win32', 'cygwin']:
+    env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
+
   os.chdir(SOURCE_ROOT)
 
   for component in COMPONENTS:
@@ -32,10 +38,8 @@ def main():
                              get_output_dir(target_arch, component))
       config = get_configuration(target_arch)
       config_dir = os.path.relpath(os.path.join(out_dir, config))
-      target = 'chromiumcontent_all'
-      if component == 'ffmpeg':
-        target = 'ffmpeg'
-      subprocess.check_call([NINJA, '-C', config_dir, target])
+      target = 'chromiumcontent:chromiumcontent'
+      subprocess.check_call([NINJA, '-C', config_dir, target], env=env)
 
 
 def parse_args():
