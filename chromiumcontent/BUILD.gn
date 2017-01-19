@@ -8,23 +8,21 @@ group("targets") {
       "//components/prefs",
       "//components/cdm/renderer",
       "//components/cookie_config",
-      "//components/devtools_discovery",
-      "//components/devtools_http_handler",
-      "//components/security_state",
+      "//components/security_state/core",
       "//content",
       "//content:sandbox_helper_win",
       "//content/public/app:both",
       "//content/shell:pak",
       "//content/shell:copy_shell_resources",
       "//pdf",
-      "//ppapi:ppapi_cpp_lib",
+      "//ppapi/cpp",
       "//ppapi/host",
       "//ppapi/proxy",
       "//ppapi/shared_impl",
       "//net:net_with_v8",
       "//third_party/webrtc/modules/desktop_capture",
+      "//third_party/widevine/cdm:headers",
       "//third_party/widevine/cdm:widevinecdmadapter",
-      "//third_party/widevine/cdm:version_h",
       "//ui/content_accelerators",
       "//ui/display",
       "//ui/display/util",
@@ -39,8 +37,6 @@ group("targets") {
     if (is_component_build) {
       deps += [
         ":desktop_capture",
-        ":devtools_discovery",
-        ":devtools_http_handler",
         ":fx_agg",
         ":fx_lcms2",
         ":fx_libopenjpeg",
@@ -93,16 +89,6 @@ if (is_electron_build && is_component_build) {
       deps = [ "//third_party/webrtc/modules/desktop_capture" ]
   }
 
-  static_library("devtools_discovery") {
-      complete_static_lib = true
-      deps = [ "//components/devtools_discovery" ]
-  }
-
-  static_library("devtools_http_handler") {
-      complete_static_lib = true
-      deps = [ "//components/devtools_http_handler" ]
-  }
-
   static_library("fx_agg") {
       complete_static_lib = true
       deps = [ "//third_party/pdfium/third_party:fx_agg" ]
@@ -145,7 +131,7 @@ if (is_electron_build && is_component_build) {
 
   static_library("security_state") {
       complete_static_lib = true
-      deps = [ "//components/security_state" ]
+      deps = [ "//components/security_state/core" ]
   }
 
   static_library("system_wrappers") {

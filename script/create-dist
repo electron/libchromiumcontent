@@ -172,8 +172,6 @@ INCLUDE_DIRS = [
   'components/cdm',
   'components/component_updater',
   'components/cookie_config',
-  'components/devtools_discovery',
-  'components/devtools_http_handler',
   'components/display_compositor',
   'components/os_crypt',
   'components/prefs',
