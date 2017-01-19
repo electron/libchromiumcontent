@@ -1,8 +1,8 @@
 diff --git a/third_party/WebKit/Source/core/paint/ThemePainterMac.mm b/third_party/WebKit/Source/core/paint/ThemePainterMac.mm
-index c6e4288..29707d7 100644
+index 45af265..9063724 100644
 --- a/third_party/WebKit/Source/core/paint/ThemePainterMac.mm
 +++ b/third_party/WebKit/Source/core/paint/ThemePainterMac.mm
-@@ -40,12 +40,14 @@
+@@ -42,6 +42,7 @@
  
  // The methods in this file are specific to the Mac OS X platform.
  
@@ -10,35 +10,40 @@ index c6e4288..29707d7 100644
  // Forward declare Mac SPIs.
  extern "C" {
  void _NSDrawCarbonThemeBezel(NSRect frame, BOOL enabled, BOOL flipped);
- // Request for public API: rdar://13787640
- void _NSDrawCarbonThemeListBox(NSRect frame, BOOL enabled, BOOL flipped, BOOL always_yes);
+@@ -51,6 +52,7 @@ void _NSDrawCarbonThemeListBox(NSRect frame,
+                                BOOL flipped,
+                                BOOL always_yes);
  }
 +#endif
  
  namespace blink {
  
-@@ -70,7 +72,9 @@
-     // background. We need WebCore to paint styled backgrounds, so we'll use
-     // this AppKit SPI function instead.
-     if (!useNSTextFieldCell) {
+@@ -71,9 +73,11 @@ void _NSDrawCarbonThemeListBox(NSRect frame,
+   // behavior change while remaining a fragile solution.
+   // https://bugs.chromium.org/p/chromium/issues/detail?id=658085#c3
+   if (!useNSTextFieldCell) {
 +#ifndef MAS_BUILD
-         _NSDrawCarbonThemeBezel(r, LayoutTheme::isEnabled(o) && !LayoutTheme::isReadOnlyControl(o), YES);
-+#endif
-         return false;
-     }
- #endif
-@@ -153,7 +157,9 @@
- bool ThemePainterMac::paintTextArea(const LayoutObject& o, const PaintInfo& paintInfo, const IntRect& r)
- {
-     LocalCurrentGraphicsContext localContext(paintInfo.context, r);
-+#ifndef MAS_BUILD
-     _NSDrawCarbonThemeListBox(r, LayoutTheme::isEnabled(o) && !LayoutTheme::isReadOnlyControl(o), YES, YES);
+     _NSDrawCarbonThemeBezel(
+         r, LayoutTheme::isEnabled(o) && !LayoutTheme::isReadOnlyControl(o),
+         YES);
 +#endif
      return false;
+   }
+ 
+@@ -158,9 +162,11 @@ void _NSDrawCarbonThemeListBox(NSRect frame,
+                                     const PaintInfo& paintInfo,
+                                     const IntRect& r) {
+   LocalCurrentGraphicsContext localContext(paintInfo.context, r);
++#ifndef MAS_BUILD
+   _NSDrawCarbonThemeListBox(
+       r, LayoutTheme::isEnabled(o) && !LayoutTheme::isReadOnlyControl(o), YES,
+       YES);
++#endif
+   return false;
  }
  
 diff --git a/third_party/WebKit/Source/platform/mac/KillRingMac.mm b/third_party/WebKit/Source/platform/mac/KillRingMac.mm
-index e605276..0de45bb 100644
+index 1e74ced..6fde87a 100644
 --- a/third_party/WebKit/Source/platform/mac/KillRingMac.mm
 +++ b/third_party/WebKit/Source/platform/mac/KillRingMac.mm
 @@ -27,6 +27,7 @@
@@ -48,64 +53,58 @@ index e605276..0de45bb 100644
 +#ifndef MAS_BUILD
  extern "C" {
  
- // Kill ring calls. Would be better to use NSKillRing.h, but that's not available as API or SPI.
-@@ -39,44 +40,59 @@
+ // Kill ring calls. Would be better to use NSKillRing.h, but that's not
+@@ -39,38 +40,53 @@
+ void _NSNewKillRingSequence();
  void _NSSetKillRingToYankedState();
- 
  }
 +#endif
  
- static void initializeKillRingIfNeeded()
- {
-     static bool initializedKillRing = false;
-     if (!initializedKillRing) {
-         initializedKillRing = true;
+ static void initializeKillRingIfNeeded() {
+   static bool initializedKillRing = false;
+   if (!initializedKillRing) {
+     initializedKillRing = true;
 +#ifndef MAS_BUILD
-         _NSInitializeKillRing();
+     _NSInitializeKillRing();
 +#endif
-     }
+   }
  }
  
- void KillRing::append(const String& string)
- {
-     initializeKillRingIfNeeded();
+ void KillRing::append(const String& string) {
+   initializeKillRingIfNeeded();
 +#ifndef MAS_BUILD
-     _NSAppendToKillRing(string);
+   _NSAppendToKillRing(string);
 +#endif
  }
  
- void KillRing::prepend(const String& string)
- {
-     initializeKillRingIfNeeded();
+ void KillRing::prepend(const String& string) {
+   initializeKillRingIfNeeded();
 +#ifndef MAS_BUILD
-     _NSPrependToKillRing(string);
+   _NSPrependToKillRing(string);
 +#endif
  }
  
- String KillRing::yank()
- {
-     initializeKillRingIfNeeded();
+ String KillRing::yank() {
+   initializeKillRingIfNeeded();
 +#ifndef MAS_BUILD
-     return _NSYankFromKillRing();
+   return _NSYankFromKillRing();
 +#else
-+    return "";
++  return "";
 +#endif
  }
  
- void KillRing::startNewSequence()
- {
-     initializeKillRingIfNeeded();
+ void KillRing::startNewSequence() {
+   initializeKillRingIfNeeded();
 +#ifndef MAS_BUILD
-     _NSNewKillRingSequence();
+   _NSNewKillRingSequence();
 +#endif
  }
  
- void KillRing::setToYankedState()
- {
-     initializeKillRingIfNeeded();
+ void KillRing::setToYankedState() {
+   initializeKillRingIfNeeded();
 +#ifndef MAS_BUILD
-     _NSSetKillRingToYankedState();
+   _NSSetKillRingToYankedState();
 +#endif
  }
  
- } // namespace blink
+ }  // namespace blink
