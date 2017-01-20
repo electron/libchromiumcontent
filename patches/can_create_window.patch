@@ -1,0 +1,232 @@
+diff --git a/content/browser/renderer_host/render_message_filter.cc b/content/browser/renderer_host/render_message_filter.cc
+index ca45695..c3b5fb9 100644
+--- a/content/browser/renderer_host/render_message_filter.cc
++++ b/content/browser/renderer_host/render_message_filter.cc
+@@ -245,6 +245,48 @@ void RenderMessageFilter::GenerateRoutingID(
+ void RenderMessageFilter::CreateNewWindow(
+     mojom::CreateNewWindowParamsPtr params,
+     const CreateNewWindowCallback& callback) {
++  scoped_refptr<ResourceRequestBodyImpl> body;
++  if (params->body->has_object) {
++    body = new ResourceRequestBodyImpl;
++    std::vector<storage::DataElement> elements;
++    for (const auto& iter : params->body->elements) {
++      storage::DataElement element;
++      switch (iter->type) {
++        case storage::DataElement::TYPE_BYTES: {
++          element.SetToBytes(iter->bytes.data(), iter->bytes.length());
++          break;
++        }
++        case storage::DataElement::TYPE_BYTES_DESCRIPTION: {
++          element.SetToBytesDescription(iter->length);
++          break;
++        }
++        case storage::DataElement::TYPE_FILE: {
++          element.SetToFilePathRange(iter->path, iter->offset, iter->length,
++                                     iter->expected_modification_time);
++          break;
++        }
++        case storage::DataElement::TYPE_FILE_FILESYSTEM: {
++          element.SetToFileSystemUrlRange(iter->filesystem_url,
++                                          iter->offset, iter->length,
++                                          iter->expected_modification_time);
++          break;
++        }
++        case storage::DataElement::TYPE_BLOB: {
++          element.SetToBlobRange(iter->blob_uuid, iter->offset, iter->length);
++          break;
++        }
++        default: {
++          NOTREACHED();
++          break;
++        }
++      }
++      elements.push_back(std::move(element));
++    }
++    body->swap_elements(&elements);
++    body->set_identifier(params->body->identifier);
++    body->set_contains_sensitive_info(params->body->contains_sensitive_info);
++  }
++
+   bool no_javascript_access;
+   bool can_create_window =
+       GetContentClient()->browser()->CanCreateWindow(
+@@ -257,6 +299,8 @@ void RenderMessageFilter::CreateNewWindow(
+           params->frame_name,
+           params->disposition,
+           params->features,
++          params->additional_features,
++          body,
+           params->user_gesture,
+           params->opener_suppressed,
+           resource_context_,
+diff --git a/content/common/render_message_filter.mojom b/content/common/render_message_filter.mojom
+index be6a9a9..fb36bb9 100644
+--- a/content/common/render_message_filter.mojom
++++ b/content/common/render_message_filter.mojom
+@@ -6,11 +6,30 @@ module content.mojom;
+ 
+ import "content/common/native_types.mojom";
+ import "content/public/common/window_container_type.mojom";
++import "mojo/common/common_custom_types.mojom";
+ import "third_party/WebKit/public/platform/referrer.mojom";
+ import "third_party/WebKit/public/web/window_features.mojom";
+ import "ui/base/mojo/window_open_disposition.mojom";
+ import "url/mojo/url.mojom";
+ 
++struct DataElement {
++  int32 type;
++  int64 length;
++  string bytes;
++  mojo.common.mojom.FilePath path;
++  int64 offset;
++  mojo.common.mojom.Time expected_modification_time;
++  url.mojom.Url filesystem_url;
++  string blob_uuid;
++};
++
++struct ResourceRequestBody {
++  bool has_object;
++  int64 identifier;
++  bool contains_sensitive_info;
++  array<DataElement> elements;
++};
++
+ struct CreateNewWindowParams {
+   // Routing ID of the view initiating the open.
+   int32 opener_id;
+@@ -57,6 +76,10 @@ struct CreateNewWindowParams {
+ 
+   // The window features to use for the new view.
+   blink.mojom.WindowFeatures features;
++
++  // Extra fields added by Electron.
++  array<string> additional_features;
++  ResourceRequestBody body;
+ };
+ 
+ struct CreateNewWindowReply {
+diff --git a/content/public/browser/content_browser_client.cc b/content/public/browser/content_browser_client.cc
+index 2f853a6..ecfd74a 100644
+--- a/content/public/browser/content_browser_client.cc
++++ b/content/public/browser/content_browser_client.cc
+@@ -292,6 +292,8 @@ bool ContentBrowserClient::CanCreateWindow(
+     const std::string& frame_name,
+     WindowOpenDisposition disposition,
+     const blink::WebWindowFeatures& features,
++    const std::vector<std::string>& additional_features,
++    const scoped_refptr<ResourceRequestBodyImpl>& body,
+     bool user_gesture,
+     bool opener_suppressed,
+     ResourceContext* context,
+diff --git a/content/public/browser/content_browser_client.h b/content/public/browser/content_browser_client.h
+index a802ece..eab03ea 100644
+--- a/content/public/browser/content_browser_client.h
++++ b/content/public/browser/content_browser_client.h
+@@ -118,6 +118,7 @@ class RenderFrameHost;
+ class RenderProcessHost;
+ class RenderViewHost;
+ class ResourceContext;
++class ResourceRequestBodyImpl;
+ class SiteInstance;
+ class SpeechRecognitionManagerDelegate;
+ class TracingDelegate;
+@@ -141,6 +142,13 @@ class CONTENT_EXPORT ContentBrowserClient {
+  public:
+   virtual ~ContentBrowserClient() {}
+ 
++  // Electron: Allows overriding the SiteInstance when navigating.
++  virtual void OverrideSiteInstanceForNavigation(
++      BrowserContext* browser_context,
++      SiteInstance* current_instance,
++      const GURL& dest_url,
++      SiteInstance** new_instance) {}
++
+   // Allows the embedder to set any number of custom BrowserMainParts
+   // implementations for the browser startup code. See comments in
+   // browser_main_parts.h.
+@@ -506,6 +514,8 @@ class CONTENT_EXPORT ContentBrowserClient {
+                                const std::string& frame_name,
+                                WindowOpenDisposition disposition,
+                                const blink::WebWindowFeatures& features,
++                               const std::vector<std::string>& additional_features,
++                               const scoped_refptr<ResourceRequestBodyImpl>& body,
+                                bool user_gesture,
+                                bool opener_suppressed,
+                                ResourceContext* context,
+diff --git a/content/renderer/render_view_impl.cc b/content/renderer/render_view_impl.cc
+index 56ad115..3b642d5 100644
+--- a/content/renderer/render_view_impl.cc
++++ b/content/renderer/render_view_impl.cc
+@@ -44,6 +44,7 @@
+ #include "content/child/request_extra_data.h"
+ #include "content/child/v8_value_converter_impl.h"
+ #include "content/child/webmessageportchannel_impl.h"
++#include "content/child/web_url_request_util.h"
+ #include "content/common/content_constants_internal.h"
+ #include "content/common/content_switches_internal.h"
+ #include "content/common/dom_storage/dom_storage_types.h"
+@@ -1410,6 +1411,63 @@ WebView* RenderViewImpl::createView(WebLocalFrame* creator,
+   }
+   params->features = features;
+ 
++  for (size_t i = 0; i < features.additionalFeatures.size(); ++i) {
++    params->additional_features.push_back(
++        features.additionalFeatures[i].utf8());
++  }
++
++  auto body = GetRequestBodyForWebURLRequest(request);
++  if (body) {
++    params->body->has_object = true;
++    params->body->identifier = body->identifier();
++    params->body->contains_sensitive_info = body->contains_sensitive_info();
++    for (const auto& element : *body->elements()) {
++      content::mojom::DataElementPtr ptr = content::mojom::DataElement::New();
++      ptr->type = element.type();
++      switch (element.type()) {
++        case storage::DataElement::TYPE_BYTES: {
++          ptr->bytes = std::string(element.bytes(), element.length());
++          break;
++        }
++        case storage::DataElement::TYPE_BYTES_DESCRIPTION: {
++          ptr->length = element.length();
++          break;
++        }
++        case storage::DataElement::TYPE_FILE: {
++          ptr->path = element.path();
++          ptr->offset = element.offset();
++          ptr->length = element.length();
++          ptr->expected_modification_time = element.expected_modification_time();
++          break;
++        }
++        case storage::DataElement::TYPE_FILE_FILESYSTEM: {
++          ptr->filesystem_url = element.filesystem_url();
++          ptr->offset = element.offset();
++          ptr->length = element.length();
++          ptr->expected_modification_time = element.expected_modification_time();
++          break;
++        }
++        case storage::DataElement::TYPE_BLOB: {
++          ptr->blob_uuid = element.blob_uuid();
++          ptr->offset = element.offset();
++          ptr->length = element.length();
++          break;
++        }
++        case storage::DataElement::TYPE_DISK_CACHE_ENTRY: {
++          NOTREACHED() << "Can't be sent by IPC.";
++          break;
++        }
++        case storage::DataElement::TYPE_UNKNOWN: {
++          NOTREACHED();
++          break;
++        }
++      }
++      params->body->elements.push_back(std::move(ptr));
++    }
++  } else {
++    params->body->has_object = false;
++  }
++
+   // We preserve this information before sending the message since |params| is
+   // moved on send.
+   bool is_background_tab =
