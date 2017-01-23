@@ -226,6 +226,7 @@ GENERATED_INCLUDE_DIRS = [
   'mojo',
   'media',
   'net',
+  'ppapi',
   'third_party/WebKit',
   'ui',
   'url',
