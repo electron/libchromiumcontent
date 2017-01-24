@@ -22,6 +22,7 @@ group("targets") {
       "//ppapi/proxy",
       "//ppapi/shared_impl",
       "//net:net_with_v8",
+      "//services/service_manager",
       "//third_party/webrtc/modules/desktop_capture",
       "//third_party/widevine/cdm:headers",
       "//third_party/widevine/cdm:widevinecdmadapter",
