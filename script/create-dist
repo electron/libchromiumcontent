@@ -223,6 +223,7 @@ INCLUDE_DIRS = [
 }[TARGET_PLATFORM]
 GENERATED_INCLUDE_DIRS = [
   'content',
+  'ipc',
   'mojo',
   'media',
   'net',
