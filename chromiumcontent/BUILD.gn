@@ -131,7 +131,10 @@ if (is_electron_build && is_component_build) {
 
   static_library("security_state") {
       complete_static_lib = true
-      deps = [ "//components/security_state/core" ]
+      deps = [
+        "//components/security_state/content",
+        "//components/security_state/core",
+      ]
   }
 
   static_library("system_wrappers") {
