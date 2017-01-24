@@ -245,6 +245,7 @@ with open(args.out, 'w') as out:
         out,
         "obj_v8",
         [
+            "v8/src/inspector",
             "v8/v8_base",
             "v8/v8_external_snapshot",
             "v8/v8_libbase",
