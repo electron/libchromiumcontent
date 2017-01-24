@@ -94,3 +94,16 @@ index 3759572..9a3195f 100644
      forward_variables_from(invoker, "*", [ "configs" ])
      configs += invoker.configs
      configs -= v8_remove_configs
+diff --git a/src/inspector/BUILD.gn b/src/inspector/BUILD.gn
+index 6ebb91c..b6a2489 100644
+--- a/src/inspector/BUILD.gn
++++ b/src/inspector/BUILD.gn
+@@ -106,7 +106,7 @@ config("inspector_config") {
+       "/wd4996",  # Deprecated function call.
+     ]
+   }
+-  if (is_component_build) {
++  if (is_component_build || is_electron_build) {
+     defines = [ "BUILDING_V8_SHARED" ]
+   }
+ }
