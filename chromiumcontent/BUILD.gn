@@ -5,11 +5,10 @@ group("targets") {
   # "static_library" or "shared_library"
   if (is_electron_build) {
     deps += [
-      "//components/discardable_memory/client",
-      "//components/payments:payment_app",
       "//components/prefs",
       "//components/cdm/renderer",
       "//components/cookie_config",
+      "//components/security_state/content",
       "//components/security_state/core",
       "//content",
       "//content:sandbox_helper_win",
@@ -22,8 +21,6 @@ group("targets") {
       "//ppapi/proxy",
       "//ppapi/shared_impl",
       "//net:net_with_v8",
-      "//services/device/public/cpp",
-      "//services/service_manager",
       "//third_party/webrtc/modules/desktop_capture",
       "//third_party/widevine/cdm:headers",
       "//third_party/widevine/cdm:widevinecdmadapter",
@@ -214,6 +211,7 @@ if (is_electron_build && !is_component_build) {
       ":ppapi",
       ":media",
       ":net",
+      ":services",
       ":skia",
       ":angle",
       ":pdfium",
@@ -278,6 +276,14 @@ if (is_electron_build && !is_component_build) {
     sources = []
     if (defined(obj_net)) {
       sources += obj_net
+    }
+  }
+
+  static_library("services") {
+    complete_static_lib = true
+    sources = []
+    if (defined(obj_services)) {
+      sources += obj_services
     }
   }
 

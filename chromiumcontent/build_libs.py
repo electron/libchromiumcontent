@@ -37,19 +37,11 @@ with open(args.out, 'w') as out:
             "printing",
             "sandbox",
             "sdch",
-            "services/catalog",
-            "services/file",
-            "services/shell/public",
-            "services/shell/runner",
-            "services/shell/shell",
-            "services/tracing/public",
-            "services/ui/public",
-            "services/user",
             "sql/sql",
             "storage",
             "third_party/adobe",
             "third_party/boringssl",
-            "third_party/brotli/brotli",
+            "third_party/brotli",
             "third_party/ced/ced",
             "third_party/decklink",
             "third_party/expat",
@@ -128,8 +120,7 @@ with open(args.out, 'w') as out:
             "components/bitmap_uploader",
             "components/cdm",
             "components/cookie_config",
-            "components/devtools_discovery",
-            "components/devtools_http_handler",
+            "components/discardable_memory",
             "components/display_compositor",
             "components/filesystem",
             "components/leveldb",
@@ -143,12 +134,14 @@ with open(args.out, 'w') as out:
             "components/mus/input_devices",
             "components/mus/public",
             "components/os_crypt",
+            "components/payments",
             "components/prefs",
             "components/scheduler/common",
             "components/scheduler/scheduler",
             "components/security_state",
             "components/tracing",
             "components/url_formatter",
+            "components/variations",
             "components/webcrypto",
             "components/webmessaging",
         ])
@@ -177,6 +170,22 @@ with open(args.out, 'w') as out:
         "obj_net",
         [
             "net",
+        ])
+
+    gen_list(
+        out,
+        "obj_services",
+        [
+            "services/catalog",
+            "services/device",
+            "services/file",
+            "services/service_manager",
+            "services/shell/public",
+            "services/shell/runner",
+            "services/shell/shell",
+            "services/tracing/public",
+            "services/ui/public",
+            "services/user",
         ])
 
     gen_list(
