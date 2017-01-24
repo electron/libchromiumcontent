@@ -5,6 +5,8 @@ group("targets") {
   # "static_library" or "shared_library"
   if (is_electron_build) {
     deps += [
+      "//components/discardable_memory/client",
+      "//components/payments:payment_app",
       "//components/prefs",
       "//components/cdm/renderer",
       "//components/cookie_config",
