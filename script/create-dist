@@ -228,6 +228,7 @@ GENERATED_INCLUDE_DIRS = [
   'media',
   'net',
   'ppapi',
+  'printing',
   'third_party/WebKit',
   'ui',
   'url',
