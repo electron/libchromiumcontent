@@ -1,0 +1,12 @@
+diff --git a/chrome/browser/ui/libgtkui/BUILD.gn b/chrome/browser/ui/libgtkui/BUILD.gn
+index 41ca192..547ec30 100644
+--- a/chrome/browser/ui/libgtkui/BUILD.gn
++++ b/chrome/browser/ui/libgtkui/BUILD.gn
+@@ -93,6 +93,7 @@ common_deps = [
+   "//chrome:strings",
+   "//chrome/app:command_ids",
+   "//chrome/app/theme:theme_resources",
++  "//chrome/common:features",
+   "//components/resources",
+   "//content/public/browser",
+   "//printing",
