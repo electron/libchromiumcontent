@@ -155,7 +155,7 @@ index a802ece..eab03ea 100644
                                 bool opener_suppressed,
                                 ResourceContext* context,
 diff --git a/content/renderer/render_view_impl.cc b/content/renderer/render_view_impl.cc
-index 56ad115..3b642d5 100644
+index 56ad115..5fdbca1 100644
 --- a/content/renderer/render_view_impl.cc
 +++ b/content/renderer/render_view_impl.cc
 @@ -44,6 +44,7 @@
@@ -166,7 +166,7 @@ index 56ad115..3b642d5 100644
  #include "content/common/content_constants_internal.h"
  #include "content/common/content_switches_internal.h"
  #include "content/common/dom_storage/dom_storage_types.h"
-@@ -1410,6 +1411,63 @@ WebView* RenderViewImpl::createView(WebLocalFrame* creator,
+@@ -1410,6 +1411,64 @@ WebView* RenderViewImpl::createView(WebLocalFrame* creator,
    }
    params->features = features;
  
@@ -175,6 +175,7 @@ index 56ad115..3b642d5 100644
 +        features.additionalFeatures[i].utf8());
 +  }
 +
++  params->body = mojom::ResourceRequestBody::New();
 +  auto body = GetRequestBodyForWebURLRequest(request);
 +  if (body) {
 +    params->body->has_object = true;
