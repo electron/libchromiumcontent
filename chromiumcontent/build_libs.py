@@ -22,7 +22,7 @@ with open(args.out, 'w') as out:
         "obj_libchromiumcontent",
         [
             "build",
-            "chrome/browser/ui/libgtk2ui",
+            "chrome/browser/ui/libgtkui",
             "content",
             "crypto",
             "dbus",

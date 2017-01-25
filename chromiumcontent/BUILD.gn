@@ -32,7 +32,7 @@ group("targets") {
     ]
 
     if (is_linux) {
-      deps += [ "//chrome/browser/ui/libgtk2ui" ]
+      deps += [ "//chrome/browser/ui/libgtkui:libgtk2ui" ]
     }
 
     if (is_component_build) {
@@ -52,7 +52,7 @@ group("targets") {
       ]
 
       if (is_linux) {
-        deps += [ ":libgtk2ui" ]
+        deps += [ ":libgtkui" ]
       }
 
       if (is_win) {
@@ -149,18 +149,18 @@ if (is_electron_build && is_component_build) {
   }
 
   if (is_linux) {
-    # The original libgtk2ui target is a shared library, so we must list
+    # The original libgtkui target is a shared library, so we must list
     # the object files instead of just depending on it.
-    static_library("libgtk2ui") {
+    static_library("libgtkui") {
       complete_static_lib = true
       sources = [
-        "$root_out_dir/obj/chrome/browser/ui/libgtk2ui/libgtk2ui/app_indicator_icon.o",
-        "$root_out_dir/obj/chrome/browser/ui/libgtk2ui/libgtk2ui/app_indicator_icon_menu.o",
-        "$root_out_dir/obj/chrome/browser/ui/libgtk2ui/libgtk2ui/gtk2_util.o",
-        "$root_out_dir/obj/chrome/browser/ui/libgtk2ui/libgtk2ui/gtk2_status_icon.o",
-        "$root_out_dir/obj/chrome/browser/ui/libgtk2ui/libgtk2ui/menu_util.o",
-        "$root_out_dir/obj/chrome/browser/ui/libgtk2ui/libgtk2ui/skia_utils_gtk2.o",
-        "$root_out_dir/obj/chrome/browser/ui/libgtk2ui/libgtk2ui/unity_service.o",
+        "$root_out_dir/obj/chrome/browser/ui/libgtkui/libgtk2ui/app_indicator_icon.o",
+        "$root_out_dir/obj/chrome/browser/ui/libgtkui/libgtk2ui/app_indicator_icon_menu.o",
+        "$root_out_dir/obj/chrome/browser/ui/libgtkui/libgtk2ui/gtk_util.o",
+        "$root_out_dir/obj/chrome/browser/ui/libgtkui/libgtk2ui/gtk_status_icon.o",
+        "$root_out_dir/obj/chrome/browser/ui/libgtkui/libgtk2ui/menu_util.o",
+        "$root_out_dir/obj/chrome/browser/ui/libgtkui/libgtk2ui/skia_utils_gtk.o",
+        "$root_out_dir/obj/chrome/browser/ui/libgtkui/libgtk2ui/unity_service.o",
       ]
     }
   }
