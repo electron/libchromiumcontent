@@ -168,7 +168,7 @@ INCLUDE_DIRS = [
   'base',
   'build',
   'cc',
-  'chrome/browser/ui/libgtk2ui',
+  'chrome/browser/ui/libgtkui',
   'components/cdm',
   'components/component_updater',
   'components/cookie_config',
