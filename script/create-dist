@@ -246,9 +246,31 @@ OTHER_DIRS = [
 ]
 
 
+def program_available(prog):
+  try:
+    subprocess.check_output([prog, '--help'])
+    return True
+  except OSError as e:
+    return False
+
+
+def check_create_debug_archive(target_arch):
+  errmsg = '--create-debug-archive option requires missing program {0}'
+  for prog in ['gdb', 'objcopy']:
+    if target_arch == 'arm':
+      prog = 'arm-linux-gnueabihf-' + prog
+    if not program_available(prog):
+      print errmsg.format(prog)
+      sys.exit(1)
+      
+
 def main():
   args = parse_args()
   target_arch = args.target_arch
+  create_debug_archive = args.create_debug_archive
+
+  if create_debug_archive:
+    check_create_debug_archive(target_arch)
 
   # Some libraries are not available for certain arch.
   for lib in ARCH_BLACKLIST[target_arch]:
@@ -261,7 +283,7 @@ def main():
   for component in COMPONENTS:
     if args.component == 'all' or args.component == component:
       output_dir = os.path.join(SRC_DIR, get_output_dir(target_arch, component))
-      copy_binaries(target_arch, component, output_dir)
+      copy_binaries(target_arch, component, output_dir, create_debug_archive)
       copy_generated_sources(target_arch, component, output_dir)
       copy_locales(target_arch, component, output_dir)
 
@@ -269,12 +291,17 @@ def main():
   copy_sources()
   generate_licenses()
   if not args.no_zip:
-    create_zip()
+    create_zip(create_debug_archive)
 
 
 def parse_args():
   parser = argparse.ArgumentParser(description='Create distribution')
   parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
+  parser.add_argument('--create-debug-archive',
+                      default=False,
+                      required=False,
+                      action='store_true',
+                      help='Create archive with debug symbols and source code')
   parser.add_argument('-c', '--component', default='all',
                       help='static_library or shared_library or all')
   parser.add_argument('--no_zip', action='store_true',
@@ -288,7 +315,7 @@ def copy_with_blacklist(target_arch, src, dest):
   shutil.copy2(src, dest)
 
 
-def copy_binaries(target_arch, component, output_dir):
+def copy_binaries(target_arch, component, output_dir, create_debug_archive):
   config_dir = os.path.join(output_dir, get_configuration(target_arch))
   target_dir = os.path.join(MAIN_DIR, component)
   mkdir_p(target_dir)
@@ -330,14 +357,20 @@ def copy_binaries(target_arch, component, output_dir):
         copy_with_blacklist(target_arch, library, target_dir)
 
   if TARGET_PLATFORM in ['linux', 'darwin']:
-    # Strip the copied binaries since they contain quite large debug info.
+    if create_debug_archive:
+      print 'Extracting debug symbols...'
     for binary in BINARIES[TARGET_PLATFORM]:
-      run_strip(target_arch, os.path.join(target_dir, os.path.basename(binary)))
-    # We do not need debug info in "shared_library" build, since it will only
-    # be used for Release build.
+      run_strip(target_arch,
+                os.path.join(target_dir, os.path.basename(binary)),
+                create_debug_archive)
     if component == 'shared_library':
       for library in glob.glob(os.path.join(target_dir, match)):
-        run_strip(target_arch, library)
+        run_strip(target_arch, library, create_debug_archive)
+      # move .debug files into a separate directory
+      debug_dir = os.path.join(os.path.dirname(target_dir), '.debug')
+      mkdir_p(debug_dir)
+      for debug_file in glob.glob(os.path.join(target_dir, '*.debug')):
+        shutil.move(debug_file, debug_dir)
 
   # Copy chromedriver and mksnapshot
   # Take them from the "ffmpeg" config, where they are built with all
@@ -427,20 +460,60 @@ def copy_dir(relative_path, relative_to, destination):
       copy_source_file(os.path.join(dirpath, filename), relative_to=relative_to, destination=destination)
 
 
-def run_strip(target_arch, filename):
+def add_gdb_index_section(gdb, objcopy, symfile, dirname):
+  subprocess.check_call([gdb, '-batch',
+                         '-ex', 'file {0}'.format(symfile),
+                         '-ex', 'save gdb-index .'], cwd=dirname)
+  index_file = symfile + '.gdb-index'
+  subprocess.check_call([objcopy, '--add-section',
+                         '.gdb_index={0}'.format(index_file),
+                         '--set-section-flags', '.gdb_index=readonly',
+                         symfile, symfile], cwd=dirname)
+  os.unlink(os.path.join(dirname, index_file))
+
+
+def create_debug_file(gdb, objcopy, binfile, symfile, dirname):
+  subprocess.check_call([objcopy, '--only-keep-debug', binfile, symfile],
+                        cwd=dirname)
+  # add gdb_index section to the debug file, which will improve load speed.
+  add_gdb_index_section(gdb, objcopy, symfile, dirname)
+
+
+def link_binary_to_debug_file(objcopy, binfile, symfile, dirname):
+  subprocess.check_call([objcopy, '--add-gnu-debuglink={0}'.format(symfile),
+                         binfile], cwd=dirname)
+
+
+def run_strip(target_arch, filename, create_debug_archive):
   # Static libraries are not stripped because it would remove
   # all the symbols in it.
   if filename.endswith('.a'):
     return
+
   if TARGET_PLATFORM == 'linux':
-    flags = []
+    strip_flags = []
   else:
-    flags = ['-x', '-S']
+    strip_flags = ['-x', '-S']
+
   if target_arch == 'arm' and filename.endswith(('.so', 'chromedriver')):
     strip = 'arm-linux-gnueabihf-strip'
+    objcopy = 'arm-linux-gnueabihf-objcopy'
+    gdb = 'arm-linux-gnueabihf-gdb'
   else:
     strip = 'strip'
-  subprocess.check_call([strip] + flags + [filename])
+    objcopy = 'objcopy'
+    gdb = 'gdb'
+  dirname = os.path.dirname(filename)
+  symfile = '{0}.debug'.format(os.path.basename(filename))
+  create_debug_archive = (create_debug_archive
+                          # don't create debug file for libffmpeg as a
+                          # different version will be bundled.
+                          and not symfile.startswith('libffmpeg'))
+  if create_debug_archive:
+    create_debug_file(gdb, objcopy, filename, symfile, dirname)
+  subprocess.check_call([strip] + strip_flags + [filename])
+  if create_debug_archive:
+    link_binary_to_debug_file(objcopy, filename, symfile, dirname)
 
 
 def run_ar_combine(filename, target_dir):
@@ -460,10 +533,14 @@ def generate_licenses():
                          '--entry-template', entry_template])
 
 
-def create_zip():
+def create_zip(create_debug_archive):
   print 'Zipping shared_library builds...'
   p = os.path.join(SOURCE_ROOT, 'libchromiumcontent.zip')
   make_zip(MAIN_DIR, ['src', 'ffmpeg', 'shared_library'], ['LICENSES.chromium.html'], p)
+  if create_debug_archive and TARGET_PLATFORM in ['linux', 'darwin']:
+    print 'Zipping shared library debug files...'
+    p = os.path.join(SOURCE_ROOT, 'libchromiumcontent-dbg.zip')
+    make_zip(MAIN_DIR, ['.debug'], [], p)
   print 'Zipping static_library builds...'
   p = os.path.join(SOURCE_ROOT, 'libchromiumcontent-static.zip')
   make_zip(MAIN_DIR, ['static_library'], [], p)
