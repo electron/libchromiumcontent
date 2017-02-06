@@ -1,8 +1,8 @@
 diff --git a/source/common/unicode/unistr.h b/source/common/unicode/unistr.h
-index 63f1933..44eeecd 100644
+index 6f62244..29b6b91 100644
 --- a/source/common/unicode/unistr.h
 +++ b/source/common/unicode/unistr.h
-@@ -2959,7 +2959,7 @@ public:
+@@ -2960,7 +2960,7 @@ public:
    /** Construct an empty UnicodeString.
     * @stable ICU 2.0
     */
@@ -11,7 +11,7 @@ index 63f1933..44eeecd 100644
  
    /**
     * Construct a UnicodeString with capacity to hold <TT>capacity</TT> UChars
-@@ -3767,15 +3767,6 @@ UnicodeString::getArrayStart() const {
+@@ -3765,15 +3765,6 @@ UnicodeString::getArrayStart() const {
  }
  
  //========================================
@@ -28,10 +28,10 @@ index 63f1933..44eeecd 100644
  //========================================
  inline UBool
 diff --git a/source/common/unistr.cpp b/source/common/unistr.cpp
-index f957c53..a70d0b6 100644
+index bdd58ec..60f6835 100644
 --- a/source/common/unistr.cpp
 +++ b/source/common/unistr.cpp
-@@ -144,7 +144,9 @@ UnicodeString::releaseArray() {
+@@ -146,7 +146,9 @@ UnicodeString::releaseArray() {
  // Constructors
  //========================================
  

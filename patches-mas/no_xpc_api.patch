@@ -1,5 +1,5 @@
 diff --git a/sandbox/mac/launchd_interception_server.cc b/sandbox/mac/launchd_interception_server.cc
-index 69231b5..1c07cf1 100644
+index 167fbab..ea009b4 100644
 --- a/sandbox/mac/launchd_interception_server.cc
 +++ b/sandbox/mac/launchd_interception_server.cc
 @@ -172,8 +172,10 @@ void LaunchdInterceptionServer::ForwardMessage(IPCMessage request) {
@@ -14,10 +14,10 @@ index 69231b5..1c07cf1 100644
  
    message_server_->ForwardMessage(request, sandbox_->real_bootstrap_port());
 diff --git a/sandbox/mac/os_compatibility.cc b/sandbox/mac/os_compatibility.cc
-index 538efef..527d7e7 100644
+index e15e9cf..194e9f3 100644
 --- a/sandbox/mac/os_compatibility.cc
 +++ b/sandbox/mac/os_compatibility.cc
-@@ -167,7 +167,9 @@ class OSCompatibility_10_10 : public OSCompatibility {
+@@ -157,7 +157,9 @@ class OSCompatibility_10_10 : public OSCompatibility {
  
    void WriteServiceLookUpReply(IPCMessage message,
                                 mach_port_t service_port) override {
@@ -28,10 +28,10 @@ index 538efef..527d7e7 100644
  
    bool IsSwapIntegerReadOnly(const IPCMessage message) override {
 diff --git a/sandbox/mac/pre_exec_delegate.cc b/sandbox/mac/pre_exec_delegate.cc
-index 9d777d3..5a46ac0 100644
+index 1aac68b..f60b76d 100644
 --- a/sandbox/mac/pre_exec_delegate.cc
 +++ b/sandbox/mac/pre_exec_delegate.cc
-@@ -71,7 +71,9 @@ xpc_object_t PreExecDelegate::CreateBootstrapLookUpMessage() {
+@@ -70,7 +70,9 @@ xpc_object_t PreExecDelegate::CreateBootstrapLookUpMessage() {
      xpc_dictionary_set_uint64(dictionary, "routine", 207);
      // Add a NULL port so that the slot in the dictionary is already
      // allocated.
@@ -41,7 +41,7 @@ index 9d777d3..5a46ac0 100644
      return dictionary;
    }
  
-@@ -80,6 +82,7 @@ xpc_object_t PreExecDelegate::CreateBootstrapLookUpMessage() {
+@@ -79,6 +81,7 @@ xpc_object_t PreExecDelegate::CreateBootstrapLookUpMessage() {
  
  kern_return_t PreExecDelegate::DoBootstrapLookUp(mach_port_t* out_port) {
    if (is_yosemite_or_later_) {
@@ -49,7 +49,7 @@ index 9d777d3..5a46ac0 100644
      xpc_dictionary_set_mach_send(look_up_message_, "domain-port",
          bootstrap_port);
  
-@@ -95,6 +98,9 @@ kern_return_t PreExecDelegate::DoBootstrapLookUp(mach_port_t* out_port) {
+@@ -94,6 +97,9 @@ kern_return_t PreExecDelegate::DoBootstrapLookUp(mach_port_t* out_port) {
        *out_port = xpc_mach_send_get_right(port_value);
        return *out_port != MACH_PORT_NULL ? KERN_SUCCESS : KERN_INVALID_RIGHT;
      }
@@ -60,7 +60,7 @@ index 9d777d3..5a46ac0 100644
      // On non-XPC launchd systems, bootstrap_look_up() is MIG-based and
      // generally safe.
 diff --git a/sandbox/mac/xpc_message_server.cc b/sandbox/mac/xpc_message_server.cc
-index 273419b..595abce 100644
+index 858c7dd..df0ab5d 100644
 --- a/sandbox/mac/xpc_message_server.cc
 +++ b/sandbox/mac/xpc_message_server.cc
 @@ -52,7 +52,9 @@ void XPCMessageServer::Shutdown() {
@@ -70,10 +70,10 @@ index 273419b..595abce 100644
 +#ifndef MAS_BUILD
    xpc_dictionary_get_audit_token(request.xpc, &token);
 +#endif
-   // TODO(rsesek): In the 10.7 SDK, there's audit_token_to_pid().
-   pid_t sender_pid;
-   audit_token_to_au32(token,
-@@ -73,22 +75,26 @@ bool XPCMessageServer::SendReply(IPCMessage reply) {
+   pid_t sender_pid = audit_token_to_pid(token);
+   return sender_pid;
+ }
+@@ -70,22 +72,26 @@ bool XPCMessageServer::SendReply(IPCMessage reply) {
    if (!reply.xpc)
      return false;
  
@@ -100,7 +100,7 @@ index 273419b..595abce 100644
  }
  
  void XPCMessageServer::RejectMessage(IPCMessage request, int error_code) {
-@@ -105,6 +111,7 @@ mach_port_t XPCMessageServer::GetServerPort() const {
+@@ -102,6 +108,7 @@ mach_port_t XPCMessageServer::GetServerPort() const {
  }
  
  void XPCMessageServer::ReceiveMessage() {
@@ -108,7 +108,7 @@ index 273419b..595abce 100644
    IPCMessage request;
    int rv = xpc_pipe_receive(server_port_.get(), &request.xpc);
    if (rv) {
-@@ -119,6 +126,7 @@ void XPCMessageServer::ReceiveMessage() {
+@@ -116,6 +123,7 @@ void XPCMessageServer::ReceiveMessage() {
      xpc_release(reply_message_);
      reply_message_ = NULL;
    }

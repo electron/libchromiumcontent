@@ -8,23 +8,22 @@ group("targets") {
       "//components/prefs",
       "//components/cdm/renderer",
       "//components/cookie_config",
-      "//components/devtools_discovery",
-      "//components/devtools_http_handler",
-      "//components/security_state",
+      "//components/security_state/content",
+      "//components/security_state/core",
       "//content",
       "//content:sandbox_helper_win",
       "//content/public/app:both",
       "//content/shell:pak",
       "//content/shell:copy_shell_resources",
       "//pdf",
-      "//ppapi:ppapi_cpp_lib",
+      "//ppapi/cpp",
       "//ppapi/host",
       "//ppapi/proxy",
       "//ppapi/shared_impl",
       "//net:net_with_v8",
       "//third_party/webrtc/modules/desktop_capture",
+      "//third_party/widevine/cdm:headers",
       "//third_party/widevine/cdm:widevinecdmadapter",
-      "//third_party/widevine/cdm:version_h",
       "//ui/content_accelerators",
       "//ui/display",
       "//ui/display/util",
@@ -33,14 +32,12 @@ group("targets") {
     ]
 
     if (is_linux) {
-      deps += [ "//chrome/browser/ui/libgtk2ui" ]
+      deps += [ "//chrome/browser/ui/libgtkui:libgtk2ui" ]
     }
 
     if (is_component_build) {
       deps += [
         ":desktop_capture",
-        ":devtools_discovery",
-        ":devtools_http_handler",
         ":fx_agg",
         ":fx_lcms2",
         ":fx_libopenjpeg",
@@ -55,7 +52,7 @@ group("targets") {
       ]
 
       if (is_linux) {
-        deps += [ ":libgtk2ui" ]
+        deps += [ ":libgtkui" ]
       }
 
       if (is_win) {
@@ -91,16 +88,6 @@ if (is_electron_build && is_component_build) {
   static_library("desktop_capture") {
       complete_static_lib = true
       deps = [ "//third_party/webrtc/modules/desktop_capture" ]
-  }
-
-  static_library("devtools_discovery") {
-      complete_static_lib = true
-      deps = [ "//components/devtools_discovery" ]
-  }
-
-  static_library("devtools_http_handler") {
-      complete_static_lib = true
-      deps = [ "//components/devtools_http_handler" ]
   }
 
   static_library("fx_agg") {
@@ -145,7 +132,10 @@ if (is_electron_build && is_component_build) {
 
   static_library("security_state") {
       complete_static_lib = true
-      deps = [ "//components/security_state" ]
+      deps = [
+        "//components/security_state/content",
+        "//components/security_state/core",
+      ]
   }
 
   static_library("system_wrappers") {
@@ -159,18 +149,18 @@ if (is_electron_build && is_component_build) {
   }
 
   if (is_linux) {
-    # The original libgtk2ui target is a shared library, so we must list
+    # The original libgtkui target is a shared library, so we must list
     # the object files instead of just depending on it.
-    static_library("libgtk2ui") {
+    static_library("libgtkui") {
       complete_static_lib = true
       sources = [
-        "$root_out_dir/obj/chrome/browser/ui/libgtk2ui/libgtk2ui/app_indicator_icon.o",
-        "$root_out_dir/obj/chrome/browser/ui/libgtk2ui/libgtk2ui/app_indicator_icon_menu.o",
-        "$root_out_dir/obj/chrome/browser/ui/libgtk2ui/libgtk2ui/gtk2_util.o",
-        "$root_out_dir/obj/chrome/browser/ui/libgtk2ui/libgtk2ui/gtk2_status_icon.o",
-        "$root_out_dir/obj/chrome/browser/ui/libgtk2ui/libgtk2ui/menu_util.o",
-        "$root_out_dir/obj/chrome/browser/ui/libgtk2ui/libgtk2ui/skia_utils_gtk2.o",
-        "$root_out_dir/obj/chrome/browser/ui/libgtk2ui/libgtk2ui/unity_service.o",
+        "$root_out_dir/obj/chrome/browser/ui/libgtkui/libgtk2ui/app_indicator_icon.o",
+        "$root_out_dir/obj/chrome/browser/ui/libgtkui/libgtk2ui/app_indicator_icon_menu.o",
+        "$root_out_dir/obj/chrome/browser/ui/libgtkui/libgtk2ui/gtk_util.o",
+        "$root_out_dir/obj/chrome/browser/ui/libgtkui/libgtk2ui/gtk_status_icon.o",
+        "$root_out_dir/obj/chrome/browser/ui/libgtkui/libgtk2ui/menu_util.o",
+        "$root_out_dir/obj/chrome/browser/ui/libgtkui/libgtk2ui/skia_utils_gtk.o",
+        "$root_out_dir/obj/chrome/browser/ui/libgtkui/libgtk2ui/unity_service.o",
       ]
     }
   }
@@ -221,10 +211,12 @@ if (is_electron_build && !is_component_build) {
       ":ppapi",
       ":media",
       ":net",
+      ":services",
       ":skia",
       ":angle",
       ":pdfium",
       ":webkit",
+      ":webkitbindings",
       ":webkitmodules",
       ":webrtc",
       ":v8",
@@ -287,6 +279,14 @@ if (is_electron_build && !is_component_build) {
     }
   }
 
+  static_library("services") {
+    complete_static_lib = true
+    sources = []
+    if (defined(obj_services)) {
+      sources += obj_services
+    }
+  }
+
   static_library("skia") {
     complete_static_lib = true
     sources = []
@@ -316,6 +316,14 @@ if (is_electron_build && !is_component_build) {
     sources = []
     if (defined(obj_webkit)) {
       sources += obj_webkit
+    }
+  }
+
+  static_library("webkitbindings") {
+    complete_static_lib = true
+    sources = []
+    if (defined(obj_webkitbindings)) {
+      sources += obj_webkitbindings
     }
   }
 

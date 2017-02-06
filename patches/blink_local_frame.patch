@@ -1,23 +1,26 @@
 diff --git a/third_party/WebKit/Source/core/frame/LocalFrame.cpp b/third_party/WebKit/Source/core/frame/LocalFrame.cpp
-index f74e510..5c69841 100644
+index acd4722..0f1c847 100644
 --- a/third_party/WebKit/Source/core/frame/LocalFrame.cpp
 +++ b/third_party/WebKit/Source/core/frame/LocalFrame.cpp
-@@ -372,10 +372,6 @@ void LocalFrame::detach(FrameDetachType type)
-     m_loader.stopAllLoaders();
-     m_loader.detach();
-     document()->detachLayoutTree();
--    // This is the earliest that scripting can be disabled:
--    // - FrameLoader::detach() can fire XHR abort events
--    // - Document::detachLayoutTree()'s deferred widget updates can run script.
--    ScriptForbiddenScope forbidScript;
-     m_loader.clear();
-     if (!client())
-         return;
-@@ -384,6 +380,7 @@ void LocalFrame::detach(FrameDetachType type)
-     // Notify ScriptController that the frame is closing, since its cleanup ends up calling
-     // back to FrameLoaderClient via WindowProxy.
-     script().clearForClose();
-+    ScriptForbiddenScope forbidScript;
-     setView(nullptr);
+@@ -413,10 +413,6 @@ void LocalFrame::detach(FrameDetachType type) {
+   m_loader.stopAllLoaders();
+   m_loader.detach();
+   document()->shutdown();
+-  // This is the earliest that scripting can be disabled:
+-  // - FrameLoader::detach() can fire XHR abort events
+-  // - Document::shutdown()'s deferred widget updates can run script.
+-  ScriptForbiddenScope forbidScript;
+   m_loader.clear();
+   if (!client())
+     return;
+@@ -425,6 +421,10 @@ void LocalFrame::detach(FrameDetachType type) {
+   // Notify ScriptController that the frame is closing, since its cleanup ends
+   // up calling back to FrameLoaderClient via WindowProxy.
+   script().clearForClose();
++  // This is the earliest that scripting can be disabled:
++  // - FrameLoader::detach() can fire XHR abort events
++  // - Document::shutdown()'s deferred widget updates can run script.
++  ScriptForbiddenScope forbidScript;
+   setView(nullptr);
  
-     m_host->eventHandlerRegistry().didRemoveAllEventHandlers(*localDOMWindow());
+   m_host->eventHandlerRegistry().didRemoveAllEventHandlers(*localDOMWindow());

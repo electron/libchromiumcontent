@@ -1,5 +1,5 @@
 diff --git a/BUILD.gn b/BUILD.gn
-index 1dd7c61d..80068141 100644
+index ac6b2bb..1e16a07 100644
 --- a/BUILD.gn
 +++ b/BUILD.gn
 @@ -2,6 +2,7 @@
@@ -10,8 +10,8 @@ index 1dd7c61d..80068141 100644
  import("//third_party/icu/config.gni")
  
  if (is_android) {
-@@ -38,7 +39,7 @@ config("icu_config") {
-     "U_NOEXCEPT=",
+@@ -33,7 +34,7 @@ config("icu_config") {
+     "U_ENABLE_DYLOAD=0",
    ]
  
 -  if (!is_component_build) {
@@ -19,7 +19,7 @@ index 1dd7c61d..80068141 100644
      defines += [ "U_STATIC_IMPLEMENTATION" ]
    }
  
-@@ -122,7 +123,7 @@ config("icu_code") {
+@@ -96,7 +97,7 @@ config("icu_code") {
    }
  }
  
@@ -28,7 +28,7 @@ index 1dd7c61d..80068141 100644
    # find  source/i18n -maxdepth 1  ! -type d  | egrep  '\.(c|cpp|h)$' |\
    # sort | sed 's/^\(.*\)$/    "\1",/'
    sources = [
-@@ -553,6 +554,9 @@ component("icui18n") {
+@@ -520,6 +521,9 @@ component("icui18n") {
    ]
  
    defines = [ "U_I18N_IMPLEMENTATION" ]
@@ -38,7 +38,7 @@ index 1dd7c61d..80068141 100644
    deps = [
      ":icuuc",
    ]
-@@ -579,7 +583,7 @@ component("icui18n") {
+@@ -546,7 +550,7 @@ component("icui18n") {
    }
  }
  
@@ -47,7 +47,7 @@ index 1dd7c61d..80068141 100644
    # find  source/common -maxdepth 1  ! -type d  | egrep  '\.(c|cpp|h)$' |\
    # sort | sed 's/^\(.*\)$/    "\1",/'
    sources = [
-@@ -954,6 +958,9 @@ component("icuuc") {
+@@ -931,6 +935,9 @@ component("icuuc") {
      "source/common/unicode/uversion.h",
    ]
    defines = [ "U_COMMON_IMPLEMENTATION" ]

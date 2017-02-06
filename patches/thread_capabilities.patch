@@ -1,8 +1,8 @@
 diff --git a/sandbox/linux/services/credentials.cc b/sandbox/linux/services/credentials.cc
-index 0e569fa..cada9e58 100644
+index 2265474..8342ad8 100644
 --- a/sandbox/linux/services/credentials.cc
 +++ b/sandbox/linux/services/credentials.cc
-@@ -327,8 +327,10 @@ pid_t Credentials::ForkAndDropCapabilitiesInChild() {
+@@ -349,8 +349,10 @@ pid_t Credentials::ForkAndDropCapabilitiesInChild() {
      return pid;
    }
  
