@@ -2,6 +2,7 @@ root_extra_deps = [ "//chromiumcontent:chromiumcontent" ]
 is_electron_build = true
 is_component_build = false
 is_debug = false
+symbol_level = 2
 enable_nacl = false
 enable_widevine = true
 proprietary_codecs = true
