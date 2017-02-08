@@ -136,13 +136,7 @@ BINARIES_SHARED_LIBRARY = {
     os.path.join('obj', 'third_party', 'webrtc', 'base', 'rtc_base_approved.lib'),
     os.path.join('obj', 'ui', 'events', 'dom_keycode_converter_cc.pdb'),
     os.path.join('obj', 'ui', 'events', 'dom_keycode_converter.lib'),
-  ],
-}
-
-PDBS_FILES = {
-  'static_library': [
-  ],
-  'shared_library': [
+    # PDB files for libraries that generated under obj/chromiumcontent:
     os.path.join('obj', 'components', 'security_state', 'core', 'core_cc.pdb'),
     os.path.join('obj', 'components', 'security_state', 'content', 'content_cc.pdb'),
     os.path.join('obj', 'content', 'sandbox_helper_win_cc.pdb'),
@@ -154,8 +148,6 @@ PDBS_FILES = {
     os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture', 'desktop_capture_differ_sse2_cc.pdb'),
     os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture', 'primitives_cc.pdb'),
     os.path.join('obj', 'third_party', 'webrtc', 'system_wrappers', 'system_wrappers_cc.pdb'),
-  ],
-  'ffmpeg': [
   ],
 }
 
@@ -351,13 +343,6 @@ def copy_binaries(target_arch, component, output_dir, create_debug_archive):
   # Copy all static libraries from chromiumcontent
   for library in glob.glob(os.path.join(config_dir, 'obj', 'chromiumcontent', '*.' + STATIC_LIBRARY_SUFFIX)):
     shutil.copy2(library, target_dir)
-  # TODO: Copy .pdb files
-
-  # For custom targets in chromiumcontent, the PDB files are still in their
-  # object files' original places, we have to copy them to obj/chromiumcontent.
-  if TARGET_PLATFORM == 'win32':
-    for library in PDBS_FILES[component]:
-      shutil.copy2(os.path.join(config_dir, library), os.path.join(target_dir))
 
   if component == 'shared_library':
     match = '*.{0}'.format(SHARED_LIBRARY_SUFFIX)
@@ -377,6 +362,12 @@ def copy_binaries(target_arch, component, output_dir, create_debug_archive):
         if os.path.exists(lib):
           copy_with_blacklist(target_arch, dll, target_dir)
           copy_with_blacklist(target_arch, lib, target_dir)
+    elif component == 'static_library':
+      # out/Release/*.pdb
+      for root, _, filenames in os.walk(config_dir):
+        for pdb in filenames:
+          if pdb.endswith('.pdb'):
+            shutil.copy2(os.path.join(root, pdb), target_dir)
 
   if TARGET_PLATFORM == 'linux':
     if component == 'shared_library':
