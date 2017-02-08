@@ -268,24 +268,6 @@ OTHER_DIRS = [
 ]
 
 
-def program_available(prog):
-  try:
-    subprocess.check_output([prog, '--help'])
-    return True
-  except OSError as e:
-    return False
-
-
-def check_create_debug_archive(target_arch):
-  errmsg = '--create-debug-archive option requires missing program {0}'
-  for prog in ['gdb', 'objcopy']:
-    if target_arch == 'arm':
-      prog = 'arm-linux-gnueabihf-' + prog
-    if not program_available(prog):
-      print errmsg.format(prog)
-      sys.exit(1)
-
-
 def main():
   args = parse_args()
   target_arch = args.target_arch
@@ -329,6 +311,24 @@ def parse_args():
   parser.add_argument('--no_zip', action='store_true',
                       help='Do not create zip distribution')
   return parser.parse_args()
+
+
+def program_available(prog):
+  try:
+    subprocess.check_output([prog, '--help'])
+    return True
+  except OSError as e:
+    return False
+
+
+def check_create_debug_archive(target_arch):
+  errmsg = '--create-debug-archive option requires missing program {0}'
+  for prog in ['gdb', 'objcopy']:
+    if target_arch == 'arm':
+      prog = 'arm-linux-gnueabihf-' + prog
+    if not program_available(prog):
+      print errmsg.format(prog)
+      sys.exit(1)
 
 
 def copy_with_blacklist(target_arch, src, dest):
