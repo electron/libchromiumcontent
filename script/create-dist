@@ -134,7 +134,20 @@ BINARIES_SHARED_LIBRARY = {
     os.path.join('obj', 'third_party', 'webrtc', 'base', 'rtc_base.lib'),
     os.path.join('obj', 'third_party', 'webrtc', 'base', 'rtc_base_approved_cc.pdb'),
     os.path.join('obj', 'third_party', 'webrtc', 'base', 'rtc_base_approved.lib'),
+    os.path.join('obj', 'ui', 'events', 'dom_keycode_converter_cc.pdb'),
     os.path.join('obj', 'ui', 'events', 'dom_keycode_converter.lib'),
+    # PDB files for libraries that generated under obj/chromiumcontent:
+    os.path.join('obj', 'components', 'security_state', 'core', 'core_cc.pdb'),
+    os.path.join('obj', 'components', 'security_state', 'content', 'content_cc.pdb'),
+    os.path.join('obj', 'content', 'sandbox_helper_win_cc.pdb'),
+    os.path.join('obj', 'ppapi', 'cpp', 'objects_cc.pdb'),
+    os.path.join('obj', 'ppapi', 'cpp', 'private', 'internal_module_cc.pdb'),
+    os.path.join('obj', 'third_party', 'libjpeg_turbo', 'libjpeg_c.pdb'),
+    os.path.join('obj', 'third_party', 'libyuv', 'libyuv_cc.pdb'),
+    os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture', 'desktop_capture_cc.pdb'),
+    os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture', 'desktop_capture_differ_sse2_cc.pdb'),
+    os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture', 'primitives_cc.pdb'),
+    os.path.join('obj', 'third_party', 'webrtc', 'system_wrappers', 'system_wrappers_cc.pdb'),
   ],
 }
 
@@ -247,24 +260,6 @@ OTHER_DIRS = [
 ]
 
 
-def program_available(prog):
-  try:
-    subprocess.check_output([prog, '--help'])
-    return True
-  except OSError as e:
-    return False
-
-
-def check_create_debug_archive(target_arch):
-  errmsg = '--create-debug-archive option requires missing program {0}'
-  for prog in ['gdb', 'objcopy']:
-    if target_arch == 'arm':
-      prog = 'arm-linux-gnueabihf-' + prog
-    if not program_available(prog):
-      print errmsg.format(prog)
-      sys.exit(1)
-      
-
 def main():
   args = parse_args()
   target_arch = args.target_arch
@@ -310,6 +305,24 @@ def parse_args():
   return parser.parse_args()
 
 
+def program_available(prog):
+  try:
+    subprocess.check_output([prog, '--help'])
+    return True
+  except OSError as e:
+    return False
+
+
+def check_create_debug_archive(target_arch):
+  errmsg = '--create-debug-archive option requires missing program {0}'
+  for prog in ['gdb', 'objcopy']:
+    if target_arch == 'arm':
+      prog = 'arm-linux-gnueabihf-' + prog
+    if not program_available(prog):
+      print errmsg.format(prog)
+      sys.exit(1)
+
+
 def copy_with_blacklist(target_arch, src, dest):
   if os.path.basename(src) in ARCH_BLACKLIST[target_arch]:
     return
@@ -330,7 +343,6 @@ def copy_binaries(target_arch, component, output_dir, create_debug_archive):
   # Copy all static libraries from chromiumcontent
   for library in glob.glob(os.path.join(config_dir, 'obj', 'chromiumcontent', '*.' + STATIC_LIBRARY_SUFFIX)):
     shutil.copy2(library, target_dir)
-  # TODO: Copy .pdb files
 
   if component == 'shared_library':
     match = '*.{0}'.format(SHARED_LIBRARY_SUFFIX)
@@ -350,6 +362,12 @@ def copy_binaries(target_arch, component, output_dir, create_debug_archive):
         if os.path.exists(lib):
           copy_with_blacklist(target_arch, dll, target_dir)
           copy_with_blacklist(target_arch, lib, target_dir)
+    elif component == 'static_library':
+      # out/Release/*.pdb
+      for root, _, filenames in os.walk(config_dir):
+        for pdb in filenames:
+          if pdb.endswith('.pdb'):
+            shutil.copy2(os.path.join(root, pdb), target_dir)
 
   if TARGET_PLATFORM == 'linux':
     if component == 'shared_library':
