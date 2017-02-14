@@ -172,6 +172,7 @@ BINARIES_SHARED_LIBRARY = {
     os.path.join('obj', 'ppapi', 'cpp', 'objects_cc.pdb'),
     os.path.join('obj', 'ppapi', 'cpp', 'private', 'internal_module_cc.pdb'),
     os.path.join('obj', 'third_party', 'libjpeg_turbo', 'libjpeg_c.pdb'),
+    os.path.join('obj', 'third_party', 'libjpeg_turbo', 'simd_c.pdb'),
     os.path.join('obj', 'third_party', 'libyuv', 'libyuv_cc.pdb'),
     os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture', 'desktop_capture_cc.pdb'),
     os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture', 'desktop_capture_differ_sse2_cc.pdb'),
