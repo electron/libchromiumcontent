@@ -1,0 +1,21 @@
+diff --git a/content/browser/loader/stream_resource_handler.h b/content/browser/loader/stream_resource_handler.h
+index 4f6201f1b2a7..fd20986a8f56 100644
+--- a/content/browser/loader/stream_resource_handler.h
++++ b/content/browser/loader/stream_resource_handler.h
+@@ -11,6 +11,7 @@
+ #include "base/memory/ref_counted.h"
+ #include "content/browser/loader/resource_handler.h"
+ #include "content/browser/loader/stream_writer.h"
++#include "content/common/content_export.h"
+ 
+ namespace net {
+ class URLRequest;
+@@ -21,7 +22,7 @@ namespace content {
+ class StreamRegistry;
+ 
+ // Redirect this resource to a stream.
+-class StreamResourceHandler : public ResourceHandler {
++class CONTENT_EXPORT StreamResourceHandler : public ResourceHandler {
+  public:
+   // |origin| will be used to construct the URL for the Stream. See
+   // WebCore::BlobURL and and WebCore::SecurityOrigin in Blink to understand
