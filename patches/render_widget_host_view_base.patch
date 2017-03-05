@@ -1,0 +1,57 @@
+diff --git a/content/browser/renderer_host/render_widget_host_view_base.h b/content/browser/renderer_host/render_widget_host_view_base.h
+index 88e7a04..51546cd 100644
+--- a/content/browser/renderer_host/render_widget_host_view_base.h
++++ b/content/browser/renderer_host/render_widget_host_view_base.h
+@@ -25,6 +25,7 @@
+ #include "content/common/content_export.h"
+ #include "content/common/input/input_event_ack_state.h"
+ #include "content/public/browser/readback_types.h"
++#include "content/public/browser/render_widget_host.h"
+ #include "content/public/browser/render_widget_host_view.h"
+ #include "content/public/common/screen_info.h"
+ #include "ipc/ipc_listener.h"
+@@ -67,6 +68,7 @@ class BrowserAccessibilityDelegate;
+ class BrowserAccessibilityManager;
+ class RenderWidgetHostImpl;
+ class RenderWidgetHostViewBaseObserver;
++class RenderWidgetHostViewGuest;
+ class SyntheticGesture;
+ class SyntheticGestureTarget;
+ class TextInputManager;
+@@ -108,6 +110,9 @@ class CONTENT_EXPORT RenderWidgetHostViewBase : public RenderWidgetHostView,
+   void FocusedNodeTouched(const gfx::Point& location_dips_screen,
+                           bool editable) override;
+ 
++  virtual void InitAsGuest(RenderWidgetHostView* parent_host_view,
++                           RenderWidgetHostViewGuest* guest_view) {}
++
+   // This only needs to be overridden by RenderWidgetHostViewBase subclasses
+   // that handle content embedded within other RenderWidgetHostViews.
+   gfx::Point TransformPointToRootCoordSpace(const gfx::Point& point) override;
+@@ -240,11 +245,23 @@ class CONTENT_EXPORT RenderWidgetHostViewBase : public RenderWidgetHostView,
+       cc::SurfaceHittestDelegate* delegate,
+       const gfx::Point& point,
+       gfx::Point* transformed_point);
+-  virtual void ProcessKeyboardEvent(const NativeWebKeyboardEvent& event) {}
++  virtual void ProcessKeyboardEvent(const NativeWebKeyboardEvent& event) {
++    if (!GetRenderWidgetHost()) return;
++    GetRenderWidgetHost()->ForwardKeyboardEvent(event);
++  }
++  
+   virtual void ProcessMouseEvent(const blink::WebMouseEvent& event,
+-                                 const ui::LatencyInfo& latency) {}
++                                 const ui::LatencyInfo& latency) {
++    if (!GetRenderWidgetHost()) return;
++    GetRenderWidgetHost()->ForwardMouseEvent(event);
++  }
++  
+   virtual void ProcessMouseWheelEvent(const blink::WebMouseWheelEvent& event,
+-                                      const ui::LatencyInfo& latency) {}
++                                      const ui::LatencyInfo& latency) {
++    if (!GetRenderWidgetHost()) return;
++    GetRenderWidgetHost()->ForwardWheelEvent(event);
++  }
++  
+   virtual void ProcessTouchEvent(const blink::WebTouchEvent& event,
+                                  const ui::LatencyInfo& latency) {}
+   virtual void ProcessGestureEvent(const blink::WebGestureEvent& event,
