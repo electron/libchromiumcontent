@@ -1,0 +1,72 @@
+diff --git a/content/public/renderer/content_renderer_client.h b/content/public/renderer/content_renderer_client.h
+index f2a854f..46dcadd 100644
+--- a/content/public/renderer/content_renderer_client.h
++++ b/content/public/renderer/content_renderer_client.h
+@@ -364,6 +364,11 @@ class CONTENT_EXPORT ContentRendererClient {
+   virtual void DidInitializeWorkerContextOnWorkerThread(
+       v8::Local<v8::Context> context) {}
+ 
++  // Notifies that a worker context will be destroyed. This function is called
++  // from the worker thread.
++  virtual void WillDestroyWorkerContextOnWorkerThread(
++      v8::Local<v8::Context> context) {}
++
+   // Allows the client to expose interfaces from the renderer process to the
+   // browser process via |registry|.
+   virtual void ExposeInterfacesToBrowser(
+diff --git a/content/renderer/renderer_blink_platform_impl.cc b/content/renderer/renderer_blink_platform_impl.cc
+index a0cdfa0..e022369e 100644
+--- a/content/renderer/renderer_blink_platform_impl.cc
++++ b/content/renderer/renderer_blink_platform_impl.cc
+@@ -1296,4 +1296,10 @@ void RendererBlinkPlatformImpl::workerContextCreated(
+       worker);
+ }
+ 
++void RendererBlinkPlatformImpl::workerContextWillDestroy(
++    const v8::Local<v8::Context>& worker) {
++  GetContentClient()->renderer()->WillDestroyWorkerContextOnWorkerThread(
++      worker);
++}
++
+ }  // namespace content
+diff --git a/content/renderer/renderer_blink_platform_impl.h b/content/renderer/renderer_blink_platform_impl.h
+index 2783946..ce4a63f 100644
+--- a/content/renderer/renderer_blink_platform_impl.h
++++ b/content/renderer/renderer_blink_platform_impl.h
+@@ -202,6 +202,7 @@ class CONTENT_EXPORT RendererBlinkPlatformImpl : public BlinkPlatformImpl {
+ 
+   blink::WebTrialTokenValidator* trialTokenValidator() override;
+   void workerContextCreated(const v8::Local<v8::Context>& worker) override;
++  void workerContextWillDestroy(const v8::Local<v8::Context>& worker) override;
+ 
+   // Set the PlatformEventObserverBase in |platform_event_observers_| associated
+   // with |type| to |observer|. If there was already an observer associated to
+diff --git a/third_party/WebKit/Source/core/workers/WorkerThread.cpp b/third_party/WebKit/Source/core/workers/WorkerThread.cpp
+index 13f3317..bcaf0d5 100644
+--- a/third_party/WebKit/Source/core/workers/WorkerThread.cpp
++++ b/third_party/WebKit/Source/core/workers/WorkerThread.cpp
+@@ -516,6 +516,12 @@ void WorkerThread::prepareForShutdownOnWorkerThread() {
+       setExitCode(lock, ExitCode::GracefullyTerminated);
+   }
+ 
++  {
++    v8::HandleScope handleScope(isolate());
++    Platform::current()->workerContextWillDestroy(
++        globalScope()->scriptController()->context());
++  }
++
+   m_inspectorTaskRunner->kill();
+   workerReportingProxy().willDestroyWorkerGlobalScope();
+   InspectorInstrumentation::allAsyncTasksCanceled(globalScope());
+diff --git a/third_party/WebKit/public/platform/Platform.h b/third_party/WebKit/public/platform/Platform.h
+index 747885a..99a4018 100644
+--- a/third_party/WebKit/public/platform/Platform.h
++++ b/third_party/WebKit/public/platform/Platform.h
+@@ -592,6 +592,7 @@ class BLINK_PLATFORM_EXPORT Platform {
+   virtual void didStartWorkerThread() {}
+   virtual void willStopWorkerThread() {}
+   virtual void workerContextCreated(const v8::Local<v8::Context>& worker) {}
++  virtual void workerContextWillDestroy(const v8::Local<v8::Context>& worker) {}
+   virtual bool allowScriptExtensionForServiceWorker(const WebURL& scriptUrl) {
+     return false;
+   }
