@@ -15,11 +15,11 @@ index f2a854f..46dcadd 100644
    // browser process via |registry|.
    virtual void ExposeInterfacesToBrowser(
 diff --git a/content/renderer/renderer_blink_platform_impl.cc b/content/renderer/renderer_blink_platform_impl.cc
-index a0cdfa0..e022369e 100644
+index a0cdfa0..ebd3d7e 100644
 --- a/content/renderer/renderer_blink_platform_impl.cc
 +++ b/content/renderer/renderer_blink_platform_impl.cc
-@@ -1296,4 +1296,10 @@ void RendererBlinkPlatformImpl::workerContextCreated(
-       worker);
+@@ -1290,6 +1290,12 @@ RendererBlinkPlatformImpl::trialTokenValidator() {
+   return &trial_token_validator_;
  }
  
 +void RendererBlinkPlatformImpl::workerContextWillDestroy(
@@ -28,7 +28,9 @@ index a0cdfa0..e022369e 100644
 +      worker);
 +}
 +
- }  // namespace content
+ void RendererBlinkPlatformImpl::workerContextCreated(
+     const v8::Local<v8::Context>& worker) {
+   GetContentClient()->renderer()->DidInitializeWorkerContextOnWorkerThread(
 diff --git a/content/renderer/renderer_blink_platform_impl.h b/content/renderer/renderer_blink_platform_impl.h
 index 2783946..ce4a63f 100644
 --- a/content/renderer/renderer_blink_platform_impl.h
