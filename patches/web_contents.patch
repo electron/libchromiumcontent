@@ -39,27 +39,8 @@ index 5740537..a4eae96 100644
      return;
    }
  
-diff --git a/content/browser/web_contents/web_contents_view.h b/content/browser/web_contents/web_contents_view.h
-index e4401f8..6429886 100644
---- a/content/browser/web_contents/web_contents_view.h
-+++ b/content/browser/web_contents/web_contents_view.h
-@@ -94,6 +94,14 @@ class WebContentsView {
-   virtual RenderWidgetHostViewBase* CreateViewForWidget(
-       RenderWidgetHost* render_widget_host, bool is_guest_view_hack) = 0;
-       
-+  virtual RenderWidgetHostViewBase* CreateViewForWidget(
-+      RenderWidgetHost* render_widget_host,
-+      RenderWidgetHost* embedder_render_widget_host) {
-+    return this->CreateViewForWidget(
-+      render_widget_host, 
-+      !!embedder_render_widget_host);
-+  }
-+
-   // Creates a new View that holds a popup and receives messages for it.
-   virtual RenderWidgetHostViewBase* CreateViewForPopupWidget(
-       RenderWidgetHost* render_widget_host) = 0;
 diff --git a/content/browser/web_contents/web_contents_view_guest.cc b/content/browser/web_contents/web_contents_view_guest.cc
-index b2b86fa..dcc0d16 100644
+index b2b86fa..aa6108e 100644
 --- a/content/browser/web_contents/web_contents_view_guest.cc
 +++ b/content/browser/web_contents/web_contents_view_guest.cc
 @@ -72,17 +72,23 @@ void WebContentsViewGuest::GetScreenInfo(ScreenInfo* screen_info) const {
@@ -74,7 +55,7 @@ index b2b86fa..dcc0d16 100644
    // This would go in WebContentsViewGuest::CreateView, but that is too early to
    // access embedder_web_contents(). Therefore, we do it here.
 +  if (parent_view->GetNativeView() != platform_view_->GetNativeView())
-     parent_view->GetNativeView()->AddChild(platform_view_->GetNativeView());
+   parent_view->GetNativeView()->AddChild(platform_view_->GetNativeView());
  #endif  // defined(USE_AURA)
  }
  
@@ -83,23 +64,27 @@ index b2b86fa..dcc0d16 100644
 +  if (!platform_view_->GetNativeView())
 +    return;
 +  if (old_parent_view->GetNativeView() != platform_view_->GetNativeView())
-     old_parent_view->GetNativeView()->RemoveChild(
-         platform_view_->GetNativeView());
+   old_parent_view->GetNativeView()->RemoveChild(
+       platform_view_->GetNativeView());
  #endif  // defined(USE_AURA)
-@@ -145,11 +151,18 @@ RenderWidgetHostViewBase* WebContentsViewGuest::CreateViewForWidget(
+@@ -145,11 +151,22 @@ RenderWidgetHostViewBase* WebContentsViewGuest::CreateViewForWidget(
          render_widget_host->GetView());
    }
  
-+  RenderWidgetHost* embedder_render_widget_host = 
++  RenderWidgetHost* embedder_render_widget_host =
 +    guest_->embedder_web_contents()->GetRenderViewHost()->GetWidget();
++  RenderWidgetHostViewBase* embedder_render_widget_host_view =
++      static_cast<RenderWidgetHostViewBase*>(
++        embedder_render_widget_host->GetView());
    RenderWidgetHostViewBase* platform_widget =
 -      platform_view_->CreateViewForWidget(render_widget_host, true);
 -
 -  return RenderWidgetHostViewGuest::Create(render_widget_host, guest_,
 -                                           platform_widget->GetWeakPtr());
-+      platform_view_->CreateViewForWidget(
-+        render_widget_host, 
-+        embedder_render_widget_host);
++      embedder_render_widget_host_view->CreateViewForWidget(
++        render_widget_host,
++        embedder_render_widget_host,
++        platform_view_.get());
 +  RenderWidgetHostViewGuest* guest_view = RenderWidgetHostViewGuest::Create(
 +    render_widget_host, guest_, platform_widget->GetWeakPtr());
 +  platform_widget->InitAsGuest(embedder_render_widget_host->GetView(),
@@ -110,22 +95,23 @@ index b2b86fa..dcc0d16 100644
  
  RenderWidgetHostViewBase* WebContentsViewGuest::CreateViewForPopupWidget(
 diff --git a/content/public/browser/web_contents.h b/content/public/browser/web_contents.h
-index af944f7..26c5938 100644
+index af944f7..c21842e 100644
 --- a/content/public/browser/web_contents.h
 +++ b/content/public/browser/web_contents.h
-@@ -59,9 +59,11 @@ class PageState;
+@@ -59,9 +59,12 @@ class PageState;
  class RenderFrameHost;
  class RenderProcessHost;
  class RenderViewHost;
 +class RenderViewHostDelegateView;
  class RenderWidgetHost;
  class RenderWidgetHostView;
++class RenderWidgetHostViewBase;
  class WebContentsDelegate;
 +class WebContentsView;
  struct CustomContextMenuContext;
  struct DropData;
  struct Manifest;
-@@ -162,6 +164,10 @@ class WebContents : public PageNavigator,
+@@ -162,6 +165,10 @@ class WebContents : public PageNavigator,
      // Note that the pre-created renderer process may not be used if the first
      // navigation requires a dedicated or privileged process, such as a WebUI.
      bool initialize_renderer;
