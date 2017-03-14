@@ -8,3 +8,8 @@ set -e
 # This should be fixed in binutils 2.2.4, https://sourceware.org/bugzilla/show_bug.cgi?id=14189
 # and can be removed when CI is upgraded to that version or later.
 script/cibuild 2>&1 | grep -v "elf32-arm.c:12049"
+
+# Delete generated archives
+rm -rf dist
+rm -rf libchromiumcontent.zip
+rm -rf libchromiumcontent-static.zip
