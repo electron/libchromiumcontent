@@ -5,7 +5,7 @@ import os
 import subprocess
 import sys
 
-from lib.config import get_configuration, get_output_dir
+from lib.config import get_output_dir
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -34,12 +34,9 @@ def main():
     if args.component == 'all' or args.component == component:
       if component == 'shared_library' and args.no_shared_library:
         continue
-      out_dir = os.path.join(SOURCE_ROOT, 'src',
-                             get_output_dir(target_arch, component))
-      config = get_configuration(target_arch)
-      config_dir = os.path.relpath(os.path.join(out_dir, config))
+      out_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
       target = 'chromiumcontent:chromiumcontent'
-      subprocess.check_call([NINJA, '-C', config_dir, target], env=env)
+      subprocess.check_call([NINJA, '-C', os.path.relpath(out_dir), target], env=env)
 
 
 def parse_args():
