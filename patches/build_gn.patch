@@ -1,5 +1,5 @@
 diff --git a/build/config/BUILDCONFIG.gn b/build/config/BUILDCONFIG.gn
-index f354f17..1c86ff0 100644
+index c8b19d7..7dd544b 100644
 --- a/build/config/BUILDCONFIG.gn
 +++ b/build/config/BUILDCONFIG.gn
 @@ -123,6 +123,8 @@ if (current_os == "") {
@@ -11,7 +11,7 @@ index f354f17..1c86ff0 100644
    # Set to enable the official build level of optimization. This has nothing
    # to do with branding, but enables an additional level of optimization above
    # release (!is_debug). This might be better expressed as a tri-state
-@@ -480,6 +482,7 @@ default_compiler_configs = [
+@@ -483,6 +485,7 @@ default_compiler_configs = [
    "//build/config/compiler:no_rtti",
    "//build/config/compiler:runtime_library",
    "//build/config/sanitizers:default_sanitizer_flags",
@@ -20,10 +20,10 @@ index f354f17..1c86ff0 100644
  if (is_win) {
    default_compiler_configs += [
 diff --git a/third_party/WebKit/Source/platform/BUILD.gn b/third_party/WebKit/Source/platform/BUILD.gn
-index 453c14f..55dd9f3 100644
+index 8a16dcb..b6e4780 100644
 --- a/third_party/WebKit/Source/platform/BUILD.gn
 +++ b/third_party/WebKit/Source/platform/BUILD.gn
-@@ -171,6 +171,7 @@ action("character_data") {
+@@ -172,6 +172,7 @@ action("character_data") {
  }
  
  executable("character_data_generator") {

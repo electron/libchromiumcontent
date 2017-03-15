@@ -1,8 +1,8 @@
 diff --git a/third_party/WebKit/Source/core/frame/LocalFrame.cpp b/third_party/WebKit/Source/core/frame/LocalFrame.cpp
-index acd4722..0f1c847 100644
+index 03edc5d..d303b72 100644
 --- a/third_party/WebKit/Source/core/frame/LocalFrame.cpp
 +++ b/third_party/WebKit/Source/core/frame/LocalFrame.cpp
-@@ -413,10 +413,6 @@ void LocalFrame::detach(FrameDetachType type) {
+@@ -427,10 +427,6 @@ void LocalFrame::detach(FrameDetachType type) {
    m_loader.stopAllLoaders();
    m_loader.detach();
    document()->shutdown();
@@ -13,7 +13,7 @@ index acd4722..0f1c847 100644
    m_loader.clear();
    if (!client())
      return;
-@@ -425,6 +421,10 @@ void LocalFrame::detach(FrameDetachType type) {
+@@ -439,6 +435,10 @@ void LocalFrame::detach(FrameDetachType type) {
    // Notify ScriptController that the frame is closing, since its cleanup ends
    // up calling back to FrameLoaderClient via WindowProxy.
    script().clearForClose();
@@ -23,4 +23,4 @@ index acd4722..0f1c847 100644
 +  ScriptForbiddenScope forbidScript;
    setView(nullptr);
  
-   m_host->eventHandlerRegistry().didRemoveAllEventHandlers(*localDOMWindow());
+   m_host->eventHandlerRegistry().didRemoveAllEventHandlers(*domWindow());

@@ -1,5 +1,5 @@
 diff --git a/pdf/out_of_process_instance.cc b/pdf/out_of_process_instance.cc
-index 1fa0964..06e5ad8 100644
+index bc0fb5b..c658672 100644
 --- a/pdf/out_of_process_instance.cc
 +++ b/pdf/out_of_process_instance.cc
 @@ -336,6 +336,7 @@ bool OutOfProcessInstance::Init(uint32_t argc,

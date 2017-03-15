@@ -1,5 +1,5 @@
 diff --git a/content/public/browser/resource_request_details.cc b/content/public/browser/resource_request_details.cc
-index 0e790b68..0b5140a 100644
+index 0e790b6..0b5140a 100644
 --- a/content/public/browser/resource_request_details.cc
 +++ b/content/public/browser/resource_request_details.cc
 @@ -22,6 +22,10 @@ ResourceRequestDetails::ResourceRequestDetails(const net::URLRequest* request,
