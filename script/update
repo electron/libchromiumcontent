@@ -11,7 +11,7 @@ import tarfile
 import tempfile
 import urllib2
 
-from lib.config import get_configuration, get_output_dir
+from lib.config import get_output_dir
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -207,9 +207,8 @@ def run_gn(target_arch, defines):
 
   for component in COMPONENTS:
     args = 'import("//chromiumcontent/args/{0}.gn") target_cpu="{1}"'.format(component, target_cpu)
-    output_dir = os.path.join(get_output_dir(target_arch, component),
-                              get_configuration(target_arch))
-    subprocess.call([gn, 'gen', output_dir, '--args=' + args],
+    output_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
+    subprocess.call([gn, 'gen', os.path.relpath(output_dir, SRC_DIR), '--args=' + args],
                     cwd=SRC_DIR, env=env)
 
 

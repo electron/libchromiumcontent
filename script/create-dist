@@ -12,7 +12,7 @@ import subprocess
 import sys
 import zipfile
 
-from lib.config import get_configuration, get_output_dir
+from lib.config import get_output_dir
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -308,10 +308,9 @@ def main():
 
   for component in COMPONENTS:
     if args.component == 'all' or args.component == component:
-      output_dir = os.path.join(SRC_DIR, get_output_dir(target_arch, component))
-      copy_binaries(target_arch, component, output_dir, create_debug_archive)
-      copy_generated_sources(target_arch, component, output_dir)
-      copy_locales(target_arch, component, output_dir)
+      copy_binaries(target_arch, component, create_debug_archive)
+      copy_generated_sources(target_arch, component)
+      copy_locales(target_arch, component)
 
   copy_ffmpeg(target_arch)
   copy_sources()
@@ -359,8 +358,8 @@ def copy_with_blacklist(target_arch, src, dest):
   shutil.copy2(src, dest)
 
 
-def copy_binaries(target_arch, component, output_dir, create_debug_archive):
-  config_dir = os.path.join(output_dir, get_configuration(target_arch))
+def copy_binaries(target_arch, component, create_debug_archive):
+  output_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
   target_dir = os.path.join(MAIN_DIR, component)
   mkdir_p(target_dir)
 
@@ -368,10 +367,10 @@ def copy_binaries(target_arch, component, output_dir, create_debug_archive):
   if component == 'shared_library':
     binaries += BINARIES_SHARED_LIBRARY[TARGET_PLATFORM]
   for binary in binaries:
-    copy_with_blacklist(target_arch, os.path.join(config_dir, binary), target_dir)
+    copy_with_blacklist(target_arch, os.path.join(output_dir, binary), target_dir)
 
   # Copy all static libraries from chromiumcontent
-  for library in glob.glob(os.path.join(config_dir, 'obj', 'chromiumcontent', '*.' + STATIC_LIBRARY_SUFFIX)):
+  for library in glob.glob(os.path.join(output_dir, 'obj', 'chromiumcontent', '*.' + STATIC_LIBRARY_SUFFIX)):
     shutil.copy2(library, target_dir)
 
   if component == 'shared_library':
@@ -381,20 +380,20 @@ def copy_binaries(target_arch, component, output_dir, create_debug_archive):
 
   if TARGET_PLATFORM == 'darwin':
     if component == 'shared_library':
-      for library in glob.glob(os.path.join(config_dir, '*.dylib')):
+      for library in glob.glob(os.path.join(output_dir, '*.dylib')):
         copy_with_blacklist(target_arch, library, target_dir)
 
   if TARGET_PLATFORM == 'win32':
     if component == 'shared_library':
       # out/Release/*.dll(.lib)
-      for dll in glob.glob(os.path.join(config_dir, '*.dll')):
+      for dll in glob.glob(os.path.join(output_dir, '*.dll')):
         lib = dll + '.lib'
         if os.path.exists(lib):
           copy_with_blacklist(target_arch, dll, target_dir)
           copy_with_blacklist(target_arch, lib, target_dir)
     elif component == 'static_library':
       # out/Release/*.pdb
-      for root, _, filenames in os.walk(config_dir):
+      for root, _, filenames in os.walk(output_dir):
         for pdb in filenames:
           if pdb.endswith('.pdb'):
             shutil.copy2(os.path.join(root, pdb), target_dir)
@@ -402,7 +401,7 @@ def copy_binaries(target_arch, component, output_dir, create_debug_archive):
   if TARGET_PLATFORM == 'linux':
     if component == 'shared_library':
       # out/Release/lib/*.so
-      for library in glob.glob(os.path.join(config_dir, '*.so')):
+      for library in glob.glob(os.path.join(output_dir, '*.so')):
         copy_with_blacklist(target_arch, library, target_dir)
 
   if TARGET_PLATFORM in ['linux', 'darwin']:
@@ -432,26 +431,24 @@ def copy_binaries(target_arch, component, output_dir, create_debug_archive):
     else:
       binaries = [ 'chromedriver', 'mksnapshot' ]
 
-    ffmpeg_output_dir = os.path.join(SRC_DIR,
-                                     get_output_dir(target_arch, 'ffmpeg'),
-                                     get_configuration(target_arch))
+    ffmpeg_output_dir = get_output_dir(SOURCE_ROOT, target_arch, 'ffmpeg')
     for binary in binaries:
       shutil.copy2(os.path.join(ffmpeg_output_dir, binary), target_dir)
 
 
-def copy_generated_sources(target_arch, component, output_dir):
-  config = get_configuration(target_arch)
+def copy_generated_sources(target_arch, component):
+  output_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
   target_dir = os.path.join(MAIN_DIR, component)
   for include_path in GENERATED_INCLUDE_DIRS:
     copy_headers(include_path,
-                 relative_to=os.path.join(output_dir, config, 'gen'),
+                 relative_to=os.path.join(output_dir, 'gen'),
                  destination=os.path.join(target_dir, 'gen'))
 
-def copy_locales(target_arch, component, output_dir):
-  config = get_configuration(target_arch)
+def copy_locales(target_arch, component):
+  output_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
   target_dir = os.path.join(MAIN_DIR, component, 'locales')
   mkdir_p(target_dir)
-  src_dir = os.path.join(output_dir, config, 'gen', 'content', 'app', 'strings')
+  src_dir = os.path.join(output_dir, 'gen', 'content', 'app', 'strings')
   for src_file in glob.glob(os.path.join(src_dir, 'content_strings_*.pak')):
     filename = os.path.basename(src_file)
     new_name = re.sub('content_strings_', '', filename)
@@ -470,9 +467,7 @@ def copy_sources():
 
 
 def copy_ffmpeg(target_arch):
-  output_dir = os.path.join(SRC_DIR,
-                            get_output_dir(target_arch, 'ffmpeg'),
-                            get_configuration(target_arch))
+  output_dir = get_output_dir(SOURCE_ROOT, target_arch, 'ffmpeg')
   if TARGET_PLATFORM == 'darwin':
     binary = 'libffmpeg.dylib'
   elif TARGET_PLATFORM == 'linux':
