@@ -9,7 +9,7 @@ index 6e4c0db..b4791a9 100644
 +v8::Local<v8::Context> WebLocalFrameImpl::worldScriptContext(
 +    v8::Isolate* isolate, int worldID, int extensionGroup) const {
 +  PassRefPtr<DOMWrapperWorld> world = DOMWrapperWorld::ensureIsolatedWorld(
-+      isolate, worldID, extensionGroup);
++      isolate, worldID);
 +  return ScriptState::forWorld(frame(), *world)->context();
 +}
 +
