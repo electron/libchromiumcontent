@@ -81,7 +81,6 @@ with open(args.out, 'w') as out:
             "third_party/sqlite",
             "third_party/sudden_motion_sensor",
             "third_party/usrsctp",
-            "third_party/widevine/cdm/widevinecdm",
             "third_party/woff2",
             "third_party/zlib",
             "tools",
