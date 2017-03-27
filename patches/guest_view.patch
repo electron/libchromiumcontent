@@ -1,5 +1,5 @@
 diff --git a/content/browser/frame_host/render_widget_host_view_child_frame.cc b/content/browser/frame_host/render_widget_host_view_child_frame.cc
-index 1831d48..73d5ca5 100644
+index 0c6bc7d..a2976af 100644
 --- a/content/browser/frame_host/render_widget_host_view_child_frame.cc
 +++ b/content/browser/frame_host/render_widget_host_view_child_frame.cc
 @@ -32,7 +32,9 @@
@@ -12,7 +12,7 @@ index 1831d48..73d5ca5 100644
  #include "third_party/WebKit/public/platform/WebInputEvent.h"
  #include "ui/gfx/geometry/size_conversions.h"
  #include "ui/gfx/geometry/size_f.h"
-@@ -745,4 +747,28 @@ cc::SurfaceId RenderWidgetHostViewChildFrame::SurfaceIdForTesting() const {
+@@ -750,4 +752,28 @@ cc::SurfaceId RenderWidgetHostViewChildFrame::SurfaceIdForTesting() const {
    return cc::SurfaceId(frame_sink_id_, local_frame_id_);
  };
  
@@ -42,12 +42,12 @@ index 1831d48..73d5ca5 100644
 +
  }  // namespace content
 diff --git a/content/browser/frame_host/render_widget_host_view_child_frame.h b/content/browser/frame_host/render_widget_host_view_child_frame.h
-index 9af289d..02d2e01 100644
+index 4c228e4..53adb91 100644
 --- a/content/browser/frame_host/render_widget_host_view_child_frame.h
 +++ b/content/browser/frame_host/render_widget_host_view_child_frame.h
-@@ -194,6 +194,12 @@ class CONTENT_EXPORT RenderWidgetHostViewChildFrame
-   void RegisterFrameSinkId();
-   void UnregisterFrameSinkId();
+@@ -196,6 +196,12 @@ class CONTENT_EXPORT RenderWidgetHostViewChildFrame
+ 
+   void UpdateViewportIntersection(const gfx::Rect& viewport_intersection);
  
 +  void WillDrawSurface(const cc::LocalFrameId& local_frame_id,
 +                       const gfx::Rect& damage_rect) override;
@@ -58,7 +58,7 @@ index 9af289d..02d2e01 100644
   protected:
    friend class RenderWidgetHostView;
    friend class RenderWidgetHostViewChildFrameTest;
-@@ -254,6 +260,8 @@ class CONTENT_EXPORT RenderWidgetHostViewChildFrame
+@@ -256,6 +262,8 @@ class CONTENT_EXPORT RenderWidgetHostViewChildFrame
    // The surface client ID of the parent RenderWidgetHostView.  0 if none.
    cc::FrameSinkId parent_frame_sink_id_;
  
