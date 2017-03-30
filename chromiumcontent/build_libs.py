@@ -46,7 +46,6 @@ with open(args.out, 'w') as out:
             "third_party/ced/ced",
             "third_party/decklink",
             "third_party/expat",
-            "third_party/ffmpeg",
             "third_party/flac",
             "third_party/harfbuzz-ng",
             "third_party/iaccessible2",
