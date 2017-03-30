@@ -1,20 +1,20 @@
 diff --git a/content/browser/frame_host/render_widget_host_view_child_frame.cc b/content/browser/frame_host/render_widget_host_view_child_frame.cc
-index 1831d48..73d5ca5 100644
+index fb68c4c..e9ed1d9 100644
 --- a/content/browser/frame_host/render_widget_host_view_child_frame.cc
 +++ b/content/browser/frame_host/render_widget_host_view_child_frame.cc
-@@ -32,7 +32,9 @@
+@@ -31,7 +31,9 @@
  #include "content/common/view_messages.h"
  #include "content/public/browser/guest_mode.h"
  #include "content/public/browser/render_process_host.h"
 +#include "content/public/browser/render_widget_host_view_frame_subscriber.h"
  #include "gpu/ipc/common/gpu_messages.h"
 +#include "media/base/video_frame.h"
- #include "third_party/WebKit/public/platform/WebInputEvent.h"
+ #include "third_party/WebKit/public/platform/WebTouchEvent.h"
  #include "ui/gfx/geometry/size_conversions.h"
  #include "ui/gfx/geometry/size_f.h"
-@@ -745,4 +747,28 @@ cc::SurfaceId RenderWidgetHostViewChildFrame::SurfaceIdForTesting() const {
-   return cc::SurfaceId(frame_sink_id_, local_frame_id_);
- };
+@@ -712,4 +714,28 @@ void RenderWidgetHostViewChildFrame::ResetCompositorFrameSinkSupport() {
+   support_.reset();
+ }
  
 +void RenderWidgetHostViewChildFrame::WillDrawSurface(
 +    const cc::LocalFrameId& local_frame_id,
@@ -42,10 +42,10 @@ index 1831d48..73d5ca5 100644
 +
  }  // namespace content
 diff --git a/content/browser/frame_host/render_widget_host_view_child_frame.h b/content/browser/frame_host/render_widget_host_view_child_frame.h
-index 9af289d..02d2e01 100644
+index 87e2de41..9f4115e 100644
 --- a/content/browser/frame_host/render_widget_host_view_child_frame.h
 +++ b/content/browser/frame_host/render_widget_host_view_child_frame.h
-@@ -194,6 +194,12 @@ class CONTENT_EXPORT RenderWidgetHostViewChildFrame
+@@ -178,6 +178,12 @@ class CONTENT_EXPORT RenderWidgetHostViewChildFrame
    void RegisterFrameSinkId();
    void UnregisterFrameSinkId();
  
@@ -55,10 +55,10 @@ index 9af289d..02d2e01 100644
 +      std::unique_ptr<RenderWidgetHostViewFrameSubscriber> subscriber) override;
 +  void EndFrameSubscription() override;
 +
+   void UpdateViewportIntersection(const gfx::Rect& viewport_intersection);
+ 
   protected:
-   friend class RenderWidgetHostView;
-   friend class RenderWidgetHostViewChildFrameTest;
-@@ -254,6 +260,8 @@ class CONTENT_EXPORT RenderWidgetHostViewChildFrame
+@@ -250,6 +256,8 @@ class CONTENT_EXPORT RenderWidgetHostViewChildFrame
    // The surface client ID of the parent RenderWidgetHostView.  0 if none.
    cc::FrameSinkId parent_frame_sink_id_;
  
