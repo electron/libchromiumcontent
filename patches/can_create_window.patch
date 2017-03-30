@@ -59,14 +59,15 @@ index c60d39a..3ce4657 100644
        &no_javascript_access);
  
 diff --git a/content/common/render_message_filter.mojom b/content/common/render_message_filter.mojom
-index 78c93ef..6b2b6ac 100644
+index 78c93ef..738f278 100644
 --- a/content/common/render_message_filter.mojom
 +++ b/content/common/render_message_filter.mojom
-@@ -6,12 +6,31 @@ module content.mojom;
+@@ -6,12 +6,32 @@ module content.mojom;
  
  import "content/common/native_types.mojom";
  import "content/public/common/window_container_type.mojom";
-+import "mojo/common/common_custom_types.mojom";
++import "mojo/common/file_path.mojom";
++import "mojo/common/time.mojom";
  import "gpu/ipc/common/mailbox.mojom";
  import "third_party/WebKit/public/platform/referrer.mojom";
  import "third_party/WebKit/public/web/window_features.mojom";
@@ -94,7 +95,7 @@ index 78c93ef..6b2b6ac 100644
  struct CreateNewWindowParams {
    // The routing id of the frame initiating the open.
    int32 opener_render_frame_id;
-@@ -55,6 +74,10 @@ struct CreateNewWindowParams {
+@@ -55,6 +75,10 @@ struct CreateNewWindowParams {
  
    // The window features to use for the new view.
    blink.mojom.WindowFeatures features;
