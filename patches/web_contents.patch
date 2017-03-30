@@ -1,8 +1,8 @@
 diff --git a/content/browser/web_contents/web_contents_impl.cc b/content/browser/web_contents/web_contents_impl.cc
-index 5740537..a4eae96 100644
+index cf3733f..065df39 100644
 --- a/content/browser/web_contents/web_contents_impl.cc
 +++ b/content/browser/web_contents/web_contents_impl.cc
-@@ -1578,6 +1578,12 @@ void WebContentsImpl::Init(const WebContents::CreateParams& params) {
+@@ -1571,6 +1571,12 @@ void WebContentsImpl::Init(const WebContents::CreateParams& params) {
    std::string unique_name;
    frame_tree_.root()->SetFrameName(params.main_frame_name, unique_name);
  
@@ -15,15 +15,15 @@ index 5740537..a4eae96 100644
    WebContentsViewDelegate* delegate =
        GetContentClient()->browser()->GetWebContentsViewDelegate(this);
  
-@@ -1602,6 +1608,7 @@ void WebContentsImpl::Init(const WebContents::CreateParams& params) {
-                                         &render_view_host_delegate_view_));
-     }
+@@ -1581,6 +1587,7 @@ void WebContentsImpl::Init(const WebContents::CreateParams& params) {
+     view_.reset(CreateWebContentsView(this, delegate,
+                                       &render_view_host_delegate_view_));
    }
 +  }  // !view_
  
    if (browser_plugin_guest_ && !GuestMode::IsCrossProcessFrameGuest(this)) {
      view_.reset(new WebContentsViewGuest(this, browser_plugin_guest_.get(),
-@@ -4808,6 +4815,7 @@ void WebContentsImpl::RendererUnresponsive(
+@@ -4846,6 +4853,7 @@ void WebContentsImpl::RendererUnresponsive(
    // We might have been waiting for both beforeunload and unload ACK.
    // Check if tab is to be unloaded first.
    if (rfhi->IsWaitingForUnloadACK()) {
@@ -31,7 +31,7 @@ index 5740537..a4eae96 100644
      // Hang occurred while firing the unload handler.
      // Pretend the handler fired so tab closing continues as if it had.
      GetRenderViewHost()->set_sudden_termination_allowed(true);
-@@ -4819,6 +4827,7 @@ void WebContentsImpl::RendererUnresponsive(
+@@ -4857,6 +4865,7 @@ void WebContentsImpl::RendererUnresponsive(
      // to recover. Pretend the unload listeners have all fired and close
      // the tab.
      Close();
@@ -40,7 +40,7 @@ index 5740537..a4eae96 100644
    }
  
 diff --git a/content/browser/web_contents/web_contents_view_guest.cc b/content/browser/web_contents/web_contents_view_guest.cc
-index b2b86fa..aa6108e 100644
+index a93bc37..70f2f3b 100644
 --- a/content/browser/web_contents/web_contents_view_guest.cc
 +++ b/content/browser/web_contents/web_contents_view_guest.cc
 @@ -72,17 +72,23 @@ void WebContentsViewGuest::GetScreenInfo(ScreenInfo* screen_info) const {
@@ -67,7 +67,7 @@ index b2b86fa..aa6108e 100644
    old_parent_view->GetNativeView()->RemoveChild(
        platform_view_->GetNativeView());
  #endif  // defined(USE_AURA)
-@@ -145,11 +151,22 @@ RenderWidgetHostViewBase* WebContentsViewGuest::CreateViewForWidget(
+@@ -146,11 +152,22 @@ RenderWidgetHostViewBase* WebContentsViewGuest::CreateViewForWidget(
          render_widget_host->GetView());
    }
  
@@ -95,10 +95,10 @@ index b2b86fa..aa6108e 100644
  
  RenderWidgetHostViewBase* WebContentsViewGuest::CreateViewForPopupWidget(
 diff --git a/content/public/browser/web_contents.h b/content/public/browser/web_contents.h
-index af944f7..c21842e 100644
+index f968ca2..e9ca330 100644
 --- a/content/public/browser/web_contents.h
 +++ b/content/public/browser/web_contents.h
-@@ -59,9 +59,12 @@ class PageState;
+@@ -60,9 +60,12 @@ class PageState;
  class RenderFrameHost;
  class RenderProcessHost;
  class RenderViewHost;
@@ -111,7 +111,7 @@ index af944f7..c21842e 100644
  struct CustomContextMenuContext;
  struct DropData;
  struct Manifest;
-@@ -162,6 +165,10 @@ class WebContents : public PageNavigator,
+@@ -163,6 +166,10 @@ class WebContents : public PageNavigator,
      // Note that the pre-created renderer process may not be used if the first
      // navigation requires a dedicated or privileged process, such as a WebUI.
      bool initialize_renderer;
