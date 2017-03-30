@@ -1,0 +1,103 @@
+diff --git a/content/browser/renderer_host/render_widget_host_view_base.cc b/content/browser/renderer_host/render_widget_host_view_base.cc
+index 6408c68..0606b4f 100644
+--- a/content/browser/renderer_host/render_widget_host_view_base.cc
++++ b/content/browser/renderer_host/render_widget_host_view_base.cc
+@@ -432,6 +432,35 @@ cc::FrameSinkId RenderWidgetHostViewBase::FrameSinkIdAtPoint(
+   return cc::FrameSinkId();
+ }
+ 
++void RenderWidgetHostViewBase::ProcessKeyboardEvent(
++    const NativeWebKeyboardEvent& event) {
++  if (!GetRenderWidgetHost()) return;
++  GetRenderWidgetHost()->ForwardKeyboardEvent(event);
++}
++
++void RenderWidgetHostViewBase::ProcessMouseEvent(
++    const blink::WebMouseEvent& event,
++    const ui::LatencyInfo& latency) {
++  if (!GetRenderWidgetHost()) return;
++  GetRenderWidgetHost()->ForwardMouseEvent(event);
++}
++
++void RenderWidgetHostViewBase::ProcessMouseWheelEvent(
++    const blink::WebMouseWheelEvent& event,
++    const ui::LatencyInfo& latency) {
++  if (!GetRenderWidgetHost()) return;
++  GetRenderWidgetHost()->ForwardWheelEvent(event);
++}
++
++RenderWidgetHostViewBase* RenderWidgetHostViewBase::CreateViewForWidget(
++    RenderWidgetHost* render_widget_host,
++    RenderWidgetHost* embedder_render_widget_host,
++    WebContentsView* web_contents_view) {
++  return web_contents_view->CreateViewForWidget(
++    render_widget_host,
++    !!embedder_render_widget_host);
++}
++
+ gfx::Point RenderWidgetHostViewBase::TransformPointToRootCoordSpace(
+     const gfx::Point& point) {
+   return point;
+diff --git a/content/browser/renderer_host/render_widget_host_view_base.h b/content/browser/renderer_host/render_widget_host_view_base.h
+index 88e7a04..095a873 100644
+--- a/content/browser/renderer_host/render_widget_host_view_base.h
++++ b/content/browser/renderer_host/render_widget_host_view_base.h
+@@ -22,9 +22,11 @@
+ #include "cc/output/compositor_frame.h"
+ #include "cc/surfaces/surface_id.h"
+ #include "content/browser/renderer_host/event_with_latency_info.h"
++#include "content/browser/web_contents/web_contents_view.h"
+ #include "content/common/content_export.h"
+ #include "content/common/input/input_event_ack_state.h"
+ #include "content/public/browser/readback_types.h"
++#include "content/public/browser/render_widget_host.h"
+ #include "content/public/browser/render_widget_host_view.h"
+ #include "content/public/common/screen_info.h"
+ #include "ipc/ipc_listener.h"
+@@ -67,9 +69,11 @@ class BrowserAccessibilityDelegate;
+ class BrowserAccessibilityManager;
+ class RenderWidgetHostImpl;
+ class RenderWidgetHostViewBaseObserver;
++class RenderWidgetHostViewGuest;
+ class SyntheticGesture;
+ class SyntheticGestureTarget;
+ class TextInputManager;
++class WebContentsView;
+ class WebCursor;
+ struct NativeWebKeyboardEvent;
+ struct TextInputState;
+@@ -108,6 +112,9 @@ class CONTENT_EXPORT RenderWidgetHostViewBase : public RenderWidgetHostView,
+   void FocusedNodeTouched(const gfx::Point& location_dips_screen,
+                           bool editable) override;
+ 
++  virtual void InitAsGuest(RenderWidgetHostView* parent_host_view,
++                           RenderWidgetHostViewGuest* guest_view) {}
++
+   // This only needs to be overridden by RenderWidgetHostViewBase subclasses
+   // that handle content embedded within other RenderWidgetHostViews.
+   gfx::Point TransformPointToRootCoordSpace(const gfx::Point& point) override;
+@@ -240,16 +247,21 @@ class CONTENT_EXPORT RenderWidgetHostViewBase : public RenderWidgetHostView,
+       cc::SurfaceHittestDelegate* delegate,
+       const gfx::Point& point,
+       gfx::Point* transformed_point);
+-  virtual void ProcessKeyboardEvent(const NativeWebKeyboardEvent& event) {}
++  virtual void ProcessKeyboardEvent(const NativeWebKeyboardEvent& event);
+   virtual void ProcessMouseEvent(const blink::WebMouseEvent& event,
+-                                 const ui::LatencyInfo& latency) {}
++                                 const ui::LatencyInfo& latency);
+   virtual void ProcessMouseWheelEvent(const blink::WebMouseWheelEvent& event,
+-                                      const ui::LatencyInfo& latency) {}
++                                      const ui::LatencyInfo& latency);
+   virtual void ProcessTouchEvent(const blink::WebTouchEvent& event,
+                                  const ui::LatencyInfo& latency) {}
+   virtual void ProcessGestureEvent(const blink::WebGestureEvent& event,
+                                    const ui::LatencyInfo& latency) {}
+ 
++  virtual RenderWidgetHostViewBase* CreateViewForWidget(
++      RenderWidgetHost* render_widget_host,
++      RenderWidgetHost* embedder_render_widget_host,
++      WebContentsView* web_contents_view);
++
+   // Transform a point that is in the coordinate space of a Surface that is
+   // embedded within the RenderWidgetHostViewBase's Surface to the
+   // coordinate space of an embedding, or embedded, Surface. Typically this
