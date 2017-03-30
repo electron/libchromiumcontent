@@ -1,12 +1,16 @@
 diff --git a/content/browser/frame_host/render_widget_host_view_child_frame.cc b/content/browser/frame_host/render_widget_host_view_child_frame.cc
-index fb68c4c..89abf5a 100644
+index fb68c4c..57b15c3 100644
 --- a/content/browser/frame_host/render_widget_host_view_child_frame.cc
 +++ b/content/browser/frame_host/render_widget_host_view_child_frame.cc
-@@ -31,7 +31,9 @@
+@@ -27,11 +27,13 @@
+ #include "content/browser/renderer_host/render_widget_host_delegate.h"
+ #include "content/browser/renderer_host/render_widget_host_impl.h"
+ #include "content/browser/renderer_host/render_widget_host_input_event_router.h"
++#include "content/browser/renderer_host/render_widget_host_view_frame_subscriber.h"
+ #include "content/common/text_input_state.h"
  #include "content/common/view_messages.h"
  #include "content/public/browser/guest_mode.h"
  #include "content/public/browser/render_process_host.h"
-+#include "content/public/browser/render_widget_host_view_frame_subscriber.h"
  #include "gpu/ipc/common/gpu_messages.h"
 +#include "media/base/video_frame.h"
  #include "third_party/WebKit/public/platform/WebTouchEvent.h"
