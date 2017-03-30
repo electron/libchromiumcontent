@@ -1,5 +1,5 @@
 diff --git a/third_party/WebKit/Source/web/WebLocalFrameImpl.cpp b/third_party/WebKit/Source/web/WebLocalFrameImpl.cpp
-index a95f10f..cee0dbc 100644
+index a95f10f..b97bef9 100644
 --- a/third_party/WebKit/Source/web/WebLocalFrameImpl.cpp
 +++ b/third_party/WebKit/Source/web/WebLocalFrameImpl.cpp
 @@ -832,6 +832,13 @@ v8::Local<v8::Context> WebLocalFrameImpl::mainWorldScriptContext() const {
@@ -7,9 +7,9 @@ index a95f10f..cee0dbc 100644
  }
  
 +v8::Local<v8::Context> WebLocalFrameImpl::worldScriptContext(
-+    v8::Isolate* isolate, int worldID, int extensionGroup) const {
++    v8::Isolate* isolate, int worldID) const {
 +  PassRefPtr<DOMWrapperWorld> world = DOMWrapperWorld::ensureIsolatedWorld(
-+      isolate, worldID, extensionGroup);
++      isolate, worldID);
 +  return ScriptState::forWorld(frame(), *world)->context();
 +}
 +
@@ -17,7 +17,7 @@ index a95f10f..cee0dbc 100644
    return BindingSecurity::shouldAllowAccessToFrame(
        currentDOMWindow(mainThreadIsolate()), target->toImplBase()->frame(),
 diff --git a/third_party/WebKit/Source/web/WebLocalFrameImpl.h b/third_party/WebKit/Source/web/WebLocalFrameImpl.h
-index 6898061..7f6e315 100644
+index 6898061..b79db8d 100644
 --- a/third_party/WebKit/Source/web/WebLocalFrameImpl.h
 +++ b/third_party/WebKit/Source/web/WebLocalFrameImpl.h
 @@ -145,6 +145,8 @@ class WEB_EXPORT WebLocalFrameImpl final
@@ -25,12 +25,12 @@ index 6898061..7f6e315 100644
        v8::Local<v8::Value> argv[]) override;
    v8::Local<v8::Context> mainWorldScriptContext() const override;
 +  v8::Local<v8::Context> worldScriptContext(
-+      v8::Isolate* isolate, int worldID, int extensionGroup) const override;
++      v8::Isolate* isolate, int worldID) const override;
    void reload(WebFrameLoadType) override;
    void reloadWithOverrideURL(const WebURL& overrideUrl,
                               WebFrameLoadType) override;
 diff --git a/third_party/WebKit/Source/web/WebRemoteFrameImpl.cpp b/third_party/WebKit/Source/web/WebRemoteFrameImpl.cpp
-index e43dcc0..779ed45 100644
+index e43dcc0..bff3738 100644
 --- a/third_party/WebKit/Source/web/WebRemoteFrameImpl.cpp
 +++ b/third_party/WebKit/Source/web/WebRemoteFrameImpl.cpp
 @@ -212,6 +212,12 @@ v8::Local<v8::Context> WebRemoteFrameImpl::mainWorldScriptContext() const {
@@ -38,7 +38,7 @@ index e43dcc0..779ed45 100644
  }
  
 +v8::Local<v8::Context> WebRemoteFrameImpl::worldScriptContext(
-+    v8::Isolate* isolate, int worldID, int extensionGroup) const {
++    v8::Isolate* isolate, int worldID) const {
 +  NOTREACHED();
 +  return v8::Local<v8::Context>();
 +}
@@ -47,7 +47,7 @@ index e43dcc0..779ed45 100644
      const {
    return toV8Context(frame(), DOMWrapperWorld::mainWorld());
 diff --git a/third_party/WebKit/Source/web/WebRemoteFrameImpl.h b/third_party/WebKit/Source/web/WebRemoteFrameImpl.h
-index d049228..540d607 100644
+index d049228..de5d606 100644
 --- a/third_party/WebKit/Source/web/WebRemoteFrameImpl.h
 +++ b/third_party/WebKit/Source/web/WebRemoteFrameImpl.h
 @@ -75,6 +75,8 @@ class WEB_EXPORT WebRemoteFrameImpl final
@@ -55,12 +55,12 @@ index d049228..540d607 100644
        v8::Local<v8::Value> argv[]) override;
    v8::Local<v8::Context> mainWorldScriptContext() const override;
 +  v8::Local<v8::Context> worldScriptContext(
-+      v8::Isolate* isolate, int worldID, int extensionGroup) const override;
++      v8::Isolate* isolate, int worldID) const override;
    v8::Local<v8::Context> deprecatedMainWorldScriptContext() const override;
    void reload(WebFrameLoadType) override;
    void reloadWithOverrideURL(const WebURL& overrideUrl,
 diff --git a/third_party/WebKit/public/web/WebFrame.h b/third_party/WebKit/public/web/WebFrame.h
-index 855ed08..a3f1fc9 100644
+index 855ed08..5c10312c 100644
 --- a/third_party/WebKit/public/web/WebFrame.h
 +++ b/third_party/WebKit/public/web/WebFrame.h
 @@ -42,6 +42,7 @@
@@ -76,7 +76,7 @@ index 855ed08..a3f1fc9 100644
    virtual v8::Local<v8::Context> mainWorldScriptContext() const = 0;
  
 +  virtual v8::Local<v8::Context> worldScriptContext(
-+      v8::Isolate* isolate, int worldID, int extensionGroup) const = 0;
++      v8::Isolate* isolate, int worldID) const = 0;
 +
    // Returns true if the WebFrame currently executing JavaScript has access
    // to the given WebFrame, or false otherwise.
