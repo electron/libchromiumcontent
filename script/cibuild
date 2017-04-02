@@ -63,7 +63,7 @@ def run_ci(args):
     os.environ.update(vs_env)
 
   return (run_script('bootstrap') or
-          run_script('update', args) or
+          run_script('update', args + ['--force-download-source-tarball']) or
           run_script('build', args) or
           run_script('create-dist', args) or
           run_script('upload', args))
