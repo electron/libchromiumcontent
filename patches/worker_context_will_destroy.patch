@@ -15,10 +15,10 @@ index 0764782..b3cd794 100644
    // browser process via |registry|.
    virtual void ExposeInterfacesToBrowser(
 diff --git a/content/renderer/renderer_blink_platform_impl.cc b/content/renderer/renderer_blink_platform_impl.cc
-index ed2baee..9a2f0d8 100644
+index f30b509..6cfd9df 100644
 --- a/content/renderer/renderer_blink_platform_impl.cc
 +++ b/content/renderer/renderer_blink_platform_impl.cc
-@@ -1254,6 +1254,12 @@ RendererBlinkPlatformImpl::trialTokenValidator() {
+@@ -1257,6 +1257,12 @@ RendererBlinkPlatformImpl::trialTokenValidator() {
    return &trial_token_validator_;
  }
  
