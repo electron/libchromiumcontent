@@ -200,11 +200,13 @@ def update_node():
   else:
     platform = 'linux*'
     key = 'linux/node-linux-x64.tar.gz.sha1'
-  return subprocess.call([sys.executable, download, '--no_resume',
-                          '--platform={0}'.format(platform), '--no_auth',
-                          '--extract', '--bucket', 'chromium-nodejs/6.9.4',
-                          '-s', 'third_party/node/{0}'.format(key)],
-                         cwd=SRC_DIR) or \
+  args = [sys.executable, download, '--no_resume',
+          '--platform={0}'.format(platform), '--no_auth',
+          '--bucket', 'chromium-nodejs/6.9.4',
+          '-s', 'third_party/node/{0}'.format(key)]
+  if platform != 'win32':
+    args.append('--extract')
+  return subprocess.call(args, cwd=SRC_DIR) or \
          subprocess.call([sys.executable, download, '--no_resume', '--no_auth',
                           '--extract', '--bucket', 'chromium-nodejs',
                           '-s', 'third_party/node/node_modules.tar.gz.sha1'],
