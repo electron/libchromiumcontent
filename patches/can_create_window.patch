@@ -131,12 +131,13 @@ index a802ece..eab03ea 100644
  class SiteInstance;
  class SpeechRecognitionManagerDelegate;
  class TracingDelegate;
-@@ -141,6 +142,13 @@ class CONTENT_EXPORT ContentBrowserClient {
+@@ -141,6 +142,14 @@ class CONTENT_EXPORT ContentBrowserClient {
   public:
    virtual ~ContentBrowserClient() {}
  
 +  // Electron: Allows overriding the SiteInstance when navigating.
 +  virtual void OverrideSiteInstanceForNavigation(
++      RenderFrameHost* render_frame_host,
 +      BrowserContext* browser_context,
 +      SiteInstance* current_instance,
 +      const GURL& dest_url,
@@ -145,7 +146,7 @@ index a802ece..eab03ea 100644
    // Allows the embedder to set any number of custom BrowserMainParts
    // implementations for the browser startup code. See comments in
    // browser_main_parts.h.
-@@ -506,6 +514,8 @@ class CONTENT_EXPORT ContentBrowserClient {
+@@ -506,6 +515,8 @@ class CONTENT_EXPORT ContentBrowserClient {
                                 const std::string& frame_name,
                                 WindowOpenDisposition disposition,
                                 const blink::WebWindowFeatures& features,
