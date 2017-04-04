@@ -188,6 +188,7 @@ ARCH_BLACKLIST = {
   'x64': [
     'libprotobuf_full_do_not_use.a',
     'libprotoc_lib.a',
+    'libyuv_internal_cc.pdb',
   ],
   'ia32': [
   ],
