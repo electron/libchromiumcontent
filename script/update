@@ -164,8 +164,6 @@ def apply_patches():
 
 
 def update_clang():
-  if sys.platform not in ['linux2', 'darwin']:
-    return
   update = os.path.join(SRC_DIR, 'tools', 'clang', 'scripts', 'update.py')
   return subprocess.call([sys.executable, update])
 
