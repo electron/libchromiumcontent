@@ -265,6 +265,7 @@ INCLUDE_DIRS = [
   'win32': [],
 }[TARGET_PLATFORM]
 GENERATED_INCLUDE_DIRS = [
+  'base',
   'content',
   'ipc',
   'mojo',
