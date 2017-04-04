@@ -164,8 +164,12 @@ def apply_patches():
 
 
 def update_clang():
+  env = os.environ.copy()
+  env['PATH'] = os.pathsep.join([os.path.join(VENDOR_DIR, 'depot_tools'),
+                                 env['PATH']])
+  env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
   update = os.path.join(SRC_DIR, 'tools', 'clang', 'scripts', 'update.py')
-  return subprocess.call([sys.executable, update])
+  return subprocess.call([sys.executable, update, '--if-needed'], env=env)
 
 
 def update_gn():
