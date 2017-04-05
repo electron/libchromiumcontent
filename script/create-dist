@@ -267,6 +267,7 @@ INCLUDE_DIRS = [
 }[TARGET_PLATFORM]
 GENERATED_INCLUDE_DIRS = [
   'base',
+  'cc',
   'content',
   'ipc',
   'mojo',
