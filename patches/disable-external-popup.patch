@@ -1,0 +1,50 @@
+diff --git a/content/renderer/render_thread_impl.cc b/content/renderer/render_thread_impl.cc
+index d569350..7f5ba6e 100644
+--- a/content/renderer/render_thread_impl.cc
++++ b/content/renderer/render_thread_impl.cc
+@@ -1732,11 +1732,18 @@ bool RenderThreadImpl::OnControlMessageReceived(const IPC::Message& msg) {
+   bool handled = true;
+   IPC_BEGIN_MESSAGE_MAP(RenderThreadImpl, msg)
+     IPC_MESSAGE_HANDLER(WorkerProcessMsg_CreateWorker, OnCreateNewSharedWorker)
++    IPC_MESSAGE_HANDLER(WorkerProcessMsg_DisableExternalPopupMenus,
++      OnDisableExternalPopupMenus)
+     IPC_MESSAGE_UNHANDLED(handled = false)
+   IPC_END_MESSAGE_MAP()
+   return handled;
+ }
+ 
++bool RenderThreadImpl::OnDisableExternalPopupMenus(int routing_id) {
++  blink::WebView::setUseExternalPopupMenus(false);
++  return true;
++}
++
+ void RenderThreadImpl::OnProcessBackgrounded(bool backgrounded) {
+   ChildThreadImpl::OnProcessBackgrounded(backgrounded);
+ 
+diff --git a/content/renderer/render_thread_impl.h b/content/renderer/render_thread_impl.h
+index 96e6393..0760529 100644
+--- a/content/renderer/render_thread_impl.h
++++ b/content/renderer/render_thread_impl.h
+@@ -544,6 +544,8 @@ class CONTENT_EXPORT RenderThreadImpl
+ 
+   void OnRendererInterfaceRequest(mojom::RendererAssociatedRequest request);
+ 
++  bool OnDisableExternalPopupMenus(int routing_id);
++
+   // These objects live solely on the render thread.
+   std::unique_ptr<AppCacheDispatcher> appcache_dispatcher_;
+   std::unique_ptr<DomStorageDispatcher> dom_storage_dispatcher_;
+diff --git a/content/common/worker_messages.h b/content/common/worker_messages.h
+index e49ce80..f8507c7 100644
+--- a/content/common/worker_messages.h
++++ b/content/common/worker_messages.h
+@@ -52,6 +52,9 @@ IPC_STRUCT_END()
+ IPC_MESSAGE_CONTROL1(WorkerProcessMsg_CreateWorker,
+                      WorkerProcessMsg_CreateWorker_Params)
+ 
++IPC_MESSAGE_CONTROL1(WorkerProcessMsg_DisableExternalPopupMenus,
++                     int /* routing_id */)
++
+ //-----------------------------------------------------------------------------
+ // WorkerProcessHost messages
+ // These are messages sent from the worker process to the browser process.
