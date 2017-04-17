@@ -2,13 +2,14 @@ diff --git a/content/browser/frame_host/render_frame_host_manager.cc b/content/b
 index 380f687..303f0c9 100644
 --- a/content/browser/frame_host/render_frame_host_manager.cc
 +++ b/content/browser/frame_host/render_frame_host_manager.cc
-@@ -1208,6 +1208,16 @@ RenderFrameHostManager::GetSiteInstanceForNavigation(
+@@ -1208,6 +1208,17 @@ RenderFrameHostManager::GetSiteInstanceForNavigation(
  
    SiteInstance* current_instance = render_frame_host_->GetSiteInstance();
  
 +  // Gives user a chance to pass a custom side instance.
 +  SiteInstance* client_custom_instance = current_instance;
 +  GetContentClient()->browser()->OverrideSiteInstanceForNavigation(
++      render_frame_host_.get(),
 +      delegate_->GetControllerForRenderManager().GetBrowserContext(),
 +      current_instance,
 +      dest_url,
