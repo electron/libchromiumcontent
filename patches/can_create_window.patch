@@ -131,7 +131,7 @@ index 4505627..2d5db05c1 100644
  class SiteInstance;
  class SpeechRecognitionManagerDelegate;
  class StoragePartition;
-@@ -146,6 +147,13 @@ class CONTENT_EXPORT ContentBrowserClient {
+@@ -146,6 +147,14 @@ class CONTENT_EXPORT ContentBrowserClient {
   public:
    virtual ~ContentBrowserClient() {}
  
@@ -146,7 +146,7 @@ index 4505627..2d5db05c1 100644
    // Allows the embedder to set any number of custom BrowserMainParts
    // implementations for the browser startup code. See comments in
    // browser_main_parts.h.
-@@ -514,6 +522,8 @@ class CONTENT_EXPORT ContentBrowserClient {
+@@ -514,6 +523,8 @@ class CONTENT_EXPORT ContentBrowserClient {
        const std::string& frame_name,
        WindowOpenDisposition disposition,
        const blink::mojom::WindowFeatures& features,
