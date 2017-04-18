@@ -104,10 +104,12 @@ with open(args.out, 'w') as out:
         out,
         "obj_cc",
         [
+            "cc/animation",
             "cc/base",
             "cc/blink",
             "cc/cc",
             "cc/ipc",
+            "cc/paint",
             "cc/proto",
             "cc/surfaces",
         ])
@@ -135,6 +137,7 @@ with open(args.out, 'w') as out:
             "components/os_crypt",
             "components/payments",
             "components/prefs",
+            "components/rappor",
             "components/scheduler/common",
             "components/scheduler/scheduler",
             "components/security_state",
@@ -183,11 +186,13 @@ with open(args.out, 'w') as out:
             "services/service_manager/public",
             "services/service_manager/runner",
             "services/service_manager/service_manager",
+            "services/shape_detection",
             "services/shell/public",
             "services/shell/runner",
             "services/shell/shell",
             "services/tracing/public",
             "services/ui/public",
+            "services/ui/gpu",
             "services/user",
         ])
 
@@ -227,6 +232,7 @@ with open(args.out, 'w') as out:
             "third_party/WebKit/Source/core",
             "third_party/WebKit/Source/platform/heap",
             "third_party/WebKit/Source/platform/blink_common",
+            "third_party/WebKit/Source/platform/loader",
             "third_party/WebKit/Source/platform/platform",
             "third_party/WebKit/Source/web",
             "third_party/WebKit/Source/wtf",
@@ -251,6 +257,7 @@ with open(args.out, 'w') as out:
         "obj_webrtc",
         [
             "third_party/webrtc",
+            "third_party/webrtc_overrides",
         ])
 
     gen_list(
