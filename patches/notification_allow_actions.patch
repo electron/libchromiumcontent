@@ -1,0 +1,18 @@
+diff --git a/third_party/WebKit/Source/modules/notifications/Notification.cpp b/third_party/WebKit/Source/modules/notifications/Notification.cpp
+index 4f6201f1b2a7..fd20986a8f56 100644
+--- a/third_party/WebKit/Source/modules/notifications/Notification.cpp
++++ b/third_party/WebKit/Source/modules/notifications/Notification.cpp
+@@ -84,13 +84,6 @@ Notification* Notification::create(ExecutionContext* context,
+     return nullptr;
+   }
+ 
+-  if (!options.actions().isEmpty()) {
+-    exceptionState.throwTypeError(
+-        "Actions are only supported for persistent notifications shown using "
+-        "ServiceWorkerRegistration.showNotification().");
+-    return nullptr;
+-  }
+-
+   String insecureOriginMessage;
+   if (context->isSecureContext(insecureOriginMessage)) {
+     UseCounter::count(context, UseCounter::NotificationSecureOrigin);
