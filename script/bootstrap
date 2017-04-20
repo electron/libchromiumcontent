@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import contextlib
 import errno
 import os
 import shutil
@@ -25,6 +26,10 @@ def main():
   if os.path.isdir(os.path.join(SRC_DIR, '.git')):
     rm_rf(SRC_DIR)
 
+  # Setup boto.
+  with scoped_cwd(os.path.join('vendor', 'boto')):
+    subprocess.call([sys.executable, 'setup.py', 'build'])
+
 
 def rm_rf(path):
   try:
@@ -32,6 +37,16 @@ def rm_rf(path):
   except OSError as e:
     if e.errno != errno.ENOENT:
       raise
+
+
+@contextlib.contextmanager
+def scoped_cwd(path):
+  cwd = os.getcwd()
+  os.chdir(path)
+  try:
+    yield
+  finally:
+    os.chdir(cwd)
 
 
 if __name__ == '__main__':
