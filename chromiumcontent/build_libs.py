@@ -1,6 +1,7 @@
 import argparse
 import os
 import subprocess
+import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-o', dest='out')
@@ -177,6 +178,11 @@ with open(args.out, 'w') as out:
             "net",
         ])
 
+    additional_services = []
+    if sys.platform == 'darwin':
+        additional_services = [
+            "services/service_manager/public/cpp/standalone_service",
+        ]
     gen_list(
         out,
         "obj_services",
@@ -196,7 +202,7 @@ with open(args.out, 'w') as out:
             "services/ui/public",
             "services/ui/gpu",
             "services/user",
-        ])
+        ] + additional_services)
 
     gen_list(
         out,
