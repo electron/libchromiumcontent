@@ -4,3 +4,6 @@
 [submodule "vendor/depot_tools"]
 	path = vendor/depot_tools
 	url = https://chromium.googlesource.com/chromium/tools/depot_tools.git
+[submodule "vendor/boto"]
+	path = vendor/boto
+	url = https://github.com/boto/boto
