@@ -121,6 +121,7 @@ with open(args.out, 'w') as out:
             "components/bitmap_uploader",
             "components/cdm",
             "components/cookie_config",
+            "components/crash/core/common",
             "components/discardable_memory",
             "components/display_compositor",
             "components/filesystem",
