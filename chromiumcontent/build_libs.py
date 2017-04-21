@@ -6,6 +6,7 @@ import sys
 parser = argparse.ArgumentParser()
 parser.add_argument('-o', dest='out')
 parser.add_argument('-s', dest='stamp')
+parser.add_argument('-t', dest='target_cpu')
 args = parser.parse_args()
 
 def gen_list(out, name, obj_dirs):
@@ -18,6 +19,11 @@ def gen_list(out, name, obj_dirs):
     out.write("]\n")
 
 with open(args.out, 'w') as out:
+    additional_libchromiumcontent = []
+    if sys.platform in ['win32', 'cygwin'] and args.target_cpu == "x64":
+        additional_libchromiumcontent = [
+            "../clang_x64/obj/third_party/libyuv",
+        ]
     gen_list(
         out,
         "obj_libchromiumcontent",
@@ -86,7 +92,7 @@ with open(args.out, 'w') as out:
             "tools",
             "ui",
             "url",
-        ])
+        ] + additional_libchromiumcontent)
 
     gen_list(
         out,
