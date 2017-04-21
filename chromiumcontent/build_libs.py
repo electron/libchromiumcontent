@@ -247,6 +247,7 @@ with open(args.out, 'w') as out:
             "third_party/WebKit/Source/platform/heap",
             "third_party/WebKit/Source/platform/blink_common",
             "third_party/WebKit/Source/platform/loader",
+            "third_party/WebKit/Source/platform/mojo",
             "third_party/WebKit/Source/platform/platform",
             "third_party/WebKit/Source/web",
             "third_party/WebKit/Source/wtf",
