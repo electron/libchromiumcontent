@@ -2,7 +2,7 @@ diff --git a/content/browser/renderer_host/render_widget_host_impl.cc b/content/
 index 15b8995..6a226f1 100644
 --- a/content/browser/renderer_host/render_widget_host_impl.cc
 +++ b/content/browser/renderer_host/render_widget_host_impl.cc
-@@ -603,6 +603,9 @@ void RenderWidgetHostImpl::WasHidden() {
+@@ -604,6 +604,9 @@ void RenderWidgetHostImpl::WasHidden() {
    if (is_hidden_)
      return;
  

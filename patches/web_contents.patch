@@ -2,7 +2,7 @@ diff --git a/content/browser/web_contents/web_contents_impl.cc b/content/browser
 index cf3733f..065df39 100644
 --- a/content/browser/web_contents/web_contents_impl.cc
 +++ b/content/browser/web_contents/web_contents_impl.cc
-@@ -1571,6 +1571,12 @@ void WebContentsImpl::Init(const WebContents::CreateParams& params) {
+@@ -1576,6 +1576,12 @@ void WebContentsImpl::Init(const WebContents::CreateParams& params) {
    std::string unique_name;
    frame_tree_.root()->SetFrameName(params.main_frame_name, unique_name);
  
@@ -15,7 +15,7 @@ index cf3733f..065df39 100644
    WebContentsViewDelegate* delegate =
        GetContentClient()->browser()->GetWebContentsViewDelegate(this);
  
-@@ -1581,6 +1587,7 @@ void WebContentsImpl::Init(const WebContents::CreateParams& params) {
+@@ -1586,6 +1592,7 @@ void WebContentsImpl::Init(const WebContents::CreateParams& params) {
      view_.reset(CreateWebContentsView(this, delegate,
                                        &render_view_host_delegate_view_));
    }
@@ -23,7 +23,7 @@ index cf3733f..065df39 100644
  
    if (browser_plugin_guest_ && !GuestMode::IsCrossProcessFrameGuest(this)) {
      view_.reset(new WebContentsViewGuest(this, browser_plugin_guest_.get(),
-@@ -4846,6 +4853,7 @@ void WebContentsImpl::RendererUnresponsive(
+@@ -4858,6 +4865,7 @@ void WebContentsImpl::RendererUnresponsive(
    // We might have been waiting for both beforeunload and unload ACK.
    // Check if tab is to be unloaded first.
    if (rfhi->IsWaitingForUnloadACK()) {
@@ -31,7 +31,7 @@ index cf3733f..065df39 100644
      // Hang occurred while firing the unload handler.
      // Pretend the handler fired so tab closing continues as if it had.
      GetRenderViewHost()->set_sudden_termination_allowed(true);
-@@ -4857,6 +4865,7 @@ void WebContentsImpl::RendererUnresponsive(
+@@ -4869,6 +4877,7 @@ void WebContentsImpl::RendererUnresponsive(
      // to recover. Pretend the unload listeners have all fired and close
      // the tab.
      Close();

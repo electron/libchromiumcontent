@@ -156,7 +156,7 @@ index 4505627..2d5db05c1 100644
        bool opener_suppressed,
        ResourceContext* context,
 diff --git a/content/renderer/render_view_impl.cc b/content/renderer/render_view_impl.cc
-index e69e97a..a7eead4 100644
+index c59e97853d4f..99e10f96cc54 100644
 --- a/content/renderer/render_view_impl.cc
 +++ b/content/renderer/render_view_impl.cc
 @@ -44,6 +44,7 @@
@@ -167,7 +167,7 @@ index e69e97a..a7eead4 100644
  #include "content/common/content_constants_internal.h"
  #include "content/common/content_switches_internal.h"
  #include "content/common/dom_storage/dom_storage_types.h"
-@@ -1463,6 +1464,64 @@ WebView* RenderViewImpl::createView(WebLocalFrame* creator,
+@@ -1465,6 +1466,64 @@ WebView* RenderViewImpl::createView(WebLocalFrame* creator,
    }
    params->features = ConvertWebWindowFeaturesToMojoWindowFeatures(features);
  
