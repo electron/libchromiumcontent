@@ -1,8 +1,8 @@
 diff --git a/third_party/WebKit/Source/core/paint/ThemePainterMac.mm b/third_party/WebKit/Source/core/paint/ThemePainterMac.mm
-index 45af265..9063724 100644
+index a8f507a..5b54b7d 100644
 --- a/third_party/WebKit/Source/core/paint/ThemePainterMac.mm
 +++ b/third_party/WebKit/Source/core/paint/ThemePainterMac.mm
-@@ -42,6 +42,7 @@
+@@ -43,6 +43,7 @@
  
  // The methods in this file are specific to the Mac OS X platform.
  
@@ -10,7 +10,7 @@ index 45af265..9063724 100644
  // Forward declare Mac SPIs.
  extern "C" {
  void _NSDrawCarbonThemeBezel(NSRect frame, BOOL enabled, BOOL flipped);
-@@ -51,6 +52,7 @@ void _NSDrawCarbonThemeListBox(NSRect frame,
+@@ -52,6 +53,7 @@ void _NSDrawCarbonThemeListBox(NSRect frame,
                                 BOOL flipped,
                                 BOOL always_yes);
  }
@@ -18,7 +18,7 @@ index 45af265..9063724 100644
  
  namespace blink {
  
-@@ -71,9 +73,11 @@ void _NSDrawCarbonThemeListBox(NSRect frame,
+@@ -72,9 +74,11 @@ void _NSDrawCarbonThemeListBox(NSRect frame,
    // behavior change while remaining a fragile solution.
    // https://bugs.chromium.org/p/chromium/issues/detail?id=658085#c3
    if (!useNSTextFieldCell) {
@@ -30,7 +30,7 @@ index 45af265..9063724 100644
      return false;
    }
  
-@@ -158,9 +162,11 @@ void _NSDrawCarbonThemeListBox(NSRect frame,
+@@ -159,9 +163,11 @@ void _NSDrawCarbonThemeListBox(NSRect frame,
                                      const PaintInfo& paintInfo,
                                      const IntRect& r) {
    LocalCurrentGraphicsContext localContext(paintInfo.context, r);

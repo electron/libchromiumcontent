@@ -1,13 +1,13 @@
 diff --git a/content/app/content_main_runner.cc b/content/app/content_main_runner.cc
-index 8dd59dd..5a12b5b 100644
+index c283922..397ba80 100644
 --- a/content/app/content_main_runner.cc
 +++ b/content/app/content_main_runner.cc
-@@ -224,7 +224,7 @@ void CommonSubprocessInit(const std::string& process_type) {
-   setlocale(LC_NUMERIC, "C");
- #endif
+@@ -763,7 +763,7 @@ class ContentMainRunnerImpl : public ContentMainRunner {
+ 
+     InitializeV8IfNeeded(command_line, process_type);
  
 -#if !defined(OFFICIAL_BUILD)
 +#if 0
-   // Print stack traces to stderr when crashes occur. This opens up security
-   // holes so it should never be enabled for official builds.
-   if (!base::CommandLine::ForCurrentProcess()->HasSwitch(
+ #if defined(OS_WIN)
+     bool should_enable_stack_dump = !process_type.empty();
+ #else

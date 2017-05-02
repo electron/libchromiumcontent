@@ -173,7 +173,7 @@ BINARIES_SHARED_LIBRARY = {
     os.path.join('obj', 'ppapi', 'cpp', 'private', 'internal_module_cc.pdb'),
     os.path.join('obj', 'third_party', 'libjpeg_turbo', 'libjpeg_c.pdb'),
     os.path.join('obj', 'third_party', 'libjpeg_turbo', 'simd_c.pdb'),
-    os.path.join('obj', 'third_party', 'libyuv', 'libyuv_cc.pdb'),
+    os.path.join('obj', 'third_party', 'libyuv', 'libyuv_internal_cc.pdb'),
     os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture', 'desktop_capture_cc.pdb'),
     os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture', 'desktop_capture_differ_sse2_cc.pdb'),
     os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture', 'primitives_cc.pdb'),
@@ -188,6 +188,7 @@ ARCH_BLACKLIST = {
   'x64': [
     'libprotobuf_full_do_not_use.a',
     'libprotoc_lib.a',
+    'libyuv_internal_cc.pdb',
   ],
   'ia32': [
   ],
@@ -265,7 +266,10 @@ INCLUDE_DIRS = [
   'win32': [],
 }[TARGET_PLATFORM]
 GENERATED_INCLUDE_DIRS = [
+  'base',
+  'cc',
   'content',
+  'gpu',
   'ipc',
   'mojo',
   'media',

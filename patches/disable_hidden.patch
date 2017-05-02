@@ -1,8 +1,8 @@
 diff --git a/content/browser/renderer_host/render_widget_host_impl.cc b/content/browser/renderer_host/render_widget_host_impl.cc
-index 2397e77..17f93b4 100644
+index 15b8995..6a226f1 100644
 --- a/content/browser/renderer_host/render_widget_host_impl.cc
 +++ b/content/browser/renderer_host/render_widget_host_impl.cc
-@@ -580,6 +580,9 @@ void RenderWidgetHostImpl::WasHidden() {
+@@ -604,6 +604,9 @@ void RenderWidgetHostImpl::WasHidden() {
    if (is_hidden_)
      return;
  
@@ -13,10 +13,10 @@ index 2397e77..17f93b4 100644
    is_hidden_ = true;
  
 diff --git a/content/browser/renderer_host/render_widget_host_impl.h b/content/browser/renderer_host/render_widget_host_impl.h
-index 8c17eef..a0f837e 100644
+index b6aa99e..ef4fa35 100644
 --- a/content/browser/renderer_host/render_widget_host_impl.h
 +++ b/content/browser/renderer_host/render_widget_host_impl.h
-@@ -117,6 +117,9 @@ class CONTENT_EXPORT RenderWidgetHostImpl : public RenderWidgetHost,
+@@ -114,6 +114,9 @@ class CONTENT_EXPORT RenderWidgetHostImpl : public RenderWidgetHost,
    // RenderWidgetHostImpl.
    static RenderWidgetHostImpl* From(RenderWidgetHost* rwh);
  

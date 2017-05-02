@@ -49,6 +49,7 @@ def main():
           copy_chromiumcontent_files() or
           update_clang() or
           update_gn() or
+          update_node() or
           run_gn(target_arch, args.defines))
 
 
@@ -163,10 +164,12 @@ def apply_patches():
 
 
 def update_clang():
-  if sys.platform not in ['linux2', 'darwin']:
-    return
+  env = os.environ.copy()
+  env['PATH'] = os.pathsep.join([os.path.join(VENDOR_DIR, 'depot_tools'),
+                                 env['PATH']])
+  env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
   update = os.path.join(SRC_DIR, 'tools', 'clang', 'scripts', 'update.py')
-  return subprocess.call([sys.executable, update])
+  return subprocess.call([sys.executable, update, '--if-needed'], env=env)
 
 
 def update_gn():
@@ -185,6 +188,30 @@ def update_gn():
                           '--platform={0}'.format(platform), '--no_auth',
                           '--bucket', 'chromium-gn',
                           '-s', 'buildtools/{0}'.format(key)],
+                         cwd=SRC_DIR)
+
+
+def update_node():
+  download = os.path.join(DEPOT_TOOLS, 'download_from_google_storage.py')
+  if sys.platform in ['win32', 'cygwin']:
+    platform = 'win32'
+    key = 'win/node.exe.sha1'
+  elif sys.platform == 'darwin':
+    platform = 'darwin'
+    key = 'mac/node-darwin-x64.tar.gz.sha1'
+  else:
+    platform = 'linux*'
+    key = 'linux/node-linux-x64.tar.gz.sha1'
+  args = [sys.executable, download, '--no_resume',
+          '--platform={0}'.format(platform), '--no_auth',
+          '--bucket', 'chromium-nodejs/6.9.4',
+          '-s', 'third_party/node/{0}'.format(key)]
+  if platform != 'win32':
+    args.append('--extract')
+  return subprocess.call(args, cwd=SRC_DIR) or \
+         subprocess.call([sys.executable, download, '--no_resume', '--no_auth',
+                          '--extract', '--bucket', 'chromium-nodejs',
+                          '-s', 'third_party/node/node_modules.tar.gz.sha1'],
                          cwd=SRC_DIR)
 
 

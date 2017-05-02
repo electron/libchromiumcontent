@@ -1,8 +1,8 @@
 diff --git a/third_party/WebKit/Source/core/frame/LocalFrame.cpp b/third_party/WebKit/Source/core/frame/LocalFrame.cpp
-index acd4722..0f1c847 100644
+index 6fa75cf..04c6a96 100644
 --- a/third_party/WebKit/Source/core/frame/LocalFrame.cpp
 +++ b/third_party/WebKit/Source/core/frame/LocalFrame.cpp
-@@ -413,10 +413,6 @@ void LocalFrame::detach(FrameDetachType type) {
+@@ -426,10 +426,6 @@ void LocalFrame::detach(FrameDetachType type) {
    m_loader.stopAllLoaders();
    m_loader.detach();
    document()->shutdown();
@@ -13,9 +13,9 @@ index acd4722..0f1c847 100644
    m_loader.clear();
    if (!client())
      return;
-@@ -425,6 +421,10 @@ void LocalFrame::detach(FrameDetachType type) {
+@@ -438,6 +434,10 @@ void LocalFrame::detach(FrameDetachType type) {
    // Notify ScriptController that the frame is closing, since its cleanup ends
-   // up calling back to FrameLoaderClient via WindowProxy.
+   // up calling back to LocalFrameClient via WindowProxy.
    script().clearForClose();
 +  // This is the earliest that scripting can be disabled:
 +  // - FrameLoader::detach() can fire XHR abort events
@@ -23,4 +23,4 @@ index acd4722..0f1c847 100644
 +  ScriptForbiddenScope forbidScript;
    setView(nullptr);
  
-   m_host->eventHandlerRegistry().didRemoveAllEventHandlers(*localDOMWindow());
+   m_host->eventHandlerRegistry().didRemoveAllEventHandlers(*domWindow());

@@ -1,5 +1,5 @@
 diff --git a/content/browser/renderer_host/browser_compositor_view_mac.h b/content/browser/renderer_host/browser_compositor_view_mac.h
-index 865b29f..70003fe 100644
+index d0ecb71..248ba9a 100644
 --- a/content/browser/renderer_host/browser_compositor_view_mac.h
 +++ b/content/browser/renderer_host/browser_compositor_view_mac.h
 @@ -10,6 +10,7 @@
@@ -21,7 +21,7 @@ index 865b29f..70003fe 100644
   public:
    BrowserCompositorMac(
        ui::AcceleratedWidgetMacNSView* accelerated_widget_mac_ns_view,
-@@ -55,9 +56,11 @@ class BrowserCompositorMac : public cc::BeginFrameObserver,
+@@ -56,9 +57,11 @@ class BrowserCompositorMac : public cc::BeginFrameObserver,
  
    // These will not return nullptr until Destroy is called.
    DelegatedFrameHost* GetDelegatedFrameHost();
@@ -34,10 +34,10 @@ index 865b29f..70003fe 100644
  
    void SwapCompositorFrame(uint32_t compositor_frame_sink_id,
 diff --git a/content/browser/renderer_host/browser_compositor_view_mac.mm b/content/browser/renderer_host/browser_compositor_view_mac.mm
-index 4ff716d..aaf17b2 100644
+index e4c25e73..e2f789e 100644
 --- a/content/browser/renderer_host/browser_compositor_view_mac.mm
 +++ b/content/browser/renderer_host/browser_compositor_view_mac.mm
-@@ -199,6 +199,12 @@ void OnCompositingShuttingDown(ui::Compositor* compositor) override {}
+@@ -201,6 +201,12 @@ void OnCompositingShuttingDown(ui::Compositor* compositor) override {}
      g_spare_recyclable_compositors.Get().clear();
  }
  
@@ -50,7 +50,7 @@ index 4ff716d..aaf17b2 100644
  ui::AcceleratedWidgetMac* BrowserCompositorMac::GetAcceleratedWidgetMac() {
    if (recyclable_compositor_)
      return recyclable_compositor_->accelerated_widget_mac();
-@@ -416,8 +422,13 @@ void OnCompositingShuttingDown(ui::Compositor* compositor) override {}
+@@ -417,8 +423,13 @@ void OnCompositingShuttingDown(ui::Compositor* compositor) override {}
  }
  
  gfx::Size BrowserCompositorMac::DelegatedFrameHostDesiredSizeInDIP() const {

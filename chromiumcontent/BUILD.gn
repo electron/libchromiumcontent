@@ -21,6 +21,7 @@ group("targets") {
       "//ppapi/proxy",
       "//ppapi/shared_impl",
       "//net:net_with_v8",
+      "//third_party/libyuv",
       "//third_party/webrtc/modules/desktop_capture",
       "//third_party/widevine/cdm:headers",
       "//third_party/widevine/cdm:widevinecdmadapter",
@@ -193,7 +194,8 @@ if (is_electron_build && !is_component_build) {
 
     script = "build_libs.py"
     args = [ "-o", rebase_path("$target_out_dir/objects.gni"),
-             "-s", rebase_path(outputs[0]) ]
+             "-s", rebase_path(outputs[0]),
+             "-t", target_cpu ]
 
     deps = [ ":targets" ]
   }

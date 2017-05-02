@@ -1,5 +1,5 @@
 diff --git a/third_party/WebKit/Source/core/dom/DOMArrayBuffer.h b/third_party/WebKit/Source/core/dom/DOMArrayBuffer.h
-index 6bfee91..55225a9 100644
+index 5ce8c46..951dc6e 100644
 --- a/third_party/WebKit/Source/core/dom/DOMArrayBuffer.h
 +++ b/third_party/WebKit/Source/core/dom/DOMArrayBuffer.h
 @@ -28,6 +28,10 @@ class CORE_EXPORT DOMArrayBuffer final : public DOMArrayBufferBase {
@@ -13,7 +13,7 @@ index 6bfee91..55225a9 100644
  
    // Only for use by XMLHttpRequest::responseArrayBuffer and
    // Internals::serializeObject.
-@@ -50,6 +54,8 @@ class CORE_EXPORT DOMArrayBuffer final : public DOMArrayBufferBase {
+@@ -47,6 +51,8 @@ class CORE_EXPORT DOMArrayBuffer final : public DOMArrayBufferBase {
   private:
    explicit DOMArrayBuffer(PassRefPtr<WTF::ArrayBuffer> buffer)
        : DOMArrayBufferBase(std::move(buffer)) {}

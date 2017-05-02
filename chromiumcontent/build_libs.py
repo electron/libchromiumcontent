@@ -1,10 +1,12 @@
 import argparse
 import os
 import subprocess
+import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-o', dest='out')
 parser.add_argument('-s', dest='stamp')
+parser.add_argument('-t', dest='target_cpu')
 args = parser.parse_args()
 
 def gen_list(out, name, obj_dirs):
@@ -17,6 +19,11 @@ def gen_list(out, name, obj_dirs):
     out.write("]\n")
 
 with open(args.out, 'w') as out:
+    additional_libchromiumcontent = []
+    if sys.platform in ['win32', 'cygwin'] and args.target_cpu == "x64":
+        additional_libchromiumcontent = [
+            "../clang_x64/obj/third_party/libyuv",
+        ]
     gen_list(
         out,
         "obj_libchromiumcontent",
@@ -85,7 +92,7 @@ with open(args.out, 'w') as out:
             "tools",
             "ui",
             "url",
-        ])
+        ] + additional_libchromiumcontent)
 
     gen_list(
         out,
@@ -104,10 +111,12 @@ with open(args.out, 'w') as out:
         out,
         "obj_cc",
         [
+            "cc/animation",
             "cc/base",
             "cc/blink",
             "cc/cc",
             "cc/ipc",
+            "cc/paint",
             "cc/proto",
             "cc/surfaces",
         ])
@@ -119,6 +128,7 @@ with open(args.out, 'w') as out:
             "components/bitmap_uploader",
             "components/cdm",
             "components/cookie_config",
+            "components/crash/core/common",
             "components/discardable_memory",
             "components/display_compositor",
             "components/filesystem",
@@ -135,6 +145,7 @@ with open(args.out, 'w') as out:
             "components/os_crypt",
             "components/payments",
             "components/prefs",
+            "components/rappor",
             "components/scheduler/common",
             "components/scheduler/scheduler",
             "components/security_state",
@@ -173,6 +184,11 @@ with open(args.out, 'w') as out:
             "net",
         ])
 
+    additional_services = []
+    if sys.platform == 'darwin':
+        additional_services = [
+            "services/service_manager/public/cpp/standalone_service",
+        ]
     gen_list(
         out,
         "obj_services",
@@ -180,16 +196,19 @@ with open(args.out, 'w') as out:
             "services/catalog",
             "services/device",
             "services/file",
-            "services/service_manager/public",
+            "services/service_manager/public/cpp/sources",
+            "services/service_manager/public/interfaces",
             "services/service_manager/runner",
             "services/service_manager/service_manager",
+            "services/shape_detection",
             "services/shell/public",
             "services/shell/runner",
             "services/shell/shell",
             "services/tracing/public",
             "services/ui/public",
+            "services/ui/gpu",
             "services/user",
-        ])
+        ] + additional_services)
 
     gen_list(
         out,
@@ -227,6 +246,8 @@ with open(args.out, 'w') as out:
             "third_party/WebKit/Source/core",
             "third_party/WebKit/Source/platform/heap",
             "third_party/WebKit/Source/platform/blink_common",
+            "third_party/WebKit/Source/platform/loader",
+            "third_party/WebKit/Source/platform/mojo",
             "third_party/WebKit/Source/platform/platform",
             "third_party/WebKit/Source/web",
             "third_party/WebKit/Source/wtf",
@@ -251,6 +272,7 @@ with open(args.out, 'w') as out:
         "obj_webrtc",
         [
             "third_party/webrtc",
+            "third_party/webrtc_overrides",
         ])
 
     gen_list(

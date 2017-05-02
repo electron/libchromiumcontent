@@ -1,8 +1,8 @@
 diff --git a/third_party/WebKit/Source/core/fileapi/File.idl b/third_party/WebKit/Source/core/fileapi/File.idl
-index 8277597..8aca099 100644
+index df954bc..4683b28 100644
 --- a/third_party/WebKit/Source/core/fileapi/File.idl
 +++ b/third_party/WebKit/Source/core/fileapi/File.idl
-@@ -34,6 +34,7 @@
+@@ -32,6 +32,7 @@
      Exposed=(Window,Worker),
  ] interface File : Blob {
      readonly attribute DOMString name;

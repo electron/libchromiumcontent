@@ -1,8 +1,8 @@
 diff --git a/content/browser/renderer_host/render_message_filter.cc b/content/browser/renderer_host/render_message_filter.cc
-index ca45695..c3b5fb9 100644
+index c60d39a..3ce4657 100644
 --- a/content/browser/renderer_host/render_message_filter.cc
 +++ b/content/browser/renderer_host/render_message_filter.cc
-@@ -245,6 +245,48 @@ void RenderMessageFilter::GenerateRoutingID(
+@@ -213,12 +213,55 @@ void RenderMessageFilter::GenerateRoutingID(
  void RenderMessageFilter::CreateNewWindow(
      mojom::CreateNewWindowParamsPtr params,
      const CreateNewWindowCallback& callback) {
@@ -49,26 +49,26 @@ index ca45695..c3b5fb9 100644
 +  }
 +
    bool no_javascript_access;
-   bool can_create_window =
-       GetContentClient()->browser()->CanCreateWindow(
-@@ -257,6 +299,8 @@ void RenderMessageFilter::CreateNewWindow(
-           params->frame_name,
-           params->disposition,
-           params->features,
-+          params->additional_features,
-+          body,
-           params->user_gesture,
-           params->opener_suppressed,
-           resource_context_,
+   bool can_create_window = GetContentClient()->browser()->CanCreateWindow(
+       render_process_id_, params->opener_render_frame_id, params->opener_url,
+       params->opener_top_level_frame_url, params->opener_security_origin,
+       params->window_container_type, params->target_url, params->referrer,
+       params->frame_name, params->disposition, *params->features,
++      params->additional_features, body,
+       params->user_gesture, params->opener_suppressed, resource_context_,
+       &no_javascript_access);
+ 
 diff --git a/content/common/render_message_filter.mojom b/content/common/render_message_filter.mojom
-index be6a9a9..fb36bb9 100644
+index 78c93ef..738f278 100644
 --- a/content/common/render_message_filter.mojom
 +++ b/content/common/render_message_filter.mojom
-@@ -6,11 +6,30 @@ module content.mojom;
+@@ -6,12 +6,32 @@ module content.mojom;
  
  import "content/common/native_types.mojom";
  import "content/public/common/window_container_type.mojom";
-+import "mojo/common/common_custom_types.mojom";
++import "mojo/common/file_path.mojom";
++import "mojo/common/time.mojom";
+ import "gpu/ipc/common/mailbox.mojom";
  import "third_party/WebKit/public/platform/referrer.mojom";
  import "third_party/WebKit/public/web/window_features.mojom";
  import "ui/base/mojo/window_open_disposition.mojom";
@@ -93,9 +93,9 @@ index be6a9a9..fb36bb9 100644
 +};
 +
  struct CreateNewWindowParams {
-   // Routing ID of the view initiating the open.
-   int32 opener_id;
-@@ -57,6 +76,10 @@ struct CreateNewWindowParams {
+   // The routing id of the frame initiating the open.
+   int32 opener_render_frame_id;
+@@ -55,6 +75,10 @@ struct CreateNewWindowParams {
  
    // The window features to use for the new view.
    blink.mojom.WindowFeatures features;
@@ -107,31 +107,31 @@ index be6a9a9..fb36bb9 100644
  
  struct CreateNewWindowReply {
 diff --git a/content/public/browser/content_browser_client.cc b/content/public/browser/content_browser_client.cc
-index 2f853a6..ecfd74a 100644
+index f9f587b..b4f264c 100644
 --- a/content/public/browser/content_browser_client.cc
 +++ b/content/public/browser/content_browser_client.cc
-@@ -292,6 +292,8 @@ bool ContentBrowserClient::CanCreateWindow(
+@@ -293,6 +293,8 @@ bool ContentBrowserClient::CanCreateWindow(
      const std::string& frame_name,
      WindowOpenDisposition disposition,
-     const blink::WebWindowFeatures& features,
+     const blink::mojom::WindowFeatures& features,
 +    const std::vector<std::string>& additional_features,
 +    const scoped_refptr<ResourceRequestBodyImpl>& body,
      bool user_gesture,
      bool opener_suppressed,
      ResourceContext* context,
 diff --git a/content/public/browser/content_browser_client.h b/content/public/browser/content_browser_client.h
-index a802ece..eab03ea 100644
+index 4505627..2d5db05c1 100644
 --- a/content/public/browser/content_browser_client.h
 +++ b/content/public/browser/content_browser_client.h
-@@ -118,6 +118,7 @@ class RenderFrameHost;
+@@ -122,6 +122,7 @@ class RenderFrameHost;
  class RenderProcessHost;
  class RenderViewHost;
  class ResourceContext;
 +class ResourceRequestBodyImpl;
  class SiteInstance;
  class SpeechRecognitionManagerDelegate;
- class TracingDelegate;
-@@ -141,6 +142,14 @@ class CONTENT_EXPORT ContentBrowserClient {
+ class StoragePartition;
+@@ -146,6 +147,14 @@ class CONTENT_EXPORT ContentBrowserClient {
   public:
    virtual ~ContentBrowserClient() {}
  
@@ -146,17 +146,17 @@ index a802ece..eab03ea 100644
    // Allows the embedder to set any number of custom BrowserMainParts
    // implementations for the browser startup code. See comments in
    // browser_main_parts.h.
-@@ -506,6 +515,8 @@ class CONTENT_EXPORT ContentBrowserClient {
-                                const std::string& frame_name,
-                                WindowOpenDisposition disposition,
-                                const blink::WebWindowFeatures& features,
-+                               const std::vector<std::string>& additional_features,
-+                               const scoped_refptr<ResourceRequestBodyImpl>& body,
-                                bool user_gesture,
-                                bool opener_suppressed,
-                                ResourceContext* context,
+@@ -514,6 +523,8 @@ class CONTENT_EXPORT ContentBrowserClient {
+       const std::string& frame_name,
+       WindowOpenDisposition disposition,
+       const blink::mojom::WindowFeatures& features,
++      const std::vector<std::string>& additional_features,
++      const scoped_refptr<ResourceRequestBodyImpl>& body,
+       bool user_gesture,
+       bool opener_suppressed,
+       ResourceContext* context,
 diff --git a/content/renderer/render_view_impl.cc b/content/renderer/render_view_impl.cc
-index 56ad115..5fdbca1 100644
+index c59e97853d4f..99e10f96cc54 100644
 --- a/content/renderer/render_view_impl.cc
 +++ b/content/renderer/render_view_impl.cc
 @@ -44,6 +44,7 @@
@@ -167,9 +167,9 @@ index 56ad115..5fdbca1 100644
  #include "content/common/content_constants_internal.h"
  #include "content/common/content_switches_internal.h"
  #include "content/common/dom_storage/dom_storage_types.h"
-@@ -1410,6 +1411,64 @@ WebView* RenderViewImpl::createView(WebLocalFrame* creator,
+@@ -1465,6 +1466,64 @@ WebView* RenderViewImpl::createView(WebLocalFrame* creator,
    }
-   params->features = features;
+   params->features = ConvertWebWindowFeaturesToMojoWindowFeatures(features);
  
 +  for (size_t i = 0; i < features.additionalFeatures.size(); ++i) {
 +    params->additional_features.push_back(
