@@ -1,3 +1,5 @@
+import("//build/split_static_library.gni")
+
 group("targets") {
   deps = []
 
@@ -313,11 +315,18 @@ if (is_electron_build && !is_component_build) {
     }
   }
 
-  static_library("webkit") {
+  split_static_library("webkit") {
     complete_static_lib = true
     sources = []
     if (defined(obj_webkit)) {
       sources += obj_webkit
+    }
+
+    # Workaround MSVC linker .lib size limit.
+    if (is_win && sources != []) {
+      split_count = 8
+    } else {
+      split_count = 1
     }
   }
 

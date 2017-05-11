@@ -1,5 +1,6 @@
 root_extra_deps = [ "//chromiumcontent:chromiumcontent" ]
 is_electron_build = true
+is_official_build = false
 is_component_build = true
 is_debug = false
 symbol_level = 2
