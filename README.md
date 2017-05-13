@@ -43,3 +43,13 @@ $ ./chrome/installer/linux/sysroot_scripts/install-debian.wheezy.sysroot.py --ar
 $ cd -
 $ ./script/build -t arm
 ```
+
+
+### Building for ARM64 target
+
+```bash
+$ ./script/bootstrap
+$ ./script/update -t arm64
+$ ./script/build -t arm64
+$ ./script/create-dist -t arm64
+```

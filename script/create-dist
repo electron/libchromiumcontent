@@ -185,6 +185,9 @@ ARCH_BLACKLIST = {
   'arm': [
     'libdesktop_capture_differ_sse2.a',
   ],
+  'arm64': [
+    'libdesktop_capture_differ_sse2.a',
+  ],
   'x64': [
     'libprotobuf_full_do_not_use.a',
     'libprotoc_lib.a',
@@ -351,6 +354,8 @@ def check_create_debug_archive(target_arch):
   for prog in ['gdb', 'objcopy']:
     if target_arch == 'arm':
       prog = 'arm-linux-gnueabihf-' + prog
+    elif target_arch == 'arm64':
+      prog = 'aarch64-linux-gnu-' + prog
     if not program_available(prog):
       print errmsg.format(prog)
       sys.exit(1)
@@ -432,6 +437,8 @@ def copy_binaries(target_arch, component, create_debug_archive):
       binaries = [ 'chromedriver.exe', 'mksnapshot.exe' ]
     elif target_arch == 'arm':
       binaries = [ 'chromedriver', 'clang_x86_v8_arm/mksnapshot' ]
+    elif target_arch == 'arm64':
+      binaries = [ 'chromedriver', 'clang_x64_v8_arm64/mksnapshot' ]
     else:
       binaries = [ 'chromedriver', 'mksnapshot' ]
 
@@ -547,6 +554,10 @@ def run_strip(target_arch, filename, create_debug_archive):
     strip = 'arm-linux-gnueabihf-strip'
     objcopy = 'arm-linux-gnueabihf-objcopy'
     gdb = 'arm-linux-gnueabihf-gdb'
+  elif target_arch == 'arm64' and filename.endswith(('.so', 'chromedriver')):
+    strip = 'aarch64-linux-gnu-strip'
+    objcopy = 'aarch64-linux-gnu--objcopy'
+    gdb = 'aarch64-linux-gnu-gdb'
   else:
     strip = 'strip'
     objcopy = 'objcopy'
