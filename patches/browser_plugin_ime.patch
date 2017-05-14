@@ -1,0 +1,318 @@
+diff --git a/content/browser/browser_plugin/browser_plugin_guest.cc b/content/browser/browser_plugin/browser_plugin_guest.cc
+index 7b85e5440000..0ea3dd165fc1 100644
+--- a/content/browser/browser_plugin/browser_plugin_guest.cc
++++ b/content/browser/browser_plugin/browser_plugin_guest.cc
+@@ -896,24 +896,20 @@ void BrowserPluginGuest::OnExecuteEditCommand(int browser_plugin_instance_id,
+ 
+ void BrowserPluginGuest::OnImeSetComposition(
+     int browser_plugin_instance_id,
+-    const std::string& text,
+-    const std::vector<blink::WebCompositionUnderline>& underlines,
+-    int selection_start,
+-    int selection_end) {
+-  Send(new InputMsg_ImeSetComposition(routing_id(),
+-                                      base::UTF8ToUTF16(text), underlines,
+-                                      gfx::Range::InvalidRange(),
+-                                      selection_start, selection_end));
++    const BrowserPluginHostMsg_SetComposition_Params& params) {
++  Send(new InputMsg_ImeSetComposition(
++      routing_id(), params.text, params.underlines, params.replacement_range,
++      params.selection_start, params.selection_end));
+ }
+ 
+ void BrowserPluginGuest::OnImeCommitText(
+     int browser_plugin_instance_id,
+-    const std::string& text,
++    const base::string16& text,
+     const std::vector<blink::WebCompositionUnderline>& underlines,
++    const gfx::Range& replacement_range,
+     int relative_cursor_pos) {
+-  Send(new InputMsg_ImeCommitText(routing_id(), base::UTF8ToUTF16(text),
+-                                  underlines, gfx::Range::InvalidRange(),
+-                                  relative_cursor_pos));
++  Send(new InputMsg_ImeCommitText(routing_id(), text, underlines,
++                                  replacement_range, relative_cursor_pos));
+ }
+ 
+ void BrowserPluginGuest::OnImeFinishComposingText(bool keep_selection) {
+diff --git a/content/browser/browser_plugin/browser_plugin_guest.h b/content/browser/browser_plugin/browser_plugin_guest.h
+index f1218cd5505c..fedd4a75b5f5 100644
+--- a/content/browser/browser_plugin/browser_plugin_guest.h
++++ b/content/browser/browser_plugin/browser_plugin_guest.h
+@@ -45,6 +45,7 @@
+ #include "ui/gfx/geometry/rect.h"
+ 
+ struct BrowserPluginHostMsg_Attach_Params;
++struct BrowserPluginHostMsg_SetComposition_Params;
+ 
+ #if defined(OS_MACOSX)
+ struct FrameHostMsg_ShowPopup_Params;
+@@ -342,14 +343,12 @@ class CONTENT_EXPORT BrowserPluginGuest : public GuestHost,
+   void OnTextInputStateChanged(const TextInputState& params);
+   void OnImeSetComposition(
+       int instance_id,
+-      const std::string& text,
+-      const std::vector<blink::WebCompositionUnderline>& underlines,
+-      int selection_start,
+-      int selection_end);
++      const BrowserPluginHostMsg_SetComposition_Params& params);
+   void OnImeCommitText(
+       int instance_id,
+-      const std::string& text,
++      const base::string16& text,
+       const std::vector<blink::WebCompositionUnderline>& underlines,
++      const gfx::Range& replacement_range,
+       int relative_cursor_pos);
+   void OnImeFinishComposingText(bool keep_selection);
+   void OnExtendSelectionAndDelete(int instance_id, int before, int after);
+diff --git a/content/browser/frame_host/render_widget_host_view_guest.cc b/content/browser/frame_host/render_widget_host_view_guest.cc
+index 2197f73ad506..4a32379f081b 100644
+--- a/content/browser/frame_host/render_widget_host_view_guest.cc
++++ b/content/browser/frame_host/render_widget_host_view_guest.cc
+@@ -84,7 +84,8 @@ RenderWidgetHostViewGuest::RenderWidgetHostViewGuest(
+     : RenderWidgetHostViewChildFrame(widget_host),
+       // |guest| is NULL during test.
+       guest_(guest ? guest->AsWeakPtr() : base::WeakPtr<BrowserPluginGuest>()),
+-      platform_view_(platform_view) {
++      platform_view_(platform_view),
++      should_forward_text_selection_(false) {
+   gfx::NativeView view = GetNativeView();
+   if (view)
+     UpdateScreenInfo(view);
+@@ -380,6 +381,9 @@ void RenderWidgetHostViewGuest::TextInputStateChanged(
+     return;
+   // Forward the information to embedding RWHV.
+   rwhv->TextInputStateChanged(params);
++
++  should_forward_text_selection_ =
++      (params.type != ui::TEXT_INPUT_TYPE_NONE) && guest_ && guest_->focused();
+ }
+ 
+ void RenderWidgetHostViewGuest::ImeCancelComposition() {
+@@ -417,7 +421,11 @@ void RenderWidgetHostViewGuest::ImeCompositionRangeChanged(
+ void RenderWidgetHostViewGuest::SelectionChanged(const base::string16& text,
+                                                  size_t offset,
+                                                  const gfx::Range& range) {
+-  platform_view_->SelectionChanged(text, offset, range);
++  RenderWidgetHostViewBase* view = should_forward_text_selection_
++                                       ? GetOwnerRenderWidgetHostView()
++                                       : platform_view_.get();
++  if (view)
++    view->SelectionChanged(text, offset, range);
+ }
+ 
+ void RenderWidgetHostViewGuest::SelectionBoundsChanged(
+diff --git a/content/browser/frame_host/render_widget_host_view_guest.h b/content/browser/frame_host/render_widget_host_view_guest.h
+index fea13850ab58..baebdd8a700d 100644
+--- a/content/browser/frame_host/render_widget_host_view_guest.h
++++ b/content/browser/frame_host/render_widget_host_view_guest.h
+@@ -162,6 +162,12 @@ class CONTENT_EXPORT RenderWidgetHostViewGuest
+   // RenderWidgetHostViewGuest mostly only cares about stuff related to
+   // compositing, the rest are directly forwarded to this |platform_view_|.
+   base::WeakPtr<RenderWidgetHostViewBase> platform_view_;
++
++  // When true the guest will forward its selection updates to the owner RWHV.
++  // The guest may forward its updates only when there is an ongoing IME
++  // session.
++  bool should_forward_text_selection_;
++
+   DISALLOW_COPY_AND_ASSIGN(RenderWidgetHostViewGuest);
+ };
+ 
+diff --git a/content/common/browser_plugin/browser_plugin_messages.h b/content/common/browser_plugin/browser_plugin_messages.h
+index 8c4ebd94cabf..b4e635e9ff96 100644
+--- a/content/common/browser_plugin/browser_plugin_messages.h
++++ b/content/common/browser_plugin/browser_plugin_messages.h
+@@ -26,6 +26,7 @@
+ #include "ui/gfx/geometry/size.h"
+ #include "ui/gfx/ipc/gfx_param_traits.h"
+ #include "ui/gfx/ipc/skia/gfx_skia_param_traits.h"
++#include "ui/gfx/range/range.h"
+ 
+ #undef IPC_MESSAGE_EXPORT
+ #define IPC_MESSAGE_EXPORT CONTENT_EXPORT
+@@ -44,6 +45,14 @@ IPC_STRUCT_BEGIN(BrowserPluginHostMsg_Attach_Params)
+   IPC_STRUCT_MEMBER(bool, is_full_page_plugin)
+ IPC_STRUCT_END()
+ 
++IPC_STRUCT_BEGIN(BrowserPluginHostMsg_SetComposition_Params)
++  IPC_STRUCT_MEMBER(base::string16, text)
++  IPC_STRUCT_MEMBER(std::vector<blink::WebCompositionUnderline>, underlines)
++  IPC_STRUCT_MEMBER(gfx::Range, replacement_range)
++  IPC_STRUCT_MEMBER(int, selection_start)
++  IPC_STRUCT_MEMBER(int, selection_end)
++IPC_STRUCT_END()
++
+ // Browser plugin messages
+ 
+ // -----------------------------------------------------------------------------
+@@ -65,21 +74,18 @@ IPC_MESSAGE_CONTROL2(BrowserPluginHostMsg_SetEditCommandsForNextKeyEvent,
+ 
+ // This message is sent from BrowserPlugin to BrowserPluginGuest whenever IME
+ // composition state is updated.
+-IPC_MESSAGE_CONTROL5(
+-    BrowserPluginHostMsg_ImeSetComposition,
+-    int /* browser_plugin_instance_id */,
+-    std::string /* text */,
+-    std::vector<blink::WebCompositionUnderline> /* underlines */,
+-    int /* selectiont_start */,
+-    int /* selection_end */)
++IPC_MESSAGE_CONTROL2(BrowserPluginHostMsg_ImeSetComposition,
++                     int /* browser_plugin_instance_id */,
++                     BrowserPluginHostMsg_SetComposition_Params /* params */)
+ 
+ // This message is sent from BrowserPlugin to BrowserPluginGuest to notify that
+ // deleting the current composition and inserting specified text is requested.
+-IPC_MESSAGE_CONTROL4(
++IPC_MESSAGE_CONTROL5(
+     BrowserPluginHostMsg_ImeCommitText,
+     int /* browser_plugin_instance_id */,
+-    std::string /* text */,
++    base::string16 /* text */,
+     std::vector<blink::WebCompositionUnderline> /* underlines */,
++    gfx::Range /* replacement_range */,
+     int /* relative_cursor_pos */)
+ 
+ // This message is sent from BrowserPlugin to BrowserPluginGuest to notify that
+diff --git a/content/renderer/browser_plugin/browser_plugin.cc b/content/renderer/browser_plugin/browser_plugin.cc
+index d7ebcfdb8eb9..06762fbd11e2 100644
+--- a/content/renderer/browser_plugin/browser_plugin.cc
++++ b/content/renderer/browser_plugin/browser_plugin.cc
+@@ -548,22 +548,28 @@ bool BrowserPlugin::executeEditCommand(const blink::WebString& name,
+ bool BrowserPlugin::setComposition(
+     const blink::WebString& text,
+     const blink::WebVector<blink::WebCompositionUnderline>& underlines,
++    const blink::WebRange& replacementRange,
+     int selectionStart,
+     int selectionEnd) {
+   if (!attached())
+     return false;
+ 
+-  std::vector<blink::WebCompositionUnderline> std_underlines;
++  BrowserPluginHostMsg_SetComposition_Params params;
++  params.text = text.utf16();
+   for (size_t i = 0; i < underlines.size(); ++i) {
+-    std_underlines.push_back(underlines[i]);
++    params.underlines.push_back(underlines[i]);
+   }
+ 
++  params.replacement_range =
++      replacementRange.isNull()
++          ? gfx::Range::InvalidRange()
++          : gfx::Range(static_cast<uint32_t>(replacementRange.startOffset()),
++                       static_cast<uint32_t>(replacementRange.endOffset()));
++  params.selection_start = selectionStart;
++  params.selection_end = selectionEnd;
++
+   BrowserPluginManager::Get()->Send(new BrowserPluginHostMsg_ImeSetComposition(
+-      browser_plugin_instance_id_,
+-      text.utf8(),
+-      std_underlines,
+-      selectionStart,
+-      selectionEnd));
++      browser_plugin_instance_id_, params));
+   // TODO(kochi): This assumes the IPC handling always succeeds.
+   return true;
+ }
+@@ -571,6 +577,7 @@ bool BrowserPlugin::setComposition(
+ bool BrowserPlugin::commitText(
+     const blink::WebString& text,
+     const blink::WebVector<blink::WebCompositionUnderline>& underlines,
++    const blink::WebRange& replacementRange,
+     int relative_cursor_pos) {
+   if (!attached())
+     return false;
+@@ -580,9 +587,15 @@ bool BrowserPlugin::commitText(
+     std_underlines.push_back(std_underlines[i]);
+   }
+ 
++  gfx::Range replacement_range =
++      replacementRange.isNull()
++          ? gfx::Range::InvalidRange()
++          : gfx::Range(static_cast<uint32_t>(replacementRange.startOffset()),
++                       static_cast<uint32_t>(replacementRange.endOffset()));
++
+   BrowserPluginManager::Get()->Send(new BrowserPluginHostMsg_ImeCommitText(
+-      browser_plugin_instance_id_, text.utf8(), std_underlines,
+-      relative_cursor_pos));
++      browser_plugin_instance_id_, text.utf16(), std_underlines,
++      replacement_range, relative_cursor_pos));
+   // TODO(kochi): This assumes the IPC handling always succeeds.
+   return true;
+ }
+diff --git a/content/renderer/browser_plugin/browser_plugin.h b/content/renderer/browser_plugin/browser_plugin.h
+index 47900ad6fcfc..989306432085 100644
+--- a/content/renderer/browser_plugin/browser_plugin.h
++++ b/content/renderer/browser_plugin/browser_plugin.h
+@@ -113,11 +113,13 @@ class CONTENT_EXPORT BrowserPlugin :
+   bool setComposition(
+       const blink::WebString& text,
+       const blink::WebVector<blink::WebCompositionUnderline>& underlines,
++      const blink::WebRange& replacementRange,
+       int selectionStart,
+       int selectionEnd) override;
+   bool commitText(
+       const blink::WebString& text,
+       const blink::WebVector<blink::WebCompositionUnderline>& underlines,
++      const blink::WebRange& replacementRange,
+       int relative_cursor_pos) override;
+   bool finishComposingText(
+       blink::WebInputMethodController::ConfirmCompositionBehavior
+diff --git a/third_party/WebKit/Source/web/WebInputMethodControllerImpl.cpp b/third_party/WebKit/Source/web/WebInputMethodControllerImpl.cpp
+index e71d80d5d855..7b491d2470cf 100644
+--- a/third_party/WebKit/Source/web/WebInputMethodControllerImpl.cpp
++++ b/third_party/WebKit/Source/web/WebInputMethodControllerImpl.cpp
+@@ -50,8 +50,8 @@ bool WebInputMethodControllerImpl::setComposition(
+     int selectionStart,
+     int selectionEnd) {
+   if (WebPlugin* plugin = focusedPluginIfInputMethodSupported()) {
+-    return plugin->setComposition(text, underlines, selectionStart,
+-                                  selectionEnd);
++    return plugin->setComposition(text, underlines, replacementRange,
++                                  selectionStart, selectionEnd);
+   }
+ 
+   // We should use this |editor| object only to complete the ongoing
+@@ -128,8 +128,10 @@ bool WebInputMethodControllerImpl::commitText(
+   UserGestureIndicator gestureIndicator(DocumentUserGestureToken::create(
+       frame()->document(), UserGestureToken::NewGesture));
+ 
+-  if (WebPlugin* plugin = focusedPluginIfInputMethodSupported())
+-    return plugin->commitText(text, underlines, relativeCaretPosition);
++  if (WebPlugin* plugin = focusedPluginIfInputMethodSupported()) {
++    return plugin->commitText(text, underlines, replacementRange,
++                              relativeCaretPosition);
++  }
+ 
+   // Select the range to be replaced with the composition later.
+   if (!replacementRange.isNull())
+diff --git a/third_party/WebKit/public/web/WebPlugin.h b/third_party/WebKit/public/web/WebPlugin.h
+index 8d2078b19a07..6e6403a7a6a5 100644
+--- a/third_party/WebKit/public/web/WebPlugin.h
++++ b/third_party/WebKit/public/web/WebPlugin.h
+@@ -167,19 +167,23 @@ class WebPlugin {
+   }
+ 
+   // Sets composition text from input method, and returns true if the
+-  // composition is set successfully.
++  // composition is set successfully. If |replacementRange| is not null, the
++  // text inside |replacementRange| will be replaced by |text|
+   virtual bool setComposition(
+       const WebString& text,
+       const WebVector<WebCompositionUnderline>& underlines,
++      const WebRange& replacementRange,
+       int selectionStart,
+       int selectionEnd) {
+     return false;
+   }
+ 
+   // Deletes the ongoing composition if any, inserts the specified text, and
+-  // moves the caret according to relativeCaretPosition.
++  // moves the caret according to relativeCaretPosition. If |replacementRange|
++  // is not null, the text inside |replacementRange| will be replaced by |text|.
+   virtual bool commitText(const WebString& text,
+                           const WebVector<WebCompositionUnderline>& underlines,
++                          const WebRange& replacementRange,
+                           int relativeCaretPosition) {
+     return false;
+   }
