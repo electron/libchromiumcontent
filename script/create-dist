@@ -16,6 +16,7 @@ from lib.config import get_output_dir
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
 DIST_DIR = os.path.join(SOURCE_ROOT, 'dist')
 SRC_DIR = os.path.join(SOURCE_ROOT, 'src')
 
@@ -515,28 +516,28 @@ def copy_dir(relative_path, relative_to, destination):
       copy_source_file(os.path.join(dirpath, filename), relative_to=relative_to, destination=destination)
 
 
-def add_gdb_index_section(gdb, objcopy, symfile, dirname):
+def add_gdb_index_section(gdb, objcopy, symfile, dirname, env):
   subprocess.check_call([gdb, '-batch',
                          '-ex', 'file {0}'.format(symfile),
-                         '-ex', 'save gdb-index .'], cwd=dirname)
+                         '-ex', 'save gdb-index .'], cwd=dirname, env=env)
   index_file = symfile + '.gdb-index'
   subprocess.check_call([objcopy, '--add-section',
                          '.gdb_index={0}'.format(index_file),
                          '--set-section-flags', '.gdb_index=readonly',
-                         symfile, symfile], cwd=dirname)
+                         symfile, symfile], cwd=dirname, env=env)
   os.unlink(os.path.join(dirname, index_file))
 
 
-def create_debug_file(gdb, objcopy, binfile, symfile, dirname):
+def create_debug_file(gdb, objcopy, binfile, symfile, dirname, env):
   subprocess.check_call([objcopy, '--only-keep-debug', binfile, symfile],
-                        cwd=dirname)
+                        cwd=dirname, env=env)
   # add gdb_index section to the debug file, which will improve load speed.
-  add_gdb_index_section(gdb, objcopy, symfile, dirname)
+  add_gdb_index_section(gdb, objcopy, symfile, dirname, env)
 
 
-def link_binary_to_debug_file(objcopy, binfile, symfile, dirname):
+def link_binary_to_debug_file(objcopy, binfile, symfile, dirname, env):
   subprocess.check_call([objcopy, '--add-gnu-debuglink={0}'.format(symfile),
-                         binfile], cwd=dirname)
+                         binfile], cwd=dirname, env=env)
 
 
 def run_strip(target_arch, filename, create_debug_archive):
@@ -549,6 +550,12 @@ def run_strip(target_arch, filename, create_debug_archive):
     strip_flags = []
   else:
     strip_flags = ['-x', '-S']
+
+  env = os.environ.copy()
+  if target_arch == 'arm64':
+    binutils_dir = os.path.join(VENDOR_DIR, 'binutils-aarch64')
+    env['LD_LIBRARY_PATH'] = binutils_dir + '/usr/x86_64-linux-gnu/aarch64-linux-gnu/lib'
+    env['PATH'] = os.pathsep.join([binutils_dir + '/usr/bin', env['PATH']])
 
   if target_arch == 'arm' and filename.endswith(('.so', 'chromedriver')):
     strip = 'arm-linux-gnueabihf-strip'
@@ -569,10 +576,10 @@ def run_strip(target_arch, filename, create_debug_archive):
                           # different version will be bundled.
                           and not symfile.startswith('libffmpeg'))
   if create_debug_archive:
-    create_debug_file(gdb, objcopy, filename, symfile, dirname)
-  subprocess.check_call([strip] + strip_flags + [filename])
+    create_debug_file(gdb, objcopy, filename, symfile, dirname, env)
+  subprocess.check_call([strip] + strip_flags + [filename], env=env)
   if create_debug_archive:
-    link_binary_to_debug_file(objcopy, filename, symfile, dirname)
+    link_binary_to_debug_file(objcopy, filename, symfile, dirname, env)
 
 
 def run_ar_combine(filename, target_dir):
