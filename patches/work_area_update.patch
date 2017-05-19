@@ -1,0 +1,14 @@
+diff --git a/ui/display/win/screen_win.cc b/ui/display/win/screen_win.cc
+index 636eb90dc3ad..11e2d2eddf1f 100644
+--- a/ui/display/win/screen_win.cc
++++ b/ui/display/win/screen_win.cc
+@@ -488,7 +488,8 @@ void ScreenWin::OnWndProc(HWND hwnd,
+                           UINT message,
+                           WPARAM wparam,
+                           LPARAM lparam) {
+-  if (message != WM_DISPLAYCHANGE)
++  if (message != WM_DISPLAYCHANGE &&
++    !(message == WM_SETTINGCHANGE && wparam == SPI_SETWORKAREA))
+     return;
+ 
+   std::vector<Display> old_displays = std::move(displays_);
