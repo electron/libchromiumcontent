@@ -1,0 +1,13 @@
+diff --git a/src/gpu/GrAutoLocaleSetter.h b/src/gpu/GrAutoLocaleSetter.h
+index cec041e086..9cfa6374d4 100644
+--- a/src/gpu/GrAutoLocaleSetter.h
++++ b/src/gpu/GrAutoLocaleSetter.h
+@@ -54,7 +54,7 @@ public:
+             name = nullptr;
+         }
+ #endif
+-        fLocale = newlocale(LC_ALL, name, 0);
++        fLocale = newlocale(LC_ALL_MASK, name, 0);
+         if (fLocale) {
+             fOldLocale = uselocale(fLocale);
+         } else {
