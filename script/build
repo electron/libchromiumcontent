@@ -27,6 +27,10 @@ def main():
                                  env['PATH']])
   if sys.platform in ['win32', 'cygwin']:
     env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
+  if target_arch == 'arm64':
+    binutils_dir = os.path.join(VENDOR_DIR, 'binutils-aarch64')
+    env['LD_LIBRARY_PATH'] = binutils_dir + '/usr/x86_64-linux-gnu/aarch64-linux-gnu/lib'
+    env['PATH'] = os.pathsep.join([binutils_dir + '/usr/bin', env['PATH']])
 
   os.chdir(SOURCE_ROOT)
 
