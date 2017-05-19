@@ -1,0 +1,97 @@
+diff --git a/content/renderer/renderer_blink_platform_impl.cc b/content/renderer/renderer_blink_platform_impl.cc
+index 6cfd9df..ec79d1c 100644
+--- a/content/renderer/renderer_blink_platform_impl.cc
++++ b/content/renderer/renderer_blink_platform_impl.cc
+@@ -997,9 +997,9 @@ RendererBlinkPlatformImpl::createOffscreenGraphicsContext3DProvider(
+       web_attributes.supportStencil || web_attributes.supportAntialias;
+   attributes.sample_buffers = 0;
+   attributes.bind_generates_resource = false;
+-  // Prefer discrete GPU for WebGL.
+-  attributes.gpu_preference = gl::PreferDiscreteGpu;
+-
++  attributes.gpu_preference = web_attributes.preferIntegratedGpu
++      ? gl::PreferIntegratedGpu
++      : gl::PreferDiscreteGpu;
+   attributes.fail_if_major_perf_caveat =
+       web_attributes.failIfMajorPerformanceCaveat;
+   DCHECK_GT(web_attributes.webGLVersion, 0u);
+diff --git a/third_party/WebKit/Source/core/html/canvas/CanvasContextCreationAttributes.idl b/third_party/WebKit/Source/core/html/canvas/CanvasContextCreationAttributes.idl
+index 752714c..058b969 100644
+--- a/third_party/WebKit/Source/core/html/canvas/CanvasContextCreationAttributes.idl
++++ b/third_party/WebKit/Source/core/html/canvas/CanvasContextCreationAttributes.idl
+@@ -34,6 +34,12 @@ enum CanvasPixelFormat {
+     "float16",
+ };
+ 
++enum CanvasPowerPreference {
++    "default",
++    "low-power",
++    "high-performance",
++};
++
+ [PermissiveDictionaryConversion]
+ dictionary CanvasContextCreationAttributes {
+     // Canvas 2D attributes
+@@ -50,5 +56,6 @@ dictionary CanvasContextCreationAttributes {
+     boolean antialias = true;
+     boolean premultipliedAlpha = true;
+     boolean preserveDrawingBuffer = false;
++    CanvasPowerPreference powerPreference = "default";
+     boolean failIfMajorPerformanceCaveat = false;
+ };
+diff --git a/third_party/WebKit/Source/modules/webgl/WebGLContextAttributeHelpers.cpp b/third_party/WebKit/Source/modules/webgl/WebGLContextAttributeHelpers.cpp
+index 8c07036..223ba31 100644
+--- a/third_party/WebKit/Source/modules/webgl/WebGLContextAttributeHelpers.cpp
++++ b/third_party/WebKit/Source/modules/webgl/WebGLContextAttributeHelpers.cpp
+@@ -17,6 +17,7 @@ WebGLContextAttributes toWebGLContextAttributes(
+   result.setAntialias(attrs.antialias());
+   result.setPremultipliedAlpha(attrs.premultipliedAlpha());
+   result.setPreserveDrawingBuffer(attrs.preserveDrawingBuffer());
++  result.setPowerPreference(attrs.powerPreference());
+   result.setFailIfMajorPerformanceCaveat(attrs.failIfMajorPerformanceCaveat());
+   return result;
+ }
+@@ -26,6 +27,7 @@ Platform::ContextAttributes toPlatformContextAttributes(
+     unsigned webGLVersion,
+     bool supportOwnOffscreenSurface) {
+   Platform::ContextAttributes result;
++  result.preferIntegratedGpu = attrs.powerPreference() == "low-power";
+   result.failIfMajorPerformanceCaveat = attrs.failIfMajorPerformanceCaveat();
+   result.webGLVersion = webGLVersion;
+   if (supportOwnOffscreenSurface) {
+diff --git a/third_party/WebKit/Source/modules/webgl/WebGLContextAttributes.idl b/third_party/WebKit/Source/modules/webgl/WebGLContextAttributes.idl
+index 9a48073..5196a53 100644
+--- a/third_party/WebKit/Source/modules/webgl/WebGLContextAttributes.idl
++++ b/third_party/WebKit/Source/modules/webgl/WebGLContextAttributes.idl
+@@ -26,6 +26,12 @@
+ 
+ // https://www.khronos.org/registry/webgl/specs/latest/1.0/#5.2
+ 
++enum WebGLPowerPreference {
++    "default",
++    "low-power",
++    "high-performance",
++};
++
+ dictionary WebGLContextAttributes {
+     boolean alpha = true;
+     boolean depth = true;
+@@ -33,5 +39,6 @@ dictionary WebGLContextAttributes {
+     boolean antialias = true;
+     boolean premultipliedAlpha = true;
+     boolean preserveDrawingBuffer = false;
++    WebGLPowerPreference powerPreference = "default";
+     boolean failIfMajorPerformanceCaveat = false;
+ };
+diff --git a/third_party/WebKit/public/platform/Platform.h b/third_party/WebKit/public/platform/Platform.h
+index 8c078e7..0779d4a 100644
+--- a/third_party/WebKit/public/platform/Platform.h
++++ b/third_party/WebKit/public/platform/Platform.h
+@@ -458,6 +458,7 @@ class BLINK_PLATFORM_EXPORT Platform {
+   // GPU ----------------------------------------------------------------
+   //
+   struct ContextAttributes {
++    bool preferIntegratedGpu = false;
+     bool failIfMajorPerformanceCaveat = false;
+     unsigned webGLVersion = 0;
+     // Offscreen contexts usually share a surface for the default frame buffer
