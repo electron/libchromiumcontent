@@ -5,5 +5,6 @@
 /src/
 /libchromiumcontent.zip
 /libchromiumcontent-static.zip
+/vendor/binutils-aarch64
 .gclient
 .gclient_entries

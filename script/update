@@ -28,6 +28,8 @@ if sys.platform == 'win32':
 
 TARBALL_REPO = 'zcbenz/chromium-source-tarball'
 TARBALL_URL = 'https://github.com/{0}/releases/download/{1}/chromium-{1}.tar.xz'
+DEBIAN_MIRROR = 'http://ftp.jp.debian.org/debian/pool/main/'
+BINTOOLS_NAME = 'c/cross-binutils/binutils-aarch64-linux-gnu_2.25-5_amd64.deb'
 
 def main():
   args = parse_args()
@@ -45,6 +47,9 @@ def main():
     update_toolchain_json()
 
   target_arch = args.target_arch
+  if target_arch == 'arm64':
+    install_aarch64_bintools()
+
   return (apply_patches() or
           copy_chromiumcontent_files() or
           update_clang() or
@@ -120,6 +125,27 @@ def install_sysroot():
     install = os.path.join(SRC_DIR, 'build', 'linux', 'sysroot_scripts',
                            'install-sysroot.py')
     subprocess.check_call([sys.executable, install, '--arch', arch])
+
+
+def install_aarch64_bintools():
+  destination = os.path.join(VENDOR_DIR, 'binutils-aarch64')
+  if os.path.exists(destination):
+    return
+
+  url = DEBIAN_MIRROR + BINTOOLS_NAME
+  deb_name = 'binutils-aarch64.deb'
+  with open(deb_name, 'wb+') as f:
+    with contextlib.closing(urllib2.urlopen(url)) as u:
+      while True:
+        chunk = u.read(1024*1024)
+        if not len(chunk):
+          break
+        f.write(chunk)
+
+  env = os.environ.copy()
+  env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
+  subprocess.call(['dpkg', '-x', deb_name, destination])
+  rm_f(deb_name)
 
 
 def update_toolchain_json():
