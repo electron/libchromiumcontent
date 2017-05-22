@@ -28,7 +28,8 @@ def main():
   elif sys.platform == 'linux2':
     return (run_ci(['-t', 'x64']) or
             run_ci(['-t', 'ia32']) or
-            run_ci(['-t', 'arm']))
+            run_ci(['-t', 'arm']) or
+            run_ci(['-t', 'arm64']))
   else:
     return run_ci([])
 
