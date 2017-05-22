@@ -1,0 +1,18 @@
+diff --git a/content/renderer/render_widget.cc b/content/renderer/render_widget.cc
+index b07734efdcce..50116037b3f3 100644
+--- a/content/renderer/render_widget.cc
++++ b/content/renderer/render_widget.cc
+@@ -1825,8 +1825,13 @@ ui::TextInputType RenderWidget::GetTextInputType() {
+ }
+ 
+ void RenderWidget::UpdateCompositionInfo(bool immediate_request) {
++#if !defined(OS_MACOSX)
++  // On Mac, we always perform update regardless of |monitor_composition_info_|
++  // to workaround IME malfunctions.
++  // TODO(crbug.com/714771): Remove this platform-specific guard.
+   if (!monitor_composition_info_ && !immediate_request)
+     return;  // Do not calculate composition info if not requested.
++#endif
+ 
+   TRACE_EVENT0("renderer", "RenderWidget::UpdateCompositionInfo");
+   gfx::Range range;
