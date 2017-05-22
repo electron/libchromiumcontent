@@ -1,17 +1,52 @@
 diff --git a/BUILD.gn b/BUILD.gn
-index 8895103222..fedab53463 100644
+index 8895103..69f8bf5 100644
 --- a/BUILD.gn
 +++ b/BUILD.gn
-@@ -134,7 +134,7 @@ config("internal_config") {
- 
-   include_dirs = [ "." ]
- 
--  if (is_component_build) {
-+  if (is_component_build || is_electron_build) {
+@@ -137,25 +137,41 @@ config("internal_config") {
+   if (is_component_build) {
      defines = [ "BUILDING_V8_SHARED" ]
    }
++
++  if (!is_component_build && is_electron_build) {
++    defines = [
++      "BUILDING_V8_BASE_SHARED",
++      "BUILDING_V8_PLATFORM_SHARED",
++      "BUILDING_V8_SHARED",
++    ]
++  }
  }
-@@ -172,7 +172,7 @@ config("libsampler_config") {
+ 
+ config("internal_config_base") {
+   visibility = [ ":*" ]  # Only targets in this file can depend on this.
+ 
+   include_dirs = [ "." ]
++
++  if (!is_component_build && is_electron_build) {
++    defines = [
++      "BUILDING_V8_BASE_SHARED",
++      "BUILDING_V8_PLATFORM_SHARED",
++      "BUILDING_V8_SHARED",
++    ]
++  }
+ }
+ 
+ # This config should be applied to code using the libplatform.
+ config("libplatform_config") {
+   include_dirs = [ "include" ]
+-  if (is_component_build) {
++  if (is_component_build || is_electron_build) {
+     defines = [ "USING_V8_PLATFORM_SHARED" ]
+   }
+ }
+ 
+ # This config should be applied to code using the libbase.
+ config("libbase_config") {
+-  if (is_component_build) {
++  if (is_component_build || is_electron_build) {
+     defines = [ "USING_V8_BASE_SHARED" ]
+   }
+   libs = []
+@@ -172,7 +188,7 @@ config("libsampler_config") {
  # This config should only be applied to code using V8 and not any V8 code
  # itself.
  config("external_config") {
@@ -20,7 +55,25 @@ index 8895103222..fedab53463 100644
      defines = [ "USING_V8_SHARED" ]
    }
    include_dirs = [ "include" ]
-@@ -2482,6 +2482,8 @@ if (current_toolchain == v8_snapshot_toolchain) {
+@@ -2328,7 +2344,7 @@ v8_component("v8_libbase") {
+ 
+   defines = []
+ 
+-  if (is_component_build) {
++  if (is_component_build || is_electron_build) {
+     defines = [ "BUILDING_V8_BASE_SHARED" ]
+   }
+ 
+@@ -2418,7 +2434,7 @@ v8_component("v8_libplatform") {
+ 
+   configs = [ ":internal_config_base" ]
+ 
+-  if (is_component_build) {
++  if (is_component_build || is_electron_build) {
+     defines = [ "BUILDING_V8_PLATFORM_SHARED" ]
+   }
+ 
+@@ -2482,6 +2498,8 @@ if (current_toolchain == v8_snapshot_toolchain) {
  
      configs = [ ":internal_config" ]
  
@@ -29,7 +82,7 @@ index 8895103222..fedab53463 100644
      deps = [
        ":v8_base",
        ":v8_libbase",
-@@ -2514,6 +2516,8 @@ v8_executable("mkpeephole") {
+@@ -2514,6 +2532,8 @@ v8_executable("mkpeephole") {
      ":internal_config",
    ]
  
@@ -38,7 +91,7 @@ index 8895103222..fedab53463 100644
    deps = [
      ":v8_libbase",
      "//build/config/sanitizers:deps",
-@@ -2588,7 +2592,7 @@ group("v8_fuzzers") {
+@@ -2588,7 +2608,7 @@ group("v8_fuzzers") {
    ]
  }
  
@@ -48,7 +101,7 @@ index 8895103222..fedab53463 100644
      sources = [
        "src/v8dll-main.cc",
 diff --git a/gni/v8.gni b/gni/v8.gni
-index ea628e0000..710f7aaf4d 100644
+index ea628e0..1b521f8 100644
 --- a/gni/v8.gni
 +++ b/gni/v8.gni
 @@ -4,6 +4,7 @@
@@ -59,22 +112,23 @@ index ea628e0000..710f7aaf4d 100644
  
  declare_args() {
    # Includes files needed for correctness fuzzing.
-@@ -143,7 +144,12 @@ template("v8_executable") {
+@@ -143,7 +144,13 @@ template("v8_executable") {
  }
  
  template("v8_component") {
 -  component(target_name) {
-+  if (is_component_build || target_name == "v8") {
-+    v8_component = component_electron
-+  } else {
++  if (is_electron_build && !is_component_build &&
++      (target_name == "v8_libbase" || target_name == "v8_libplatform")) {
 +    v8_component = "source_set"
++  } else {
++    v8_component = component_electron
 +  }
 +  target(v8_component, target_name) {
      forward_variables_from(invoker, "*", [ "configs" ])
      configs += invoker.configs
      configs -= v8_remove_configs
 diff --git a/src/inspector/BUILD.gn b/src/inspector/BUILD.gn
-index e6742c09f7..ef3876d1d8 100644
+index e6742c0..ef3876d 100644
 --- a/src/inspector/BUILD.gn
 +++ b/src/inspector/BUILD.gn
 @@ -106,7 +106,7 @@ config("inspector_config") {
