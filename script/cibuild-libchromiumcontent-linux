@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
+set -o pipefail
 
 # Workaround for massive amounts of the following being logged in binutils 2.22:
 # /usr/bin/arm-linux-gnueabihf-ld: BFD (GNU Binutils for Ubuntu) 2.22 assertion fail ../../bfd/elf32-arm.c:12049
