@@ -30,7 +30,9 @@ def main():
 
 def reset_chromium_submodule():
   subprocess.check_call(['git', 'reset', '--hard', 'HEAD'], cwd=CHROMIUM_DIR)
-  subprocess.check_call(['git', 'clean', '-dff'], cwd=CHROMIUM_DIR)
+  subprocess.check_call(['git', 'clean', '-dff'
+                         '--exclude', 'src/build',
+                         '--exclude', 'src/buildtools'], cwd=CHROMIUM_DIR)
 
 def apply_patches_for_dir(directory):
   for root, dirs, files in os.walk(directory):

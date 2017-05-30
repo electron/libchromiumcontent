@@ -51,12 +51,6 @@ def main():
 def parse_args():
   parser = argparse.ArgumentParser(description='Update build configuration')
   parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
-  parser.add_argument('-N', '--no-download-source-tarball',
-                      default=False,
-                      required=False,
-                      action='store_true',
-                      dest='no_download',
-                      help='if you fetched chromium directly with depot_tools')
   parser.add_argument('--defines', default='',
                       help='The definitions passed to gyp')
   return parser.parse_args()
