@@ -62,24 +62,6 @@ def parse_args():
   return parser.parse_args()
 
 
-def chromium_version():
-  with open(os.path.join(SOURCE_ROOT, 'VERSION')) as f:
-    return f.readline().strip()
-
-
-def is_source_tarball_updated(version):
-  version_file = os.path.join(SRC_DIR, '.version')
-  existing_version = ''
-  try:
-    with open(version_file, 'r') as f:
-      existing_version = f.readline().strip()
-  except IOError as e:
-    if e.errno != errno.ENOENT:
-      raise
-    return False
-  return existing_version == version
-
-
 def install_sysroot():
   for arch in ('arm', 'arm64', 'amd64', 'i386'):
     install = os.path.join(SRC_DIR, 'build', 'linux', 'sysroot_scripts',
