@@ -7,7 +7,6 @@ import os
 import shutil
 import subprocess
 import sys
-import tarfile
 import tempfile
 import urllib2
 
@@ -26,8 +25,6 @@ NINJA = os.path.join(DEPOT_TOOLS, 'ninja')
 if sys.platform == 'win32':
   NINJA = '{0}.exe'.format(NINJA)
 
-TARBALL_REPO = 'zcbenz/chromium-source-tarball'
-TARBALL_URL = 'https://github.com/{0}/releases/download/{1}/chromium-{1}.tar.xz'
 DEBIAN_MIRROR = 'http://ftp.jp.debian.org/debian/pool/main/'
 BINTOOLS_NAME = 'c/cross-binutils/binutils-aarch64-linux-gnu_2.25-5_amd64.deb'
 
@@ -83,36 +80,6 @@ def is_source_tarball_updated(version):
   return existing_version == version
 
 
-def download_source_tarball(version):
-  rm_rf(SRC_DIR)
-
-  dir_name = 'chromium-{0}'.format(version)
-  tar_name = dir_name + '.tar'
-  xz_name = tar_name + '.xz'
-  url = TARBALL_URL.format(TARBALL_REPO, version)
-  with open(xz_name, 'wb+') as t:
-    with contextlib.closing(urllib2.urlopen(url)) as u:
-      while True:
-        chunk = u.read(1024*1024)
-        if not len(chunk):
-            break
-        sys.stderr.write('.')
-        sys.stderr.flush()
-        t.write(chunk)
-
-  sys.stderr.write('\nExtracting...\n')
-  sys.stderr.flush()
-
-  rm_f(tar_name)
-  tar_xf(xz_name)
-  os.rename(dir_name, SRC_DIR)
-  os.remove(xz_name)
-
-  version_file = os.path.join(SRC_DIR, '.version')
-  with open(version_file, 'w+') as f:
-    f.write(version)
-
-
 def install_sysroot():
   for arch in ('arm', 'arm64', 'amd64', 'i386'):
     install = os.path.join(SRC_DIR, 'build', 'linux', 'sysroot_scripts',
@@ -146,15 +113,6 @@ def update_toolchain_json():
   env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
   vs_toolchain = os.path.join(SRC_DIR, 'build', 'vs_toolchain.py')
   subprocess.check_call([sys.executable, vs_toolchain, 'update'], env=env)
-
-
-def tar_xf(filename):
-  subprocess.call([xz(), '-dqk', filename])
-  tar_name = filename[:-3]
-  tar = tarfile.open(tar_name)
-  tar.extractall()
-  tar.close()
-  os.remove(tar_name)
 
 
 def copy_chromiumcontent_files():
@@ -258,15 +216,6 @@ def run_gn(target_arch, defines):
     output_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
     subprocess.call([gn, 'gen', os.path.relpath(output_dir, SRC_DIR), '--args=' + args],
                     cwd=SRC_DIR, env=env)
-
-
-def xz():
-  if sys.platform in ['win32', 'cygwin']:
-    return os.path.join(VENDOR_DIR, 'xz', 'win32', 'xz.exe')
-  elif sys.platform == 'darwin':
-    return os.path.join(VENDOR_DIR, 'xz', 'darwin', 'bin', 'xz')
-  else:
-    return 'xz'
 
 
 def is_newer(destination, source):
