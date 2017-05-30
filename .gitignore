@@ -1,6 +1,7 @@
 .DS_Store
 *.swp
 *.pyc
+/out-*
 /dist/
 /src/
 /libchromiumcontent.zip
