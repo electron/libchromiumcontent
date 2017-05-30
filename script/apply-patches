@@ -30,7 +30,7 @@ def main():
 
 def reset_chromium_submodule():
   subprocess.check_call(['git', 'reset', '--hard', 'HEAD'], cwd=CHROMIUM_DIR)
-  subprocess.check_call(['git', 'clean', '-dff'
+  subprocess.check_call(['git', 'clean', '-dff',
                          '--exclude', 'src/build',
                          '--exclude', 'src/buildtools'], cwd=CHROMIUM_DIR)
 
