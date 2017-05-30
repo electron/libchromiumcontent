@@ -16,7 +16,7 @@ from lib.config import get_output_dir
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
-SRC_DIR = os.path.join(SOURCE_ROOT, 'src')
+SRC_DIR = os.path.join(VENDOR_DIR, 'chromium', 'src')
 CHROMIUMCONTENT_SOURCE_DIR = os.path.join(SOURCE_ROOT, 'chromiumcontent')
 CHROMIUMCONTENT_DESTINATION_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
 COMPONENTS = ['static_library', 'shared_library', 'ffmpeg']
@@ -33,13 +33,6 @@ BINTOOLS_NAME = 'c/cross-binutils/binutils-aarch64-linux-gnu_2.25-5_amd64.deb'
 
 def main():
   args = parse_args()
-
-  if not args.no_download:
-    version = chromium_version()
-    if not is_source_tarball_updated(version):
-      download_source_tarball(version)
-  else:
-    print "Skipping Chromium Source Tarball Download"
 
   if sys.platform == 'linux2':
     install_sysroot()
@@ -68,7 +61,7 @@ def parse_args():
                       dest='no_download',
                       help='if you fetched chromium directly with depot_tools')
   parser.add_argument('--defines', default='',
-                      help='The definetions passed to gyp')
+                      help='The definitions passed to gyp')
   return parser.parse_args()
 
 
