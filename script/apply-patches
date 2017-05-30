@@ -40,7 +40,8 @@ def apply_patches_for_dir(directory):
     target = 'src'
     if prefix != '.':
       target = os.path.join(target, prefix)
-    args = ['git', 'apply', '--directory', target]
+    args = ['git', 'apply', '--whitespace', 'fix', '--inaccurate-eof',
+            '--directory', target]
     for name in sorted(files):
       if not name.endswith('.patch'):
         continue
