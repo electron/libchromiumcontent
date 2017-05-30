@@ -7,3 +7,6 @@
 [submodule "vendor/boto"]
 	path = vendor/boto
 	url = https://github.com/boto/boto
+[submodule "vendor/chromium"]
+	path = vendor/chromium
+	url = https://github.com/electron/chromium.git
