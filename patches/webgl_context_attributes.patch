@@ -84,7 +84,7 @@ index 9a48073..5196a53 100644
      boolean failIfMajorPerformanceCaveat = false;
  };
 diff --git a/third_party/WebKit/public/platform/Platform.h b/third_party/WebKit/public/platform/Platform.h
-index 8c078e7..0779d4a 100644
+index 2cd7334..98ecb84 100644
 --- a/third_party/WebKit/public/platform/Platform.h
 +++ b/third_party/WebKit/public/platform/Platform.h
 @@ -458,6 +458,7 @@ class BLINK_PLATFORM_EXPORT Platform {
