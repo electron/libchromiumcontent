@@ -61,10 +61,10 @@ index e76c01f..560566a 100644
    workerReportingProxy().willDestroyWorkerGlobalScope();
    probe::allAsyncTasksCanceled(globalScope());
 diff --git a/third_party/WebKit/public/platform/Platform.h b/third_party/WebKit/public/platform/Platform.h
-index 2cd7334..8c078e7 100644
+index 98ecb84..0779d4a 100644
 --- a/third_party/WebKit/public/platform/Platform.h
 +++ b/third_party/WebKit/public/platform/Platform.h
-@@ -587,6 +587,7 @@ class BLINK_PLATFORM_EXPORT Platform {
+@@ -588,6 +588,7 @@ class BLINK_PLATFORM_EXPORT Platform {
    virtual void didStartWorkerThread() {}
    virtual void willStopWorkerThread() {}
    virtual void workerContextCreated(const v8::Local<v8::Context>& worker) {}
