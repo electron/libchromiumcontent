@@ -34,9 +34,9 @@ BINTOOLS_NAME = 'c/cross-binutils/binutils-aarch64-linux-gnu_2.25-5_amd64.deb'
 def main():
   args = parse_args()
 
-  if not args.no_download:
+  if args.force_download or not args.no_download:
     version = chromium_version()
-    if not is_source_tarball_updated(version):
+    if args.force_download or not is_source_tarball_updated(version):
       download_source_tarball(version)
   else:
     print "Skipping Chromium Source Tarball Download"
@@ -61,6 +61,12 @@ def main():
 def parse_args():
   parser = argparse.ArgumentParser(description='Update build configuration')
   parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
+  parser.add_argument('--force-download-source-tarball',
+                      default=False,
+                      required=False,
+                      action='store_true',
+                      dest='force_download',
+                      help='Always redownload Chromium source tarball')
   parser.add_argument('-N', '--no-download-source-tarball',
                       default=False,
                       required=False,
