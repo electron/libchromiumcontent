@@ -34,6 +34,7 @@ def reset_chromium_submodule():
                          '--exclude', 'src/build',
                          '--exclude', 'src/buildtools'], cwd=CHROMIUM_DIR)
 
+
 def apply_patches_for_dir(directory):
   for root, dirs, files in os.walk(directory):
     prefix = os.path.relpath(root, directory)
