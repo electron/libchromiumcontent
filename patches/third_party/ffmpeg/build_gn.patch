@@ -2,7 +2,7 @@ diff --git a/BUILD.gn b/BUILD.gn
 index fb2b163..6891861 100755
 --- a/BUILD.gn
 +++ b/BUILD.gn
-@@ -394,6 +394,13 @@ if (is_component_ffmpeg) {
+@@ -407,6 +407,13 @@ if (is_component_ffmpeg) {
      # So we can append below and assume they're defined.
      ldflags = []
  

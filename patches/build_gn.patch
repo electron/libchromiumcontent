@@ -23,7 +23,7 @@ diff --git a/third_party/WebKit/Source/platform/BUILD.gn b/third_party/WebKit/So
 index 15bf689..9cdc19d 100644
 --- a/third_party/WebKit/Source/platform/BUILD.gn
 +++ b/third_party/WebKit/Source/platform/BUILD.gn
-@@ -133,6 +133,7 @@ action("character_data") {
+@@ -160,6 +160,7 @@ action("character_data") {
  }
  
  executable("character_data_generator") {
@@ -35,7 +35,7 @@ diff --git a/third_party/widevine/cdm/BUILD.gn b/third_party/widevine/cdm/BUILD.
 index dda9799..2bf3f57 100644
 --- a/third_party/widevine/cdm/BUILD.gn
 +++ b/third_party/widevine/cdm/BUILD.gn
-@@ -110,7 +110,7 @@ if (widevine_cdm_binary_files != []) {
+@@ -153,7 +153,7 @@ if (widevine_cdm_binary_files != []) {
        "//build/config/sanitizers:deps",
      ]
  
