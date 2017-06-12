@@ -2,7 +2,9 @@
 *.swp
 *.pyc
 /dist/
+/src/
 /libchromiumcontent.zip
 /libchromiumcontent-static.zip
 /vendor/binutils-aarch64
 .gclient_entries
+_gclient_src_*
