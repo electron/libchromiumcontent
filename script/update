@@ -122,6 +122,9 @@ def update_depot_tools():
   # Don't actually update the depot tools, just install the required
   # tools like python
   env['DEPOT_TOOLS_UPDATE'] = '0'
+  # Remove trailing slash from TEMP
+  # https://bugs.chromium.org/p/chromium/issues/detail?id=340243
+  env['TEMP'] = env['TEMP'].rstrip('\\')
   env['PATH'] = os.pathsep.join([os.path.join(VENDOR_DIR, 'depot_tools'),
                                  env['PATH']])
   cmd_path = env['COMSPEC']
