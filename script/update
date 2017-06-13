@@ -125,9 +125,6 @@ def gclient_sync(version):
   subprocess.check_call([sys.executable,
                          gclient,
                          'sync', '--jobs', '16',
-                         '--verbose',
-                         '--verbose',
-                         '--verbose',
                          '--revision', 'src@{0}'.format(version),
                          '--with_tags', '--with_branch_heads',
                          '--reset', '--delete_unversioned_trees'], env=env)
