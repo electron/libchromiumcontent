@@ -30,6 +30,9 @@ BINTOOLS_NAME = 'c/cross-binutils/binutils-aarch64-linux-gnu_2.25-5_amd64.deb'
 def main():
   args = parse_args()
 
+  if sys.platform in ['win32', 'cygwin']:
+    update_depot_tools()
+
   gclient_sync(chromium_version())
 
   if sys.platform == 'linux2':
@@ -114,6 +117,13 @@ def copy_chromiumcontent_files():
         continue
       shutil.copy2(source, destination)
 
+def update_depot_tools():
+  env = os.environ.copy()
+  env['DEPOT_TOOLS_UPDATE'] = '0'
+  env['PATH'] = os.pathsep.join([os.path.join(VENDOR_DIR, 'depot_tools'),
+                                 env['PATH']])
+  update_path = os.path.join(VENDOR_DIR, 'depot_tools', 'update_depot_tools.bat')
+  subprocess.check_call([update_path], env=env)
 
 def gclient_sync(version):
   env = os.environ.copy()
