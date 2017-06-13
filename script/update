@@ -117,6 +117,8 @@ def copy_chromiumcontent_files():
 
 def gclient_sync(version):
   env = os.environ.copy()
+  if sys.platform in ['win32', 'cygwin']:
+    env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
   env['PATH'] = os.pathsep.join([os.path.join(VENDOR_DIR, 'depot_tools'),
                                  env['PATH']])
   gclient = os.path.join(VENDOR_DIR, 'depot_tools', 'gclient.py')
