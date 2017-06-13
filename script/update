@@ -119,11 +119,14 @@ def copy_chromiumcontent_files():
 
 def update_depot_tools():
   env = os.environ.copy()
+  # Don't actually update the depot tools, just install the required
+  # tools like python
   env['DEPOT_TOOLS_UPDATE'] = '0'
   env['PATH'] = os.pathsep.join([os.path.join(VENDOR_DIR, 'depot_tools'),
                                  env['PATH']])
+  cmd_path = env['COMSPEC']
   update_path = os.path.join(VENDOR_DIR, 'depot_tools', 'update_depot_tools.bat')
-  subprocess.check_call([update_path], env=env)
+  subprocess.check_call([cmd_path, '/c', update_path], env=env)
 
 def gclient_sync(version):
   env = os.environ.copy()
