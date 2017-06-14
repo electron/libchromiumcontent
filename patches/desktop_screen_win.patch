@@ -4,7 +4,7 @@ index f772f64..7d13f9f 100644
 +++ b/ui/views/widget/desktop_aura/desktop_screen_win.cc
 @@ -32,6 +32,8 @@ display::Display DesktopScreenWin::GetDisplayMatching(
  }
-
+ 
  HWND DesktopScreenWin::GetHWNDFromNativeView(gfx::NativeView window) const {
 +  if (!window)
 +    return NULL;

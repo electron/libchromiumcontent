@@ -7,8 +7,6 @@ import os
 import shutil
 import subprocess
 import sys
-import tarfile
-import tempfile
 import urllib2
 
 from lib.config import get_output_dir
@@ -26,20 +24,16 @@ NINJA = os.path.join(DEPOT_TOOLS, 'ninja')
 if sys.platform == 'win32':
   NINJA = '{0}.exe'.format(NINJA)
 
-TARBALL_REPO = 'zcbenz/chromium-source-tarball'
-TARBALL_URL = 'https://github.com/{0}/releases/download/{1}/chromium-{1}.tar.xz'
 DEBIAN_MIRROR = 'http://ftp.jp.debian.org/debian/pool/main/'
 BINTOOLS_NAME = 'c/cross-binutils/binutils-aarch64-linux-gnu_2.25-5_amd64.deb'
 
 def main():
   args = parse_args()
 
-  if not args.no_download:
-    version = chromium_version()
-    if not is_source_tarball_updated(version):
-      download_source_tarball(version)
-  else:
-    print "Skipping Chromium Source Tarball Download"
+  if sys.platform in ['win32', 'cygwin']:
+    update_depot_tools()
+
+  gclient_sync(chromium_version())
 
   if sys.platform == 'linux2':
     install_sysroot()
@@ -53,71 +47,20 @@ def main():
   return (apply_patches() or
           copy_chromiumcontent_files() or
           update_clang() or
-          update_gn() or
-          update_node() or
           run_gn(target_arch, args.defines))
 
 
 def parse_args():
   parser = argparse.ArgumentParser(description='Update build configuration')
   parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
-  parser.add_argument('-N', '--no-download-source-tarball',
-                      default=False,
-                      required=False,
-                      action='store_true',
-                      dest='no_download',
-                      help='if you fetched chromium directly with depot_tools')
   parser.add_argument('--defines', default='',
-                      help='The definetions passed to gyp')
+                      help='The definitions passed to gyp')
   return parser.parse_args()
 
 
 def chromium_version():
   with open(os.path.join(SOURCE_ROOT, 'VERSION')) as f:
     return f.readline().strip()
-
-
-def is_source_tarball_updated(version):
-  version_file = os.path.join(SRC_DIR, '.version')
-  existing_version = ''
-  try:
-    with open(version_file, 'r') as f:
-      existing_version = f.readline().strip()
-  except IOError as e:
-    if e.errno != errno.ENOENT:
-      raise
-    return False
-  return existing_version == version
-
-
-def download_source_tarball(version):
-  rm_rf(SRC_DIR)
-
-  dir_name = 'chromium-{0}'.format(version)
-  tar_name = dir_name + '.tar'
-  xz_name = tar_name + '.xz'
-  url = TARBALL_URL.format(TARBALL_REPO, version)
-  with open(xz_name, 'wb+') as t:
-    with contextlib.closing(urllib2.urlopen(url)) as u:
-      while True:
-        chunk = u.read(1024*1024)
-        if not len(chunk):
-            break
-        sys.stderr.write('.')
-        sys.stderr.flush()
-        t.write(chunk)
-
-  sys.stderr.write('\nExtracting...\n')
-  sys.stderr.flush()
-
-  rm_f(tar_name)
-  tar_xf(xz_name)
-  os.rename(dir_name, SRC_DIR)
-  os.remove(xz_name)
-
-  version_file = os.path.join(SRC_DIR, '.version')
-  with open(version_file, 'w+') as f:
-    f.write(version)
 
 
 def install_sysroot():
@@ -155,15 +98,6 @@ def update_toolchain_json():
   subprocess.check_call([sys.executable, vs_toolchain, 'update'], env=env)
 
 
-def tar_xf(filename):
-  subprocess.call([xz(), '-dqk', filename])
-  tar_name = filename[:-3]
-  tar = tarfile.open(tar_name)
-  tar.extractall()
-  tar.close()
-  os.remove(tar_name)
-
-
 def copy_chromiumcontent_files():
   try:
     os.makedirs(CHROMIUMCONTENT_DESTINATION_DIR)
@@ -183,6 +117,34 @@ def copy_chromiumcontent_files():
         continue
       shutil.copy2(source, destination)
 
+def update_depot_tools():
+  env = os.environ.copy()
+  # Don't actually update the depot tools, just install the required
+  # tools like python
+  env['DEPOT_TOOLS_UPDATE'] = '0'
+  # Remove trailing slash from TEMP
+  # https://bugs.chromium.org/p/chromium/issues/detail?id=340243
+  env['TEMP'] = env['TEMP'].rstrip('\\')
+  env['PATH'] = os.pathsep.join([os.path.join(VENDOR_DIR, 'depot_tools'),
+                                 env['PATH']])
+  cmd_path = env.get('COMSPEC', 'cmd.exe')
+  update_path = os.path.join(VENDOR_DIR, 'depot_tools', 'update_depot_tools.bat')
+  subprocess.check_call([cmd_path, '/c', update_path], env=env)
+
+def gclient_sync(version):
+  env = os.environ.copy()
+  if sys.platform in ['win32', 'cygwin']:
+    env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
+  env['PATH'] = os.pathsep.join([os.path.join(VENDOR_DIR, 'depot_tools'),
+                                 env['PATH']])
+  gclient = os.path.join(VENDOR_DIR, 'depot_tools', 'gclient.py')
+  subprocess.check_call([sys.executable,
+                         gclient,
+                         'sync', '--jobs', '16',
+                         '--revision', 'src@{0}'.format(version),
+                         '--with_tags', '--with_branch_heads',
+                         '--reset', '--delete_unversioned_trees'], env=env)
+
 
 def apply_patches():
   return subprocess.call([sys.executable,
@@ -196,49 +158,6 @@ def update_clang():
   env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
   update = os.path.join(SRC_DIR, 'tools', 'clang', 'scripts', 'update.py')
   return subprocess.call([sys.executable, update, '--if-needed'], env=env)
-
-
-def update_gn():
-  os.chdir(SRC_DIR)
-  download = os.path.join(DEPOT_TOOLS, 'download_from_google_storage.py')
-  if sys.platform in ['win32', 'cygwin']:
-    platform = 'win32'
-    key = 'win/gn.exe.sha1'
-  elif sys.platform == 'darwin':
-    platform = 'darwin'
-    key = 'mac/gn.sha1'
-  else:
-    platform = 'linux*'
-    key = 'linux64/gn.sha1'
-  return subprocess.call([sys.executable, download, '--no_resume',
-                          '--platform={0}'.format(platform), '--no_auth',
-                          '--bucket', 'chromium-gn',
-                          '-s', 'buildtools/{0}'.format(key)],
-                         cwd=SRC_DIR)
-
-
-def update_node():
-  download = os.path.join(DEPOT_TOOLS, 'download_from_google_storage.py')
-  if sys.platform in ['win32', 'cygwin']:
-    platform = 'win32'
-    key = 'win/node.exe.sha1'
-  elif sys.platform == 'darwin':
-    platform = 'darwin'
-    key = 'mac/node-darwin-x64.tar.gz.sha1'
-  else:
-    platform = 'linux*'
-    key = 'linux/node-linux-x64.tar.gz.sha1'
-  args = [sys.executable, download, '--no_resume',
-          '--platform={0}'.format(platform), '--no_auth',
-          '--bucket', 'chromium-nodejs/6.9.4',
-          '-s', 'third_party/node/{0}'.format(key)]
-  if platform != 'win32':
-    args.append('--extract')
-  return subprocess.call(args, cwd=SRC_DIR) or \
-         subprocess.call([sys.executable, download, '--no_resume', '--no_auth',
-                          '--extract', '--bucket', 'chromium-nodejs',
-                          '-s', 'third_party/node/node_modules.tar.gz.sha1'],
-                         cwd=SRC_DIR)
 
 
 def run_gn(target_arch, defines):
@@ -265,15 +184,6 @@ def run_gn(target_arch, defines):
     output_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
     subprocess.call([gn, 'gen', os.path.relpath(output_dir, SRC_DIR), '--args=' + args],
                     cwd=SRC_DIR, env=env)
-
-
-def xz():
-  if sys.platform in ['win32', 'cygwin']:
-    return os.path.join(VENDOR_DIR, 'xz', 'win32', 'xz.exe')
-  elif sys.platform == 'darwin':
-    return os.path.join(VENDOR_DIR, 'xz', 'darwin', 'bin', 'xz')
-  else:
-    return 'xz'
 
 
 def is_newer(destination, source):
