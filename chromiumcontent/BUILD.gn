@@ -42,7 +42,6 @@ group("targets") {
         ":fx_agg",
         ":fx_lcms2",
         ":fx_libopenjpeg",
-        ":fx_zlib",
         ":libjpeg",
         ":libyuv",
         ":ppapi_cpp_objects",
@@ -104,11 +103,6 @@ if (is_electron_build && is_component_build) {
   static_library("fx_libopenjpeg") {
       complete_static_lib = true
       deps = [ "//third_party/pdfium/third_party:fx_libopenjpeg" ]
-  }
-
-  static_library("fx_zlib") {
-      complete_static_lib = true
-      deps = [ "//third_party/pdfium/third_party:fx_zlib" ]
   }
 
   static_library("libjpeg") {
