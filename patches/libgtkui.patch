@@ -2,7 +2,7 @@ diff --git a/chrome/browser/ui/libgtkui/BUILD.gn b/chrome/browser/ui/libgtkui/BU
 index aa48833..ea700cc 100644
 --- a/chrome/browser/ui/libgtkui/BUILD.gn
 +++ b/chrome/browser/ui/libgtkui/BUILD.gn
-@@ -115,6 +115,7 @@ template("libgtkui") {
+@@ -116,6 +116,7 @@ template("libgtkui") {
               "//chrome:strings",
               "//chrome/app:command_ids",
               "//chrome/app/theme:theme_resources",

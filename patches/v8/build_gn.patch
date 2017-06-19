@@ -2,7 +2,7 @@ diff --git a/BUILD.gn b/BUILD.gn
 index 8895103..69f8bf5 100644
 --- a/BUILD.gn
 +++ b/BUILD.gn
-@@ -137,25 +137,41 @@ config("internal_config") {
+@@ -158,25 +158,41 @@ config("internal_config") {
    if (is_component_build) {
      defines = [ "BUILDING_V8_SHARED" ]
    }
@@ -46,7 +46,7 @@ index 8895103..69f8bf5 100644
      defines = [ "USING_V8_BASE_SHARED" ]
    }
    libs = []
-@@ -172,7 +188,7 @@ config("libsampler_config") {
+@@ -193,7 +209,7 @@ config("libsampler_config") {
  # This config should only be applied to code using V8 and not any V8 code
  # itself.
  config("external_config") {
@@ -54,8 +54,8 @@ index 8895103..69f8bf5 100644
 +  if (is_component_build || is_electron_build) {
      defines = [ "USING_V8_SHARED" ]
    }
-   include_dirs = [ "include" ]
-@@ -2328,7 +2344,7 @@ v8_component("v8_libbase") {
+   include_dirs = [
+@@ -2444,7 +2460,7 @@ v8_component("v8_libbase") {
  
    defines = []
  
@@ -64,7 +64,7 @@ index 8895103..69f8bf5 100644
      defines = [ "BUILDING_V8_BASE_SHARED" ]
    }
  
-@@ -2418,7 +2434,7 @@ v8_component("v8_libplatform") {
+@@ -2537,7 +2553,7 @@ v8_component("v8_libplatform") {
  
    configs = [ ":internal_config_base" ]
  
@@ -73,7 +73,7 @@ index 8895103..69f8bf5 100644
      defines = [ "BUILDING_V8_PLATFORM_SHARED" ]
    }
  
-@@ -2482,6 +2498,8 @@ if (current_toolchain == v8_snapshot_toolchain) {
+@@ -2601,6 +2617,8 @@ if (current_toolchain == v8_snapshot_toolchain) {
  
      configs = [ ":internal_config" ]
  
@@ -81,17 +81,8 @@ index 8895103..69f8bf5 100644
 +
      deps = [
        ":v8_base",
-       ":v8_libbase",
-@@ -2514,6 +2532,8 @@ v8_executable("mkpeephole") {
-     ":internal_config",
-   ]
- 
-+  configs += [ "//chromiumcontent:build_time_executable" ]
-+
-   deps = [
-     ":v8_libbase",
-     "//build/config/sanitizers:deps",
-@@ -2588,7 +2608,7 @@ group("v8_fuzzers") {
+       ":v8_builtins_setup",
+@@ -2680,7 +2700,7 @@ group("v8_fuzzers") {
    ]
  }
  
@@ -112,7 +103,7 @@ index ea628e0..1b521f8 100644
  
  declare_args() {
    # Includes files needed for correctness fuzzing.
-@@ -143,7 +144,13 @@ template("v8_executable") {
+@@ -139,7 +140,13 @@ template("v8_executable") {
  }
  
  template("v8_component") {

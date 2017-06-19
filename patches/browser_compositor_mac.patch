@@ -1,5 +1,5 @@
 diff --git a/content/browser/renderer_host/browser_compositor_view_mac.h b/content/browser/renderer_host/browser_compositor_view_mac.h
-index d0ecb71..248ba9a 100644
+index 1c73b7f3a..1b368aa0a 100644
 --- a/content/browser/renderer_host/browser_compositor_view_mac.h
 +++ b/content/browser/renderer_host/browser_compositor_view_mac.h
 @@ -10,6 +10,7 @@
@@ -10,18 +10,16 @@ index d0ecb71..248ba9a 100644
  #include "ui/compositor/compositor.h"
  #include "ui/compositor/compositor_observer.h"
  
-@@ -43,8 +44,8 @@ class BrowserCompositorMacClient {
+@@ -39,7 +40,7 @@ class BrowserCompositorMacClient {
  //   is visible.
  // - The RenderWidgetHostViewMac that is used to display these frames is
  //   attached to the NSView hierarchy of an NSWindow.
--class BrowserCompositorMac : public cc::BeginFrameObserver,
--                             public DelegatedFrameHostClient {
-+class CONTENT_EXPORT BrowserCompositorMac : public cc::BeginFrameObserver,
-+                                            public DelegatedFrameHostClient {
+-class BrowserCompositorMac : public DelegatedFrameHostClient {
++class CONTENT_EXPORT BrowserCompositorMac : public DelegatedFrameHostClient {
   public:
    BrowserCompositorMac(
        ui::AcceleratedWidgetMacNSView* accelerated_widget_mac_ns_view,
-@@ -56,9 +57,11 @@ class BrowserCompositorMac : public cc::BeginFrameObserver,
+@@ -51,9 +52,11 @@ class BrowserCompositorMac : public DelegatedFrameHostClient {
  
    // These will not return nullptr until Destroy is called.
    DelegatedFrameHost* GetDelegatedFrameHost();
@@ -32,12 +30,12 @@ index d0ecb71..248ba9a 100644
 +  ui::Compositor* GetCompositor();
    ui::AcceleratedWidgetMac* GetAcceleratedWidgetMac();
  
-   void SwapCompositorFrame(uint32_t compositor_frame_sink_id,
+   void DidCreateNewRendererCompositorFrameSink(
 diff --git a/content/browser/renderer_host/browser_compositor_view_mac.mm b/content/browser/renderer_host/browser_compositor_view_mac.mm
-index e4c25e73..e2f789e 100644
+index fba983b37..8cf962916 100644
 --- a/content/browser/renderer_host/browser_compositor_view_mac.mm
 +++ b/content/browser/renderer_host/browser_compositor_view_mac.mm
-@@ -201,6 +201,12 @@ void OnCompositingShuttingDown(ui::Compositor* compositor) override {}
+@@ -202,6 +202,12 @@ void OnCompositingShuttingDown(ui::Compositor* compositor) override {}
      g_spare_recyclable_compositors.Get().clear();
  }
  
@@ -50,7 +48,7 @@ index e4c25e73..e2f789e 100644
  ui::AcceleratedWidgetMac* BrowserCompositorMac::GetAcceleratedWidgetMac() {
    if (recyclable_compositor_)
      return recyclable_compositor_->accelerated_widget_mac();
-@@ -417,8 +423,13 @@ void OnCompositingShuttingDown(ui::Compositor* compositor) override {}
+@@ -421,8 +427,13 @@ void OnCompositingShuttingDown(ui::Compositor* compositor) override {}
  }
  
  gfx::Size BrowserCompositorMac::DelegatedFrameHostDesiredSizeInDIP() const {
