@@ -1,5 +1,19 @@
+diff --git a/third_party/WebKit/Source/core/fileapi/File.h b/third_party/WebKit/Source/core/fileapi/File.h
+index 0bfe29512050..81439f7ab8f7 100644
+--- a/third_party/WebKit/Source/core/fileapi/File.h
++++ b/third_party/WebKit/Source/core/fileapi/File.h
+@@ -170,6 +170,9 @@ class CORE_EXPORT File final : public Blob {
+   }
+   const String& name() const { return name_; }
+ 
++  // Getter for the path IDL attribute.
++  const String& path() const { return GetPath(); }
++
+   // Getter for the lastModified IDL attribute,
+   // http://dev.w3.org/2006/webapi/FileAPI/#file-attrs
+   long long lastModified() const;
 diff --git a/third_party/WebKit/Source/core/fileapi/File.idl b/third_party/WebKit/Source/core/fileapi/File.idl
-index df954bc..4683b28 100644
+index df954bc8f818..4683b2853bb4 100644
 --- a/third_party/WebKit/Source/core/fileapi/File.idl
 +++ b/third_party/WebKit/Source/core/fileapi/File.idl
 @@ -32,6 +32,7 @@
