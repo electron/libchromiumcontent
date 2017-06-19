@@ -23,22 +23,6 @@ index cf3733f..065df39 100644
  
    if (browser_plugin_guest_ && !GuestMode::IsCrossProcessFrameGuest(this)) {
      view_.reset(new WebContentsViewGuest(this, browser_plugin_guest_.get(),
-@@ -4858,6 +4865,7 @@ void WebContentsImpl::RendererUnresponsive(
-   // We might have been waiting for both beforeunload and unload ACK.
-   // Check if tab is to be unloaded first.
-   if (rfhi->IsWaitingForUnloadACK()) {
-+#if 0
-     // Hang occurred while firing the unload handler.
-     // Pretend the handler fired so tab closing continues as if it had.
-     GetRenderViewHost()->set_sudden_termination_allowed(true);
-@@ -4869,6 +4877,7 @@ void WebContentsImpl::RendererUnresponsive(
-     // to recover. Pretend the unload listeners have all fired and close
-     // the tab.
-     Close();
-+#endif
-     return;
-   }
- 
 diff --git a/content/browser/web_contents/web_contents_view_guest.cc b/content/browser/web_contents/web_contents_view_guest.cc
 index a93bc37..70f2f3b 100644
 --- a/content/browser/web_contents/web_contents_view_guest.cc
