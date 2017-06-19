@@ -53,29 +53,3 @@ index 6f0e3d5ff5..134ff425e1 100644
    static size_t find(const String& s, const char* needle) {
      return s.find(needle);
    }
-diff --git a/third_party/inspector_protocol/lib/Parser_cpp.template b/third_party/inspector_protocol/lib/Parser_cpp.template
-index 4bf6bebc46..f3dde5ac21 100644
---- a/third_party/inspector_protocol/lib/Parser_cpp.template
-+++ b/third_party/inspector_protocol/lib/Parser_cpp.template
-@@ -51,19 +51,13 @@ double charactersToDouble(const uint16_t* characters, size_t length, bool* ok)
-         buffer.push_back(static_cast<char>(characters[i]));
-     }
-     buffer.push_back('\0');
--    char* endptr;
--    double result = std::strtod(buffer.data(), &endptr);
--    *ok = !(*endptr);
--    return result;
-+    return StringUtil::toDouble(buffer.data(), length, ok);
- }
- 
- double charactersToDouble(const uint8_t* characters, size_t length, bool* ok)
- {
-     std::string buffer(reinterpret_cast<const char*>(characters), length);
--    char* endptr;
--    double result = std::strtod(buffer.data(), &endptr);
--    *ok = !(*endptr);
--    return result;
-+    return StringUtil::toDouble(buffer.data(), length, ok);
- }
- 
- template<typename Char>

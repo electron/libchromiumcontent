@@ -1,5 +1,5 @@
 diff --git a/third_party/WebKit/Source/core/paint/ThemePainterMac.mm b/third_party/WebKit/Source/core/paint/ThemePainterMac.mm
-index a8f507a..5b54b7d 100644
+index 79c9b5586cd7..820762250150 100644
 --- a/third_party/WebKit/Source/core/paint/ThemePainterMac.mm
 +++ b/third_party/WebKit/Source/core/paint/ThemePainterMac.mm
 @@ -43,6 +43,7 @@
@@ -18,32 +18,32 @@ index a8f507a..5b54b7d 100644
  
  namespace blink {
  
-@@ -72,9 +74,11 @@ void _NSDrawCarbonThemeListBox(NSRect frame,
+@@ -73,9 +75,11 @@ bool ThemePainterMac::PaintTextField(const LayoutObject& o,
    // behavior change while remaining a fragile solution.
    // https://bugs.chromium.org/p/chromium/issues/detail?id=658085#c3
-   if (!useNSTextFieldCell) {
+   if (!use_ns_text_field_cell) {
 +#ifndef MAS_BUILD
      _NSDrawCarbonThemeBezel(
-         r, LayoutTheme::isEnabled(o) && !LayoutTheme::isReadOnlyControl(o),
+         r, LayoutTheme::IsEnabled(o) && !LayoutTheme::IsReadOnlyControl(o),
          YES);
 +#endif
      return false;
    }
  
-@@ -159,9 +163,11 @@ void _NSDrawCarbonThemeListBox(NSRect frame,
-                                     const PaintInfo& paintInfo,
+@@ -160,9 +164,11 @@ bool ThemePainterMac::PaintTextArea(const LayoutObject& o,
+                                     const PaintInfo& paint_info,
                                      const IntRect& r) {
-   LocalCurrentGraphicsContext localContext(paintInfo.context, r);
+   LocalCurrentGraphicsContext local_context(paint_info.context, r);
 +#ifndef MAS_BUILD
    _NSDrawCarbonThemeListBox(
-       r, LayoutTheme::isEnabled(o) && !LayoutTheme::isReadOnlyControl(o), YES,
+       r, LayoutTheme::IsEnabled(o) && !LayoutTheme::IsReadOnlyControl(o), YES,
        YES);
 +#endif
    return false;
  }
  
 diff --git a/third_party/WebKit/Source/platform/mac/KillRingMac.mm b/third_party/WebKit/Source/platform/mac/KillRingMac.mm
-index 1e74ced..6fde87a 100644
+index acf60f09fdb9..6376120a954f 100644
 --- a/third_party/WebKit/Source/platform/mac/KillRingMac.mm
 +++ b/third_party/WebKit/Source/platform/mac/KillRingMac.mm
 @@ -27,6 +27,7 @@
@@ -54,38 +54,38 @@ index 1e74ced..6fde87a 100644
  extern "C" {
  
  // Kill ring calls. Would be better to use NSKillRing.h, but that's not
-@@ -39,38 +40,53 @@
+@@ -39,38 +40,53 @@ NSString* _NSYankFromKillRing();
  void _NSNewKillRingSequence();
  void _NSSetKillRingToYankedState();
  }
 +#endif
  
- static void initializeKillRingIfNeeded() {
-   static bool initializedKillRing = false;
-   if (!initializedKillRing) {
-     initializedKillRing = true;
+ static void InitializeKillRingIfNeeded() {
+   static bool initialized_kill_ring = false;
+   if (!initialized_kill_ring) {
+     initialized_kill_ring = true;
 +#ifndef MAS_BUILD
      _NSInitializeKillRing();
 +#endif
    }
  }
  
- void KillRing::append(const String& string) {
-   initializeKillRingIfNeeded();
+ void KillRing::Append(const String& string) {
+   InitializeKillRingIfNeeded();
 +#ifndef MAS_BUILD
    _NSAppendToKillRing(string);
 +#endif
  }
  
- void KillRing::prepend(const String& string) {
-   initializeKillRingIfNeeded();
+ void KillRing::Prepend(const String& string) {
+   InitializeKillRingIfNeeded();
 +#ifndef MAS_BUILD
    _NSPrependToKillRing(string);
 +#endif
  }
  
- String KillRing::yank() {
-   initializeKillRingIfNeeded();
+ String KillRing::Yank() {
+   InitializeKillRingIfNeeded();
 +#ifndef MAS_BUILD
    return _NSYankFromKillRing();
 +#else
@@ -93,15 +93,15 @@ index 1e74ced..6fde87a 100644
 +#endif
  }
  
- void KillRing::startNewSequence() {
-   initializeKillRingIfNeeded();
+ void KillRing::StartNewSequence() {
+   InitializeKillRingIfNeeded();
 +#ifndef MAS_BUILD
    _NSNewKillRingSequence();
 +#endif
  }
  
- void KillRing::setToYankedState() {
-   initializeKillRingIfNeeded();
+ void KillRing::SetToYankedState() {
+   InitializeKillRingIfNeeded();
 +#ifndef MAS_BUILD
    _NSSetKillRingToYankedState();
 +#endif

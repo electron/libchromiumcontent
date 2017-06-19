@@ -273,6 +273,7 @@ GENERATED_INCLUDE_DIRS = [
   'base',
   'cc',
   'content',
+  'device',
   'gpu',
   'ipc',
   'mojo',

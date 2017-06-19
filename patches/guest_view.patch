@@ -16,7 +16,7 @@ index fb68c4c..57b15c3 100644
  #include "third_party/WebKit/public/platform/WebTouchEvent.h"
  #include "ui/gfx/geometry/size_conversions.h"
  #include "ui/gfx/geometry/size_f.h"
-@@ -712,4 +714,28 @@ void RenderWidgetHostViewChildFrame::ResetCompositorFrameSinkSupport() {
+@@ -711,4 +713,28 @@ void RenderWidgetHostViewChildFrame::ResetCompositorFrameSinkSupport() {
    support_.reset();
  }
  
@@ -44,13 +44,15 @@ index fb68c4c..57b15c3 100644
 +  frame_subscriber_.reset();
 +}
 +
- }  // namespace content
+ bool RenderWidgetHostViewChildFrame::HasEmbedderChanged() {
+   return false;
+ }
 diff --git a/content/browser/frame_host/render_widget_host_view_child_frame.h b/content/browser/frame_host/render_widget_host_view_child_frame.h
 index 87e2de41..36edc3a 100644
 --- a/content/browser/frame_host/render_widget_host_view_child_frame.h
 +++ b/content/browser/frame_host/render_widget_host_view_child_frame.h
-@@ -157,8 +157,11 @@ class CONTENT_EXPORT RenderWidgetHostViewChildFrame
-   void DidReceiveCompositorFrameAck() override;
+@@ -164,8 +164,11 @@ class CONTENT_EXPORT RenderWidgetHostViewChildFrame
+       const cc::ReturnedResourceArray& resources) override;
    void OnBeginFrame(const cc::BeginFrameArgs& args) override;
    void ReclaimResources(const cc::ReturnedResourceArray& resources) override;
 -  void WillDrawSurface(const cc::LocalSurfaceId& id,
@@ -63,12 +65,12 @@ index 87e2de41..36edc3a 100644
  
    // Exposed for tests.
    bool IsChildFrameForTesting() const override;
-@@ -250,6 +253,8 @@ class CONTENT_EXPORT RenderWidgetHostViewChildFrame
+@@ -258,6 +261,8 @@ class CONTENT_EXPORT RenderWidgetHostViewChildFrame
    // The surface client ID of the parent RenderWidgetHostView.  0 if none.
    cc::FrameSinkId parent_frame_sink_id_;
  
 +  std::unique_ptr<RenderWidgetHostViewFrameSubscriber> frame_subscriber_;
 +
-   base::WeakPtrFactory<RenderWidgetHostViewChildFrame> weak_factory_;
-   DISALLOW_COPY_AND_ASSIGN(RenderWidgetHostViewChildFrame);
- };
+   bool has_frame_ = false;
+   cc::mojom::MojoCompositorFrameSinkClient* renderer_compositor_frame_sink_ =
+       nullptr;

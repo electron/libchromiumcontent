@@ -2,7 +2,7 @@ diff --git a/content/browser/renderer_host/render_message_filter.cc b/content/br
 index c60d39a..3ce4657 100644
 --- a/content/browser/renderer_host/render_message_filter.cc
 +++ b/content/browser/renderer_host/render_message_filter.cc
-@@ -213,12 +213,55 @@ void RenderMessageFilter::GenerateRoutingID(
+@@ -202,12 +202,55 @@ void RenderMessageFilter::GenerateRoutingID(
  void RenderMessageFilter::CreateNewWindow(
      mojom::CreateNewWindowParamsPtr params,
      const CreateNewWindowCallback& callback) {
@@ -62,8 +62,8 @@ diff --git a/content/common/render_message_filter.mojom b/content/common/render_
 index 78c93ef..738f278 100644
 --- a/content/common/render_message_filter.mojom
 +++ b/content/common/render_message_filter.mojom
-@@ -6,12 +6,32 @@ module content.mojom;
- 
+@@ -7,12 +7,32 @@ module content.mojom;
+ import "cc/ipc/shared_bitmap_manager.mojom";
  import "content/common/native_types.mojom";
  import "content/public/common/window_container_type.mojom";
 +import "mojo/common/file_path.mojom";
@@ -95,7 +95,7 @@ index 78c93ef..738f278 100644
  struct CreateNewWindowParams {
    // The routing id of the frame initiating the open.
    int32 opener_render_frame_id;
-@@ -55,6 +75,10 @@ struct CreateNewWindowParams {
+@@ -56,6 +76,10 @@ struct CreateNewWindowParams {
  
    // The window features to use for the new view.
    blink.mojom.WindowFeatures features;
@@ -110,7 +110,7 @@ diff --git a/content/public/browser/content_browser_client.cc b/content/public/b
 index f9f587b..b4f264c 100644
 --- a/content/public/browser/content_browser_client.cc
 +++ b/content/public/browser/content_browser_client.cc
-@@ -293,6 +293,8 @@ bool ContentBrowserClient::CanCreateWindow(
+@@ -295,6 +295,8 @@ bool ContentBrowserClient::CanCreateWindow(
      const std::string& frame_name,
      WindowOpenDisposition disposition,
      const blink::mojom::WindowFeatures& features,
@@ -159,7 +159,7 @@ diff --git a/content/renderer/render_view_impl.cc b/content/renderer/render_view
 index c59e97853d4f..99e10f96cc54 100644
 --- a/content/renderer/render_view_impl.cc
 +++ b/content/renderer/render_view_impl.cc
-@@ -44,6 +44,7 @@
+@@ -43,6 +43,7 @@
  #include "content/child/request_extra_data.h"
  #include "content/child/v8_value_converter_impl.h"
  #include "content/child/webmessageportchannel_impl.h"
@@ -167,13 +167,13 @@ index c59e97853d4f..99e10f96cc54 100644
  #include "content/common/content_constants_internal.h"
  #include "content/common/content_switches_internal.h"
  #include "content/common/dom_storage/dom_storage_types.h"
-@@ -1465,6 +1466,64 @@ WebView* RenderViewImpl::createView(WebLocalFrame* creator,
+@@ -1434,6 +1435,64 @@ WebView* RenderViewImpl::createView(WebLocalFrame* creator,
    }
    params->features = ConvertWebWindowFeaturesToMojoWindowFeatures(features);
  
-+  for (size_t i = 0; i < features.additionalFeatures.size(); ++i) {
++  for (size_t i = 0; i < features.additional_features.size(); ++i) {
 +    params->additional_features.push_back(
-+        features.additionalFeatures[i].utf8());
++        features.additional_features[i].Utf8());
 +  }
 +
 +  params->body = mojom::ResourceRequestBody::New();

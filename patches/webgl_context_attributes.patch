@@ -2,19 +2,19 @@ diff --git a/content/renderer/renderer_blink_platform_impl.cc b/content/renderer
 index 6cfd9df..ec79d1c 100644
 --- a/content/renderer/renderer_blink_platform_impl.cc
 +++ b/content/renderer/renderer_blink_platform_impl.cc
-@@ -997,9 +997,9 @@ RendererBlinkPlatformImpl::createOffscreenGraphicsContext3DProvider(
-       web_attributes.supportStencil || web_attributes.supportAntialias;
+@@ -1020,9 +1020,9 @@ RendererBlinkPlatformImpl::createOffscreenGraphicsContext3DProvider(
+       web_attributes.support_stencil || web_attributes.support_antialias;
    attributes.sample_buffers = 0;
    attributes.bind_generates_resource = false;
 -  // Prefer discrete GPU for WebGL.
 -  attributes.gpu_preference = gl::PreferDiscreteGpu;
 -
-+  attributes.gpu_preference = web_attributes.preferIntegratedGpu
++  attributes.gpu_preference = web_attributes.prefer_integrated_gpu
 +      ? gl::PreferIntegratedGpu
 +      : gl::PreferDiscreteGpu;
    attributes.fail_if_major_perf_caveat =
-       web_attributes.failIfMajorPerformanceCaveat;
-   DCHECK_GT(web_attributes.webGLVersion, 0u);
+       web_attributes.fail_if_major_performance_caveat;
+   DCHECK_GT(web_attributes.web_gl_version, 0u);
 diff --git a/third_party/WebKit/Source/core/html/canvas/CanvasContextCreationAttributes.idl b/third_party/WebKit/Source/core/html/canvas/CanvasContextCreationAttributes.idl
 index 752714c..058b969 100644
 --- a/third_party/WebKit/Source/core/html/canvas/CanvasContextCreationAttributes.idl
@@ -52,13 +52,13 @@ index 8c07036..223ba31 100644
    return result;
  }
 @@ -26,6 +27,7 @@ Platform::ContextAttributes toPlatformContextAttributes(
-     unsigned webGLVersion,
-     bool supportOwnOffscreenSurface) {
+     unsigned web_gl_version,
+     bool support_own_offscreen_surface) {
    Platform::ContextAttributes result;
-+  result.preferIntegratedGpu = attrs.powerPreference() == "low-power";
-   result.failIfMajorPerformanceCaveat = attrs.failIfMajorPerformanceCaveat();
-   result.webGLVersion = webGLVersion;
-   if (supportOwnOffscreenSurface) {
++  result.prefer_integrated_gpu = attrs.powerPreference() == "low-power";
+   result.fail_if_major_performance_caveat =
+       attrs.failIfMajorPerformanceCaveat();
+   result.web_gl_version = web_gl_version;
 diff --git a/third_party/WebKit/Source/modules/webgl/WebGLContextAttributes.idl b/third_party/WebKit/Source/modules/webgl/WebGLContextAttributes.idl
 index 9a48073..5196a53 100644
 --- a/third_party/WebKit/Source/modules/webgl/WebGLContextAttributes.idl
@@ -87,11 +87,11 @@ diff --git a/third_party/WebKit/public/platform/Platform.h b/third_party/WebKit/
 index 2cd7334..98ecb84 100644
 --- a/third_party/WebKit/public/platform/Platform.h
 +++ b/third_party/WebKit/public/platform/Platform.h
-@@ -458,6 +458,7 @@ class BLINK_PLATFORM_EXPORT Platform {
+@@ -466,6 +466,7 @@ class BLINK_PLATFORM_EXPORT Platform {
    // GPU ----------------------------------------------------------------
    //
    struct ContextAttributes {
-+    bool preferIntegratedGpu = false;
-     bool failIfMajorPerformanceCaveat = false;
-     unsigned webGLVersion = 0;
++    bool prefer_integrated_gpu = false;
+     bool fail_if_major_performance_caveat = false;
+     unsigned web_gl_version = 0;
      // Offscreen contexts usually share a surface for the default frame buffer
