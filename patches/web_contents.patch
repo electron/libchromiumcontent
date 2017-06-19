@@ -2,7 +2,7 @@ diff --git a/content/browser/web_contents/web_contents_impl.cc b/content/browser
 index cf3733f..065df39 100644
 --- a/content/browser/web_contents/web_contents_impl.cc
 +++ b/content/browser/web_contents/web_contents_impl.cc
-@@ -1576,6 +1576,12 @@ void WebContentsImpl::Init(const WebContents::CreateParams& params) {
+@@ -1581,6 +1581,12 @@ void WebContentsImpl::Init(const WebContents::CreateParams& params) {
    std::string unique_name;
    frame_tree_.root()->SetFrameName(params.main_frame_name, unique_name);
  
@@ -15,7 +15,7 @@ index cf3733f..065df39 100644
    WebContentsViewDelegate* delegate =
        GetContentClient()->browser()->GetWebContentsViewDelegate(this);
  
-@@ -1586,6 +1592,7 @@ void WebContentsImpl::Init(const WebContents::CreateParams& params) {
+@@ -1591,6 +1597,7 @@ void WebContentsImpl::Init(const WebContents::CreateParams& params) {
      view_.reset(CreateWebContentsView(this, delegate,
                                        &render_view_host_delegate_view_));
    }
