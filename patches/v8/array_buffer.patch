@@ -2,7 +2,7 @@ diff --git a/include/v8.h b/include/v8.h
 index baf44170f0..88cf5c7a91 100644
 --- a/include/v8.h
 +++ b/include/v8.h
-@@ -6786,6 +6786,9 @@ class V8_EXPORT Isolate {
+@@ -6967,6 +6967,9 @@ class V8_EXPORT Isolate {
    V8_DEPRECATE_SOON("CpuProfiler should be created with CpuProfiler::New call.",
                      CpuProfiler* GetCpuProfiler());
  
@@ -16,7 +16,7 @@ diff --git a/src/api.cc b/src/api.cc
 index beefd61bdb..09ed5e0af8 100644
 --- a/src/api.cc
 +++ b/src/api.cc
-@@ -7998,6 +7998,12 @@ CpuProfiler* Isolate::GetCpuProfiler() {
+@@ -8121,6 +8121,12 @@ CpuProfiler* Isolate::GetCpuProfiler() {
  }
  
  
