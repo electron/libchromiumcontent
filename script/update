@@ -155,8 +155,6 @@ def update_depot_tools():
   env['TEMP'] = env['TEMP'].rstrip('\\')
   env['PATH'] = os.pathsep.join([os.path.join(VENDOR_DIR, 'depot_tools'),
                                  env['PATH']])
-  print 'using PATH'
-  print env['PATH']
   cmd_path = env.get('COMSPEC', 'cmd.exe')
   update_path = os.path.join(VENDOR_DIR, 'depot_tools', 'update_depot_tools.bat')
   subprocess.check_call([cmd_path, '/c', update_path], env=env)
