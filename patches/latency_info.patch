@@ -1,0 +1,99 @@
+diff --git a/ui/latency/BUILD.gn b/ui/latency/BUILD.gn
+index b0242373612f..9667d40fc50d 100644
+--- a/ui/latency/BUILD.gn
++++ b/ui/latency/BUILD.gn
+@@ -4,19 +4,22 @@
+ 
+ import("//testing/test.gni")
+ 
+-source_set("latency") {
++component("latency") {
+   sources = [
+     "latency/latency_histogram_macros.h",
+     "latency_info.cc",
+     "latency_info.h",
+     "latency_tracker.cc",
+     "latency_tracker.h",
++    "ui_latency_export.h",
+   ]
+ 
+   deps = [
+     "//base",
+     "//ui/gfx",
+   ]
++
++  defines = [ "UI_LATENCY_IMPLEMENTATION" ]
+ }
+ 
+ test("latency_unittests") {
+diff --git a/ui/latency/latency_info.h b/ui/latency/latency_info.h
+index b358fba..5aa05a4 100644
+--- a/ui/latency/latency_info.h
++++ b/ui/latency/latency_info.h
+@@ -14,6 +14,7 @@
+ 
+ #include "base/containers/small_map.h"
+ #include "base/time/time.h"
++#include "ui/latency/ui_latency_export.h"
+ #include "ui/gfx/geometry/point_f.h"
+ 
+ #if !defined(OS_IOS)
+@@ -113,7 +114,7 @@ enum SourceEventType {
+   SOURCE_EVENT_TYPE_LAST = OTHER,
+ };
+ 
+-class LatencyInfo {
++class UI_LATENCY_EXPORT LatencyInfo {
+  public:
+   struct LatencyComponent {
+     // Nondecreasing number that can be used to determine what events happened
+diff --git a/ui/latency/latency_tracker.h b/ui/latency/latency_tracker.h
+index 0fae6d317702..23717620ede1 100644
+--- a/ui/latency/latency_tracker.h
++++ b/ui/latency/latency_tracker.h
+@@ -7,12 +7,13 @@
+ 
+ #include "base/macros.h"
+ #include "ui/latency/latency_info.h"
++#include "ui/latency/ui_latency_export.h"
+ 
+ namespace ui {
+ 
+ // Utility class for tracking the latency of events. Relies on LatencyInfo
+ // components logged by content::RenderWidgetHostLatencyTracker.
+-class LatencyTracker {
++class UI_LATENCY_EXPORT LatencyTracker {
+  public:
+   LatencyTracker() = default;
+   ~LatencyTracker() = default;
+diff --git a/ui/latency/ui_latency_export.h b/ui/latency/ui_latency_export.h
+new file mode 100644
+index 0000000..f24ee91
+--- /dev/null
++++ b/ui/latency/ui_latency_export.h
+@@ -0,0 +1,25 @@
++#ifndef UI_LATENCY_UI_LATENCY_EXPORT_H_
++#define UI_LATENCY_UI_LATENCY_EXPORT_H_
++
++#if defined(COMPONENT_BUILD)
++#if defined(WIN32)
++
++#if defined(UI_LATENCY_IMPLEMENTATION)
++#define UI_LATENCY_EXPORT __declspec(dllexport)
++#else
++#define UI_LATENCY_EXPORT __declspec(dllimport)
++#endif  // defined(UI_LATENCY_IMPLEMENTATION)
++
++#else  // defined(WIN32)
++#if defined(UI_LATENCY_IMPLEMENTATION)
++#define UI_LATENCY_EXPORT __attribute__((visibility("default")))
++#else
++#define UI_LATENCY_EXPORT
++#endif
++#endif
++
++#else  // defined(COMPONENT_BUILD)
++#define UI_LATENCY_EXPORT
++#endif
++
++#endif  // UI_LATENCY_UI_LATENCY_EXPORT_H_
