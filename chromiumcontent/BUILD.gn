@@ -28,6 +28,7 @@ group("targets") {
       "//ui/content_accelerators",
       "//ui/display",
       "//ui/display/util",
+      "//ui/latency",
       "//ui/views",
       "//ui/views/controls/webview",
     ]
