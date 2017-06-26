@@ -33,6 +33,9 @@ def main():
   if sys.platform in ['win32', 'cygwin']:
     update_depot_tools()
 
+  if args.clean and os.path.isdir(SRC_DIR):
+    git_clean_recursive(SRC_DIR)
+
   gclient_sync(chromium_version())
 
   if sys.platform == 'linux2':
@@ -55,6 +58,8 @@ def parse_args():
   parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
   parser.add_argument('--defines', default='',
                       help='The definitions passed to gyp')
+  parser.add_argument('--clean', action='store_true',
+                      help='Cleans the working directory for full rebuild')
   return parser.parse_args()
 
 
@@ -189,6 +194,13 @@ def run_gn(target_arch, defines):
 def is_newer(destination, source):
   return os.path.exists(destination) and \
     os.path.getmtime(destination) > os.path.getmtime(source)
+
+
+def git_clean_recursive(path):
+  for root, dirs, files in os.walk(path):
+    if '.git' in dirs:
+      subprocess.call(['git', 'clean', '-xdf'], cwd=root)
+      dirs.remove('.git')
 
 
 def rm_f(path):
