@@ -115,6 +115,7 @@ with open(args.out, 'w') as out:
             "cc/base",
             "cc/blink",
             "cc/cc",
+            "cc/debug",
             "cc/ipc",
             "cc/paint",
             "cc/proto",
@@ -154,6 +155,7 @@ with open(args.out, 'w') as out:
             "components/tracing/tracing",
             "components/url_formatter",
             "components/variations",
+            "components/viz/frame_sinks/frame_sinks",
             "components/webcrypto",
             "components/webmessaging",
         ])
@@ -222,6 +224,7 @@ with open(args.out, 'w') as out:
         "obj_angle",
         [
             "third_party/angle/angle_common",
+            "third_party/angle/angle_gpu_info_util",
             "third_party/angle/angle_image_util",
             "third_party/angle/libANGLE",
             "third_party/angle/libEGL",
@@ -249,6 +252,7 @@ with open(args.out, 'w') as out:
             "third_party/WebKit/Source/platform/loader",
             "third_party/WebKit/Source/platform/mojo",
             "third_party/WebKit/Source/platform/platform",
+            "third_party/WebKit/Source/platform/wtf/platform_wtf",
             "third_party/WebKit/Source/web",
             "third_party/WebKit/Source/wtf",
         ])
