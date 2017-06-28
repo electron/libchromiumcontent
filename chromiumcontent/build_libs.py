@@ -196,8 +196,11 @@ with open(args.out, 'w') as out:
         "obj_services",
         [
             "services/catalog",
+            "services/data_decoder",
             "services/device",
             "services/file",
+            "services/resource_coordinator",
+            "services/service_manager/embedder",
             "services/service_manager/public/cpp/sources",
             "services/service_manager/public/interfaces",
             "services/service_manager/runner",
