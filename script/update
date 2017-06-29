@@ -30,7 +30,7 @@ BINTOOLS_NAME = 'c/cross-binutils/binutils-aarch64-linux-gnu_2.25-5_amd64.deb'
 def main():
   args = parse_args()
 
-  if sys.platform in ['win32', 'cygwin']:
+  if sys.platform == 'win32':
     update_depot_tools()
 
   if args.clean and os.path.isdir(SRC_DIR):
