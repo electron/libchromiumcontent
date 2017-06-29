@@ -169,6 +169,10 @@ def ensure_gclient_config(git_cache):
 
 
 def gclient_sync(version, force, git_cache):
+  # Remove untracked files in src.
+  with scoped_cwd(SRC_DIR):
+    subprocess.check_call(['git', 'clean', '-df'])
+
   ensure_gclient_config(git_cache)
   env = os.environ.copy()
   if sys.platform in ['win32', 'cygwin']:
@@ -260,6 +264,16 @@ def mkdir_p(path):
   except OSError as e:
     if e.errno != errno.EEXIST:
       raise
+
+
+@contextlib.contextmanager
+def scoped_cwd(path):
+  cwd = os.getcwd()
+  os.chdir(path)
+  try:
+    yield
+  finally:
+    os.chdir(cwd)
 
 
 if __name__ == '__main__':
