@@ -138,6 +138,10 @@ def update_depot_tools():
 
 
 def gclient_sync(version, force):
+  # Remove untracked files in src.
+  with scoped_cwd(SRC_DIR):
+    subprocess.check_call(['git', 'clean', '-df'])
+
   env = os.environ.copy()
   if sys.platform in ['win32', 'cygwin']:
     env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
@@ -226,6 +230,16 @@ def mkdir_p(path):
   except OSError as e:
     if e.errno != errno.EEXIST:
       raise
+
+
+@contextlib.contextmanager
+def scoped_cwd(path):
+  cwd = os.getcwd()
+  os.chdir(path)
+  try:
+    yield
+  finally:
+    os.chdir(cwd)
 
 
 if __name__ == '__main__':
