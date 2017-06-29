@@ -7,3 +7,4 @@ proprietary_codecs = false
 is_component_ffmpeg = true
 ffmpeg_branding = "Chromium"
 use_gold = false
+use_gtk3 = false
