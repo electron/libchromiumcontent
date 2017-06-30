@@ -139,8 +139,9 @@ def update_depot_tools():
 
 def gclient_sync(version, force):
   # Remove untracked files in src.
-  with scoped_cwd(SRC_DIR):
-    subprocess.check_call(['git', 'clean', '-df'])
+  if os.path.exists(os.path.join(SRC_DIR, '.git')):
+    with scoped_cwd(SRC_DIR):
+      subprocess.check_call(['git', 'clean', '-df'])
 
   env = os.environ.copy()
   if sys.platform in ['win32', 'cygwin']:
