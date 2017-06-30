@@ -170,8 +170,9 @@ def ensure_gclient_config(git_cache):
 
 def gclient_sync(version, force, git_cache):
   # Remove untracked files in src.
-  with scoped_cwd(SRC_DIR):
-    subprocess.check_call(['git', 'clean', '-df'])
+  if os.path.exists(os.path.join(SRC_DIR, '.git')):
+    with scoped_cwd(SRC_DIR):
+      subprocess.check_call(['git', 'clean', '-df'])
 
   ensure_gclient_config(git_cache)
   env = os.environ.copy()
