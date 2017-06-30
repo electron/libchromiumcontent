@@ -1,0 +1,3 @@
+# Don't mess up with CRLF line ending on Windows
+*.py text eol=lf
+*.patch text eol=lf
