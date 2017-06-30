@@ -192,6 +192,8 @@ def run_gn(target_arch, defines):
     args = 'import("//chromiumcontent/args/{0}.gn") target_cpu="{1}"'.format(component, target_cpu)
     if sys.platform in ['win32', 'cygwin']:
       args += ' use_experimental_allocator_shim=false'
+    if sys.platform == 'linux2':
+      args += ' use_gtk3=false'
     output_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
     subprocess.call([gn, 'gen', os.path.relpath(output_dir, SRC_DIR), '--args=' + args],
                     cwd=SRC_DIR, env=env)
