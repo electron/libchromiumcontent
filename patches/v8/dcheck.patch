@@ -1,0 +1,13 @@
+diff --git a/src/base/logging.h b/src/base/logging.h
+index e852dde8dd..a57ddf5404 100644
+--- a/src/base/logging.h
++++ b/src/base/logging.h
+@@ -214,7 +214,7 @@ DEFINE_CHECK_OP_IMPL(GT, > )
+ // The DCHECK macro is equivalent to CHECK except that it only
+ // generates code in debug builds.
+ #ifdef DEBUG
+-#define DCHECK(condition)      CHECK(condition)
++#define DCHECK(condition)      CHECK((condition) || true)
+ #define DCHECK_EQ(v1, v2)      CHECK_EQ(v1, v2)
+ #define DCHECK_NE(v1, v2)      CHECK_NE(v1, v2)
+ #define DCHECK_GT(v1, v2)      CHECK_GT(v1, v2)
