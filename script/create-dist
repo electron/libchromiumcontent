@@ -139,6 +139,7 @@ BINARIES_SHARED_LIBRARY = {
     os.path.join('obj', 'pdf', 'pdf.lib'),
     os.path.join('obj', 'sandbox', 'win', 'sandbox_cc.pdb'),
     os.path.join('obj', 'sandbox', 'win', 'sandbox.lib'),
+    os.path.join('obj', 'third_party', 'freetype', 'freetype_c.pdb'),
     os.path.join('obj', 'third_party', 'pdfium', 'pdfium_cc.pdb'),
     os.path.join('obj', 'third_party', 'pdfium', 'pdfium.lib'),
     os.path.join('obj', 'third_party', 'pdfium', 'fdrm_cc.pdb'),
