@@ -295,7 +295,4 @@ with open(args.out, 'w') as out:
             "third_party/icu",
         ])
 
-os.environ['CHROMIUMCONTENT_2ND_PASS'] = '1'
-subprocess.check_call(['ninja', 'chromiumcontent:libs'])
-
 open(args.stamp, 'w')

@@ -41,6 +41,11 @@ def main():
       out_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
       target = 'chromiumcontent:chromiumcontent'
       subprocess.check_call([NINJA, '-C', os.path.relpath(out_dir), target], env=env)
+      if component == 'static_library':
+        subenv = env.copy()
+        subenv['CHROMIUMCONTENT_2ND_PASS'] = '1'
+        target = 'chromiumcontent:libs'
+        subprocess.check_call([NINJA, '-C', os.path.relpath(out_dir), target], env=subenv)
 
 
 def parse_args():
