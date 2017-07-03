@@ -241,6 +241,7 @@ with open(args.out, 'w') as out:
         out,
         "obj_pdfium",
         [
+            "third_party/freetype",
             "third_party/pdfium",
         ])
 
