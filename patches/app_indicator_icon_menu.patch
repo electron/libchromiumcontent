@@ -1,7 +1,7 @@
-diff --git chrome/browser/ui/libgtkui/app_indicator_icon_menu.cc chrome/browser/ui/libgtkui/app_indicator_icon_menu.cc
+diff --git a/chrome/browser/ui/libgtkui/app_indicator_icon_menu.cc b/chrome/browser/ui/libgtkui/app_indicator_icon_menu.cc
 index 91674b9..8a4c391 100644
---- chrome/browser/ui/libgtkui/app_indicator_icon_menu.cc
-+++ chrome/browser/ui/libgtkui/app_indicator_icon_menu.cc
+--- a/chrome/browser/ui/libgtkui/app_indicator_icon_menu.cc
++++ b/chrome/browser/ui/libgtkui/app_indicator_icon_menu.cc
 @@ -116,7 +116,7 @@ void AppIndicatorIconMenu::OnMenuItemActivated(GtkWidget* menu_item) {
      return;
  
