@@ -33,7 +33,7 @@ def apply_patches_for_dir(directory):
     else:
       cwd = SRC
     args = ['git', 'apply', '--ignore-whitespace', '--ignore-space-change',
-            '--whitespace', 'fix', '--directory', cwd, '--verbose']
+            '--whitespace', 'fix', '--directory', cwd]
     for name in sorted(files):
       if not name.endswith('.patch'):
         continue
