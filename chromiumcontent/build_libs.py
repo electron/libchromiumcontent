@@ -130,6 +130,7 @@ with open(args.out, 'w') as out:
             "components/cdm",
             "components/cookie_config",
             "components/crash/core/common",
+            "components/device_event_log",
             "components/discardable_memory",
             "components/display_compositor",
             "components/filesystem",
@@ -233,6 +234,7 @@ with open(args.out, 'w') as out:
             "third_party/angle/libEGL",
             "third_party/angle/libGLESv2",
             "third_party/angle/preprocessor",
+            "third_party/angle/src/third_party/libXNVCtrl",
             "third_party/angle/translator",
             "third_party/angle/translator_lib",
         ])
