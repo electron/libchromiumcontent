@@ -33,8 +33,11 @@ def main():
   if sys.platform in ['win32', 'cygwin']:
     update_depot_tools()
 
-  if args.clean and os.path.isdir(SRC_DIR):
-    git_clean_recursive(SRC_DIR)
+  if args.clean:
+    if os.path.isdir(SRC_DIR):
+      git_clean_recursive(SRC_DIR)
+    # Remove leftovers from previous gclient sync failures
+    rm_rf(os.path.join(SOURCE_ROOT, '_bad_scm'))
 
   gclient_sync(chromium_version())
 
