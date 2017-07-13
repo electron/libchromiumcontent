@@ -19,6 +19,9 @@ def main():
     return 'Error: Can\'t find {0}'.format(S3_CREDENTIALS_FILE)
   copy_to_environment(S3_CREDENTIALS_FILE)
 
+  # Use by gclient to distinguish bot builds
+  os.environ['CHROME_HEADLESS'] = '1'
+
   if 'TARGET_ARCH' in os.environ:
     return run_ci(['-t', os.environ['TARGET_ARCH']])
 

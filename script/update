@@ -33,13 +33,10 @@ def main():
   if sys.platform in ['win32', 'cygwin']:
     update_depot_tools()
 
-  if args.clean:
-    if os.path.isdir(SRC_DIR):
-      git_clean_recursive(SRC_DIR)
-    # Remove leftovers from previous gclient sync failures
-    rm_rf(os.path.join(SOURCE_ROOT, '_bad_scm'))
+  if args.clean and os.path.isdir(SRC_DIR):
+    git_clean_recursive(SRC_DIR)
 
-  gclient_sync(chromium_version())
+  gclient_sync(chromium_version(), args.clean)
 
   if sys.platform == 'linux2':
     install_sysroot()
@@ -125,6 +122,7 @@ def copy_chromiumcontent_files():
         continue
       shutil.copy2(source, destination)
 
+
 def update_depot_tools():
   env = os.environ.copy()
   # Don't actually update the depot tools, just install the required
@@ -139,19 +137,20 @@ def update_depot_tools():
   update_path = os.path.join(VENDOR_DIR, 'depot_tools', 'update_depot_tools.bat')
   subprocess.check_call([cmd_path, '/c', update_path], env=env)
 
-def gclient_sync(version):
+
+def gclient_sync(version, force):
   env = os.environ.copy()
   if sys.platform in ['win32', 'cygwin']:
     env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
   env['PATH'] = os.pathsep.join([os.path.join(VENDOR_DIR, 'depot_tools'),
                                  env['PATH']])
   gclient = os.path.join(VENDOR_DIR, 'depot_tools', 'gclient.py')
-  subprocess.check_call([sys.executable,
-                         gclient,
-                         'sync', '--jobs', '16',
-                         '--revision', 'src@{0}'.format(version),
-                         '--with_tags', '--with_branch_heads',
-                         '--reset', '--delete_unversioned_trees'], env=env)
+  args = [sys.executable, gclient, 'sync', '--jobs', '16',
+          '--revision', 'src@{0}'.format(version), '--with_tags',
+          '--with_branch_heads', '--reset', '--delete_unversioned_trees']
+  if force:
+    args += ['--force']
+  subprocess.check_call(args, env=env)
 
 
 def apply_patches():
