@@ -1,5 +1,5 @@
 diff --git a/content/browser/renderer_host/render_widget_host_view_mac.mm b/content/browser/renderer_host/render_widget_host_view_mac.mm
-index 93d929c..9a4f6fc 100644
+index 93d929c4f2bd..bc3d819f525b 100644
 --- a/content/browser/renderer_host/render_widget_host_view_mac.mm
 +++ b/content/browser/renderer_host/render_widget_host_view_mac.mm
 @@ -87,6 +87,7 @@
@@ -58,7 +58,18 @@ index 93d929c..9a4f6fc 100644
  
    // Command key combinations are sent via performKeyEquivalent rather than
    // keyDown:. We just forward this on and if WebCore doesn't want to handle
-@@ -2790,6 +2803,9 @@ - (RenderWidgetHostViewMac*)renderWidgetHostViewMac {
+@@ -2194,7 +2207,9 @@ - (void)keyEvent:(NSEvent*)theEvent wasKeyEquivalent:(BOOL)equiv {
+   BOOL textInserted = NO;
+   if (textToBeInserted_.length() >
+       ((hasMarkedText_ || oldHasMarkedText) ? 0u : 1u)) {
+-    widgetHost->ImeCommitText(textToBeInserted_, gfx::Range::InvalidRange(), 0);
++    widgetHost->ImeCommitText(textToBeInserted_,
++                              std::vector<blink::WebCompositionUnderline>(),
++                              gfx::Range::InvalidRange(), 0);
+     textInserted = YES;
+   }
+ 
+@@ -2790,6 +2805,9 @@ - (RenderWidgetHostViewMac*)renderWidgetHostViewMac {
  // move) for the given event. Customize here to be more selective about which
  // key presses to autohide on.
  + (BOOL)shouldAutohideCursorForEvent:(NSEvent*)event {
@@ -68,7 +79,7 @@ index 93d929c..9a4f6fc 100644
    return ([event type] == NSKeyDown &&
               !([event modifierFlags] & NSCommandKeyMask)) ? YES : NO;
  }
-@@ -2946,9 +2962,11 @@ - (id)accessibilityFocusedUIElement {
+@@ -2946,9 +2964,11 @@ - (id)accessibilityFocusedUIElement {
  // Since this implementation doesn't have to wait any IPC calls, this doesn't
  // make any key-typing jank. --hbono 7/23/09
  //
@@ -80,7 +91,7 @@ index 93d929c..9a4f6fc 100644
  
  - (NSArray *)validAttributesForMarkedText {
    // This code is just copied from WebKit except renaming variables.
-@@ -2957,7 +2975,9 @@ - (NSArray *)validAttributesForMarkedText {
+@@ -2957,7 +2977,9 @@ - (NSArray *)validAttributesForMarkedText {
          NSUnderlineStyleAttributeName,
          NSUnderlineColorAttributeName,
          NSMarkedClauseSegmentAttributeName,
@@ -90,7 +101,17 @@ index 93d929c..9a4f6fc 100644
          nil]);
    }
    return validAttributesForMarkedText_.get();
-@@ -3450,6 +3470,10 @@ - (BOOL)readSelectionFromPasteboard:(NSPasteboard*)pboard {
+@@ -3247,7 +3269,8 @@ - (void)insertText:(id)string replacementRange:(NSRange)replacementRange {
+     gfx::Range replacement_range(replacementRange);
+     if (renderWidgetHostView_->GetActiveWidget()) {
+       renderWidgetHostView_->GetActiveWidget()->ImeCommitText(
+-          base::SysNSStringToUTF16(im_text), replacement_range, 0);
++          base::SysNSStringToUTF16(im_text),
++          std::vector<blink::WebCompositionUnderline>(), replacement_range, 0);
+     }
+   }
+ 
+@@ -3450,6 +3473,10 @@ - (BOOL)readSelectionFromPasteboard:(NSPasteboard*)pboard {
  }
  
  - (BOOL)isOpaque {
