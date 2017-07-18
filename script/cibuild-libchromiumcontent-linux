@@ -3,14 +3,14 @@
 set -e
 set -o pipefail
 
+rm -fr src
+rm -rf dist
+rm -rf libchromiumcontent.zip
+rm -rf libchromiumcontent-static.zip
+
 docker build -t libchromiumcontent-linux .
 
 docker run \
   --rm \
   --env TARGET_ARCH="$TARGET_ARCH" \
   libchromiumcontent-linux /workspace/libchromiumcontent/script/cibuild
-
-# Delete generated archives
-rm -rf dist
-rm -rf libchromiumcontent.zip
-rm -rf libchromiumcontent-static.zip
