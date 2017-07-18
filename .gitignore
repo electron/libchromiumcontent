@@ -8,3 +8,4 @@
 /vendor/binutils-aarch64
 .gclient_entries
 _gclient_src_*
+s3credentials

@@ -24,7 +24,8 @@ RUN apt-get update && apt-get install -y --force-yes \
   libxss1 \
   libxtst-dev \
   linux-libc-dev-armhf-cross \
-  nodejs
+  nodejs \
+  python
 
 ADD . /workspace/libchromiumcontent
 ADD s3credentials /config/s3credentials
