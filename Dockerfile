@@ -25,6 +25,6 @@ RUN apt-get update && apt-get install -y --force-yes \
   linux-libc-dev-armhf-cross
 
 ADD . /workspace/libchromiumcontent
-ADD /var/lib/jenkins/config/s3credentials /var/lib/jenkins/config/s3credentials
+ADD s3credentials /config/s3credentials
 
 WORKDIR /workspace/libchromiumcontent
