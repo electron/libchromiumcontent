@@ -5,10 +5,10 @@ RUN apt-get update && apt-get install -y --force-yes \
   build-essential \
   curl \
   clang \
+  g++-5-arm-linux-gnueabihf \
   g++-arm-linux-gnueabihf \
   g++-multilib \
   gcc-multilib \
-  gcc-arm-linux-gnueabihf \
   gperf \
   libasound2-dev \
   libc6-dev-armhf-cross \
