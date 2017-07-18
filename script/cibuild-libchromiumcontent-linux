@@ -12,7 +12,7 @@ docker build -t libchromiumcontent-linux .
 docker run \
   --rm \
   --env TARGET_ARCH="$TARGET_ARCH" \
-  --env USERID="$UID" \
+  --user "$UID" \
   -v "$PWD":/workspace/libchromiumcontent \
   -v /var/lib/jenkins/config:/config \
   -w /workspace/libchromiumcontent \
