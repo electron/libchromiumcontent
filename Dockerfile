@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y --force-yes \
   g++-arm-linux-gnueabihf \
   gcc-5-arm-linux-gnueabihf \
   gcc-arm-linux-gnueabihf \
+  git \
   gperf \
   libasound2-dev \
   libc6-dev-armhf-cross \
