@@ -4,7 +4,6 @@ set -e
 set -o pipefail
 
 rm -rf s3credentials
-rm -rf src
 rm -rf dist
 rm -rf libchromiumcontent.zip
 rm -rf libchromiumcontent-static.zip
@@ -16,4 +15,7 @@ docker build -t libchromiumcontent-linux .
 docker run \
   --rm \
   --env TARGET_ARCH="$TARGET_ARCH" \
-  libchromiumcontent-linux /workspace/libchromiumcontent/script/cibuild
+  -v "$PWD":/workspace/libchromiumcontent \
+  -v /var/lib/jenkins/config:/config \
+  -w /workspace/libchromiumcontent \
+  libchromiumcontent-linux script/cibuild
