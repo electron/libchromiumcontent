@@ -4,7 +4,6 @@ ENV TEMP=/tmp
 RUN chmod a+rwx /tmp
 
 ENV HOME=/home
-RUN mkdir /home
 RUN chmod a+rwx /home
 
 ADD script/docker-install-build-deps.sh /setup/install-build-deps.sh
