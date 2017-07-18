@@ -1,9 +1,3 @@
-Google Git
-Switch user
-Sign out
-‪Kevin Sawicki‬ <kevinsawicki@gmail.com>
-chromium / chromium / src / lkcr / . / build / install-build-deps.sh
-blob: 0a1e3f3346f984e314b56f2605c5901371deba43 [file] [log] [blame]
 #!/bin/bash -e
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
@@ -573,6 +567,10 @@ if test "$do_inst_lib32" = "1" || test "$do_inst_nacl" = "1"; then
   dpkg --add-architecture i386
 fi
 apt-get update
+
+# Prevent EULA popup
+echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections
+
 # We initially run "apt-get" with the --reinstall option and parse its output.
 # This way, we can find all the packages that need to be newly installed
 # without accidentally promoting any packages from "auto" to "manual".
