@@ -9,7 +9,7 @@ rm -rf dist
 rm -rf libchromiumcontent.zip
 rm -rf libchromiumcontent-static.zip
 
-cp ../config/s3credentials s3credentials
+cp ../../config/s3credentials s3credentials
 
 docker build -t libchromiumcontent-linux .
 
