@@ -351,6 +351,8 @@ def program_available(prog):
 
 
 def check_create_debug_archive(target_arch):
+  if TARGET_PLATFORM == 'win32':
+    return
   errmsg = '--create-debug-archive option requires missing program {0}'
   for prog in ['gdb', 'objcopy']:
     if target_arch == 'arm':
@@ -396,11 +398,14 @@ def copy_binaries(target_arch, component, create_debug_archive):
   if TARGET_PLATFORM == 'win32':
     if component == 'shared_library':
       # out/Release/*.dll(.lib)
+      debug_dir = os.path.join(os.path.dirname(target_dir), '.debug')
+      mkdir_p(debug_dir)
       for dll in glob.glob(os.path.join(output_dir, '*.dll')):
         lib = dll + '.lib'
         if os.path.exists(lib):
           copy_with_blacklist(target_arch, dll, target_dir)
           copy_with_blacklist(target_arch, lib, target_dir)
+          copy_with_blacklist(target_arch, dll + '.pdb', debug_dir)
     elif component == 'static_library':
       # out/Release/*.pdb
       for root, _, filenames in os.walk(output_dir):
@@ -603,7 +608,7 @@ def create_zip(create_debug_archive):
   print 'Zipping shared_library builds...'
   p = os.path.join(SOURCE_ROOT, 'libchromiumcontent.zip')
   make_zip(MAIN_DIR, ['src', 'ffmpeg', 'shared_library'], ['LICENSES.chromium.html'], p)
-  if create_debug_archive and TARGET_PLATFORM in ['linux', 'darwin']:
+  if create_debug_archive:
     print 'Zipping shared library debug files...'
     p = os.path.join(SOURCE_ROOT, 'libchromiumcontent-dbg.zip')
     make_zip(MAIN_DIR, ['.debug'], [], p)
