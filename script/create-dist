@@ -316,7 +316,8 @@ def main():
 
   for component in COMPONENTS:
     if args.component == 'all' or args.component == component:
-      copy_binaries(target_arch, component, create_debug_archive)
+      copy_binaries(target_arch, component, create_debug_archive,
+                    args.keep_debug_symbols)
       copy_generated_sources(target_arch, component)
       copy_locales(target_arch, component)
 
@@ -330,11 +331,18 @@ def main():
 def parse_args():
   parser = argparse.ArgumentParser(description='Create distribution')
   parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
-  parser.add_argument('--create-debug-archive',
+  group = parser.add_mutually_exclusive_group()
+  group.add_argument('--create-debug-archive',
                       default=False,
                       required=False,
                       action='store_true',
-                      help='Create archive with debug symbols and source code')
+                      help='Create archive with debug symbols and source code '
+                           'for the shared library build')
+  group.add_argument('--keep-debug-symbols',
+                      default=False,
+                      required=False,
+                      action='store_true',
+                      help='Keep debug symbols in shared library build')
   parser.add_argument('-c', '--component', default='all',
                       help='static_library or shared_library or all')
   parser.add_argument('--no_zip', action='store_true',
@@ -370,7 +378,8 @@ def copy_with_blacklist(target_arch, src, dest):
   shutil.copy2(src, dest)
 
 
-def copy_binaries(target_arch, component, create_debug_archive):
+def copy_binaries(target_arch, component, create_debug_archive,
+                  keep_debug_symbols):
   output_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
   target_dir = os.path.join(MAIN_DIR, component)
   mkdir_p(target_dir)
@@ -419,7 +428,7 @@ def copy_binaries(target_arch, component, create_debug_archive):
       for library in glob.glob(os.path.join(output_dir, '*.so')):
         copy_with_blacklist(target_arch, library, target_dir)
 
-  if TARGET_PLATFORM in ['linux', 'darwin']:
+  if TARGET_PLATFORM in ['linux', 'darwin'] and not keep_debug_symbols:
     if create_debug_archive:
       print 'Extracting debug symbols...'
     for binary in BINARIES[TARGET_PLATFORM]:
