@@ -24,9 +24,9 @@ index 92696ad..7da8159 100644
  #include "build/build_config.h"
  #include "cc/output/begin_frame_args.h"
 +#include "cc/output/software_output_device.h"
- #include "cc/surfaces/surface_sequence.h"
  #include "cc/trees/layer_tree_host_client.h"
  #include "cc/trees/layer_tree_host_single_thread_client.h"
+ #include "components/viz/common/surfaces/surface_sequence.h"
 @@ -168,6 +169,15 @@ class COMPOSITOR_EXPORT CompositorLock
    virtual void RemoveObserver(ContextFactoryObserver* observer) = 0;
  };

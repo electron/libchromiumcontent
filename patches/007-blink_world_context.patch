@@ -1,9 +1,9 @@
 diff --git a/third_party/WebKit/Source/web/WebLocalFrameImpl.cpp b/third_party/WebKit/Source/web/WebLocalFrameImpl.cpp
-index a95f10f..b97bef9 100644
+index 25513bd30a24..1a3db32e63b3 100644
 --- a/third_party/WebKit/Source/web/WebLocalFrameImpl.cpp
 +++ b/third_party/WebKit/Source/web/WebLocalFrameImpl.cpp
-@@ -871,6 +871,13 @@ v8::Local<v8::Context> WebLocalFrameImpl::MainWorldScriptContext() const {
-   return script_state->GetContext();
+@@ -842,6 +842,13 @@ v8::Local<v8::Context> WebLocalFrameImpl::MainWorldScriptContext() const {
+   return MainWorldScriptContext()->Global();
  }
  
 +v8::Local<v8::Context> WebLocalFrameImpl::WorldScriptContext(
@@ -15,7 +15,7 @@ index a95f10f..b97bef9 100644
 +
  bool WebFrame::ScriptCanAccess(WebFrame* target) {
    return BindingSecurity::ShouldAllowAccessToFrame(
-       CurrentDOMWindow(MainThreadIsolate()), target->ToImplBase()->GetFrame(),
+       CurrentDOMWindow(MainThreadIsolate()), ToCoreFrame(*target),
 diff --git a/third_party/WebKit/Source/web/WebLocalFrameImpl.h b/third_party/WebKit/Source/web/WebLocalFrameImpl.h
 index 6898061..b79db8d 100644
 --- a/third_party/WebKit/Source/web/WebLocalFrameImpl.h
@@ -26,58 +26,20 @@ index 6898061..b79db8d 100644
    v8::Local<v8::Context> MainWorldScriptContext() const override;
 +  v8::Local<v8::Context> WorldScriptContext(
 +      v8::Isolate* isolate, int world_id) const override;
+   v8::Local<v8::Object> GlobalProxy() const override;
    void Reload(WebFrameLoadType) override;
    void ReloadWithOverrideURL(const WebURL& override_url,
-                              WebFrameLoadType) override;
-diff --git a/src/third_party/WebKit/Source/web/WebRemoteFrameImpl.cpp b/src/third_party/WebKit/Source/web/WebRemoteFrameImpl.cpp
-index d9f8326..ade2c3c 100644
---- a/third_party/WebKit/Source/web/WebRemoteFrameImpl.cpp
-+++ b/third_party/WebKit/Source/web/WebRemoteFrameImpl.cpp
-@@ -211,6 +211,12 @@ v8::Local<v8::Context> WebRemoteFrameImpl::MainWorldScriptContext() const {
-   return v8::Local<v8::Context>();
- }
- 
-+v8::Local<v8::Context> WebRemoteFrameImpl::WorldScriptContext(
-+    v8::Isolate* isolate, int world_id) const {
-+  NOTREACHED();
-+  return v8::Local<v8::Context>();
-+}
-+
- void WebRemoteFrameImpl::Reload(WebFrameLoadType) {
-   NOTREACHED();
- }
-diff --git a/third_party/WebKit/Source/web/WebRemoteFrameImpl.h b/third_party/WebKit/Source/web/WebRemoteFrameImpl.h
-index d049228..de5d606 100644
---- a/third_party/WebKit/Source/web/WebRemoteFrameImpl.h
-+++ b/third_party/WebKit/Source/web/WebRemoteFrameImpl.h
-@@ -73,6 +73,8 @@ class WEB_EXPORT WebRemoteFrameImpl final
-       int argc,
-       v8::Local<v8::Value> argv[]) override;
-   v8::Local<v8::Context> MainWorldScriptContext() const override;
-+  v8::Local<v8::Context> WorldScriptContext(
-+      v8::Isolate* isolate, int world_id) const override;
-   void Reload(WebFrameLoadType) override;
-   void ReloadWithOverrideURL(const WebURL& override_url,
-                              WebFrameLoadType) override;
-diff --git a/third_party/WebKit/public/web/WebFrame.h b/third_party/WebKit/public/web/WebFrame.h
+diff --git a/third_party/WebKit/public/web/WebLocalFrame.h b/third_party/WebKit/public/web/WebLocalFrame.h
 index 826ea3e..4509da9 100644
---- a/third_party/WebKit/public/web/WebFrame.h
-+++ b/third_party/WebKit/public/web/WebFrame.h
-@@ -42,6 +42,7 @@
- namespace v8 {
- class Context;
- class Function;
-+class Isolate;
- class Value;
- template <class T>
- class Local;
-@@ -297,6 +298,9 @@ class WebFrame {
+--- a/third_party/WebKit/public/web/WebLocalFrame.h
++++ b/third_party/WebKit/public/web/WebLocalFrame.h
+@@ -386,6 +386,9 @@ class WebFrame {
    // be calling this API.
    virtual v8::Local<v8::Context> MainWorldScriptContext() const = 0;
  
 +  virtual v8::Local<v8::Context> WorldScriptContext(
 +      v8::Isolate* isolate, int world_id) const = 0;
 +
-   // Returns true if the WebFrame currently executing JavaScript has access
-   // to the given WebFrame, or false otherwise.
-   BLINK_EXPORT static bool ScriptCanAccess(WebFrame*);
+   // Executes script in the context of the current page and returns the value
+   // that the script evaluated to with callback. Script execution can be
+   // suspend.

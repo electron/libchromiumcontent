@@ -1,11 +1,11 @@
 diff --git a/BUILD.gn b/BUILD.gn
-index 4e9364b..e205205 100644
+index e3d12f49..9c64371b 100644
 --- a/BUILD.gn
 +++ b/BUILD.gn
-@@ -2,6 +2,7 @@
- # Use of this source code is governed by a BSD-style license that can be
+@@ -3,6 +3,7 @@
  # found in the LICENSE file.
  
+ import("//build/config/host_byteorder.gni")
 +import("//chromiumcontent/config.gni")
  import("//third_party/icu/config.gni")
  

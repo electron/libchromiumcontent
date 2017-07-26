@@ -1,14 +1,14 @@
-diff --git a/content/browser/renderer_host/render_message_filter.cc b/content/browser/renderer_host/render_message_filter.cc
-index c60d39a..3ce4657 100644
---- a/content/browser/renderer_host/render_message_filter.cc
-+++ b/content/browser/renderer_host/render_message_filter.cc
-@@ -202,12 +202,55 @@ void RenderMessageFilter::GenerateRoutingID(
- void RenderMessageFilter::CreateNewWindow(
-     mojom::CreateNewWindowParamsPtr params,
-     const CreateNewWindowCallback& callback) {
-+  scoped_refptr<ResourceRequestBodyImpl> body;
+diff --git a/content/browser/frame_host/render_frame_host_impl.cc b/content/browser/frame_host/render_frame_host_impl.cc
+index cee576c37901..3cd8c5817d2d 100644
+--- a/content/browser/frame_host/render_frame_host_impl.cc
++++ b/content/browser/frame_host/render_frame_host_impl.cc
+@@ -2617,6 +2617,48 @@ void RenderFrameHostImpl::CreateNewWindow(
+                "frame_tree_node", frame_tree_node_->frame_tree_node_id(), "url",
+                params->target_url.possibly_invalid_spec());
+ 
++  scoped_refptr<ResourceRequestBody> body;
 +  if (params->body->has_object) {
-+    body = new ResourceRequestBodyImpl;
++    body = new ResourceRequestBody;
 +    std::vector<storage::DataElement> elements;
 +    for (const auto& iter : params->body->elements) {
 +      storage::DataElement element;
@@ -48,31 +48,37 @@ index c60d39a..3ce4657 100644
 +    body->set_contains_sensitive_info(params->body->contains_sensitive_info);
 +  }
 +
-   bool no_javascript_access;
-   bool can_create_window = GetContentClient()->browser()->CanCreateWindow(
-       render_process_id_, params->opener_render_frame_id, params->opener_url,
-       params->opener_top_level_frame_url, params->opener_security_origin,
-       params->window_container_type, params->target_url, params->referrer,
-       params->frame_name, params->disposition, *params->features,
-+      params->additional_features, body,
-       params->user_gesture, params->opener_suppressed, resource_context_,
-       &no_javascript_access);
+   bool no_javascript_access = false;
  
-diff --git a/content/common/render_message_filter.mojom b/content/common/render_message_filter.mojom
-index 78c93ef..738f278 100644
---- a/content/common/render_message_filter.mojom
-+++ b/content/common/render_message_filter.mojom
-@@ -7,12 +7,32 @@ module content.mojom;
- import "cc/ipc/shared_bitmap_manager.mojom";
- import "content/common/native_types.mojom";
+   // Filter out URLs that this process cannot request.
+@@ -2630,8 +2672,9 @@ void RenderFrameHostImpl::CreateNewWindow(
+           frame_tree_node_->frame_tree()->GetMainFrame()->last_committed_url(),
+           last_committed_origin_.GetURL(), params->window_container_type,
+           params->target_url, params->referrer, params->frame_name,
+-          params->disposition, *params->features, params->user_gesture,
+-          params->opener_suppressed, &no_javascript_access);
++          params->disposition, *params->features, params->additional_features,
++          body, params->user_gesture, params->opener_suppressed,
++          &no_javascript_access);
+ 
+   mojom::CreateNewWindowReplyPtr reply = mojom::CreateNewWindowReply::New();
+   if (!can_create_window) {
+diff --git a/content/common/frame.mojom b/content/common/frame.mojom
+index 613037782fd5..e2ec468a8e36 100644
+--- a/content/common/frame.mojom
++++ b/content/common/frame.mojom
+@@ -5,6 +5,8 @@
+ module content.mojom;
+ 
  import "content/public/common/window_container_type.mojom";
 +import "mojo/common/file_path.mojom";
 +import "mojo/common/time.mojom";
- import "gpu/ipc/common/mailbox.mojom";
+ import "services/service_manager/public/interfaces/interface_provider.mojom";
  import "third_party/WebKit/public/platform/referrer.mojom";
  import "third_party/WebKit/public/web/window_features.mojom";
- import "ui/base/mojo/window_open_disposition.mojom";
- import "url/mojo/url.mojom";
+@@ -41,6 +43,24 @@ interface FrameFactory {
+   CreateFrame(int32 frame_routing_id, Frame& frame, FrameHostInterfaceBroker host);
+ };
  
 +struct DataElement {
 +  int32 type;
@@ -93,11 +99,11 @@ index 78c93ef..738f278 100644
 +};
 +
  struct CreateNewWindowParams {
-   // The routing id of the frame initiating the open.
-   int32 opener_render_frame_id;
-@@ -56,6 +76,10 @@ struct CreateNewWindowParams {
+   // True if this open request came in the context of a user gesture.
+   bool user_gesture;
+@@ -72,6 +92,10 @@ struct CreateNewWindowParams {
  
-   // The window features to use for the new view.
+   // The window features to use for the new window.
    blink.mojom.WindowFeatures features;
 +
 +  // Extra fields added by Electron.
@@ -107,31 +113,31 @@ index 78c93ef..738f278 100644
  
  struct CreateNewWindowReply {
 diff --git a/content/public/browser/content_browser_client.cc b/content/public/browser/content_browser_client.cc
-index f9f587b..b4f264c 100644
+index 5c2ab72ff537..3e7c25009c6a 100644
 --- a/content/public/browser/content_browser_client.cc
 +++ b/content/public/browser/content_browser_client.cc
-@@ -295,6 +295,8 @@ bool ContentBrowserClient::CanCreateWindow(
+@@ -298,6 +298,8 @@ bool ContentBrowserClient::CanCreateWindow(
      const std::string& frame_name,
      WindowOpenDisposition disposition,
      const blink::mojom::WindowFeatures& features,
 +    const std::vector<std::string>& additional_features,
-+    const scoped_refptr<ResourceRequestBodyImpl>& body,
++    const scoped_refptr<ResourceRequestBody>& body,
      bool user_gesture,
      bool opener_suppressed,
-     ResourceContext* context,
+     bool* no_javascript_access) {
 diff --git a/content/public/browser/content_browser_client.h b/content/public/browser/content_browser_client.h
-index 4505627..2d5db05c1 100644
+index a3d217fd9446..1a6354a291b7 100644
 --- a/content/public/browser/content_browser_client.h
 +++ b/content/public/browser/content_browser_client.h
-@@ -122,6 +122,7 @@ class RenderFrameHost;
+@@ -129,6 +129,7 @@ class RenderFrameHost;
  class RenderProcessHost;
  class RenderViewHost;
  class ResourceContext;
-+class ResourceRequestBodyImpl;
++class ResourceRequestBody;
  class SiteInstance;
  class SpeechRecognitionManagerDelegate;
  class StoragePartition;
-@@ -146,6 +147,14 @@ class CONTENT_EXPORT ContentBrowserClient {
+@@ -153,6 +154,14 @@ class CONTENT_EXPORT ContentBrowserClient {
   public:
    virtual ~ContentBrowserClient() {}
  
@@ -146,20 +152,20 @@ index 4505627..2d5db05c1 100644
    // Allows the embedder to set any number of custom BrowserMainParts
    // implementations for the browser startup code. See comments in
    // browser_main_parts.h.
-@@ -514,6 +523,8 @@ class CONTENT_EXPORT ContentBrowserClient {
+@@ -509,6 +518,8 @@ class CONTENT_EXPORT ContentBrowserClient {
        const std::string& frame_name,
        WindowOpenDisposition disposition,
        const blink::mojom::WindowFeatures& features,
 +      const std::vector<std::string>& additional_features,
-+      const scoped_refptr<ResourceRequestBodyImpl>& body,
++      const scoped_refptr<ResourceRequestBody>& body,
        bool user_gesture,
        bool opener_suppressed,
-       ResourceContext* context,
+       bool* no_javascript_access);
 diff --git a/content/renderer/render_view_impl.cc b/content/renderer/render_view_impl.cc
-index c59e97853d4f..99e10f96cc54 100644
+index d9a7e20f21cc..961cb76b162f 100644
 --- a/content/renderer/render_view_impl.cc
 +++ b/content/renderer/render_view_impl.cc
-@@ -43,6 +43,7 @@
+@@ -44,6 +44,7 @@
  #include "content/child/request_extra_data.h"
  #include "content/child/v8_value_converter_impl.h"
  #include "content/child/webmessageportchannel_impl.h"
@@ -167,15 +173,10 @@ index c59e97853d4f..99e10f96cc54 100644
  #include "content/common/content_constants_internal.h"
  #include "content/common/content_switches_internal.h"
  #include "content/common/dom_storage/dom_storage_types.h"
-@@ -1434,6 +1435,64 @@ WebView* RenderViewImpl::createView(WebLocalFrame* creator,
+@@ -1439,6 +1440,59 @@ WebView* RenderViewImpl::CreateView(WebLocalFrame* creator,
    }
    params->features = ConvertWebWindowFeaturesToMojoWindowFeatures(features);
  
-+  for (size_t i = 0; i < features.additional_features.size(); ++i) {
-+    params->additional_features.push_back(
-+        features.additional_features[i].Utf8());
-+  }
-+
 +  params->body = mojom::ResourceRequestBody::New();
 +  auto body = GetRequestBodyForWebURLRequest(request);
 +  if (body) {

@@ -1,8 +1,8 @@
 diff --git a/source/common/unicode/unistr.h b/source/common/unicode/unistr.h
-index 6f62244..29b6b91 100644
+index e0ab0b9e..fe4c673b 100644
 --- a/source/common/unicode/unistr.h
 +++ b/source/common/unicode/unistr.h
-@@ -2960,7 +2960,7 @@ public:
+@@ -2957,7 +2957,7 @@ public:
    /** Construct an empty UnicodeString.
     * @stable ICU 2.0
     */
@@ -10,11 +10,12 @@ index 6f62244..29b6b91 100644
 +  UnicodeString();
  
    /**
-    * Construct a UnicodeString with capacity to hold <TT>capacity</TT> UChars
-@@ -3765,15 +3765,6 @@ UnicodeString::getArrayStart() const {
+    * Construct a UnicodeString with capacity to hold <TT>capacity</TT> char16_ts
+@@ -3915,15 +3915,6 @@ UnicodeString::getArrayStart() const {
+     fUnion.fStackFields.fBuffer : fUnion.fFields.fArray;
  }
  
- //========================================
+-//========================================
 -// Default constructor
 -//========================================
 -
@@ -23,12 +24,11 @@ index 6f62244..29b6b91 100644
 -  fUnion.fStackFields.fLengthAndFlags=kShortString;
 -}
 -
--//========================================
- // Read-only implementation methods
- //========================================
- inline UBool
+ inline UnicodeString::UnicodeString(const std::nullptr_t /*text*/) {
+   fUnion.fStackFields.fLengthAndFlags=kShortString;
+ }
 diff --git a/source/common/unistr.cpp b/source/common/unistr.cpp
-index bdd58ec..60f6835 100644
+index 1bfb71aa..5495ee91 100644
 --- a/source/common/unistr.cpp
 +++ b/source/common/unistr.cpp
 @@ -146,7 +146,9 @@ UnicodeString::releaseArray() {
