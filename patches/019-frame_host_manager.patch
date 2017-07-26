@@ -27,6 +27,6 @@ index 1bbf60fac4e1..ca71865f89e8 100644
    DCHECK_EQ(new_instance->GetBrowserContext(), browser_context);
  
 +  GetContentClient()->browser()->OnCreateSiteInstanceForNavigation(new_instance.get(), render_frame_host_.get());
-   return new_instance;
- }
- 
+   // If |new_instance| is a new SiteInstance for a subframe with an isolated
+   // origin, set its process reuse policy so that such subframes are
+   // consolidated into existing processes for that isolated origin.

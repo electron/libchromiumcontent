@@ -112,16 +112,16 @@ index 4fa796b38b3f..376e8e143770 100644
  
  NavigationEntry*
 diff --git a/content/browser/web_contents/web_contents_impl.h b/content/browser/web_contents/web_contents_impl.h
-index 5a621c32adb4..21de4d65efe3 100644
+index 65a6fa4b26a9..203d2c8ebce6 100644
 --- a/content/browser/web_contents/web_contents_impl.h
 +++ b/content/browser/web_contents/web_contents_impl.h
-@@ -497,7 +497,8 @@ class CONTENT_EXPORT WebContentsImpl
+@@ -538,7 +538,8 @@ class CONTENT_EXPORT WebContentsImpl
        SiteInstance* source_site_instance) const override;
    void EnsureOpenerProxiesExist(RenderFrameHost* source_rfh) override;
    std::unique_ptr<WebUIImpl> CreateWebUIForRenderFrameHost(
 -      const GURL& url) override;
-+    const GURL& url,
-+    const std::string& frame_name) override;
++      const GURL& url,
++      const std::string& frame_name) override;
    void SetFocusedFrame(FrameTreeNode* node, SiteInstance* source) override;
+   RenderFrameHost* GetFocusedFrameIncludingInnerWebContents() override;
    void OnFocusedElementChangedInFrame(
-       RenderFrameHostImpl* frame,

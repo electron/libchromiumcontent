@@ -96,13 +96,13 @@ index ea628e0..1b521f8 100644
 --- a/gni/v8.gni
 +++ b/gni/v8.gni
 @@ -4,6 +4,7 @@
- 
  import("//build/config/sanitizers/sanitizers.gni")
  import("//build/config/v8_target_cpu.gni")
+ import("//build/split_static_library.gni")
 +import("//chromiumcontent/config.gni")
  
  declare_args() {
-   # Includes files needed for correctness fuzzing.
+   # Set flags for tracking code coverage. Uses gcov with gcc and sanitizer
 @@ -139,7 +140,13 @@ template("v8_executable") {
  }
  
