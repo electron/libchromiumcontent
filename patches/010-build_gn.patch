@@ -1,15 +1,3 @@
-diff --git a/base/allocator/BUILD.gn b/base/allocator/BUILD.gn
-index 8cdb06161f5c..285461d3381d 100644
---- a/base/allocator/BUILD.gn
-+++ b/base/allocator/BUILD.gn
-@@ -16,6 +16,7 @@ declare_args() {
- # The Windows-only allocator shim is only enabled for Release static builds, and
- # is mutually exclusive with the generalized shim.
- win_use_allocator_shim = is_win && !is_component_build && !is_debug &&
-+                         !is_electron_build &&
-                          !use_experimental_allocator_shim && !is_asan
- 
- # This "allocator" meta-target will forward to the default allocator according
 diff --git a/build/config/BUILDCONFIG.gn b/build/config/BUILDCONFIG.gn
 index d055e70..c76ca27 100644
 --- a/build/config/BUILDCONFIG.gn
@@ -57,11 +45,11 @@ index 15bf689..9cdc19d 100644
      "text/CharacterPropertyDataGenerator.cpp",
      "text/CharacterPropertyDataGenerator.h",
 diff --git a/third_party/widevine/cdm/BUILD.gn b/third_party/widevine/cdm/BUILD.gn
-index dda9799..2bf3f57 100644
+index 9e744b9940e2..09208f2e98fa 100644
 --- a/third_party/widevine/cdm/BUILD.gn
 +++ b/third_party/widevine/cdm/BUILD.gn
-@@ -153,7 +153,7 @@ if (widevine_cdm_binary_files != []) {
-       "//build/config/sanitizers:deps",
+@@ -110,7 +110,7 @@ if (widevine_cdm_binary_files != []) {
+       "//build/config:exe_and_shlib_deps",
      ]
  
 -    if (is_mac) {
