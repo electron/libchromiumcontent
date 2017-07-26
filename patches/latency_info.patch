@@ -1,5 +1,5 @@
 diff --git a/ui/latency/BUILD.gn b/ui/latency/BUILD.gn
-index b0242373612f..9667d40fc50d 100644
+index 139001ef6b91..dcf47174951e 100644
 --- a/ui/latency/BUILD.gn
 +++ b/ui/latency/BUILD.gn
 @@ -4,19 +4,22 @@
@@ -9,7 +9,7 @@ index b0242373612f..9667d40fc50d 100644
 -source_set("latency") {
 +component("latency") {
    sources = [
-     "latency/latency_histogram_macros.h",
+     "latency_histogram_macros.h",
      "latency_info.cc",
      "latency_info.h",
      "latency_tracker.cc",
@@ -25,20 +25,20 @@ index b0242373612f..9667d40fc50d 100644
 +  defines = [ "UI_LATENCY_IMPLEMENTATION" ]
  }
  
- test("latency_unittests") {
+ source_set("test_support") {
 diff --git a/ui/latency/latency_info.h b/ui/latency/latency_info.h
-index b358fba..5aa05a4 100644
+index 0f8b6be29ff6..a36bb10e43a3 100644
 --- a/ui/latency/latency_info.h
 +++ b/ui/latency/latency_info.h
-@@ -14,6 +14,7 @@
- 
- #include "base/containers/small_map.h"
+@@ -15,6 +15,7 @@
+ #include "base/containers/flat_map.h"
  #include "base/time/time.h"
-+#include "ui/latency/ui_latency_export.h"
  #include "ui/gfx/geometry/point_f.h"
++#include "ui/latency/ui_latency_export.h"
  
  #if !defined(OS_IOS)
-@@ -113,7 +114,7 @@ enum SourceEventType {
+ #include "ipc/ipc_param_traits.h"  // nogncheck
+@@ -114,7 +115,7 @@ enum SourceEventType {
    SOURCE_EVENT_TYPE_LAST = OTHER,
  };
  

@@ -1,8 +1,8 @@
 diff --git a/third_party/WebKit/Source/web/WebLocalFrameImpl.cpp b/third_party/WebKit/Source/web/WebLocalFrameImpl.cpp
-index a95f10f..b97bef9 100644
+index 25513bd30a24..1a3db32e63b3 100644
 --- a/third_party/WebKit/Source/web/WebLocalFrameImpl.cpp
 +++ b/third_party/WebKit/Source/web/WebLocalFrameImpl.cpp
-@@ -871,6 +871,13 @@ v8::Local<v8::Context> WebLocalFrameImpl::MainWorldScriptContext() const {
+@@ -844,6 +844,13 @@ v8::Local<v8::Context> WebLocalFrameImpl::MainWorldScriptContext() const {
    return script_state->GetContext();
  }
  
@@ -15,7 +15,7 @@ index a95f10f..b97bef9 100644
 +
  bool WebFrame::ScriptCanAccess(WebFrame* target) {
    return BindingSecurity::ShouldAllowAccessToFrame(
-       CurrentDOMWindow(MainThreadIsolate()), target->ToImplBase()->GetFrame(),
+       CurrentDOMWindow(MainThreadIsolate()), ToCoreFrame(*target),
 diff --git a/third_party/WebKit/Source/web/WebLocalFrameImpl.h b/third_party/WebKit/Source/web/WebLocalFrameImpl.h
 index 6898061..b79db8d 100644
 --- a/third_party/WebKit/Source/web/WebLocalFrameImpl.h
