@@ -2,7 +2,7 @@ diff --git a/build/toolchain/win/BUILD.gn b/build/toolchain/win/BUILD.gn
 index dd1017f..d15706b 100644
 --- a/build/toolchain/win/BUILD.gn
 +++ b/build/toolchain/win/BUILD.gn
-@@ -129,12 +129,19 @@ template("msvc_toolchain") {
+@@ -145,12 +145,19 @@ template("msvc_toolchain") {
      tool("cc") {
        rspfile = "{{output}}.rsp"
        precompiled_header_type = "msvc"
@@ -10,20 +10,20 @@ index dd1017f..d15706b 100644
 +      if (is_electron_build && !is_component_build) {
 +        pdbdir = "{{target_out_dir}}"
 +        pdbname = "{{label_name}}_c.pdb"
-+        command = "$python_path $tool_wrapper_path cl-wrapper $env_wrapper$cl /nologo /showIncludes /FC @$rspfile /c {{source}} /Fo{{output}} $pdbdir \"$pdbname\""
++        command = "$python_path $tool_wrapper_path cl-wrapper $env_wrapper$cl /nologo /showIncludes ${clflags} @$rspfile /c {{source}} /Fo{{output}} $pdbdir \"$pdbname\""
 +      } else {
 +        pdbname = "{{target_out_dir}}/{{label_name}}_c.pdb"
 +
 +        # Label names may have spaces in them so the pdbname must be quoted. The
 +        # source and output don't need to be quoted because GN knows they're a
 +        # full file name and will quote automatically when necessary.
-+        command = "$env_wrapper$cl /nologo /showIncludes /FC @$rspfile /c {{source}} /Fo{{output}} /Fd\"$pdbname\""
++        command = "$env_wrapper$cl /nologo /showIncludes ${clflags} @$rspfile /c {{source}} /Fo{{output}} /Fd\"$pdbname\""
 +      }
  
 -      # Label names may have spaces in them so the pdbname must be quoted. The
 -      # source and output don't need to be quoted because GN knows they're a
 -      # full file name and will quote automatically when necessary.
--      command = "$env_wrapper$cl /nologo /showIncludes /FC @$rspfile /c {{source}} /Fo{{output}} /Fd\"$pdbname\""
+-      command = "$env_wrapper$cl /nologo /showIncludes ${clflags} @$rspfile /c {{source}} /Fo{{output}} /Fd\"$pdbname\""
        depsformat = "msvc"
        description = "CC {{output}}"
        outputs = [
@@ -36,17 +36,17 @@ index dd1017f..d15706b 100644
 +      if (is_electron_build && !is_component_build) {
 +        pdbdir = "{{target_out_dir}}"
 +        pdbname = "{{label_name}}_cc.pdb"
-+        command = "$python_path $tool_wrapper_path cl-wrapper $env_wrapper$cl /nologo /showIncludes /FC @$rspfile /c {{source}} /Fo{{output}} $pdbdir \"$pdbname\""
++        command = "$python_path $tool_wrapper_path cl-wrapper $env_wrapper$cl /nologo /showIncludes ${clflags} @$rspfile /c {{source}} /Fo{{output}} $pdbdir \"$pdbname\""
 +      } else {
 +        # The PDB name needs to be different between C and C++ compiled files.
 +        pdbname = "{{target_out_dir}}/{{label_name}}_cc.pdb"
 +
 +        # See comment in CC tool about quoting.
-+        command = "$env_wrapper$cl /nologo /showIncludes /FC @$rspfile /c {{source}} /Fo{{output}} /Fd\"$pdbname\""
++        command = "$env_wrapper$cl /nologo /showIncludes ${clflags} @$rspfile /c {{source}} /Fo{{output}} /Fd\"$pdbname\""
 +      }
  
 -      # See comment in CC tool about quoting.
--      command = "$env_wrapper$cl /nologo /showIncludes /FC @$rspfile /c {{source}} /Fo{{output}} /Fd\"$pdbname\""
+-      command = "$env_wrapper$cl /nologo /showIncludes ${clflags} @$rspfile /c {{source}} /Fo{{output}} /Fd\"$pdbname\""
        depsformat = "msvc"
        description = "CXX {{output}}"
        outputs = [
