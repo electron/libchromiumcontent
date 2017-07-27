@@ -4,6 +4,8 @@ import os
 import subprocess
 import sys
 
+from patch import apply_patches_from_directory
+
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 PATCHES_DIR = os.path.join(SOURCE_ROOT, 'patches')
@@ -28,18 +30,11 @@ def main():
 def apply_patches_for_dir(directory):
   for root, dirs, files in os.walk(directory):
     prefix = os.path.relpath(root, directory)
-    if prefix != '.':
-      cwd = os.path.join(SRC, prefix)
-    else:
-      cwd = SRC
-    args = ['git', 'apply', '--ignore-whitespace', '--ignore-space-change',
-            '--whitespace', 'fix', '--directory', cwd]
-    for name in sorted(files):
-      if not name.endswith('.patch'):
-        continue
-      patch = os.path.join(root, name)
-      if subprocess.call(args + [patch]):
-        return '{0} failed to apply'.format(os.path.basename(patch))
+    repo = SRC if prefix == '.' else os.path.join(SRC, prefix)
+
+    (success, failed_patches) = apply_patches_from_directory(repo, root)
+    if not success:
+      return '{0} failed to apply'.format(os.path.basename(failed_patches[0]))
 
 
 if __name__ == '__main__':
