@@ -112,7 +112,6 @@ BINARIES_SHARED_LIBRARY = {
     os.path.join('obj', 'third_party', 'pdfium', 'libfxjs.a'),
     os.path.join('obj', 'third_party', 'pdfium', 'libjavascript.a'),
     os.path.join('obj', 'third_party', 'pdfium', 'libpdfwindow.a'),
-    os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'libfx_freetype.a'),
   ],
   'linux': [
     os.path.join('obj', 'components', 'cdm', 'renderer', 'librenderer.a'),
