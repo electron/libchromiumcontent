@@ -1,0 +1,62 @@
+diff --git a/content/browser/renderer_host/render_widget_host_impl.cc b/content/browser/renderer_host/render_widget_host_impl.cc
+index 2397e771f3e1..94c370c5b7d0 100644
+--- a/content/browser/renderer_host/render_widget_host_impl.cc
++++ b/content/browser/renderer_host/render_widget_host_impl.cc
+@@ -580,6 +580,9 @@ void RenderWidgetHostImpl::WasHidden() {
+   if (is_hidden_)
+     return;
+ 
++  if (disable_hidden_)
++    return;
++
+   TRACE_EVENT0("renderer_host", "RenderWidgetHostImpl::WasHidden");
+   is_hidden_ = true;
+ 
+@@ -1627,11 +1630,13 @@ void RenderWidgetHostImpl::ImeSetComposition(
+             selection_start, selection_end));
+ }
+ 
+-void RenderWidgetHostImpl::ImeCommitText(const base::string16& text,
+-                                         const gfx::Range& replacement_range,
+-                                         int relative_cursor_pos) {
+-  Send(new InputMsg_ImeCommitText(GetRoutingID(), text, replacement_range,
+-                                  relative_cursor_pos));
++void RenderWidgetHostImpl::ImeCommitText(
++    const base::string16& text,
++    const std::vector<blink::WebCompositionUnderline>& underlines,
++    const gfx::Range& replacement_range,
++    int relative_cursor_pos) {
++  Send(new InputMsg_ImeCommitText(GetRoutingID(), text, underlines,
++                                  replacement_range, relative_cursor_pos));
+ }
+ 
+ void RenderWidgetHostImpl::ImeFinishComposingText(bool keep_selection) {
+diff --git a/content/browser/renderer_host/render_widget_host_impl.h b/content/browser/renderer_host/render_widget_host_impl.h
+index 8c17eef9be69..bfd7f227799d 100644
+--- a/content/browser/renderer_host/render_widget_host_impl.h
++++ b/content/browser/renderer_host/render_widget_host_impl.h
+@@ -117,6 +117,9 @@ class CONTENT_EXPORT RenderWidgetHostImpl : public RenderWidgetHost,
+   // RenderWidgetHostImpl.
+   static RenderWidgetHostImpl* From(RenderWidgetHost* rwh);
+ 
++  // Electron: Prevents the widget from getting hidden.
++  bool disable_hidden_ = false;
++
+   void set_hung_renderer_delay(const base::TimeDelta& delay) {
+     hung_renderer_delay_ = delay;
+   }
+@@ -403,9 +406,11 @@ class CONTENT_EXPORT RenderWidgetHostImpl : public RenderWidgetHost,
+   //   (on Windows);
+   // * when it receives a "commit" signal of GtkIMContext (on Linux);
+   // * when insertText of NSTextInput is called (on Mac).
+-  void ImeCommitText(const base::string16& text,
+-                     const gfx::Range& replacement_range,
+-                     int relative_cursor_pos);
++  void ImeCommitText(
++      const base::string16& text,
++      const std::vector<blink::WebCompositionUnderline>& underlines,
++      const gfx::Range& replacement_range,
++      int relative_cursor_pos);
+ 
+   // Finishes an ongoing composition.
+   // A browser should call this function or ImeCommitText:
