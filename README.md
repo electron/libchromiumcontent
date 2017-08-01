@@ -70,13 +70,13 @@ Asset URLs have the following format:
 
 Builds exist for the following platform/arch pairs:
 
-- `osx/x64`
-- `mas/x64`
-- `win/ia32`
-- `win/x64`
+- `linux/arm`
 - `linux/ia32`
 - `linux/x64`
-- `linux/ar`
+- `mas/x64` (though `osx/mas` would be a more accurate name)
+- `osx/x64`
+- `win/ia32`
+- `win/x64`
 
 The Linux machines only build for pushes by GitHub employees, so PRs 
 from third parties have to have their linux builds triggered manually.
