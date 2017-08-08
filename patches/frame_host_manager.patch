@@ -15,10 +15,18 @@ index 1bbf60fac4e1..ca71865f89e8 100644
 +      dest_url,
 +      &client_custom_instance);
 +  if (client_custom_instance != current_instance) {
-+    GetContentClient()->browser()->OnCreateSiteInstanceForNavigation(client_custom_instance);
++    GetContentClient()->browser()->OnCreateSiteInstanceForNavigation(client_custom_instance, render_frame_host_.get());
 +    return client_custom_instance;
 +  }
 +
    // We do not currently swap processes for navigations in webview tag guests.
    if (current_instance->GetSiteURL().SchemeIs(kGuestScheme))
      return current_instance;
+@@ -1265,6 +1278,7 @@ RenderFrameHostManager::GetSiteInstanceForNavigation(
+   // BrowserContext.
+   DCHECK_EQ(new_instance->GetBrowserContext(), browser_context);
+ 
++  GetContentClient()->browser()->OnCreateSiteInstanceForNavigation(new_instance, render_frame_host_.get());
+   return new_instance;
+ }
+ 
