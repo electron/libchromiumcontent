@@ -1,0 +1,15 @@
+diff --git a/content/public/browser/content_browser_client.h b/content/public/browser/content_browser_client.h
+index 45056271e932..7514dba824d2 100644
+--- a/content/public/browser/content_browser_client.h
++++ b/content/public/browser/content_browser_client.h
+@@ -162,6 +163,10 @@ class CONTENT_EXPORT ContentBrowserClient {
+       const scoped_refptr<base::TaskRunner>& task_runner,
+       const base::Closure& task);
+ 
++  // Electron: Allows intercepting the SiteInstance being created for navigation
++  virtual void OnCreateSiteInstanceForNavigation(
++      SiteInstance* new_instance) {}
++
+   // Allows the embedder to indicate whether it considers startup to be
+   // complete. May be called on any thread. This should be called on a one-off
+   // basis; if you need to poll this function constantly, use the above
