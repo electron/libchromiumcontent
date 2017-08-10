@@ -3,6 +3,8 @@ jobs:
   build:
     docker:
       - image: electronbuilds/libchromiumcontent:0.0.1
+    resource_class: xlarge
     steps:
+       - run: ssh-keyscan -H github.cp, >> ~/.ssh/known_hosts
        - checkout
        - run: script/cibuild
