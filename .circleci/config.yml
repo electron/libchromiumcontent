@@ -5,6 +5,6 @@ jobs:
       - image: electronbuilds/libchromiumcontent:0.0.1
     resource_class: xlarge
     steps:
-       - run: ssh-keyscan -H github.com, > ~/.ssh/known_hosts
+       - run: ssh -T -oStrictHostKeyChecking=no git@github.com
        - checkout
        - run: script/cibuild
