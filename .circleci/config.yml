@@ -1,0 +1,8 @@
+version: 2.0
+jobs:
+  build:
+    docker:
+      - image: dockerview/chromium-builder
+    steps:
+       - checkout
+       - run: script/cibuild
