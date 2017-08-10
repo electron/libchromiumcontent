@@ -6,7 +6,7 @@ jobs:
     resource_class: xlarge
     steps:
        - run:
-           shell: /bin/sh
+           set +e
            command: |
               ssh -T -oStrictHostKeyChecking=no git@github.com
        - checkout
