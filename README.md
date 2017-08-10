@@ -12,6 +12,10 @@ dependencies (e.g., Blink, V8, etc.).
 * [Mac](https://chromium.googlesource.com/chromium/src/+/master/docs/mac_build_instructions.md#Prerequisites)
 * [Windows](https://chromium.googlesource.com/chromium/src/+/master/docs/windows_build_instructions.md)
 
+Note: Even though it is not mentioned in chromium documentation, pywin32 must
+also be installed for `gclient` to work properly. Before invoking script/update,
+download/install the x64 version from: https://sourceforge.net/projects/pywin32/ 
+
 ### One-time setup
 
     $ script/bootstrap

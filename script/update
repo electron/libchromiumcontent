@@ -26,6 +26,19 @@ if sys.platform == 'win32':
 
 DEBIAN_MIRROR = 'http://ftp.jp.debian.org/debian/pool/main/'
 BINTOOLS_NAME = 'c/cross-binutils/binutils-aarch64-linux-gnu_2.25-5_amd64.deb'
+GCLIENT_CONFIG_PATH = os.path.join(SOURCE_ROOT, '.gclient')
+GCLIENT_CONFIG_TEMPLATE = '''
+solutions = [
+  {{
+    "url": "https://chromium.googlesource.com/chromium/src.git",
+    "managed": False,
+    "name": "src",
+    "deps_file": ".DEPS.git",
+    "custom_deps": {{}},
+  }},
+]
+{cache_dir_line}
+'''
 
 def main():
   args = parse_args()
@@ -36,7 +49,14 @@ def main():
   if args.clean and os.path.isdir(SRC_DIR):
     git_clean_recursive(SRC_DIR)
 
-  gclient_sync(chromium_version(), args.clean)
+  # Warning about using a network share as git cache from Windows 7+: The
+  # gclient script may experience errors unless you disable SMBv2 cache by
+  # setting the registry key
+  # HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\Lanmanworkstation\Parameters\DirectoryCacheLifetime
+  # to 0.
+  # More information: https://stackoverflow.com/a/9935126
+  git_cache = args.git_cache or os.getenv('LIBCHROMIUMCONTENT_GIT_CACHE', '')
+  gclient_sync(chromium_version(), args.clean, git_cache)
 
   if sys.platform == 'linux2':
     install_sysroot()
@@ -58,6 +78,8 @@ def parse_args():
   parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
   parser.add_argument('--defines', default='',
                       help='The definitions passed to gyp')
+  parser.add_argument('--git-cache', default='',
+                      help='Global git object cache for chromium+ deps')
   parser.add_argument('--clean', action='store_true',
                       help='Cleans the working directory for full rebuild')
   return parser.parse_args()
@@ -138,7 +160,17 @@ def update_depot_tools():
   subprocess.check_call([cmd_path, '/c', update_path], env=env)
 
 
-def gclient_sync(version, force):
+def ensure_gclient_config(git_cache):
+  # escape backslashes to avoid escaping the cache_dir assignment quote
+  git_cache = git_cache.replace('\\', '\\\\')
+  with open(GCLIENT_CONFIG_PATH, 'wb') as f:
+    f.write(GCLIENT_CONFIG_TEMPLATE.format(
+      cache_dir_line="cache_dir = '{0}'".format(git_cache) if git_cache else ''
+      ))
+
+
+def gclient_sync(version, force, git_cache):
+  ensure_gclient_config(git_cache)
   env = os.environ.copy()
   if sys.platform in ['win32', 'cygwin']:
     env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
@@ -148,6 +180,8 @@ def gclient_sync(version, force):
   args = [sys.executable, gclient, 'sync', '--jobs', '16',
           '--revision', 'src@{0}'.format(version), '--with_tags',
           '--with_branch_heads', '--reset', '--delete_unversioned_trees']
+  if git_cache:
+    args += ['--lock_timeout=15']
   if force:
     args += ['--force']
   subprocess.check_call(args, env=env)
