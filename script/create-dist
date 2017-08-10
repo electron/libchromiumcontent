@@ -17,12 +17,24 @@ from lib.config import get_output_dir
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
+TOOLS_DIR = os.path.join(SOURCE_ROOT, 'tools')
 DIST_DIR = os.path.join(SOURCE_ROOT, 'dist')
 SRC_DIR = os.path.join(SOURCE_ROOT, 'src')
+
+# import helper module to generate ninja build files
+sys.path.insert(0, os.path.join(SRC_DIR, 'tools', 'gyp', 'pylib', 'gyp'))
+import ninja_syntax
 
 # Almost everything goes into the main zip file...
 MAIN_DIR = os.path.join(DIST_DIR, 'main')
 DIST_SRC_DIR = os.path.join(MAIN_DIR, 'src')
+
+NINJA = os.path.join(VENDOR_DIR, 'depot_tools', 'ninja')
+if sys.platform == 'win32':
+  NINJA = '{0}.exe'.format(NINJA)
+
+COPY_PY = os.path.join(TOOLS_DIR, 'copy.py')
+LICENSES_PY = os.path.join(TOOLS_DIR, 'licenses.py')
 
 TARGET_PLATFORM = {
   'cygwin': 'win32',
@@ -298,34 +310,80 @@ OTHER_DIRS = [
 ]
 
 
+class Ninja(ninja_syntax.Writer):
+  def __init__(self, output):
+    # used to avoid duplicate copy builds
+    self._copies = set()
+    super(Ninja, self).__init__(output=output)
+
+  def __enter__(self):
+    self.variable('python', sys.executable)
+    self.variable('copy_py', COPY_PY)
+    self.variable('licenses_py', LICENSES_PY)
+    self.rule('copy', (
+      '${python} ${copy_py} ${in} ${out}' if TARGET_PLATFORM == 'win32' else 'cp -p ${in} ${out}'
+      ), description='COPY ${in}')
+    self.rule('license', (
+      '${python} ${licenses_py} credits ${out} --file-template '
+      '${file_template} --entry-template ${entry_template}'
+    ), description='LICENSE')
+    return self
+
+  def __exit__(self, t, v, tb):
+    self.output.close()
+
+  def copy(self, src, dest, dest_is_dir=True):
+    dest = os.path.normpath(dest)
+    if dest_is_dir:
+      dest = os.path.join(dest, os.path.basename(src))
+    if (src, dest,) not in self._copies:
+      self.build(dest, 'copy', src)
+      self._copies.add((src, dest,))
+
+
 def main():
   args = parse_args()
+
+  if args.create_debug_archive:
+    check_create_debug_archive(args.target_arch)
+
+  rm_rf(DIST_DIR)
+  os.makedirs(MAIN_DIR)
+  
+  with Ninja(open(os.path.join(MAIN_DIR, 'build.ninja'), 'wb')) as ninja:
+    generate_ninja(args, ninja)
+
+  subprocess.check_call([NINJA, '-C', MAIN_DIR])
+
+  for component in COMPONENTS:
+    if args.component == 'all' or args.component == component:
+      strip_binaries(args.create_debug_archive, args.keep_debug_symbols,
+                     component, os.path.join(MAIN_DIR, component),
+                     args.target_arch)
+
+  if not args.no_zip:
+    create_zip(args.create_debug_archive)
+
+
+def generate_ninja(args, ninja):
   target_arch = args.target_arch
   create_debug_archive = args.create_debug_archive
-
-  if create_debug_archive:
-    check_create_debug_archive(target_arch)
 
   # Some libraries are not available for certain arch.
   for lib in ARCH_BLACKLIST[target_arch]:
     if lib in BINARIES[TARGET_PLATFORM]:
       BINARIES[TARGET_PLATFORM].remove(lib)
 
-  rm_rf(DIST_DIR)
-  os.makedirs(DIST_DIR)
-
   for component in COMPONENTS:
     if args.component == 'all' or args.component == component:
       copy_binaries(target_arch, component, create_debug_archive,
-                    args.keep_debug_symbols)
-      copy_generated_sources(target_arch, component)
-      copy_locales(target_arch, component)
+                    args.keep_debug_symbols, ninja)
+      copy_generated_sources(target_arch, component, ninja)
+      copy_locales(target_arch, component, ninja)
 
-  copy_ffmpeg(target_arch)
-  copy_sources()
-  generate_licenses()
-  if not args.no_zip:
-    create_zip(create_debug_archive)
+  copy_ffmpeg(target_arch, ninja)
+  copy_sources(ninja)
+  generate_licenses(ninja)
 
 
 def parse_args():
@@ -372,61 +430,79 @@ def check_create_debug_archive(target_arch):
       sys.exit(1)
 
 
-def copy_with_blacklist(target_arch, src, dest):
+def copy_with_blacklist(target_arch, src, dest, ninja):
   if os.path.basename(src) in ARCH_BLACKLIST[target_arch]:
     return
-  shutil.copy2(src, dest)
+  ninja.copy(src, dest)
 
 
 def copy_binaries(target_arch, component, create_debug_archive,
-                  keep_debug_symbols):
+                  keep_debug_symbols, ninja):
   output_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
-  target_dir = os.path.join(MAIN_DIR, component)
-  mkdir_p(target_dir)
+  target_dir = component
 
   binaries = BINARIES['all'] + BINARIES[TARGET_PLATFORM]
   if component == 'shared_library':
     binaries += BINARIES_SHARED_LIBRARY[TARGET_PLATFORM]
   for binary in binaries:
-    copy_with_blacklist(target_arch, os.path.join(output_dir, binary), target_dir)
+    copy_with_blacklist(target_arch, os.path.join(output_dir, binary), target_dir, ninja)
 
   # Copy all static libraries from chromiumcontent
   for library in glob.glob(os.path.join(output_dir, 'obj', 'chromiumcontent', '*.' + STATIC_LIBRARY_SUFFIX)):
-    shutil.copy2(library, target_dir)
-
-  if component == 'shared_library':
-    match = '*.{0}'.format(SHARED_LIBRARY_SUFFIX)
-  else:
-    match = '*.{0}'.format(STATIC_LIBRARY_SUFFIX)
+    ninja.copy(library, target_dir)
 
   if TARGET_PLATFORM == 'darwin':
     if component == 'shared_library':
       for library in glob.glob(os.path.join(output_dir, '*.dylib')):
-        copy_with_blacklist(target_arch, library, target_dir)
+        copy_with_blacklist(target_arch, library, target_dir, ninja)
 
   if TARGET_PLATFORM == 'win32':
     if component == 'shared_library':
       # out/Release/*.dll(.lib)
       debug_dir = os.path.join(os.path.dirname(target_dir), '.debug')
-      mkdir_p(debug_dir)
       for dll in glob.glob(os.path.join(output_dir, '*.dll')):
         lib = dll + '.lib'
         if os.path.exists(lib):
-          copy_with_blacklist(target_arch, dll, target_dir)
-          copy_with_blacklist(target_arch, lib, target_dir)
-          copy_with_blacklist(target_arch, dll + '.pdb', debug_dir)
+          copy_with_blacklist(target_arch, dll, target_dir, ninja)
+          copy_with_blacklist(target_arch, lib, target_dir, ninja)
+          copy_with_blacklist(target_arch, dll + '.pdb', debug_dir, ninja)
     elif component == 'static_library':
       # out/Release/*.pdb
       for root, _, filenames in os.walk(output_dir):
         for pdb in filenames:
           if pdb.endswith('.pdb'):
-            shutil.copy2(os.path.join(root, pdb), target_dir)
+            ninja.copy(os.path.join(root, pdb), target_dir)
 
   if TARGET_PLATFORM == 'linux':
     if component == 'shared_library':
       # out/Release/lib/*.so
       for library in glob.glob(os.path.join(output_dir, '*.so')):
-        copy_with_blacklist(target_arch, library, target_dir)
+        copy_with_blacklist(target_arch, library, target_dir, ninja)
+
+  # Copy chromedriver and mksnapshot
+  # Take them from the "ffmpeg" config, where they are built with all
+  # dependencies statically linked.
+  if component == 'static_library':
+    if TARGET_PLATFORM == "win32":
+      binaries = [ 'chromedriver.exe', 'mksnapshot.exe' ]
+    elif target_arch == 'arm':
+      binaries = [ 'chromedriver', 'clang_x86_v8_arm/mksnapshot' ]
+    elif target_arch == 'arm64':
+      binaries = [ 'chromedriver', 'clang_x64_v8_arm64/mksnapshot' ]
+    else:
+      binaries = [ 'chromedriver', 'mksnapshot' ]
+
+    ffmpeg_output_dir = get_output_dir(SOURCE_ROOT, target_arch, 'ffmpeg')
+    for binary in binaries:
+      ninja.copy(os.path.join(ffmpeg_output_dir, binary), target_dir)
+
+
+def strip_binaries(create_debug_archive, keep_debug_symbols, component,
+                   target_dir, target_arch):
+  if component == 'shared_library':
+    match = '*.{0}'.format(SHARED_LIBRARY_SUFFIX)
+  else:
+    match = '*.{0}'.format(STATIC_LIBRARY_SUFFIX)
 
   if TARGET_PLATFORM in ['linux', 'darwin'] and not keep_debug_symbols:
     if create_debug_archive:
@@ -444,55 +520,38 @@ def copy_binaries(target_arch, component, create_debug_archive,
       for debug_file in glob.glob(os.path.join(target_dir, '*.debug')):
         shutil.move(debug_file, debug_dir)
 
-  # Copy chromedriver and mksnapshot
-  # Take them from the "ffmpeg" config, where they are built with all
-  # dependencies statically linked.
-  if component == 'static_library':
-    if TARGET_PLATFORM == "win32":
-      binaries = [ 'chromedriver.exe', 'mksnapshot.exe' ]
-    elif target_arch == 'arm':
-      binaries = [ 'chromedriver', 'clang_x86_v8_arm/mksnapshot' ]
-    elif target_arch == 'arm64':
-      binaries = [ 'chromedriver', 'clang_x64_v8_arm64/mksnapshot' ]
-    else:
-      binaries = [ 'chromedriver', 'mksnapshot' ]
 
-    ffmpeg_output_dir = get_output_dir(SOURCE_ROOT, target_arch, 'ffmpeg')
-    for binary in binaries:
-      shutil.copy2(os.path.join(ffmpeg_output_dir, binary), target_dir)
-
-
-def copy_generated_sources(target_arch, component):
+def copy_generated_sources(target_arch, component, ninja):
   output_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
-  target_dir = os.path.join(MAIN_DIR, component)
+  target_dir = component
   for include_path in GENERATED_INCLUDE_DIRS:
     copy_headers(include_path,
                  relative_to=os.path.join(output_dir, 'gen'),
-                 destination=os.path.join(target_dir, 'gen'))
+                 destination=os.path.join(target_dir, 'gen'),
+                 ninja=ninja)
 
-def copy_locales(target_arch, component):
+def copy_locales(target_arch, component, ninja):
   output_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
-  target_dir = os.path.join(MAIN_DIR, component, 'locales')
-  mkdir_p(target_dir)
+  target_dir = os.path.join(component, 'locales')
   src_dir = os.path.join(output_dir, 'gen', 'content', 'app', 'strings')
   for src_file in glob.glob(os.path.join(src_dir, 'content_strings_*.pak')):
     filename = os.path.basename(src_file)
     new_name = re.sub('content_strings_', '', filename)
-    shutil.copy2(src_file, os.path.join(target_dir, new_name))
+    ninja.copy(src_file, os.path.join(target_dir, new_name), False)
 
-def copy_sources():
+def copy_sources(ninja):
   for include_path in INCLUDE_DIRS:
-    copy_headers(include_path, relative_to=SRC_DIR, destination=DIST_SRC_DIR)
+    copy_headers(include_path, relative_to=SRC_DIR, destination=DIST_SRC_DIR, ninja=ninja)
 
   for path in OTHER_HEADERS + OTHER_SOURCES:
     copy_source_file(os.path.join(SRC_DIR, path), relative_to=SRC_DIR,
-                     destination=DIST_SRC_DIR)
+                     destination=DIST_SRC_DIR, ninja=ninja)
 
   for path in OTHER_DIRS:
-    copy_dir(path, relative_to=SRC_DIR, destination=DIST_SRC_DIR)
+    copy_dir(path, relative_to=SRC_DIR, destination=DIST_SRC_DIR, ninja=ninja)
 
 
-def copy_ffmpeg(target_arch):
+def copy_ffmpeg(target_arch, ninja):
   output_dir = get_output_dir(SOURCE_ROOT, target_arch, 'ffmpeg')
   if TARGET_PLATFORM == 'darwin':
     binary = 'libffmpeg.dylib'
@@ -501,33 +560,31 @@ def copy_ffmpeg(target_arch):
   elif TARGET_PLATFORM == 'win32':
     binary = 'ffmpeg.dll'
 
-  target_dir = os.path.join(MAIN_DIR, 'ffmpeg')
-  mkdir_p(target_dir)
-  shutil.copy2(os.path.join(output_dir, binary), target_dir)
+  target_dir = 'ffmpeg'
+  ninja.copy(os.path.join(output_dir, binary), target_dir)
 
 
 
-def copy_headers(relative_path, relative_to, destination):
+def copy_headers(relative_path, relative_to, destination, ninja):
   abs_path = os.path.join(relative_to, relative_path)
   for dirpath, dirnames, filenames in os.walk(abs_path):
     for filename in filenames:
       if os.path.splitext(filename)[1] != '.h':
         continue
-      copy_source_file(os.path.join(dirpath, filename), relative_to=relative_to, destination=destination)
+      copy_source_file(os.path.join(dirpath, filename), relative_to=relative_to, destination=destination, ninja=ninja)
 
 
-def copy_source_file(absolute_path, relative_to, destination):
+def copy_source_file(absolute_path, relative_to, destination, ninja):
   relative_path = os.path.relpath(absolute_path, start=relative_to)
   final_path = os.path.join(destination, relative_path)
-  mkdir_p(os.path.dirname(final_path))
-  shutil.copy2(absolute_path, final_path)
+  ninja.copy(absolute_path, final_path, dest_is_dir=False)
 
 
-def copy_dir(relative_path, relative_to, destination):
+def copy_dir(relative_path, relative_to, destination, ninja):
   abs_path = os.path.join(relative_to, relative_path)
   for dirpath, dirnames, filenames in os.walk(abs_path):
     for filename in filenames:
-      copy_source_file(os.path.join(dirpath, filename), relative_to=relative_to, destination=destination)
+      copy_source_file(os.path.join(dirpath, filename), relative_to=relative_to, destination=destination, ninja=ninja)
 
 
 def add_gdb_index_section(gdb, objcopy, symfile, dirname, env):
@@ -602,15 +659,15 @@ def run_ar_combine(filename, target_dir):
   subprocess.check_call([ar_combine, '-o', target, filename])
 
 
-def generate_licenses():
+def generate_licenses(ninja):
   file_template = os.path.join(SOURCE_ROOT, 'resources', 'about_credits.tmpl')
   entry_template = os.path.join(SOURCE_ROOT, 'resources',
                                 'about_credits_entry.tmpl')
-  licenses_py = os.path.join(SOURCE_ROOT, 'tools', 'licenses.py')
-  target = os.path.join(MAIN_DIR, 'LICENSES.chromium.html')
-  subprocess.check_call([sys.executable, licenses_py, 'credits', target,
-                         '--file-template', file_template,
-                         '--entry-template', entry_template])
+  target = 'LICENSES.chromium.html'
+  data = dict(target=target, file_template=file_template,
+              entry_template=entry_template)
+  ninja.build(target, 'license', ['${licenses_py}', file_template,
+      entry_template], variables=data)
 
 
 def create_zip(create_debug_archive):
