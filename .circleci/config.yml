@@ -5,6 +5,9 @@ jobs:
       - image: electronbuilds/libchromiumcontent:0.0.1
     resource_class: xlarge
     steps:
-       - run: ssh -T -oStrictHostKeyChecking=no git@github.com
+       - run:
+           shell: /bin/sh
+           command: |
+              ssh -T -oStrictHostKeyChecking=no git@github.com
        - checkout
        - run: script/cibuild
