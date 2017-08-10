@@ -95,8 +95,8 @@ BINARIES_SHARED_LIBRARY = {
   'darwin': [
     os.path.join('obj', 'components', 'cdm', 'renderer', 'librenderer.a'),
     os.path.join('obj', 'net', 'libhttp_server.a'),
-    os.path.join('obj', 'third_party', 'webrtc', 'base', 'librtc_base.a'),
-    os.path.join('obj', 'third_party', 'webrtc', 'base', 'librtc_base_approved.a'),
+    os.path.join('obj', 'third_party', 'webrtc', 'rtc_base', 'librtc_base.a'),
+    os.path.join('obj', 'third_party', 'webrtc', 'rtc_base', 'librtc_base_approved.a'),
     os.path.join('obj', 'ui', 'events', 'libdom_keycode_converter.a'),
     os.path.join('obj', 'pdf', 'libpdf.a'),
     os.path.join('obj', 'third_party', 'pdfium', 'libpdfium.a'),
@@ -116,8 +116,8 @@ BINARIES_SHARED_LIBRARY = {
   'linux': [
     os.path.join('obj', 'components', 'cdm', 'renderer', 'librenderer.a'),
     os.path.join('obj', 'net', 'libhttp_server.a'),
-    os.path.join('obj', 'third_party', 'webrtc', 'base', 'librtc_base.a'),
-    os.path.join('obj', 'third_party', 'webrtc', 'base', 'librtc_base_approved.a'),
+    os.path.join('obj', 'third_party', 'webrtc', 'rtc_base', 'librtc_base.a'),
+    os.path.join('obj', 'third_party', 'webrtc', 'rtc_base', 'librtc_base_approved.a'),
     os.path.join('obj', 'ui', 'events', 'libdom_keycode_converter.a'),
     os.path.join('obj', 'pdf', 'libpdf.a'),
     os.path.join('obj', 'third_party', 'pdfium', 'libpdfium.a'),
