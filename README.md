@@ -54,6 +54,37 @@ $ ./script/build -t arm64
 $ ./script/create-dist -t arm64
 ```
 
+### Adding a Patch
+
+Get Chromium in `src/` and apply existing patches to it. No need to do this again if it has already been done:
+
+```sh
+./script/update
+```
+
+Change to the `src` directory:
+
+```sh
+cd src
+```  
+
+Stage existing changes to make `git diff` useful:
+
+
+```sh
+git add .
+```
+
+Make any code changes you like.
+
+When you're done, pipe the diff into a patch file. The file should be prefixed 
+with a number with leading zeros that is greater than any existing patch index, 
+e.g. `0052` if the last patch in the folder is named `0051-some-other.patch`:
+
+```
+git diff > patches/0052-meaningful-name.patch
+```
+
 ## Releases
 
 There is no formal release process for libchromiumcontent, as release artifacts
