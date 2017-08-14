@@ -14,9 +14,9 @@ jobs:
       - run: script/bootstrap
       - run: script/update --clean --source_only
       - persist_to_workspace:
-        root: /tmp/workspace
-        paths:
-          - src
+          root: /tmp/workspace
+          paths:
+            - src
       - save_cache:
           paths:
             - src
