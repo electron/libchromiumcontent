@@ -17,8 +17,8 @@ jobs:
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
-            - *
-            - **/*
+            - '*'
+            - '**/*'
       - save_cache:
           paths:
             - src
