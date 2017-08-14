@@ -17,7 +17,8 @@ jobs:
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
-            - src
+            - *
+            - **/*
       - save_cache:
           paths:
             - src
@@ -29,12 +30,15 @@ jobs:
           TARGET_ARCH: x64
     resource_class: xlarge
     steps:
-      - checkout
+      - run: mkdir /tmp/workspace
       # grab source from workspace
       - attach_workspace:
           at: /tmp/workspace
-      - run: cp /tmp/workspace/src .
-      - run: script/cibuild
+      - run: cp -r /tmp/workspace/* .
+      - run: update -t ${TARGET_ARCH}
+      - run: update build -t ${TARGET_ARCH}
+      - run: create-dist -t ${TARGET_ARCH}
+      - run: upload -t ${TARGET_ARCH}
 
   libchromiumcontent-linux-ia32:
     docker:
@@ -43,12 +47,15 @@ jobs:
           TARGET_ARCH: ia32
     resource_class: xlarge
     steps:
-      - checkout
+      - run: mkdir /tmp/workspace
       # grab source from workspace
       - attach_workspace:
           at: /tmp/workspace
-      - run: cp /tmp/workspace/src .
-      - run: script/cibuild
+      - run: cp -r /tmp/workspace/* .
+      - run: update -t ${TARGET_ARCH}
+      - run: update build -t ${TARGET_ARCH}
+      - run: create-dist -t ${TARGET_ARCH}
+      - run: upload -t ${TARGET_ARCH}
 
   libchromiumcontent-linux-arm:
     docker:
@@ -57,12 +64,15 @@ jobs:
           TARGET_ARCH: arm
     resource_class: xlarge
     steps:
-      - checkout
+      - run: mkdir /tmp/workspace
       # grab source from workspace
       - attach_workspace:
           at: /tmp/workspace
-      - run: cp /tmp/workspace/src .
-      - run: script/cibuild
+      - run: cp -r /tmp/workspace/* .
+      - run: update -t ${TARGET_ARCH}
+      - run: update build -t ${TARGET_ARCH}
+      - run: create-dist -t ${TARGET_ARCH}
+      - run: upload -t ${TARGET_ARCH}
 
 workflows:
   version: 2
