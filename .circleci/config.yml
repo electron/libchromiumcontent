@@ -1,9 +1,72 @@
 version: 2.0
 jobs:
-  build:
+  "libchromiumcontent-linux-x64":
     docker:
       - image: electronbuilds/libchromiumcontent:0.0.3
+        environment:
+          TARGET_ARCH: x64
     resource_class: xlarge
     steps:
-       - checkout
-       - run: script/cibuild
+      - checkout
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - chromium-src-{{ checksum "VERSION" }}
+          # fallback to using the latest cache if no exact match is found
+          - chromium-src-
+      - save_cache:
+          paths:
+            - src
+          key: chromium-src-{{ checksum "VERSION" }}
+
+      - run: script/cibuild
+
+  "libchromiumcontent-linux-ia32":
+    docker:
+      - image: electronbuilds/libchromiumcontent:0.0.3
+        environment:
+          TARGET_ARCH: ia32
+    resource_class: xlarge
+    steps:
+      - checkout
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - chromium-src-{{ checksum "VERSION" }}
+          # fallback to using the latest cache if no exact match is found
+          - chromium-src-
+      - save_cache:
+          paths:
+            - src
+          key: chromium-src-{{ checksum "VERSION" }}
+
+      - run: script/cibuild
+
+  "libchromiumcontent-linux-arm":
+    docker:
+      - image: electronbuilds/libchromiumcontent:0.0.3
+        environment:
+          TARGET_ARCH: arm
+    resource_class: xlarge
+    steps:
+      - checkout
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - chromium-src-{{ checksum "VERSION" }}
+          # fallback to using the latest cache if no exact match is found
+          - chromium-src-
+      - save_cache:
+          paths:
+            - src
+          key: chromium-src-{{ checksum "VERSION" }}
+
+      - run: script/cibuild
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - "libchromiumcontent-linux-x64"
+      - "libchromiumcontent-linux-ia32"
+      - "libchromiumcontent-linux-arm"
