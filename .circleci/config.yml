@@ -2,7 +2,7 @@ version: 2.0
 jobs:
   build:
     docker:
-      - image: electronbuilds/libchromiumcontent:0.0.2
+      - image: electronbuilds/libchromiumcontent:0.0.3
     resource_class: xlarge
     steps:
        - checkout
