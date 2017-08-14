@@ -13,6 +13,7 @@ jobs:
           - chromium-src-
       - run: script/bootstrap
       - run: script/update --clean --source_only
+      - run: mkdir /tmp/workspace
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
