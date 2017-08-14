@@ -1,6 +1,6 @@
 version: 2.0
 jobs:
-  "sync-src":
+  sync-src:
     docker:
       - image: electronbuilds/libchromiumcontent:0.0.3
     steps:
@@ -21,7 +21,7 @@ jobs:
           paths:
             - src
           key: chromium-src-{{ checksum "VERSION" }}
-  "libchromiumcontent-linux-x64":
+  libchromiumcontent-linux-x64:
     docker:
       - image: electronbuilds/libchromiumcontent:0.0.3
         environment:
@@ -35,7 +35,7 @@ jobs:
       - run: cp /tmp/workspace/src .
       - run: script/cibuild
 
-  "libchromiumcontent-linux-ia32":
+  libchromiumcontent-linux-ia32:
     docker:
       - image: electronbuilds/libchromiumcontent:0.0.3
         environment:
@@ -49,7 +49,7 @@ jobs:
       - run: cp /tmp/workspace/src .
       - run: script/cibuild
 
-  "libchromiumcontent-linux-arm":
+  libchromiumcontent-linux-arm:
     docker:
       - image: electronbuilds/libchromiumcontent:0.0.3
         environment:
@@ -67,13 +67,13 @@ workflows:
   version: 2
   build:
     jobs:
-      - sync-src"
-      - "libchromiumcontent-linux-x64":
+      - sync-src
+      - libchromiumcontent-linux-x64:
            requires:
-             - "sync-src"
-      - "libchromiumcontent-linux-ia32":
+             - sync-src
+      - libchromiumcontent-linux-ia32:
            requires:
-             - "sync-src"
-      - "libchromiumcontent-linux-arm":
+             - sync-src
+      - libchromiumcontent-linux-arm:
            requires:
-             - "sync-src"
+             - sync-src
