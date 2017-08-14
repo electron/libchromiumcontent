@@ -1,11 +1,8 @@
 version: 2.0
 jobs:
-  "libchromiumcontent-linux-x64":
+  "sync-src":
     docker:
       - image: electronbuilds/libchromiumcontent:0.0.3
-        environment:
-          TARGET_ARCH: x64
-    resource_class: xlarge
     steps:
       - checkout
       # Download and cache dependencies
@@ -14,11 +11,28 @@ jobs:
           - chromium-src-{{ checksum "VERSION" }}
           # fallback to using the latest cache if no exact match is found
           - chromium-src-
+      - run: script/bootstrap
+      - run: script/update --clean --source_only
+      - persist_to_workspace:
+        root: /tmp/workspace
+        paths:
+          - src
       - save_cache:
           paths:
             - src
           key: chromium-src-{{ checksum "VERSION" }}
-
+  "libchromiumcontent-linux-x64":
+    docker:
+      - image: electronbuilds/libchromiumcontent:0.0.3
+        environment:
+          TARGET_ARCH: x64
+    resource_class: xlarge
+    steps:
+      - checkout
+      # grab source from workspace
+      - attach_workspace:
+          at: /tmp/workspace
+      - run: cp /tmp/workspace/src .
       - run: script/cibuild
 
   "libchromiumcontent-linux-ia32":
@@ -29,17 +43,10 @@ jobs:
     resource_class: xlarge
     steps:
       - checkout
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-          - chromium-src-{{ checksum "VERSION" }}
-          # fallback to using the latest cache if no exact match is found
-          - chromium-src-
-      - save_cache:
-          paths:
-            - src
-          key: chromium-src-{{ checksum "VERSION" }}
-
+      # grab source from workspace
+      - attach_workspace:
+          at: /tmp/workspace
+      - run: cp /tmp/workspace/src .
       - run: script/cibuild
 
   "libchromiumcontent-linux-arm":
@@ -50,23 +57,23 @@ jobs:
     resource_class: xlarge
     steps:
       - checkout
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-          - chromium-src-{{ checksum "VERSION" }}
-          # fallback to using the latest cache if no exact match is found
-          - chromium-src-
-      - save_cache:
-          paths:
-            - src
-          key: chromium-src-{{ checksum "VERSION" }}
-
+      # grab source from workspace
+      - attach_workspace:
+          at: /tmp/workspace
+      - run: cp /tmp/workspace/src .
       - run: script/cibuild
 
 workflows:
   version: 2
   build:
     jobs:
+      - "sync-src"
       - "libchromiumcontent-linux-x64"
+           requires:
+             - "sync-src"
       - "libchromiumcontent-linux-ia32"
+           requires:
+             - "sync-src"
       - "libchromiumcontent-linux-arm"
+           requires:
+             - "sync-src"

@@ -36,7 +36,10 @@ def main():
   if args.clean and os.path.isdir(SRC_DIR):
     git_clean_recursive(SRC_DIR)
 
-  gclient_sync(chromium_version(), args.clean)
+  if (args.source_only):
+    return gclient_sync(chromium_version(), args.clean)
+  else:
+    gclient_sync(chromium_version(), args.clean)
 
   if sys.platform == 'linux2':
     install_sysroot()
@@ -60,6 +63,8 @@ def parse_args():
                       help='The definitions passed to gyp')
   parser.add_argument('--clean', action='store_true',
                       help='Cleans the working directory for full rebuild')
+  parser.add_argument('--source_only', action='store_true',
+                      help='Only sync the chromium source code')
   return parser.parse_args()
 
 
