@@ -8,12 +8,13 @@ jobs:
       # Download and cache dependencies
       - restore_cache:
           keys:
-          - chromium-src-{{ checksum "VERSION" }}
+          - v1-chromium-src-{{ checksum "VERSION" }}
           # fallback to using the latest cache if no exact match is found
-          - chromium-src-
+          - v1-chromium-src-
       - run: script/bootstrap
       - run: script/update --clean --source_only
       - run: mkdir /tmp/workspace
+      - run: cp -r src /tmp/workspace
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
@@ -21,7 +22,7 @@ jobs:
       - save_cache:
           paths:
             - src
-          key: chromium-src-{{ checksum "VERSION" }}
+          key: v1-chromium-src-{{ checksum "VERSION" }}
   libchromiumcontent-linux-x64:
     docker:
       - image: electronbuilds/libchromiumcontent:0.0.3
