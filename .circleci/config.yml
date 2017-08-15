@@ -17,9 +17,8 @@ jobs:
           - v1-chromium-src-
       - run: script/bootstrap
       - run: script/update --clean --source_only
-      - run: mkdir /tmp/workspace
       - persist_to_workspace:
-          root: /tmp/workspace
+          root: /home/builduser/project
           paths:
             - src
       - save_cache:
@@ -80,7 +79,7 @@ jobs:
           keys:
           - v1-chromium-src-{{ checksum "VERSION" }}
           # fallback to using the latest cache if no exact match is found
-          - v1-chromium-src-      
+          - v1-chromium-src-
       - run: mkdir /tmp/workspace
       # grab source from workspace
       - attach_workspace:
