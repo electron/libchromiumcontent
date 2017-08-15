@@ -57,9 +57,9 @@ def main():
   # More information: https://stackoverflow.com/a/9935126
   git_cache = args.git_cache or os.getenv('LIBCHROMIUMCONTENT_GIT_CACHE', '')
   if (args.source_only):
-    return gclient_sync(chromium_version(), args.clean)
+    return gclient_sync(chromium_version(), args.clean, git_cache)
   else:
-    gclient_sync(chromium_version(), args.clean)
+    gclient_sync(chromium_version(), args.clean, git_cache)
 
   if sys.platform == 'linux2':
     install_sysroot()
