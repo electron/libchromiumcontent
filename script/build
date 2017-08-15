@@ -38,6 +38,8 @@ def main():
     if args.component == 'all' or args.component == component:
       if component == 'shared_library' and args.no_shared_library:
         continue
+      elif component == 'static_library' and args.no_static_library:
+        continue
       out_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
       target = 'chromiumcontent:chromiumcontent'
       subprocess.check_call([NINJA, '-C', os.path.relpath(out_dir), target], env=env)
@@ -48,6 +50,8 @@ def parse_args():
   parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
   parser.add_argument('-c', '--component', default='all',
                       help='static_library or shared_library or all')
+  parser.add_argument('-D', '--no_static_library', action='store_true',
+                      help='Do not build static library version')
   parser.add_argument('-R', '--no_shared_library', action='store_true',
                       help='Do not build shared library version')
   return parser.parse_args()
