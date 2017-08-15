@@ -1,16 +1,24 @@
 FROM ubuntu:16.04
 
+RUN groupadd --gid 1000 builduser \
+  && useradd --uid 1000 --gid builduser --shell /bin/bash --create-home builduser
+
 # Set up TEMP directory
 ENV TEMP=/tmp
 RUN chmod a+rwx /tmp
-
-# Set up HOME directory
-ENV HOME=/home
-RUN chmod a+rwx /home
 
 # Install Linux packages
 ADD script/docker-install-build-deps.sh /setup/install-build-deps.sh
 RUN apt-get update && apt-get -y --force-yes install lsb-release locales
 RUN /setup/install-build-deps.sh --syms --no-prompt --no-chromeos-fonts
-ADD script/setup-circle.sh /setup/setup-circle.sh
-RUN /setup/setup-circle.sh
+
+RUN apt-get install -y python-setuptools
+RUN easy_install -U pip
+RUN pip install -U crcmod
+
+RUN mkdir /tmp/workspace
+RUN chown builduser:builduser /tmp/workspace
+
+WORKDIR /home/builduser
+
+USER builduser
