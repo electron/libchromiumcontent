@@ -2,10 +2,9 @@ version: 2.0
 jobs:
   sync-src:
     docker:
-      - image: electronbuilds/libchromiumcontent:0.0.3
+      - image: electronbuilds/libchromiumcontent:0.0.4
     environment:
         TARGET_ARCH: x64
-        LIBCHROMIUMCONTENT_GIT_CACHE: '/home/builduser/project/src'
     resource_class: xlarge
     steps:
       - checkout
@@ -17,10 +16,6 @@ jobs:
           - v1-chromium-src-
       - run: script/bootstrap
       - run: script/update --clean --source_only
-      - persist_to_workspace:
-          root: /home/builduser/project
-          paths:
-            - src
       - save_cache:
           paths:
             - src
@@ -31,7 +26,6 @@ jobs:
       - image: electronbuilds/libchromiumcontent:0.0.3
         environment:
           TARGET_ARCH: x64
-          LIBCHROMIUMCONTENT_GIT_CACHE: '/tmp/workspace/src'
     resource_class: xlarge
     steps:
       - checkout
@@ -40,18 +34,20 @@ jobs:
           - v1-chromium-src-{{ checksum "VERSION" }}
           # fallback to using the latest cache if no exact match is found
           - v1-chromium-src-
-      - run: mkdir /tmp/workspace
-      # grab source from workspace
-      - attach_workspace:
-          at: /tmp/workspace
-      - run: script/cibuild
+      - run: script/bootstrap
+      - run: script/update --clean -t $TARGET_ARCH
+      - run: script/build -t $TARGET_ARCH -c static_library
+      - run: script/build -t $TARGET_ARCH -c shared_library
+      - run: script/build -t $TARGET_ARCH -c ffmpeg
+      - run: script/create-dist -t $TARGET_ARCH -c static_library
+      - run: script/create-dist -t $TARGET_ARCH -c shared_library
+      - run: script/upload -t $TARGET_ARCH
 
   libchromiumcontent-linux-ia32:
     docker:
       - image: electronbuilds/libchromiumcontent:0.0.3
         environment:
           TARGET_ARCH: ia32
-          LIBCHROMIUMCONTENT_GIT_CACHE: '/tmp/workspace/src'
     resource_class: xlarge
     steps:
       - checkout
@@ -60,18 +56,20 @@ jobs:
           - v1-chromium-src-{{ checksum "VERSION" }}
           # fallback to using the latest cache if no exact match is found
           - v1-chromium-src-
-      - run: mkdir /tmp/workspace
-      # grab source from workspace
-      - attach_workspace:
-          at: /tmp/workspace
-      - run: script/cibuild
+      - run: script/bootstrap
+      - run: script/update --clean -t $TARGET_ARCH
+      - run: script/build -t $TARGET_ARCH -c static_library
+      - run: script/build -t $TARGET_ARCH -c shared_library
+      - run: script/build -t $TARGET_ARCH -c ffmpeg
+      - run: script/create-dist -t $TARGET_ARCH -c static_library
+      - run: script/create-dist -t $TARGET_ARCH -c shared_library
+      - run: script/upload -t $TARGET_ARCH
 
   libchromiumcontent-linux-arm:
     docker:
       - image: electronbuilds/libchromiumcontent:0.0.3
         environment:
           TARGET_ARCH: arm
-          LIBCHROMIUMCONTENT_GIT_CACHE: '/tmp/workspace/src'
     resource_class: xlarge
     steps:
       - checkout
@@ -80,11 +78,14 @@ jobs:
           - v1-chromium-src-{{ checksum "VERSION" }}
           # fallback to using the latest cache if no exact match is found
           - v1-chromium-src-
-      - run: mkdir /tmp/workspace
-      # grab source from workspace
-      - attach_workspace:
-          at: /tmp/workspace
-      - run: script/cibuild
+      - run: script/bootstrap
+      - run: script/update --clean -t $TARGET_ARCH
+      - run: script/build -t $TARGET_ARCH -c static_library
+      - run: script/build -t $TARGET_ARCH -c shared_library
+      - run: script/build -t $TARGET_ARCH -c ffmpeg
+      - run: script/create-dist -t $TARGET_ARCH -c static_library
+      - run: script/create-dist -t $TARGET_ARCH -c shared_library
+      - run: script/upload -t $TARGET_ARCH
 
 workflows:
   version: 2
