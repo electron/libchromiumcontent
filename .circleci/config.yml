@@ -3,6 +3,9 @@ jobs:
   sync-src:
     docker:
       - image: electronbuilds/libchromiumcontent:0.0.3
+    environment:
+        TARGET_ARCH: x64
+        LIBCHROMIUMCONTENT_GIT_CACHE: '/home/builduser/project/src'
     resource_class: xlarge
     steps:
       - checkout
@@ -14,6 +17,7 @@ jobs:
           - v1-chromium-src-
       - run: script/bootstrap
       - run: script/update --clean --source_only
+      - run: mkdir /tmp/workspace
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
@@ -22,6 +26,7 @@ jobs:
           paths:
             - src
           key: v1-chromium-src-{{ checksum "VERSION" }}
+
   libchromiumcontent-linux-x64:
     docker:
       - image: electronbuilds/libchromiumcontent:0.0.3
@@ -31,6 +36,11 @@ jobs:
     resource_class: xlarge
     steps:
       - checkout
+      - restore_cache:
+          keys:
+          - v1-chromium-src-{{ checksum "VERSION" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-chromium-src-
       - run: mkdir /tmp/workspace
       # grab source from workspace
       - attach_workspace:
@@ -46,6 +56,11 @@ jobs:
     resource_class: xlarge
     steps:
       - checkout
+      - restore_cache:
+          keys:
+          - v1-chromium-src-{{ checksum "VERSION" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-chromium-src-
       - run: mkdir /tmp/workspace
       # grab source from workspace
       - attach_workspace:
@@ -61,6 +76,11 @@ jobs:
     resource_class: xlarge
     steps:
       - checkout
+      - restore_cache:
+          keys:
+          - v1-chromium-src-{{ checksum "VERSION" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-chromium-src-      
       - run: mkdir /tmp/workspace
       # grab source from workspace
       - attach_workspace:
