@@ -1,15 +1,8 @@
 diff --git a/base/allocator/BUILD.gn b/base/allocator/BUILD.gn
-index 8cdb06161f5c..6f938d6be67b 100644
+index 8cdb06161f5c..285461d3381d 100644
 --- a/base/allocator/BUILD.gn
 +++ b/base/allocator/BUILD.gn
-@@ -10,12 +10,13 @@ declare_args() {
-   # Provide a way to force disable debugallocation in Debug builds,
-   # e.g. for profiling (it's more rare to profile Debug builds,
-   # but people sometimes need to do that).
--  enable_debugallocation = is_debug
-+  enable_debugallocation = false
- }
- 
+@@ -16,6 +16,7 @@ declare_args() {
  # The Windows-only allocator shim is only enabled for Release static builds, and
  # is mutually exclusive with the generalized shim.
  win_use_allocator_shim = is_win && !is_component_build && !is_debug &&
