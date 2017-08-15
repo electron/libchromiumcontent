@@ -1,29 +1,8 @@
 version: 2.0
 jobs:
-  sync-src:
-    docker:
-      - image: electronbuilds/libchromiumcontent:0.0.4
-    environment:
-        TARGET_ARCH: x64
-    resource_class: xlarge
-    steps:
-      - checkout
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-          - v1-chromium-src-{{ checksum "VERSION" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-chromium-src-
-      - run: script/bootstrap
-      - run: script/update --clean --source_only
-      - save_cache:
-          paths:
-            - src
-          key: v1-chromium-src-{{ checksum "VERSION" }}
-
   libchromiumcontent-linux-x64:
     docker:
-      - image: electronbuilds/libchromiumcontent:0.0.3
+      - image: electronbuilds/libchromiumcontent:0.0.4
         environment:
           TARGET_ARCH: x64
     resource_class: xlarge
@@ -31,9 +10,9 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-          - v1-chromium-src-{{ checksum "VERSION" }}
+          - v1-chromium-src-x64-{{ checksum "VERSION" }}
           # fallback to using the latest cache if no exact match is found
-          - v1-chromium-src-
+          - v1-chromium-src-x64-
       - run: script/bootstrap
       - run: script/update --clean -t $TARGET_ARCH
       - run: script/build -t $TARGET_ARCH -c static_library
@@ -42,10 +21,14 @@ jobs:
       - run: script/create-dist -t $TARGET_ARCH -c static_library
       - run: script/create-dist -t $TARGET_ARCH -c shared_library
       - run: script/upload -t $TARGET_ARCH
+      - save_cache:
+          paths:
+            - src
+          key: v1-chromium-src-x64-{{ checksum "VERSION" }}
 
   libchromiumcontent-linux-ia32:
     docker:
-      - image: electronbuilds/libchromiumcontent:0.0.3
+      - image: electronbuilds/libchromiumcontent:0.0.4
         environment:
           TARGET_ARCH: ia32
     resource_class: xlarge
@@ -53,9 +36,9 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-          - v1-chromium-src-{{ checksum "VERSION" }}
+          - v1-chromium-src-ia32-{{ checksum "VERSION" }}
           # fallback to using the latest cache if no exact match is found
-          - v1-chromium-src-
+          - v1-chromium-src-ia32-
       - run: script/bootstrap
       - run: script/update --clean -t $TARGET_ARCH
       - run: script/build -t $TARGET_ARCH -c static_library
@@ -64,10 +47,14 @@ jobs:
       - run: script/create-dist -t $TARGET_ARCH -c static_library
       - run: script/create-dist -t $TARGET_ARCH -c shared_library
       - run: script/upload -t $TARGET_ARCH
+      - save_cache:
+          paths:
+            - src
+          key: v1-chromium-src-ia32-{{ checksum "VERSION" }}
 
   libchromiumcontent-linux-arm:
     docker:
-      - image: electronbuilds/libchromiumcontent:0.0.3
+      - image: electronbuilds/libchromiumcontent:0.0.4
         environment:
           TARGET_ARCH: arm
     resource_class: xlarge
@@ -75,9 +62,9 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-          - v1-chromium-src-{{ checksum "VERSION" }}
+          - v1-chromium-src-arm-{{ checksum "VERSION" }}
           # fallback to using the latest cache if no exact match is found
-          - v1-chromium-src-
+          - v1-chromium-src-arm-
       - run: script/bootstrap
       - run: script/update --clean -t $TARGET_ARCH
       - run: script/build -t $TARGET_ARCH -c static_library
@@ -86,18 +73,15 @@ jobs:
       - run: script/create-dist -t $TARGET_ARCH -c static_library
       - run: script/create-dist -t $TARGET_ARCH -c shared_library
       - run: script/upload -t $TARGET_ARCH
+      - save_cache:
+          paths:
+            - src
+          key: v1-chromium-src-arm-{{ checksum "VERSION" }}
 
 workflows:
   version: 2
   build:
     jobs:
-      - sync-src
-      - libchromiumcontent-linux-x64:
-           requires:
-             - sync-src
-      - libchromiumcontent-linux-ia32:
-           requires:
-             - sync-src
-      - libchromiumcontent-linux-arm:
-           requires:
-             - sync-src
+      - libchromiumcontent-linux-x64
+      - libchromiumcontent-linux-ia32
+      - libchromiumcontent-linux-arm
