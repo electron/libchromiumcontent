@@ -19,6 +19,14 @@ index d055e70..c76ca27 100644
  ]
  if (is_win) {
    default_compiler_configs += [
+@@ -642,6 +645,7 @@
+     _component_mode = "shared_library"
+   } else if (defined(invoker.static_component_type)) {
+     assert(invoker.static_component_type == "static_library" ||
++           invoker.static_component_type == "shared_library" ||
+            invoker.static_component_type == "source_set")
+     _component_mode = invoker.static_component_type
+   } else if (is_android || !defined(invoker.sources)) {
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
 index 5e1f7fcc4d83..15723e6b7184 100644
 --- a/build/config/win/BUILD.gn
