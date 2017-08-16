@@ -19,16 +19,17 @@ index e3d12f49..9c64371b 100644
      defines += [ "U_STATIC_IMPLEMENTATION" ]
    }
  
-@@ -100,7 +101,7 @@ config("icu_code") {
-   }
+@@ -100,6 +101,9 @@ config("icu_code") {
  }
  
--component("icui18n") {
-+target(component_electron, "icui18n") {
+ component("icui18n") {
++  if (is_electron_build && !is_component_build) {
++    static_component_type = "shared_library"
++  }
    # find  source/i18n -maxdepth 1  ! -type d  | egrep  '\.(c|cpp|h)$' |\
    # sort | sed 's/^\(.*\)$/    "\1",/'
    sources = [
-@@ -524,6 +525,9 @@ component("icui18n") {
+@@ -533,6 +534,9 @@ component("icui18n") {
    ]
  
    defines = [ "U_I18N_IMPLEMENTATION" ]
@@ -38,12 +39,13 @@ index e3d12f49..9c64371b 100644
    deps = [
      ":icuuc",
    ]
-@@ -542,7 +546,7 @@ component("icui18n") {
-   public_configs = [ ":icu_config" ]
+@@ -551,6 +546,9 @@ component("icui18n") {
  }
  
--component("icuuc") {
-+target(component_electron, "icuuc") {
+ component("icuuc") {
++  if (is_electron_build && !is_component_build) {
++    static_component_type = "shared_library"
++  }
    # find  source/common -maxdepth 1  ! -type d  | egrep  '\.(c|cpp|h)$' |\
    # sort | sed 's/^\(.*\)$/    "\1",/'
    sources = [
