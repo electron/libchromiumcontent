@@ -51,12 +51,12 @@ index dd1017f..d15706b 100644
        description = "CXX {{output}}"
        outputs = [
 diff --git a/build/toolchain/win/tool_wrapper.py b/build/toolchain/win/tool_wrapper.py
-index 4e69dea..c70408c 100644
+index 3a81368f3469..7c5ef1ea5db4 100644
 --- a/build/toolchain/win/tool_wrapper.py
 +++ b/build/toolchain/win/tool_wrapper.py
-@@ -326,5 +326,25 @@ class WinTool(object):
-     cmd.extend(ninja_targets)
-     return subprocess.call(cmd, shell=True, cwd=BASE_DIR)
+@@ -315,6 +315,25 @@ class WinTool(object):
+     dirname = dirname[0] if dirname else None
+     return subprocess.call(args, shell=True, env=env, cwd=dirname)
  
 +  def ExecClWrapper(self, *args):
 +    """Invokes cl.exe to compile a C/C++ source file."""
@@ -77,6 +77,6 @@ index 4e69dea..c70408c 100644
 +    pdb_flag = '/Fd"%s"' % pdb_filename
 +    cmdline = '%s %s' % (subprocess.list2cmdline(args), pdb_flag)
 +    return subprocess.call(cmdline, shell=False)
-+
+ 
  if __name__ == '__main__':
    sys.exit(main(sys.argv[1:]))

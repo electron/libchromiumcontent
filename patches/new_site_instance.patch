@@ -1,10 +1,10 @@
 diff --git a/content/public/browser/content_browser_client.h b/content/public/browser/content_browser_client.h
-index 45056271e932..7514dba824d2 100644
+index 3d9979e895f6..8b085fe8de0d 100644
 --- a/content/public/browser/content_browser_client.h
 +++ b/content/public/browser/content_browser_client.h
-@@ -162,6 +163,11 @@ class CONTENT_EXPORT ContentBrowserClient {
+@@ -171,6 +171,11 @@ class CONTENT_EXPORT ContentBrowserClient {
        const scoped_refptr<base::TaskRunner>& task_runner,
-       const base::Closure& task);
+       base::OnceClosure task);
  
 +  // Electron: Allows intercepting the SiteInstance being created for navigation
 +  virtual void OnCreateSiteInstanceForNavigation(

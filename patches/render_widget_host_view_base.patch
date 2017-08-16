@@ -2,7 +2,7 @@ diff --git a/content/browser/renderer_host/render_widget_host_view_base.cc b/con
 index 029e72d..d079ba9 100644
 --- a/content/browser/renderer_host/render_widget_host_view_base.cc
 +++ b/content/browser/renderer_host/render_widget_host_view_base.cc
-@@ -430,6 +430,35 @@ cc::FrameSinkId RenderWidgetHostViewBase::FrameSinkIdAtPoint(
+@@ -414,6 +414,35 @@ cc::FrameSinkId RenderWidgetHostViewBase::FrameSinkIdAtPoint(
    return cc::FrameSinkId();
  }
  
@@ -42,7 +42,7 @@ diff --git a/content/browser/renderer_host/render_widget_host_view_base.h b/cont
 index 657ad20..47920a9 100644
 --- a/content/browser/renderer_host/render_widget_host_view_base.h
 +++ b/content/browser/renderer_host/render_widget_host_view_base.h
-@@ -22,8 +22,10 @@
+@@ -23,8 +23,10 @@
  #include "cc/output/compositor_frame.h"
  #include "cc/surfaces/surface_id.h"
  #include "content/browser/renderer_host/event_with_latency_info.h"
@@ -53,7 +53,7 @@ index 657ad20..47920a9 100644
  #include "content/public/browser/render_widget_host_view.h"
  #include "content/public/common/screen_info.h"
  #include "ipc/ipc_listener.h"
-@@ -66,8 +68,10 @@ class BrowserAccessibilityDelegate;
+@@ -73,8 +75,10 @@ class BrowserAccessibilityDelegate;
  class BrowserAccessibilityManager;
  class RenderWidgetHostImpl;
  class RenderWidgetHostViewBaseObserver;
@@ -64,7 +64,7 @@ index 657ad20..47920a9 100644
  class WebCursor;
  struct NativeWebKeyboardEvent;
  struct TextInputState;
-@@ -116,6 +120,9 @@ class CONTENT_EXPORT RenderWidgetHostViewBase : public RenderWidgetHostView,
+@@ -120,6 +124,9 @@ class CONTENT_EXPORT RenderWidgetHostViewBase : public RenderWidgetHostView,
    void FocusedNodeTouched(const gfx::Point& location_dips_screen,
                            bool editable) override;
  
@@ -74,7 +74,7 @@ index 657ad20..47920a9 100644
    // This only needs to be overridden by RenderWidgetHostViewBase subclasses
    // that handle content embedded within other RenderWidgetHostViews.
    gfx::Point TransformPointToRootCoordSpace(const gfx::Point& point) override;
-@@ -248,16 +255,21 @@ class CONTENT_EXPORT RenderWidgetHostViewBase : public RenderWidgetHostView,
+@@ -263,16 +270,21 @@ class CONTENT_EXPORT RenderWidgetHostViewBase : public RenderWidgetHostView,
        cc::SurfaceHittestDelegate* delegate,
        const gfx::Point& point,
        gfx::Point* transformed_point);
