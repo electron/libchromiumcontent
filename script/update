@@ -43,7 +43,7 @@ solutions = [
 def main():
   args = parse_args()
 
-  if sys.platform in ['win32', 'cygwin']:
+  if sys.platform == 'win32' and not args.skip_depot_tools_update:
     update_depot_tools()
 
   if args.clean and os.path.isdir(SRC_DIR):
@@ -56,7 +56,8 @@ def main():
   # to 0.
   # More information: https://stackoverflow.com/a/9935126
   git_cache = args.git_cache or os.getenv('LIBCHROMIUMCONTENT_GIT_CACHE', '')
-  gclient_sync(chromium_version(), args.clean, git_cache)
+  if not args.skip_gclient:
+    gclient_sync(chromium_version(), args.clean, git_cache)
 
   if sys.platform == 'linux2':
     install_sysroot()
@@ -67,7 +68,7 @@ def main():
   if target_arch == 'arm64':
     install_aarch64_bintools()
 
-  return (apply_patches() or
+  return (apply_patches(args.skip_patches) or
           copy_chromiumcontent_files() or
           update_clang() or
           run_gn(target_arch, args.defines))
@@ -82,6 +83,12 @@ def parse_args():
                       help='Global git object cache for chromium+ deps')
   parser.add_argument('--clean', action='store_true',
                       help='Cleans the working directory for full rebuild')
+  parser.add_argument('--skip_patches', action='store_true',
+                      help='Skips applying patches, easier to build locally')
+  parser.add_argument('--skip_gclient', action='store_true',
+                      help='Skips syncing repo, easier to build locally')
+  parser.add_argument('--skip_depot_tools_update', action='store_true',
+                      help='Skips update depot tools on windows, easier to build locally')
   return parser.parse_args()
 
 
@@ -155,9 +162,8 @@ def update_depot_tools():
   env['TEMP'] = env['TEMP'].rstrip('\\')
   env['PATH'] = os.pathsep.join([os.path.join(VENDOR_DIR, 'depot_tools'),
                                  env['PATH']])
-  cmd_path = env.get('COMSPEC', 'cmd.exe')
   update_path = os.path.join(VENDOR_DIR, 'depot_tools', 'update_depot_tools.bat')
-  subprocess.check_call([cmd_path, '/c', update_path], env=env)
+  subprocess.check_call([update_path], env=env)
 
 
 def ensure_gclient_config(git_cache):
@@ -170,6 +176,11 @@ def ensure_gclient_config(git_cache):
 
 
 def gclient_sync(version, force, git_cache):
+  # Remove untracked files in src.
+  if os.path.exists(os.path.join(SRC_DIR, '.git')):
+    with scoped_cwd(SRC_DIR):
+      subprocess.check_call(['git', 'clean', '-df'])
+
   ensure_gclient_config(git_cache)
   env = os.environ.copy()
   if sys.platform in ['win32', 'cygwin']:
@@ -187,9 +198,11 @@ def gclient_sync(version, force, git_cache):
   subprocess.check_call(args, env=env)
 
 
-def apply_patches():
-  return subprocess.call([sys.executable,
+def apply_patches(skip_patches):
+  return (subprocess.call([sys.executable,
                           os.path.join(SOURCE_ROOT, 'script', 'apply-patches')])
+         if not skip_patches
+         else True)
 
 
 def update_clang():
@@ -222,6 +235,8 @@ def run_gn(target_arch, defines):
     args = 'import("//chromiumcontent/args/{0}.gn") target_cpu="{1}"'.format(component, target_cpu)
     if sys.platform in ['win32', 'cygwin']:
       args += ' use_experimental_allocator_shim=false'
+    if sys.platform == 'linux2':
+      args += ' use_gtk3=false'
     output_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
     subprocess.call([gn, 'gen', os.path.relpath(output_dir, SRC_DIR), '--args=' + args],
                     cwd=SRC_DIR, env=env)
@@ -261,6 +276,16 @@ def mkdir_p(path):
   except OSError as e:
     if e.errno != errno.EEXIST:
       raise
+
+
+@contextlib.contextmanager
+def scoped_cwd(path):
+  cwd = os.getcwd()
+  os.chdir(path)
+  try:
+    yield
+  finally:
+    os.chdir(cwd)
 
 
 if __name__ == '__main__':

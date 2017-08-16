@@ -115,6 +115,7 @@ with open(args.out, 'w') as out:
             "cc/base",
             "cc/blink",
             "cc/cc",
+            "cc/debug",
             "cc/ipc",
             "cc/paint",
             "cc/proto",
@@ -129,6 +130,7 @@ with open(args.out, 'w') as out:
             "components/cdm",
             "components/cookie_config",
             "components/crash/core/common",
+            "components/device_event_log",
             "components/discardable_memory",
             "components/display_compositor",
             "components/filesystem",
@@ -154,6 +156,7 @@ with open(args.out, 'w') as out:
             "components/tracing/tracing",
             "components/url_formatter",
             "components/variations",
+            "components/viz/frame_sinks/frame_sinks",
             "components/webcrypto",
             "components/webmessaging",
         ])
@@ -194,8 +197,11 @@ with open(args.out, 'w') as out:
         "obj_services",
         [
             "services/catalog",
+            "services/data_decoder",
             "services/device",
             "services/file",
+            "services/resource_coordinator",
+            "services/service_manager/embedder",
             "services/service_manager/public/cpp/sources",
             "services/service_manager/public/interfaces",
             "services/service_manager/runner",
@@ -222,11 +228,13 @@ with open(args.out, 'w') as out:
         "obj_angle",
         [
             "third_party/angle/angle_common",
+            "third_party/angle/angle_gpu_info_util",
             "third_party/angle/angle_image_util",
             "third_party/angle/libANGLE",
             "third_party/angle/libEGL",
             "third_party/angle/libGLESv2",
             "third_party/angle/preprocessor",
+            "third_party/angle/src/third_party/libXNVCtrl",
             "third_party/angle/translator",
             "third_party/angle/translator_lib",
         ])
@@ -235,6 +243,7 @@ with open(args.out, 'w') as out:
         out,
         "obj_pdfium",
         [
+            "third_party/freetype",
             "third_party/pdfium",
         ])
 
@@ -249,6 +258,7 @@ with open(args.out, 'w') as out:
             "third_party/WebKit/Source/platform/loader",
             "third_party/WebKit/Source/platform/mojo",
             "third_party/WebKit/Source/platform/platform",
+            "third_party/WebKit/Source/platform/wtf/platform_wtf",
             "third_party/WebKit/Source/web",
             "third_party/WebKit/Source/wtf",
         ])
@@ -287,8 +297,5 @@ with open(args.out, 'w') as out:
             "v8/v8_libsampler",
             "third_party/icu",
         ])
-
-os.environ['CHROMIUMCONTENT_2ND_PASS'] = '1'
-subprocess.check_call(['ninja', 'chromiumcontent:libs'])
 
 open(args.stamp, 'w')

@@ -1,0 +1,8 @@
+version: 2.0
+jobs:
+  build:
+    docker:
+      - image: electronbuilds/libchromiumcontent:0.0.1
+    steps:
+       - checkout
+       - run: script/cibuild

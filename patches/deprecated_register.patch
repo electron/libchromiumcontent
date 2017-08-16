@@ -1,0 +1,13 @@
+diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
+index 3b77c055108b..88a702425690 100644
+--- a/build/config/compiler/BUILD.gn
++++ b/build/config/compiler/BUILD.gn
+@@ -1074,7 +1074,7 @@ config("default_warnings") {
+       "-Wno-inconsistent-missing-override",
+     ]
+ 
+-    if (is_linux && target_cpu == "x86") {
++    if (is_linux) {
+       cflags += [
+         # TODO(thakis): Remove from 32-bit Linux eventually, https://707084
+         "-Wno-deprecated-register",

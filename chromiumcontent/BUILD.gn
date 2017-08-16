@@ -28,6 +28,7 @@ group("targets") {
       "//ui/content_accelerators",
       "//ui/display",
       "//ui/display/util",
+      "//ui/latency",
       "//ui/views",
       "//ui/views/controls/webview",
     ]
@@ -108,7 +109,7 @@ if (is_electron_build && is_component_build) {
 
   static_library("fx_zlib") {
       complete_static_lib = true
-      deps = [ "//third_party/pdfium/third_party:fx_zlib" ]
+      deps = [ "//third_party/zlib:zlib" ]
   }
 
   static_library("libjpeg") {

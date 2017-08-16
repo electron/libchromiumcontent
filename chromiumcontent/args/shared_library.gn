@@ -8,4 +8,3 @@ enable_widevine = true
 proprietary_codecs = true
 is_component_ffmpeg = true
 ffmpeg_branding = "Chrome"
-use_gold = false
