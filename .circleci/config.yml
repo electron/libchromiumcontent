@@ -50,9 +50,7 @@ jobs:
         - checkout
         - run: script/bootstrap
         - attach_workspace:
-            at: /tmp/workspace
-        - run: mkdir src
-        - run: cp -r "/tmp/workspace" src
+            at: /home/builduser/project/src
         - run: script/upload -t $TARGET_ARCH
 
   libchromiumcontent-linux-ia32-static-build:
@@ -105,9 +103,7 @@ jobs:
         - checkout
         - run: script/bootstrap
         - attach_workspace:
-            at: /tmp/workspace
-        - run: mkdir src
-        - run: cp -r "/tmp/workspace" src
+            at: /home/builduser/project/src
         - run: script/upload -t $TARGET_ARCH
 
   libchromiumcontent-linux-arm-static-build:
@@ -160,9 +156,7 @@ jobs:
         - checkout
         - run: script/bootstrap
         - attach_workspace:
-            at: /tmp/workspace
-        - run: mkdir src
-        - run: cp -r "/tmp/workspace" src
+            at: /home/builduser/project/src
         - run: script/upload -t $TARGET_ARCH
 
 workflows:
