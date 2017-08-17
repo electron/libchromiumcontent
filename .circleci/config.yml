@@ -51,6 +51,7 @@ jobs:
         - run: script/bootstrap
         - attach_workspace:
             at: /home/builduser/project/src
+        - run: script/create-dist -t $TARGET_ARCH
         - run: script/upload -t $TARGET_ARCH
 
   libchromiumcontent-linux-ia32-static-build:
@@ -104,6 +105,7 @@ jobs:
         - run: script/bootstrap
         - attach_workspace:
             at: /home/builduser/project/src
+        - run: script/create-dist -t $TARGET_ARCH
         - run: script/upload -t $TARGET_ARCH
 
   libchromiumcontent-linux-arm-static-build:
@@ -157,6 +159,7 @@ jobs:
         - run: script/bootstrap
         - attach_workspace:
             at: /home/builduser/project/src
+        - run: script/create-dist -t $TARGET_ARCH
         - run: script/upload -t $TARGET_ARCH
 
 workflows:
