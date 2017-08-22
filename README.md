@@ -58,6 +58,52 @@ $ ./script/build -t arm64
 $ ./script/create-dist -t arm64
 ```
 
+### Adding a Patch
+
+The Chromium checkout consists of several repos. Chromium itself is in the `src` 
+directory, and its dependencies are in subdirectories of `src`, mostly in 
+`src/third_party/*`.
+
+Files in the top level of the `patches` directory only contain patches for 
+the files in `src` that belong to the Chromium repo itself. Subdirectories like 
+`patches/v8` or `patches/third_party/skia` contain patches for the corresponding 
+subdirectories in `src` (`src/v8` and 
+`src/third_party/skia` respectively), which are independent repos.
+
+If you need to make changes in two different repos, you must create two patch 
+files. Giving those patch files the same name is a good idea.
+
+Get Chromium in `src/` and apply existing patches to it. No need to do this 
+again if it has already been done:
+
+```sh
+./script/update
+```
+
+Change to the `src` directory:
+
+```sh
+cd src
+```  
+
+Stage existing changes to make `git diff` useful:
+
+
+```sh
+git add .
+```
+
+Make any code changes you like.
+
+When you're done, pipe the diff into a patch file. The file should be prefixed 
+with a number with leading zeros that is greater than any existing patch index, 
+e.g. `0052` if the last patch in the folder is named `0051-some-other.patch`:
+
+```
+git diff > patches/0052-meaningful-name.patch
+```
+
+
 ## Releases
 
 There is no formal release process for libchromiumcontent, as release artifacts
