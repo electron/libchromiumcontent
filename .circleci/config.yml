@@ -1,6 +1,6 @@
 version: 2.0
 jobs:
-  libchromiumcontent-linux-x64-simple-build:
+  libchromiumcontent-linux-x64:
     docker:
       - image: electronbuilds/libchromiumcontent:0.0.4
         environment:
@@ -70,7 +70,7 @@ jobs:
         - run: script/create-dist -t $TARGET_ARCH
         - run: script/upload -t $TARGET_ARCH
 
-  libchromiumcontent-linux-ia32-simple-build:
+  libchromiumcontent-linux-ia32:
     docker:
       - image: electronbuilds/libchromiumcontent:0.0.4
         environment:
@@ -140,7 +140,7 @@ jobs:
         - run: script/create-dist -t $TARGET_ARCH
         - run: script/upload -t $TARGET_ARCH
 
-  libchromiumcontent-linux-arm-simple-build:
+  libchromiumcontent-linux-arm:
     docker:
       - image: electronbuilds/libchromiumcontent:0.0.4
         environment:
@@ -210,14 +210,33 @@ jobs:
         - run: script/create-dist -t $TARGET_ARCH
         - run: script/upload -t $TARGET_ARCH
 
+  libchromiumcontent-linux-arm64:
+    docker:
+      - image: electronbuilds/libchromiumcontent:0.0.4
+        environment:
+          TARGET_ARCH: arm64
+    resource_class: xlarge
+    steps:
+      - checkout
+      - run: script/bootstrap
+      - run: script/update --clean -t $TARGET_ARCH
+      - run: script/build -t $TARGET_ARCH -c static_library
+      - run: script/build -t $TARGET_ARCH -c shared_library
+      - run: script/build -t $TARGET_ARCH -c ffmpeg
+      - run: script/create-dist -t $TARGET_ARCH
+      - run: script/upload -t $TARGET_ARCH
+
 workflows:
   version: 2
   build-x64:
     jobs:
-      - libchromiumcontent-linux-x64-simple-build
+      - libchromiumcontent-linux-x64
   build-ia32:
     jobs:
-      - libchromiumcontent-linux-ia32-simple-build
+      - libchromiumcontent-linux-ia32
   build-arm:
     jobs:
-      - libchromiumcontent-linux-arm-simple-build
+      - libchromiumcontent-linux-arm
+  build-arm64:
+    jobs:
+      - libchromiumcontent-linux-arm64
