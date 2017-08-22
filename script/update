@@ -57,7 +57,10 @@ def main():
   # More information: https://stackoverflow.com/a/9935126
   git_cache = args.git_cache or os.getenv('LIBCHROMIUMCONTENT_GIT_CACHE', '')
   if not args.skip_gclient:
-    gclient_sync(chromium_version(), args.clean, git_cache)
+    if (args.source_only):
+      return gclient_sync(chromium_version(), args.clean, git_cache)
+    else:
+      gclient_sync(chromium_version(), args.clean, git_cache)
 
   if sys.platform == 'linux2':
     install_sysroot()
@@ -89,6 +92,8 @@ def parse_args():
                       help='Skips syncing repo, easier to build locally')
   parser.add_argument('--skip_depot_tools_update', action='store_true',
                       help='Skips update depot tools on windows, easier to build locally')
+  parser.add_argument('--source_only', action='store_true',
+                      help='Only sync the chromium source code')
   return parser.parse_args()
 
 
