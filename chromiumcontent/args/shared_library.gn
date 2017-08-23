@@ -1,8 +1,9 @@
 root_extra_deps = [ "//chromiumcontent:chromiumcontent" ]
 is_electron_build = true
 is_component_build = true
-is_debug = false
+is_debug = true
 symbol_level = 2
+use_allocator = "none"    # on Linux this defaults to "tcmalloc", but tcmalloc deadlocks when Electron CI tests are run inside Docker
 enable_nacl = false
 enable_widevine = true
 proprietary_codecs = true
