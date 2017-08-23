@@ -415,30 +415,30 @@ workflows:
       - libchromiumcontent-linux-x64-static-build
       - libchromiumcontent-linux-x64-shared-build
       - libchromiumcontent-linux-x64-upload:
-        - requires:
-              - libchromiumcontent-linux-x64-static-build
-              - libchromiumcontent-linux-x64-shared-build
+          requires:
+            - libchromiumcontent-linux-x64-static-build
+            - libchromiumcontent-linux-x64-shared-build
   build-ia32:
     jobs:
       - libchromiumcontent-linux-ia32-static-build
       - libchromiumcontent-linux-ia32-shared-build
       - libchromiumcontent-linux-ia32-upload:
-        - requires:
-              - libchromiumcontent-linux-ia32-static-build
-              - libchromiumcontent-linux-ia32-shared-build
+          requires:
+            - libchromiumcontent-linux-ia32-static-build
+            - libchromiumcontent-linux-ia32-shared-build
   build-arm:
     jobs:
       - libchromiumcontent-linux-arm-static-build
       - libchromiumcontent-linux-arm-shared-build
       - libchromiumcontent-linux-arm-upload:
-        - requires:
-              - libchromiumcontent-linux-arm-static-build
-              - libchromiumcontent-linux-arm-shared-build
+          requires:
+            - libchromiumcontent-linux-arm-static-build
+            - libchromiumcontent-linux-arm-shared-build
   build-arm64:
     jobs:
       - libchromiumcontent-linux-arm64-static-build
       - libchromiumcontent-linux-arm64-shared-build
       - libchromiumcontent-linux-arm64-upload:
-        - requires:
-              - libchromiumcontent-linux-arm64-static-build
-              - libchromiumcontent-linux-arm64-shared-build
+          requires:
+            - libchromiumcontent-linux-arm64-static-build
+            - libchromiumcontent-linux-arm64-shared-build
