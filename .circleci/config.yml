@@ -1,21 +1,5 @@
 version: 2.0
 jobs:
-  libchromiumcontent-linux-x64:
-    docker:
-      - image: electronbuilds/libchromiumcontent:0.0.4
-        environment:
-          TARGET_ARCH: x64
-    resource_class: xlarge
-    steps:
-      - checkout
-      - run: script/bootstrap
-      - run: script/update --clean -t $TARGET_ARCH
-      - run: script/build -t $TARGET_ARCH -c static_library
-      - run: script/build -t $TARGET_ARCH -c shared_library
-      - run: script/build -t $TARGET_ARCH -c ffmpeg
-      - run: script/create-dist -t $TARGET_ARCH
-      - run: script/upload -t $TARGET_ARCH
-
   libchromiumcontent-linux-x64-static-build:
     docker:
       - image: electronbuilds/libchromiumcontent:0.0.4
@@ -28,12 +12,8 @@ jobs:
       - run: script/update --clean -t $TARGET_ARCH
       - run: script/build -t $TARGET_ARCH -c static_library
       - run: script/build -t $TARGET_ARCH -c ffmpeg
-      - run: mkdir -p "/tmp/workspace/out-${TARGET_ARCH}/static_library"
-      - run: mkdir -p "/tmp/workspace/out-${TARGET_ARCH}/ffmpeg"
-      - run: cp -r "src/out-${TARGET_ARCH}/static_library" "/tmp/workspace/out-${TARGET_ARCH}"
-      - run: cp -r "src/out-${TARGET_ARCH}/ffmpeg" "/tmp/workspace/out-${TARGET_ARCH}"
       - persist_to_workspace:
-          root: /tmp/workspace
+          root: /home/builduser/project/src
           paths:
             - out-x64/static_library
             - out-x64/ffmpeg
@@ -49,12 +29,63 @@ jobs:
         - run: script/bootstrap
         - run: script/update --clean -t $TARGET_ARCH
         - run: script/build -t $TARGET_ARCH -c shared_library
-        - run: mkdir -p "/tmp/workspace/out-${TARGET_ARCH}/shared_library"
-        - run: cp -r "src/out-${TARGET_ARCH}/shared_library" "/tmp/workspace/out-${TARGET_ARCH}"
         - persist_to_workspace:
-            root: /tmp/workspace
+            root: /home/builduser/project/src
             paths:
               - out-x64/shared_library
+              - tools
+              - base
+              - build
+              - cc
+              - chrome/browser/ui/libgtkui
+              - components/cdm
+              - components/component_updater
+              - components/cookie_config
+              - components/display_compositor
+              - components/os_crypt
+              - components/prefs
+              - components/security_state
+              - components/update_client
+              - content/browser
+              - content/common
+              - content/public
+              - content/renderer
+              - crypto
+              - device
+              - ipc
+              - gin
+              - gpu
+              - media
+              - mojo
+              - net
+              - pdf
+              - printing
+              - ppapi
+              - sandbox
+              - services
+              - skia
+              - storage
+              - testing
+              - third_party/boringssl
+              - third_party/khronos
+              - third_party/WebKit/Source/platform
+              - third_party/WebKit/Source/wtf
+              - third_party/WebKit/public
+              - third_party/libyuv/include
+              - third_party/webrtc
+              - third_party/icu/source
+              - third_party/mojo/src/mojo/public
+              - third_party/skia
+              - third_party/widevine
+              - third_party/wtl/include
+              - ui
+              - url
+              - v8/include
+              - webkit
+              - dbus
+              - third_party/speech-dispatcher
+              - content/common
+              - ui/events/keycodes/dom
 
   libchromiumcontent-linux-x64-upload:
       docker:
@@ -70,22 +101,6 @@ jobs:
         - run: script/create-dist -t $TARGET_ARCH
         - run: script/upload -t $TARGET_ARCH
 
-  libchromiumcontent-linux-ia32:
-    docker:
-      - image: electronbuilds/libchromiumcontent:0.0.4
-        environment:
-          TARGET_ARCH: ia32
-    resource_class: xlarge
-    steps:
-      - checkout
-      - run: script/bootstrap
-      - run: script/update --clean -t $TARGET_ARCH
-      - run: script/build -t $TARGET_ARCH -c static_library
-      - run: script/build -t $TARGET_ARCH -c shared_library
-      - run: script/build -t $TARGET_ARCH -c ffmpeg
-      - run: script/create-dist -t $TARGET_ARCH
-      - run: script/upload -t $TARGET_ARCH
-
   libchromiumcontent-linux-ia32-static-build:
     docker:
       - image: electronbuilds/libchromiumcontent:0.0.4
@@ -98,12 +113,8 @@ jobs:
       - run: script/update --clean -t $TARGET_ARCH
       - run: script/build -t $TARGET_ARCH -c static_library
       - run: script/build -t $TARGET_ARCH -c ffmpeg
-      - run: mkdir -p "/tmp/workspace/out-${TARGET_ARCH}/static_library"
-      - run: mkdir -p "/tmp/workspace/out-${TARGET_ARCH}/ffmpeg"
-      - run: cp -r "src/out-${TARGET_ARCH}/static_library" "/tmp/workspace/out-${TARGET_ARCH}"
-      - run: cp -r "src/out-${TARGET_ARCH}/ffmpeg" "/tmp/workspace/out-${TARGET_ARCH}"
       - persist_to_workspace:
-          root: /tmp/workspace
+          root: /home/builduser/project/src
           paths:
             - out-ia32/static_library
             - out-ia32/ffmpeg
@@ -119,12 +130,63 @@ jobs:
         - run: script/bootstrap
         - run: script/update --clean -t $TARGET_ARCH
         - run: script/build -t $TARGET_ARCH -c shared_library
-        - run: mkdir -p "/tmp/workspace/out-${TARGET_ARCH}/shared_library"
-        - run: cp -r "src/out-${TARGET_ARCH}/shared_library" "/tmp/workspace/out-${TARGET_ARCH}"
         - persist_to_workspace:
-            root: /tmp/workspace
+            root: /home/builduser/project/src
             paths:
               - out-ia32/shared_library
+              - tools
+              - base
+              - build
+              - cc
+              - chrome/browser/ui/libgtkui
+              - components/cdm
+              - components/component_updater
+              - components/cookie_config
+              - components/display_compositor
+              - components/os_crypt
+              - components/prefs
+              - components/security_state
+              - components/update_client
+              - content/browser
+              - content/common
+              - content/public
+              - content/renderer
+              - crypto
+              - device
+              - ipc
+              - gin
+              - gpu
+              - media
+              - mojo
+              - net
+              - pdf
+              - printing
+              - ppapi
+              - sandbox
+              - services
+              - skia
+              - storage
+              - testing
+              - third_party/boringssl
+              - third_party/khronos
+              - third_party/WebKit/Source/platform
+              - third_party/WebKit/Source/wtf
+              - third_party/WebKit/public
+              - third_party/libyuv/include
+              - third_party/webrtc
+              - third_party/icu/source
+              - third_party/mojo/src/mojo/public
+              - third_party/skia
+              - third_party/widevine
+              - third_party/wtl/include
+              - ui
+              - url
+              - v8/include
+              - webkit
+              - dbus
+              - third_party/speech-dispatcher
+              - content/common
+              - ui/events/keycodes/dom
 
   libchromiumcontent-linux-ia32-upload:
       docker:
@@ -140,22 +202,6 @@ jobs:
         - run: script/create-dist -t $TARGET_ARCH
         - run: script/upload -t $TARGET_ARCH
 
-  libchromiumcontent-linux-arm:
-    docker:
-      - image: electronbuilds/libchromiumcontent:0.0.4
-        environment:
-          TARGET_ARCH: arm
-    resource_class: xlarge
-    steps:
-      - checkout
-      - run: script/bootstrap
-      - run: script/update --clean -t $TARGET_ARCH
-      - run: script/build -t $TARGET_ARCH -c static_library
-      - run: script/build -t $TARGET_ARCH -c shared_library
-      - run: script/build -t $TARGET_ARCH -c ffmpeg
-      - run: script/create-dist -t $TARGET_ARCH
-      - run: script/upload -t $TARGET_ARCH
-
   libchromiumcontent-linux-arm-static-build:
     docker:
       - image: electronbuilds/libchromiumcontent:0.0.4
@@ -168,12 +214,8 @@ jobs:
       - run: script/update --clean -t $TARGET_ARCH
       - run: script/build -t $TARGET_ARCH -c static_library
       - run: script/build -t $TARGET_ARCH -c ffmpeg
-      - run: mkdir -p "/tmp/workspace/out-${TARGET_ARCH}/static_library"
-      - run: mkdir -p "/tmp/workspace/out-${TARGET_ARCH}/ffmpeg"
-      - run: cp -r "src/out-${TARGET_ARCH}/static_library" "/tmp/workspace/out-${TARGET_ARCH}"
-      - run: cp -r "src/out-${TARGET_ARCH}/ffmpeg" "/tmp/workspace/out-${TARGET_ARCH}"
       - persist_to_workspace:
-          root: /tmp/workspace
+          root: /home/builduser/project/src
           paths:
             - out-arm/static_library
             - out-arm/ffmpeg
@@ -192,9 +234,62 @@ jobs:
         - run: mkdir -p "/tmp/workspace/out-${TARGET_ARCH}/shared_library"
         - run: cp -r "src/out-${TARGET_ARCH}/shared_library" "/tmp/workspace/out-${TARGET_ARCH}"
         - persist_to_workspace:
-            root: /tmp/workspace
+            root: /home/builduser/project/src
             paths:
               - out-arm/shared_library
+              - tools
+              - base
+              - build
+              - cc
+              - chrome/browser/ui/libgtkui
+              - components/cdm
+              - components/component_updater
+              - components/cookie_config
+              - components/display_compositor
+              - components/os_crypt
+              - components/prefs
+              - components/security_state
+              - components/update_client
+              - content/browser
+              - content/common
+              - content/public
+              - content/renderer
+              - crypto
+              - device
+              - ipc
+              - gin
+              - gpu
+              - media
+              - mojo
+              - net
+              - pdf
+              - printing
+              - ppapi
+              - sandbox
+              - services
+              - skia
+              - storage
+              - testing
+              - third_party/boringssl
+              - third_party/khronos
+              - third_party/WebKit/Source/platform
+              - third_party/WebKit/Source/wtf
+              - third_party/WebKit/public
+              - third_party/libyuv/include
+              - third_party/webrtc
+              - third_party/icu/source
+              - third_party/mojo/src/mojo/public
+              - third_party/skia
+              - third_party/widevine
+              - third_party/wtl/include
+              - ui
+              - url
+              - v8/include
+              - webkit
+              - dbus
+              - third_party/speech-dispatcher
+              - content/common
+              - ui/events/keycodes/dom
 
   libchromiumcontent-linux-arm-upload:
       docker:
@@ -210,7 +305,7 @@ jobs:
         - run: script/create-dist -t $TARGET_ARCH
         - run: script/upload -t $TARGET_ARCH
 
-  libchromiumcontent-linux-arm64:
+  libchromiumcontent-linux-arm64-static-build:
     docker:
       - image: electronbuilds/libchromiumcontent:0.0.4
         environment:
@@ -221,22 +316,129 @@ jobs:
       - run: script/bootstrap
       - run: script/update --clean -t $TARGET_ARCH
       - run: script/build -t $TARGET_ARCH -c static_library
-      - run: script/build -t $TARGET_ARCH -c shared_library
       - run: script/build -t $TARGET_ARCH -c ffmpeg
-      - run: script/create-dist -t $TARGET_ARCH
-      - run: script/upload -t $TARGET_ARCH
+      - persist_to_workspace:
+          root: /home/builduser/project/src
+          paths:
+            - out-arm64/static_library
+            - out-arm64/ffmpeg
+
+  libchromiumcontent-linux-arm64-shared-build:
+      docker:
+        - image: electronbuilds/libchromiumcontent:0.0.4
+          environment:
+            TARGET_ARCH: arm64
+      resource_class: xlarge
+      steps:
+        - checkout
+        - run: script/bootstrap
+        - run: script/update --clean -t $TARGET_ARCH
+        - run: script/build -t $TARGET_ARCH -c shared_library
+        - run: mkdir -p "/tmp/workspace/out-${TARGET_ARCH}/shared_library"
+        - run: cp -r "src/out-${TARGET_ARCH}/shared_library" "/tmp/workspace/out-${TARGET_ARCH}"
+        - persist_to_workspace:
+            root: /home/builduser/project/src
+            paths:
+              - out-arm64/shared_library
+              - tools
+              - base
+              - build
+              - cc
+              - chrome/browser/ui/libgtkui
+              - components/cdm
+              - components/component_updater
+              - components/cookie_config
+              - components/display_compositor
+              - components/os_crypt
+              - components/prefs
+              - components/security_state
+              - components/update_client
+              - content/browser
+              - content/common
+              - content/public
+              - content/renderer
+              - crypto
+              - device
+              - ipc
+              - gin
+              - gpu
+              - media
+              - mojo
+              - net
+              - pdf
+              - printing
+              - ppapi
+              - sandbox
+              - services
+              - skia
+              - storage
+              - testing
+              - third_party/boringssl
+              - third_party/khronos
+              - third_party/WebKit/Source/platform
+              - third_party/WebKit/Source/wtf
+              - third_party/WebKit/public
+              - third_party/libyuv/include
+              - third_party/webrtc
+              - third_party/icu/source
+              - third_party/mojo/src/mojo/public
+              - third_party/skia
+              - third_party/widevine
+              - third_party/wtl/include
+              - ui
+              - url
+              - v8/include
+              - webkit
+              - dbus
+              - third_party/speech-dispatcher
+              - content/common
+              - ui/events/keycodes/dom
+
+  libchromiumcontent-linux-arm64-upload:
+      docker:
+        - image: electronbuilds/libchromiumcontent:0.0.4
+          environment:
+            TARGET_ARCH: arm64
+      resource_class: xlarge
+      steps:
+        - checkout
+        - run: script/bootstrap
+        - attach_workspace:
+            at: /home/builduser/project/src
+        - run: script/create-dist -t $TARGET_ARCH
+        - run: script/upload -t $TARGET_ARCH
 
 workflows:
   version: 2
   build-x64:
     jobs:
-      - libchromiumcontent-linux-x64
+      - libchromiumcontent-linux-x64-static-build
+      - libchromiumcontent-linux-x64-shared-build
+      - libchromiumcontent-linux-x64-upload:
+          requires:
+            - libchromiumcontent-linux-x64-static-build
+            - libchromiumcontent-linux-x64-shared-build
   build-ia32:
     jobs:
-      - libchromiumcontent-linux-ia32
+      - libchromiumcontent-linux-ia32-static-build
+      - libchromiumcontent-linux-ia32-shared-build
+      - libchromiumcontent-linux-ia32-upload:
+          requires:
+            - libchromiumcontent-linux-ia32-static-build
+            - libchromiumcontent-linux-ia32-shared-build
   build-arm:
     jobs:
-      - libchromiumcontent-linux-arm
+      - libchromiumcontent-linux-arm-static-build
+      - libchromiumcontent-linux-arm-shared-build
+      - libchromiumcontent-linux-arm-upload:
+          requires:
+            - libchromiumcontent-linux-arm-static-build
+            - libchromiumcontent-linux-arm-shared-build
   build-arm64:
     jobs:
-      - libchromiumcontent-linux-arm64
+      - libchromiumcontent-linux-arm64-static-build
+      - libchromiumcontent-linux-arm64-shared-build
+      - libchromiumcontent-linux-arm64-upload:
+          requires:
+            - libchromiumcontent-linux-arm64-static-build
+            - libchromiumcontent-linux-arm64-shared-build
