@@ -263,6 +263,7 @@ INCLUDE_DIRS = [
   'third_party/boringssl',
   'third_party/googletest',
   'third_party/khronos',
+  'third_party/protobuf/src/google/protobuf',
   'third_party/WebKit/Source/platform',
   'third_party/WebKit/Source/wtf',
   'third_party/WebKit/public',
@@ -303,6 +304,7 @@ GENERATED_INCLUDE_DIRS = [
   'third_party/WebKit',
   'ui',
   'url',
+  'sandbox/mac',
   'services',
   'skia',
 ]
