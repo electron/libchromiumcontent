@@ -15,9 +15,13 @@ S3_CREDENTIALS_FILE = os.path.join(JENKINS_ROOT, 'config', 's3credentials')
 
 
 def main():
-  if not os.path.isfile(S3_CREDENTIALS_FILE):
-    return 'Error: Can\'t find {0}'.format(S3_CREDENTIALS_FILE)
-  copy_to_environment(S3_CREDENTIALS_FILE)
+
+  if (not 'LIBCHROMIUMCONTENT_S3_ACCESS_KEY' in os.environ and
+     not 'LIBCHROMIUMCONTENT_S3_BUCKET' in os.environ and
+     not 'LIBCHROMIUMCONTENT_S3_SECRET_KEY' in os.environ):
+     if not os.path.isfile(S3_CREDENTIALS_FILE):
+       return 'Error: Can\'t find {0}'.format(S3_CREDENTIALS_FILE)
+     copy_to_environment(S3_CREDENTIALS_FILE)
 
   # Use by gclient to distinguish bot builds
   os.environ['CHROME_HEADLESS'] = '1'
