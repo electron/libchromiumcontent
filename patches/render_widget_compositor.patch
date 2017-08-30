@@ -1,0 +1,54 @@
+diff --git a/content/renderer/gpu/render_widget_compositor.cc b/content/renderer/gpu/render_widget_compositor.cc
+index cf64c18462ba..0682fbf5eeb2 100644
+--- a/content/renderer/gpu/render_widget_compositor.cc
++++ b/content/renderer/gpu/render_widget_compositor.cc
+@@ -486,7 +486,7 @@ cc::LayerTreeSettings RenderWidgetCompositor::GenerateLayerTreeSettings(
+     settings.max_staging_buffer_usage_in_bytes /= 4;
+ 
+   cc::ManagedMemoryPolicy defaults = settings.gpu_memory_policy;
+-  settings.gpu_memory_policy = GetGpuMemoryPolicy(defaults);
++  settings.gpu_memory_policy = GetGpuMemoryPolicy(defaults, screen_info);
+   settings.software_memory_policy.num_resources_limit =
+       base::SharedMemory::GetHandleLimit() / 3;
+ 
+@@ -495,7 +495,8 @@ cc::LayerTreeSettings RenderWidgetCompositor::GenerateLayerTreeSettings(
+ 
+ // static
+ cc::ManagedMemoryPolicy RenderWidgetCompositor::GetGpuMemoryPolicy(
+-    const cc::ManagedMemoryPolicy& default_policy) {
++    const cc::ManagedMemoryPolicy& default_policy,
++    const ScreenInfo& screen_info) {
+   cc::ManagedMemoryPolicy actual = default_policy;
+   actual.bytes_limit_when_visible = 0;
+ 
+@@ -570,6 +571,16 @@ cc::ManagedMemoryPolicy RenderWidgetCompositor::GetGpuMemoryPolicy(
+   actual.bytes_limit_when_visible = 512 * 1024 * 1024;
+   actual.priority_cutoff_when_visible =
+       gpu::MemoryAllocation::CUTOFF_ALLOW_NICE_TO_HAVE;
++
++  // For large monitors (4k), double the tile memory to avoid frequent out of
++  // memory problems. 4k could mean a screen width of anywhere from 3840 to 4096
++  // (see https://en.wikipedia.org/wiki/4K_resolution). We use 3500 as a proxy
++  // for "large enough".
++  static const int kLargeDisplayThreshold = 3500;
++  int display_width =
++      std::round(screen_info.rect.width() * screen_info.device_scale_factor);
++  if (display_width >= kLargeDisplayThreshold)
++    actual.bytes_limit_when_visible *= 2;
+ #endif
+   return actual;
+ }
+diff --git a/content/renderer/gpu/render_widget_compositor.h b/content/renderer/gpu/render_widget_compositor.h
+index acb8a8277e27..f2e2756561e1 100644
+--- a/content/renderer/gpu/render_widget_compositor.h
++++ b/content/renderer/gpu/render_widget_compositor.h
+@@ -79,7 +79,8 @@ class CONTENT_EXPORT RenderWidgetCompositor
+                   std::unique_ptr<cc::AnimationHost> animation_host);
+ 
+   static cc::ManagedMemoryPolicy GetGpuMemoryPolicy(
+-      const cc::ManagedMemoryPolicy& policy);
++      const cc::ManagedMemoryPolicy& policy,
++      const ScreenInfo& screen_info);
+ 
+   void SetNeverVisible();
+   const base::WeakPtr<cc::InputHandler>& GetInputHandler();
