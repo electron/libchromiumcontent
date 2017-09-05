@@ -9,7 +9,7 @@ jobs:
     steps:
       - checkout
       - run: script/bootstrap
-      - run: script/update --clean -t $TARGET_ARCH
+      - run: script/update -t $TARGET_ARCH
       - run: script/build -t $TARGET_ARCH -c static_library
       - run: script/build -t $TARGET_ARCH -c shared_library
       - run: script/build -t $TARGET_ARCH -c ffmpeg
@@ -25,7 +25,7 @@ jobs:
     steps:
       - checkout
       - run: script/bootstrap
-      - run: script/update --clean -t $TARGET_ARCH
+      - run: script/update -t $TARGET_ARCH
       - run: script/build -t $TARGET_ARCH -c static_library
       - run: script/build -t $TARGET_ARCH -c ffmpeg
       - run: mkdir -p "/tmp/workspace/out-${TARGET_ARCH}/static_library"
@@ -47,7 +47,7 @@ jobs:
       steps:
         - checkout
         - run: script/bootstrap
-        - run: script/update --clean -t $TARGET_ARCH
+        - run: script/update -t $TARGET_ARCH
         - run: script/build -t $TARGET_ARCH -c shared_library
         - run: mkdir -p "/tmp/workspace/out-${TARGET_ARCH}/shared_library"
         - run: cp -r "src/out-${TARGET_ARCH}/shared_library" "/tmp/workspace/out-${TARGET_ARCH}"
@@ -79,7 +79,7 @@ jobs:
     steps:
       - checkout
       - run: script/bootstrap
-      - run: script/update --clean -t $TARGET_ARCH
+      - run: script/update -t $TARGET_ARCH
       - run: script/build -t $TARGET_ARCH -c static_library
       - run: script/build -t $TARGET_ARCH -c shared_library
       - run: script/build -t $TARGET_ARCH -c ffmpeg
@@ -95,7 +95,7 @@ jobs:
     steps:
       - checkout
       - run: script/bootstrap
-      - run: script/update --clean -t $TARGET_ARCH
+      - run: script/update -t $TARGET_ARCH
       - run: script/build -t $TARGET_ARCH -c static_library
       - run: script/build -t $TARGET_ARCH -c ffmpeg
       - run: mkdir -p "/tmp/workspace/out-${TARGET_ARCH}/static_library"
@@ -117,7 +117,7 @@ jobs:
       steps:
         - checkout
         - run: script/bootstrap
-        - run: script/update --clean -t $TARGET_ARCH
+        - run: script/update -t $TARGET_ARCH
         - run: script/build -t $TARGET_ARCH -c shared_library
         - run: mkdir -p "/tmp/workspace/out-${TARGET_ARCH}/shared_library"
         - run: cp -r "src/out-${TARGET_ARCH}/shared_library" "/tmp/workspace/out-${TARGET_ARCH}"
@@ -149,7 +149,7 @@ jobs:
     steps:
       - checkout
       - run: script/bootstrap
-      - run: script/update --clean -t $TARGET_ARCH
+      - run: script/update -t $TARGET_ARCH
       - run: script/build -t $TARGET_ARCH -c static_library
       - run: script/build -t $TARGET_ARCH -c shared_library
       - run: script/build -t $TARGET_ARCH -c ffmpeg
@@ -165,7 +165,7 @@ jobs:
     steps:
       - checkout
       - run: script/bootstrap
-      - run: script/update --clean -t $TARGET_ARCH
+      - run: script/update -t $TARGET_ARCH
       - run: script/build -t $TARGET_ARCH -c static_library
       - run: script/build -t $TARGET_ARCH -c ffmpeg
       - run: mkdir -p "/tmp/workspace/out-${TARGET_ARCH}/static_library"
@@ -187,7 +187,7 @@ jobs:
       steps:
         - checkout
         - run: script/bootstrap
-        - run: script/update --clean -t $TARGET_ARCH
+        - run: script/update  -t $TARGET_ARCH
         - run: script/build -t $TARGET_ARCH -c shared_library
         - run: mkdir -p "/tmp/workspace/out-${TARGET_ARCH}/shared_library"
         - run: cp -r "src/out-${TARGET_ARCH}/shared_library" "/tmp/workspace/out-${TARGET_ARCH}"
@@ -219,7 +219,7 @@ jobs:
     steps:
       - checkout
       - run: script/bootstrap
-      - run: script/update --clean -t $TARGET_ARCH
+      - run: script/update  -t $TARGET_ARCH
       - run: script/build -t $TARGET_ARCH -c static_library
       - run: script/build -t $TARGET_ARCH -c shared_library
       - run: script/build -t $TARGET_ARCH -c ffmpeg
