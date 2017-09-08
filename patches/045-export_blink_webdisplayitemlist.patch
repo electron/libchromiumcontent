@@ -1,0 +1,21 @@
+diff --git a/third_party/WebKit/public/platform/WebDisplayItemList.h b/third_party/WebKit/public/platform/WebDisplayItemList.h
+index 3f89349d6cdb..d278b8a18044 100644
+--- a/third_party/WebKit/public/platform/WebDisplayItemList.h
++++ b/third_party/WebKit/public/platform/WebDisplayItemList.h
+@@ -6,6 +6,7 @@
+ #define WebDisplayItemList_h
+ 
+ #include "WebBlendMode.h"
++#include "WebCommon.h"
+ #include "WebFloatPoint.h"
+ #include "WebFloatRect.h"
+ #include "WebRect.h"
+@@ -32,7 +33,7 @@ namespace blink {
+ // 'drawing' items) and operations to be performed when rendering this content
+ // (stored in 'clip', 'transform', 'filter', etc...). For more details see:
+ // http://dev.chromium.org/blink/slimming-paint.
+-class WebDisplayItemList {
++class BLINK_EXPORT WebDisplayItemList {
+  public:
+   virtual ~WebDisplayItemList() {}
+ 
