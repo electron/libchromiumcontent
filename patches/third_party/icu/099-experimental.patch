@@ -1,0 +1,44 @@
+diff --git a/BUILD.gn b/BUILD.gn
+index 79212e1a..d86112fc 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -109,10 +109,7 @@ config("icu_code") {
+   }
+ }
+ 
+-component("icui18n") {
+-  if (is_electron_build && !is_component_build) {
+-    static_component_type = "shared_library"
+-  }
++target(component_electron, "icui18n") {
+   # find  source/i18n -maxdepth 1  ! -type d  | egrep  '\.(c|cpp|h)$' |\
+   # sort | sed 's/^\(.*\)$/    "\1",/'
+   sources = [
+@@ -541,6 +538,7 @@ component("icui18n") {
+     defines += [ "U_COMBINED_IMPLEMENTATION" ]
+   }
+   deps = [
++    "//build/config:exe_and_shlib_deps",
+     ":icuuc",
+   ]
+ 
+@@ -558,10 +556,7 @@ component("icui18n") {
+   public_configs = [ ":icu_config" ]
+ }
+ 
+-component("icuuc") {
+-  if (is_electron_build && !is_component_build) {
+-    static_component_type = "shared_library"
+-  }
++target(component_electron, "icuuc") {
+   # find  source/common -maxdepth 1  ! -type d  | egrep  '\.(c|cpp|h)$' |\
+   # sort | sed 's/^\(.*\)$/    "\1",/'
+   sources = [
+@@ -955,6 +950,7 @@ component("icuuc") {
+     defines += [ "U_COMBINED_IMPLEMENTATION" ]
+   }
+   deps = [
++    "//build/config:exe_and_shlib_deps",
+     ":icudata",
+   ]
+ 
