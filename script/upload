@@ -76,7 +76,11 @@ def run_boto_script(access_key, secret_key, script_name, *args):
       [env.get('PYTHONPATH', '')] + boto_path_dirs())
 
   boto = os.path.join(BOTO_DIR, 'bin', script_name)
-  subprocess.check_call([sys.executable, boto] + list(args), env=env)
+  output = command_output([boto, '--help'])
+  s3putargs = list(args)
+  if 'multipart - ' in output:
+      s3putargs.insert(0, '--multipart')
+  subprocess.check_call([sys.executable, boto] + s3putargs, env=env)
 
 
 def s3put(bucket, access_key, secret_key, prefix, key_prefix, files):
