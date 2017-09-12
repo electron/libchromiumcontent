@@ -1,5 +1,5 @@
 diff --git a/BUILD.gn b/BUILD.gn
-index e3d12f49..9c64371b 100644
+index 76914cd7..d86112fc 100644
 --- a/BUILD.gn
 +++ b/BUILD.gn
 @@ -3,6 +3,7 @@
@@ -10,7 +10,7 @@ index e3d12f49..9c64371b 100644
  import("//third_party/icu/config.gni")
  
  if (is_android) {
-@@ -33,7 +34,7 @@ config("icu_config") {
+@@ -34,7 +35,7 @@ config("icu_config") {
      "U_ENABLE_DYLOAD=0",
    ]
  
@@ -19,17 +19,16 @@ index e3d12f49..9c64371b 100644
      defines += [ "U_STATIC_IMPLEMENTATION" ]
    }
  
-@@ -100,6 +101,9 @@ config("icu_code") {
+@@ -108,7 +109,7 @@ config("icu_code") {
+   }
  }
  
- component("icui18n") {
-+  if (is_electron_build && !is_component_build) {
-+    static_component_type = "shared_library"
-+  }
+-component("icui18n") {
++target(component_electron, "icui18n") {
    # find  source/i18n -maxdepth 1  ! -type d  | egrep  '\.(c|cpp|h)$' |\
    # sort | sed 's/^\(.*\)$/    "\1",/'
    sources = [
-@@ -533,6 +534,9 @@ component("icui18n") {
+@@ -533,7 +534,11 @@ component("icui18n") {
    ]
  
    defines = [ "U_I18N_IMPLEMENTATION" ]
@@ -37,19 +36,20 @@ index e3d12f49..9c64371b 100644
 +    defines += [ "U_COMBINED_IMPLEMENTATION" ]
 +  }
    deps = [
++    "//build/config:exe_and_shlib_deps",
      ":icuuc",
    ]
-@@ -551,6 +546,9 @@ component("icui18n") {
+ 
+@@ -551,7 +556,7 @@ component("icui18n") {
+   public_configs = [ ":icu_config" ]
  }
  
- component("icuuc") {
-+  if (is_electron_build && !is_component_build) {
-+    static_component_type = "shared_library"
-+  }
+-component("icuuc") {
++target(component_electron, "icuuc") {
    # find  source/common -maxdepth 1  ! -type d  | egrep  '\.(c|cpp|h)$' |\
    # sort | sed 's/^\(.*\)$/    "\1",/'
    sources = [
-@@ -927,6 +931,9 @@ component("icuuc") {
+@@ -941,7 +946,11 @@ component("icuuc") {
      "source/common/unicode/uversion.h",
    ]
    defines = [ "U_COMMON_IMPLEMENTATION" ]
@@ -57,5 +57,7 @@ index e3d12f49..9c64371b 100644
 +    defines += [ "U_COMBINED_IMPLEMENTATION" ]
 +  }
    deps = [
++    "//build/config:exe_and_shlib_deps",
      ":icudata",
    ]
+ 
