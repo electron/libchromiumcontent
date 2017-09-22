@@ -2,7 +2,7 @@ diff --git a/src/compiler/access-info.cc b/src/compiler/access-info.cc
 index 8fef2f0..ee0ef07 100644
 --- a/src/compiler/access-info.cc
 +++ b/src/compiler/access-info.cc
-@@ -231,8 +231,11 @@ bool AccessInfoFactory::ComputeElementAccessInfos(
+@@ -226,8 +226,11 @@ bool AccessInfoFactory::ComputeElementAccessInfos(
    MapTransitionList transitions(maps.length());
    for (Handle<Map> map : maps) {
      if (Map::TryUpdate(map).ToHandle(&map)) {
