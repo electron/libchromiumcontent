@@ -3,6 +3,10 @@ From: Wang Qing <wangqing-hf@loongson.cn>
 Date: Fri, 15 Sep 2017 11:27:42 +0800
 Subject: [PATCH] Add mips64el support and loongson3a for compiler.
 
+This patch has merged into chromium master branch:
+https://chromium.googlesource.com/chromium/src.git/+/f808fa2ee42b46124ed104dd46cd407632a492e0
+https://chromium.googlesource.com/chromium/src.git/+/a735e99b56ecaf6d6bd8e6af59e27eb7720906f2
+
 ---
  build/config/compiler/BUILD.gn     | 26 ++++++++++++++++++++++++++
  build/config/compiler/compiler.gni |  4 ++--
