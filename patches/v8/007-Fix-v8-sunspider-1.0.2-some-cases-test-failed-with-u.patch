@@ -4,6 +4,12 @@ Date: Fri, 15 Sep 2017 11:02:59 +0800
 Subject: [PATCH] Fix v8 sunspider-1.0.2 some cases test failed with use madd
  instruction.
 
+This patch is similar to V8 master patch:
+https://chromium.googlesource.com/v8/v8/+/99459edf5fee3681da24356612e48b8afa14656f
+
+When update chromium and has this patch:
+https://chromium.googlesource.com/v8/v8/+/99459edf5fee3681da24356612e48b8afa14656f
+Then this patch is not needed.
 ---
  BUILD.gn                             |  3 +++
  src/mips64/macro-assembler-mips64.cc | 14 ++++++++++++++
