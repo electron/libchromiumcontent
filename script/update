@@ -280,9 +280,6 @@ def run_gn(target_arch, defines):
     if sys.platform == 'linux2':
       args += ' use_gtk3=false'
       if target_arch == 'mips64el':
-        args += ' google_api_key="AIzaSyDxKL42zsPjbke5O8_rPVpVrLrJ8aeE9rQ"'
-        args += ' google_default_client_id="595013732528-llk8trb03f0ldpqq6nprjp1s79596646.apps.googleusercontent.com"'
-        args += ' google_default_client_secret="5ntt6GbbkjnTVXx-MSxbmx5e"'
         args += ' clang_use_chrome_plugins=false'
         args += ' enable_hangout_services_extension=true'
         args += ' enable_nacl_nonsfi=false'
