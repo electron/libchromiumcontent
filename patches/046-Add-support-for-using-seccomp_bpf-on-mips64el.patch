@@ -8,6 +8,9 @@ configuration sets use_seccomp_bpf=false on mips64el. This CL adds
 support for seccomp-bpf on mips64el, and resolves many compiler errors
 when compiling on mips64el.
 
+This patch merge into chromium master branch:
+https://chromium.googlesource.com/chromium/src/+/534d7ce2af699715acfc4fe516ef3c2ffee65bc5
+
 BUG: 742738
 R= machenbach@chromium.org, brettw@chromium.org
 ---
