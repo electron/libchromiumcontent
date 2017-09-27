@@ -1,0 +1,60 @@
+From 933a965b62273f4eafa73e958e922042cbc8d5bb Mon Sep 17 00:00:00 2001
+From: Wang Qing <wangqing-hf@loongson.cn>
+Date: Wed, 27 Sep 2017 10:31:08 +0800
+Subject: [PATCH] Fix build_ffmpeg.py with mips64 support.
+
+This patch is merged into third_party/ffmpeg:
+https://chromium.googlesource.com/chromium/third_party/ffmpeg/+/76ea8a21dfb145468466b355a296c8d7a5a83ef2
+
+---
+ chromium/scripts/build_ffmpeg.py | 20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
+
+diff --git a/chromium/scripts/build_ffmpeg.py b/chromium/scripts/build_ffmpeg.py
+index a052e27..0dbd9eb 100755
+--- a/chromium/scripts/build_ffmpeg.py
++++ b/chromium/scripts/build_ffmpeg.py
+@@ -109,6 +109,8 @@ def DetermineHostOsAndArch():
+     host_arch = 'x64'
+   elif platform.machine() == 'aarch64':
+     host_arch = 'arm64'
++  elif platform.machine() == 'mips64':
++    host_arch = 'mips64el'
+   elif platform.machine().startswith('arm'):
+     host_arch = 'arm'
+   else:
+@@ -498,7 +500,21 @@ def main(argv):
+       ])
+     elif target_arch == 'mips64el':
+       if target_os != "android":
+-        configure_flags['Common'].extend([
++        if target_arch == host_arch:
++          configure_flags['Common'].extend([
++            '--target-os=linux',
++            '--arch=mips',
++            '--extra-cflags=-mips64r2',
++            '--extra-cflags=-EL',
++            '--extra-ldflags=-mips64r2',
++            '--extra-ldflags=-EL',
++            '--disable-mipsfpu',
++            '--disable-mipsdsp',
++            '--disable-mipsdspr2',
++            '--disable-mips32r2',
++        ])
++        else:
++          configure_flags['Common'].extend([
+             '--enable-cross-compile',
+             '--cross-prefix=mips64el-linux-gnuabi64-',
+             '--target-os=linux',
+@@ -511,7 +527,7 @@ def main(argv):
+             '--disable-mipsdsp',
+             '--disable-mipsdspr2',
+             '--disable-mips32r2',
+-      ])
++        ])
+       else:
+         configure_flags['Common'].extend([
+             '--arch=mips',
+-- 
+2.1.0
+
