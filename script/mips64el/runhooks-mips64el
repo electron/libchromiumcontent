@@ -8,6 +8,13 @@
 # Author: Wang Qing
 # Email: wangqing-hf@loongson.cn
 
+# automatic gernerate ffmpeg build config files with mips64el.
+pushd src/third_party/ffmpeg/
+./chromium/scripts/build_ffmpeg.py linux mips64el
+./chromium/scripts/copy_config.sh
+./chromium/scripts/generate_gn.py
+popd
+
 # setup LASTCHANGE
 pushd src/build/util
 ./lastchange.py > LASTCHANGE
