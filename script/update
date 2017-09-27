@@ -218,7 +218,7 @@ def update_clang():
   update = os.path.join(SRC_DIR, 'tools', 'clang', 'scripts', 'update.py')
   download_gold = os.path.join(SRC_DIR, 'build', 'download_gold_plugin.py')
   return (subprocess.call([sys.executable, update, '--if-needed'], env=env) or
-          subprocess.call([sys.executable, download_gold]))
+          subprocess.call([sys.executable, download_gold], env=env))
 
 
 def run_gn(target_arch, defines):
