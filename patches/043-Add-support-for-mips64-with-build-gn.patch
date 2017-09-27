@@ -3,6 +3,9 @@ From: Wang Qing <wangqing-hf@loongson.cn>
 Date: Thu, 14 Sep 2017 16:21:51 +0800
 Subject: [PATCH] Add support for mips64 with build gn.
 
+This patch has merged into chromium master branch:
+https://chromium.googlesource.com/chromium/src.git/+/a735e99b56ecaf6d6bd8e6af59e27eb7720906f2
+
 ---
  build/toolchain/linux/BUILD.gn | 24 ++++++++++++++++++++++++
  tools/gn/args.cc               |  3 +++
