@@ -1,0 +1,25 @@
+From 001807227a209e6fa31b03a2113e97b6513548f5 Mon Sep 17 00:00:00 2001
+From: Wang Qing <wangqing-hf@loongson.cn>
+Date: Tue, 26 Sep 2017 16:10:34 +0800
+Subject: [PATCH] BUild gn with ninja-build on mips64.
+
+---
+ tools/gn/bootstrap/bootstrap.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tools/gn/bootstrap/bootstrap.py b/tools/gn/bootstrap/bootstrap.py
+index 8252799..37d71c5 100755
+--- a/tools/gn/bootstrap/bootstrap.py
++++ b/tools/gn/bootstrap/bootstrap.py
+@@ -196,7 +196,7 @@ def build_gn_with_ninja_manually(tempdir, options):
+ 
+   write_gn_ninja(os.path.join(tempdir, 'build.ninja'),
+                  root_gen_dir, options)
+-  cmd = ['ninja', '-C', tempdir]
++  cmd = ['ninja-build', '-C', tempdir]
+   if options.verbose:
+     cmd.append('-v')
+ 
+-- 
+2.1.0
+

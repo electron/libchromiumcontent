@@ -209,6 +209,8 @@ ARCH_BLACKLIST = {
   ],
   'ia32': [
   ],
+  'mips64el': [
+  ],
 }
 
 SYMBOLS = {
@@ -345,6 +347,10 @@ class Ninja(ninja_syntax.Writer):
 
 def main():
   args = parse_args()
+  target_arch = args.target_arch
+
+  if target_arch == 'mips64el':
+    NINJA = os.path.join(VENDOR_DIR, 'depot_tools', 'ninja-build')
 
   if args.create_debug_archive:
     check_create_debug_archive(args.target_arch)

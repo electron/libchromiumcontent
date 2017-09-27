@@ -1,0 +1,73 @@
+From 891fc52b6efa19c547ae4c1d0bef4ffa4b67f730 Mon Sep 17 00:00:00 2001
+From: Wang Qing <wangqing-hf@loongson.cn>
+Date: Thu, 14 Sep 2017 16:21:51 +0800
+Subject: [PATCH] Add support for mips64 with build gn.
+
+---
+ build/toolchain/linux/BUILD.gn | 24 ++++++++++++++++++++++++
+ tools/gn/args.cc               |  3 +++
+ 2 files changed, 27 insertions(+)
+
+diff --git a/build/toolchain/linux/BUILD.gn b/build/toolchain/linux/BUILD.gn
+index 3be5c36..82e21aa 100644
+--- a/build/toolchain/linux/BUILD.gn
++++ b/build/toolchain/linux/BUILD.gn
+@@ -154,6 +154,13 @@ clang_toolchain("clang_mipsel") {
+   }
+ }
+ 
++clang_toolchain("clang_mips64el") {
++  toolchain_args = {
++    current_cpu = "mips64el"
++    current_os = "linux"
++  }
++}
++
+ gcc_toolchain("mipsel") {
+   cc = "mipsel-linux-gnu-gcc"
+   cxx = "mipsel-linux-gnu-g++"
+@@ -170,3 +177,20 @@ gcc_toolchain("mipsel") {
+     use_goma = false
+   }
+ }
++
++gcc_toolchain("mips64el") {
++  cc = "gcc"
++  cxx = "g++"
++  ar = "ar"
++  ld = cxx
++  readelf = "readelf"
++  nm = "nm"
++
++  toolchain_args = {
++    cc_wrapper = ""
++    current_cpu = "mips64el"
++    current_os = "linux"
++    is_clang = false
++    use_goma = false
++  }
++}
+diff --git a/tools/gn/args.cc b/tools/gn/args.cc
+index 3bb40b4..185d3b0 100644
+--- a/tools/gn/args.cc
++++ b/tools/gn/args.cc
+@@ -312,6 +312,7 @@ void Args::SetSystemVarsLocked(Scope* dest) const {
+   static const char kArm[] = "arm";
+   static const char kArm64[] = "arm64";
+   static const char kMips[] = "mipsel";
++  static const char kMips64[] = "mips64el";
+   static const char kS390X[] = "s390x";
+   static const char kPPC64[] = "ppc64";
+   const char* arch = nullptr;
+@@ -329,6 +330,8 @@ void Args::SetSystemVarsLocked(Scope* dest) const {
+     arch = kArm64;
+   else if (os_arch == "mips")
+     arch = kMips;
++  else if (os_arch == "mips64")
++    arch = kMips64;
+   else if (os_arch == "s390x")
+     arch = kS390X;
+   else if (os_arch == "mips")
+-- 
+2.1.0
+

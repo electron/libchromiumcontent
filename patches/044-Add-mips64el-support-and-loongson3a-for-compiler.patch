@@ -1,0 +1,150 @@
+From d7c8cfcc21ba626fdf0e943a679371d6ce7cd75e Mon Sep 17 00:00:00 2001
+From: Wang Qing <wangqing-hf@loongson.cn>
+Date: Fri, 15 Sep 2017 11:27:42 +0800
+Subject: [PATCH] Add mips64el support and loongson3a for compiler.
+
+---
+ build/config/compiler/BUILD.gn     | 26 ++++++++++++++++++++++++++
+ build/config/compiler/compiler.gni |  4 ++--
+ build/config/features.gni          |  4 ++--
+ build/config/gcc/BUILD.gn          |  2 +-
+ build/config/mips.gni              |  9 ++++++++-
+ 5 files changed, 39 insertions(+), 6 deletions(-)
+
+diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
+index 3b77c05..f098498 100644
+--- a/build/config/compiler/BUILD.gn
++++ b/build/config/compiler/BUILD.gn
+@@ -663,6 +663,24 @@ config("compiler_cpu_abi") {
+             "-Wa,-mips32",
+           ]
+         }
++      } else if (mips_arch_variant == "loongson2e") {
++        cflags += [
++          "-march=loongson2e",
++          "-Wa,-march=loongson2e",
++        ]
++        ldfalgs += [ "-march=loongson2e" ]
++      } else if (mips_arch_variant == "loongson2f") {
++        cflags += [
++          "-march=loongson2f",
++          "-Wa,-march=loongson2f",
++        ]
++        ldfalgs += [ "-march=loongson2f" ]
++      } else if (mips_arch_variant == "loongson3") {
++        cflags += [
++          "-march=loongson3a",
++          "-Wa,-march=loongson3a",
++        ]
++        ldfalgs += [ "-march=loongson3a" ]
+       }
+ 
+       if (mips_dsp_rev == 1) {
+@@ -702,6 +720,12 @@ config("compiler_cpu_abi") {
+           "-Wa,-mips64r2",
+         ]
+         ldflags += [ "-mips64r2" ]
++      } else if (mips_arch_variant == "loongson3") {
++        cflags += [
++          "-march=loongson3a",
++          "-Wa,-march=loongson3a",
++        ]
++        ldflags += [ "-march=loongson3a" ]
+       }
+     } else if (current_cpu == "pnacl" && is_nacl_nonsfi) {
+       if (target_cpu == "x86" || target_cpu == "x64") {
+@@ -1269,6 +1293,8 @@ config("no_incompatible_pointer_warnings") {
+     cflags += [ "-Wno-incompatible-pointer-types" ]
+   } else if (current_cpu == "mipsel") {
+     cflags += [ "-w" ]
++  } else if (current_cpu == "mips64el") {
++    cflags += [ "-w" ]
+   } else if (is_chromeos && current_cpu == "arm") {
+     cflags += [ "-w" ]
+   }
+diff --git a/build/config/compiler/compiler.gni b/build/config/compiler/compiler.gni
+index e4f463a..637f57a 100644
+--- a/build/config/compiler/compiler.gni
++++ b/build/config/compiler/compiler.gni
+@@ -126,9 +126,9 @@ declare_args() {
+ declare_args() {
+   # Whether to use the gold linker from binutils instead of lld or bfd.
+   use_gold = !use_lld && !(is_chromecast && is_linux &&
+-                           (current_cpu == "arm" || current_cpu == "mipsel")) &&
++                           (current_cpu == "arm" || current_cpu == "mipsel" || current_cpu == "mips64el")) &&
+              ((is_linux && (current_cpu == "x64" || current_cpu == "x86" ||
+-                            current_cpu == "arm" || current_cpu == "mipsel")) ||
++                            current_cpu == "arm" || current_cpu == "mipsel" || current_cpu == "mips64el")) ||
+               (is_android && (current_cpu == "x86" || current_cpu == "x64" ||
+                               current_cpu == "arm" || current_cpu == "arm64")))
+ }
+diff --git a/build/config/features.gni b/build/config/features.gni
+index 441bd21..e06199fb 100644
+--- a/build/config/features.gni
++++ b/build/config/features.gni
+@@ -25,10 +25,10 @@ declare_args() {
+   # Temporarily disable nacl on arm64 linux to get rid of compilation errors.
+   # TODO(mcgrathr): When mipsel-nacl-clang is available, drop the exclusion.
+   enable_nacl = !is_ios && !is_android && !is_chromecast &&
+-                current_cpu != "mipsel" && !(is_linux && target_cpu == "arm64")
++                current_cpu != "mipsel" && current_cpu != "mips64el" && !(is_linux && target_cpu == "arm64")
+ 
+   # Non-SFI is not yet supported on mipsel
+-  enable_nacl_nonsfi = current_cpu != "mipsel"
++  enable_nacl_nonsfi = current_cpu != "mipsel" && current_cpu != "mips64el"
+ 
+   # Enables the Media Router.
+   enable_media_router = !is_ios && !is_chromecast
+diff --git a/build/config/gcc/BUILD.gn b/build/config/gcc/BUILD.gn
+index bf97f71..55ee374 100644
+--- a/build/config/gcc/BUILD.gn
++++ b/build/config/gcc/BUILD.gn
+@@ -105,7 +105,7 @@ config("executable_ldconfig") {
+     if (is_component_build || using_sanitizer) {
+       configs = [ ":rpath_for_built_shared_libraries" ]
+     }
+-    if (current_cpu == "mipsel") {
++    if (current_cpu == "mipsel" || current_cpu == "mips64el") {
+       ldflags += [ "-pie" ]
+     }
+   }
+diff --git a/build/config/mips.gni b/build/config/mips.gni
+index 5604ca6..994de41 100644
+--- a/build/config/mips.gni
++++ b/build/config/mips.gni
+@@ -14,6 +14,7 @@ if (current_cpu == "mipsel" || v8_current_cpu == "mipsel") {
+     #   "r1"
+     #   "r2"
+     #   "r6"
++    #   "loongson3"
+     mips_arch_variant = "r1"
+ 
+     # MIPS DSP ASE revision. Possible values are:
+@@ -40,6 +41,7 @@ if (current_cpu == "mipsel" || v8_current_cpu == "mipsel") {
+   # MIPS arch variant. Possible values are:
+   #   "r2"
+   #   "r6"
++  #   "loongson3"
+   if (current_os == "android" || target_os == "android") {
+     declare_args() {
+       mips_arch_variant = "r6"
+@@ -49,10 +51,15 @@ if (current_cpu == "mipsel" || v8_current_cpu == "mipsel") {
+     }
+   } else {
+     declare_args() {
+-      mips_arch_variant = "r2"
++      mips_arch_variant = "loongson3"
+ 
+       # MIPS SIMD Arch compilation flag.
+       mips_use_msa = false
+     }
+   }
++
++  # MIPS floating-point ABI. Possible values are:
++  #   "hard": sets the GCC -mhard-float option.
++  #   "soft": sets the GCC -msoft-float option.
++  mips_float_abi = "hard"
+ }
+-- 
+2.1.0
+

@@ -56,18 +56,25 @@ def main():
   # to 0.
   # More information: https://stackoverflow.com/a/9935126
   git_cache = args.git_cache or os.getenv('LIBCHROMIUMCONTENT_GIT_CACHE', '')
-  if not args.skip_gclient:
-    if (args.source_only):
-      return gclient_sync(chromium_version(), args.clean, git_cache)
-    else:
-      gclient_sync(chromium_version(), args.clean, git_cache)
+  target_arch = args.target_arch
+  if target_arch == 'mips64el':
+    if not args.skip_gclient:
+      if (args.source_only):
+        return gclient_sync_mips64el(chromium_version(), args.clean, git_cache)
+      else:
+        gclient_sync_mips64el(chromium_version(), args.clean, git_cache)
+  else:
+    if not args.skip_gclient:
+      if (args.source_only):
+        return gclient_sync(chromium_version(), args.clean, git_cache)
+      else:
+        gclient_sync(chromium_version(), args.clean, git_cache)
 
   if sys.platform == 'linux2':
     install_sysroot()
   elif sys.platform in ['win32', 'cygwin']:
     update_toolchain_json()
 
-  target_arch = args.target_arch
   if target_arch == 'arm64':
     install_aarch64_bintools()
 
@@ -202,6 +209,27 @@ def gclient_sync(version, force, git_cache):
     args += ['--force']
   subprocess.check_call(args, env=env)
 
+def gclient_sync_mips64el(version, force, git_cache):
+  # Remove untracked files in src.
+  if os.path.exists(os.path.join(SRC_DIR, '.git')):
+    with scoped_cwd(SRC_DIR):
+      subprocess.check_call(['git', 'clean', '-df'])
+
+  ensure_gclient_config(git_cache)
+  env = os.environ.copy()
+  if sys.platform in ['win32', 'cygwin']:
+    env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
+  env['PATH'] = os.pathsep.join([os.path.join(VENDOR_DIR, 'depot_tools'),
+                                 env['PATH']])
+  gclient = os.path.join(VENDOR_DIR, 'depot_tools', 'gclient.py')
+  args = [sys.executable, gclient, 'sync', '--jobs', '16',
+          '--revision', 'src@{0}'.format(version), '--with_tags',
+          '--with_branch_heads', '--nohooks', '--reset', '--delete_unversioned_trees']
+  if git_cache:
+    args += ['--lock_timeout=15']
+  if force:
+    args += ['--force']
+  subprocess.check_call(args, env=env)
 
 def apply_patches(skip_patches):
   return (subprocess.call([sys.executable,
@@ -236,12 +264,44 @@ def run_gn(target_arch, defines):
   else:
     target_cpu = target_arch
 
+  if target_cpu == 'mips64el':
+    subprocess.call(['chmod', '+x', os.path.join(SOURCE_ROOT, 'script', 'mips64el', 'ninja-mips64el')], env=env)
+    os.system('sh script/mips64el/ninja-mips64el')
+    env['PATH'] = os.pathsep.join([os.path.join(VENDOR_DIR, 'depot_tools'),
+                                   env['PATH']])
+    bootstrap = os.path.join(SRC_DIR, 'tools', 'gn', 'bootstrap', 'bootstrap.py')
+    subprocess.call([bootstrap, '-s'], cwd=SRC_DIR, env=env)
+    gn = os.path.join(SRC_DIR, 'out', 'Release', 'gn')
+
   for component in COMPONENTS:
     args = 'import("//chromiumcontent/args/{0}.gn") target_cpu="{1}"'.format(component, target_cpu)
     if sys.platform in ['win32', 'cygwin']:
       args += ' use_experimental_allocator_shim=false'
     if sys.platform == 'linux2':
       args += ' use_gtk3=false'
+      if target_arch == 'mips64el':
+        args += ' google_api_key="AIzaSyDxKL42zsPjbke5O8_rPVpVrLrJ8aeE9rQ"'
+        args += ' google_default_client_id="595013732528-llk8trb03f0ldpqq6nprjp1s79596646.apps.googleusercontent.com"'
+        args += ' google_default_client_secret="5ntt6GbbkjnTVXx-MSxbmx5e"'
+        args += ' clang_use_chrome_plugins=false'
+        args += ' enable_hangout_services_extension=true'
+        args += ' enable_nacl_nonsfi=false'
+        args += ' fatal_linker_warnings=false'
+        args += ' fieldtrial_testing_like_official_build=true'
+        args += ' is_clang=false'
+        args += ' link_pulseaudio=true'
+        args += ' linux_use_bundled_binutils=false'
+        args += ' remove_webcore_debug_symbols=true'
+        args += ' treat_warnings_as_errors=false'
+        args += ' use_allocator="none"'
+        args += ' use_cups=true'
+        args += ' use_gconf=false'
+        args += ' use_gnome_keyring=false'
+        args += ' use_gold=false'
+        args += ' use_kerberos=true'
+        args += ' use_pulseaudio=true'
+        args += ' use_sysroot=false'
+
     output_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
     subprocess.call([gn, 'gen', os.path.relpath(output_dir, SRC_DIR), '--args=' + args],
                     cwd=SRC_DIR, env=env)

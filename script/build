@@ -22,6 +22,9 @@ def main():
   args = parse_args()
   target_arch = args.target_arch
 
+  if target_arch == 'mips64el':
+    NINJA = os.path.join(VENDOR_DIR, 'depot_tools', 'ninja-build')
+
   env = os.environ.copy()
   env['PATH'] = os.pathsep.join([os.path.join(VENDOR_DIR, 'depot_tools'),
                                  env['PATH']])
@@ -33,6 +36,10 @@ def main():
     env['PATH'] = os.pathsep.join([binutils_dir + '/usr/bin', env['PATH']])
 
   os.chdir(SOURCE_ROOT)
+
+  if target_arch == 'mips64el':
+    subprocess.call(['chmod', '+x', os.path.join(SOURCE_ROOT, 'script', 'mips64el', 'runhooks-mips64el')], env=env)
+    os.system('sh script/mips64el/runhooks-mips64el')
 
   for component in COMPONENTS:
     if args.component == 'all' or args.component == component:
