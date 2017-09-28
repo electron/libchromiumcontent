@@ -263,18 +263,18 @@ with open(args.out, 'w') as out:
 
     gen_list(
         out,
-        "obj_webkitcorecore",
+        "obj_webkitcore1",
         [
+	    "third_party/WebKit/Source/core/animation",
+	    "third_party/WebKit/Source/core/clipboard",
 	    "third_party/WebKit/Source/core/core",
 	    "third_party/WebKit/Source/core/core_generated",
         ])
 
     gen_list(
         out,
-        "obj_webkitcoreremainings",
+        "obj_webkitcore2",
         [
-	    "third_party/WebKit/Source/core/animation",
-	    "third_party/WebKit/Source/core/clipboard",
 	    "third_party/WebKit/Source/core/css",
 	    "third_party/WebKit/Source/core/dom",
 	    "third_party/WebKit/Source/core/editing",
@@ -282,16 +282,34 @@ with open(args.out, 'w') as out:
 	    "third_party/WebKit/Source/core/fileapi",
 	    "third_party/WebKit/Source/core/frame",
 	    "third_party/WebKit/Source/core/geometry",
+        ])
+
+    gen_list(
+        out,
+        "obj_webkitcore3",
+        [
 	    "third_party/WebKit/Source/core/html",
 	    "third_party/WebKit/Source/core/imagebitmap",
 	    "third_party/WebKit/Source/core/input",
 	    "third_party/WebKit/Source/core/inspector",
+        ])
+
+    gen_list(
+        out,
+        "obj_webkitcore4",
+        [
 	    "third_party/WebKit/Source/core/layout",
 	    "third_party/WebKit/Source/core/loader",
 	    "third_party/WebKit/Source/core/mojo",
 	    "third_party/WebKit/Source/core/offscreencanvas",
 	    "third_party/WebKit/Source/core/origin_trials",
 	    "third_party/WebKit/Source/core/page",
+        ])
+
+    gen_list(
+        out,
+        "obj_webkitcore5",
+        [
 	    "third_party/WebKit/Source/core/paint",
 	    "third_party/WebKit/Source/core/plugins",
 	    "third_party/WebKit/Source/core/probe",
