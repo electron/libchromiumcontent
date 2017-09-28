@@ -266,7 +266,6 @@ with open(args.out, 'w') as out:
         "obj_webkitcore",
         [
             "third_party/WebKit/Source/core",
-            "third_party/WebKit/Source/wtf",
         ])
 
     gen_list(
@@ -281,6 +280,13 @@ with open(args.out, 'w') as out:
         "obj_webkitmodules",
         [
             "third_party/WebKit/Source/modules",
+        ])
+
+    gen_list(
+        out,
+        "obj_webkitwtf",
+        [
+            "third_party/WebKit/Source/wtf",
         ])
 
     gen_list(

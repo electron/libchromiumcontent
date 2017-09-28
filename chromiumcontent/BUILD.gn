@@ -222,6 +222,7 @@ if (is_electron_build && !is_component_build) {
       ":webkitcore",
       ":webkitbindings",
       ":webkitmodules",
+      ":webkitwtf",
       ":webrtc",
       ":v8",
     ]
@@ -344,6 +345,14 @@ if (is_electron_build && !is_component_build) {
     sources = []
     if (defined(obj_webkitmodules)) {
       sources += obj_webkitmodules
+    }
+  }
+
+  static_library("webkitwtf") {
+    complete_static_lib = true
+    sources = []
+    if (defined(obj_webkitwtf)) {
+      sources += obj_webkitwtf
     }
   }
 
