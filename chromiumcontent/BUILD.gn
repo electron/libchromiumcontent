@@ -219,8 +219,9 @@ if (is_electron_build && !is_component_build) {
       ":angle",
       ":pdfium",
       ":webkit",
-      ":webkitcore",
       ":webkitbindings",
+      ":webkitcorecore",
+      ":webkitcoreremainings",
       ":webkitmodules",
       ":webkitwtf",
       ":webrtc",
@@ -324,19 +325,27 @@ if (is_electron_build && !is_component_build) {
     }
   }
 
-  static_library("webkitcore") {
-    complete_static_lib = true
-    sources = []
-    if (defined(obj_webkitcore)) {
-      sources += obj_webkitcore
-    }
-  }
-
   static_library("webkitbindings") {
     complete_static_lib = true
     sources = []
     if (defined(obj_webkitbindings)) {
       sources += obj_webkitbindings
+    }
+  }
+
+  static_library("webkitcorecore") {
+    complete_static_lib = true
+    sources = []
+    if (defined(obj_webkitcorecore)) {
+      sources += obj_webkitcorecore
+    }
+  }
+
+  static_library("webkitcoreremainings") {
+    complete_static_lib = true
+    sources = []
+    if (defined(obj_webkitcoreremainings)) {
+      sources += obj_webkitcoreremainings
     }
   }
 
