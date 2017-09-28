@@ -219,6 +219,7 @@ if (is_electron_build && !is_component_build) {
       ":angle",
       ":pdfium",
       ":webkit",
+      ":webkitcore",
       ":webkitbindings",
       ":webkitmodules",
       ":webrtc",
@@ -319,6 +320,14 @@ if (is_electron_build && !is_component_build) {
     sources = []
     if (defined(obj_webkit)) {
       sources += obj_webkit
+    }
+  }
+
+  static_library("webkitcore") {
+    complete_static_lib = true
+    sources = []
+    if (defined(obj_webkitcore)) {
+      sources += obj_webkitcore
     }
   }
 
