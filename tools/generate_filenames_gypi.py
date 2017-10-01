@@ -2,6 +2,7 @@
 
 import glob
 import os
+import re
 import sys
 
 
@@ -80,9 +81,9 @@ GYPI_TEMPLATE = """\
 
 
 def main(target_file, code_dir, shared_dir, static_dir):
-  (shared_libraries, shared_v8_libraries) = searh_files(
+  (shared_libraries, shared_v8_libraries) = find_libraries(
       shared_dir, SHARED_LIBRARY_SUFFIX, EXCLUDE_SHARED_LIBRARIES)
-  (static_libraries, static_v8_libraries) = searh_files(
+  (static_libraries, static_v8_libraries) = find_libraries(
       static_dir, STATIC_LIBRARY_SUFFIX, EXCLUDE_STATIC_LIBRARIES)
   content = GYPI_TEMPLATE % {
     'src': repr(os.path.abspath(code_dir)),
@@ -97,11 +98,41 @@ def main(target_file, code_dir, shared_dir, static_dir):
     f.write(content)
 
 
-def searh_files(src, suffix, exclude):
-  files = glob.glob(os.path.join(src, '*.' + suffix))
-  files = [f for f in files if os.path.basename(f) not in exclude]
-  return ([os.path.abspath(f) for f in files if not is_v8_library(f)],
-          [os.path.abspath(f) for f in files if is_v8_library(f)])
+def find_libraries(dirpath, library_suffix, list_of_excludes):
+  libraries = glob.glob(os.path.join(dirpath, '*.' + library_suffix))
+  if (library_suffix == 'so'):
+    # Handle "libname.so.123"
+    libraries += find_files_by_regex(dirpath, re.compile('.*\.so\.[0-9]+'))
+
+  libraries = [lib
+    for lib in libraries
+    if os.path.basename(lib) not in list_of_excludes
+  ]
+
+  v8_libraries = [lib
+    for lib in libraries
+    if is_v8_library(lib)
+  ]
+  other_libraries = [lib
+    for lib in libraries
+    if lib not in v8_libraries
+  ]
+
+  return (
+    [os.path.abspath(l) for l in other_libraries],
+    [os.path.abspath(l) for l in v8_libraries]
+  )
+
+
+def find_files_by_regex(dirpath, regex):
+  files_found = []
+
+  for root, dirs, files in os.walk(dirpath):
+    for file in files:
+      if regex.match(file):
+        files_found.append(os.path.join(root, file))
+
+  return files_found
 
 
 def is_v8_library(p):
