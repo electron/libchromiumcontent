@@ -477,8 +477,17 @@ def copy_binaries(target_arch, component, create_debug_archive,
 
   if TARGET_PLATFORM == 'linux':
     if component == 'shared_library':
-      # out/Release/lib/*.so
-      for library in glob.glob(os.path.join(output_dir, '*.so')):
+      # libname.so
+      libraries = glob.glob(os.path.join(output_dir, '*.so'))
+
+      # libname.so.123
+      regex = re.compile('.*\.so\.[0-9]+$')
+      for dirpath, dirnames, filenames in os.walk(output_dir):
+        for filename in filenames:
+          if regex.match(filename):
+            libraries.append(os.path.join(dirpath, filename))
+
+      for library in libraries:
         copy_with_blacklist(target_arch, library, target_dir, ninja)
 
   # Copy chromedriver and mksnapshot
