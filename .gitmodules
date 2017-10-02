@@ -4,3 +4,4 @@
 [submodule "vendor/boto"]
 	path = vendor/boto
 	url = https://github.com/piotrbulinski/boto.git
+  ignore = untracked
