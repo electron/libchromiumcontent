@@ -2,6 +2,7 @@
 
 import contextlib
 import os
+import shutil
 import subprocess
 import sys
 
@@ -20,6 +21,9 @@ def main():
   # Setup boto.
   with scoped_cwd(os.path.join('vendor', 'boto')):
     subprocess.call([sys.executable, 'setup.py', 'build'])
+    # On windows python assumes all script names end with .py, if we don't
+    # do so some modules like multiprocessing would break.
+    shutil.copy(os.path.join('bin', 's3put'), os.path.join('bin', 's3put.py'))
 
 
 @contextlib.contextmanager
