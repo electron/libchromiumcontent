@@ -242,6 +242,8 @@ def run_gn(target_arch, defines):
       args += ' use_allocator_shim=false'
     if target_arch =='arm64':
       args += ' use_system_freetype=true'
+    if sys.platform == 'linux2':
+      args += ' use_custom_libcxx=false'
     output_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
     subprocess.call([gn, 'gen', os.path.relpath(output_dir, SRC_DIR), '--args=' + args],
                     cwd=SRC_DIR, env=env)
