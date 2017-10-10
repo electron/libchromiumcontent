@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import sys
 import zipfile
+import platform
 
 from lib.config import get_output_dir
 
@@ -350,7 +351,10 @@ def main():
   target_arch = args.target_arch
 
   if target_arch == 'mips64el':
-    NINJA = os.path.join(VENDOR_DIR, 'depot_tools', 'ninja-build')
+    if platform.uname()[5] == 'mips64':
+      NINJA = os.path.join(VENDOR_DIR, 'depot_tools', 'ninja-build')
+    else:
+      NINJA = os.path.join(VENDOR_DIR, 'depot_tools', 'ninja')
 
   if args.create_debug_archive:
     check_create_debug_archive(args.target_arch)
@@ -506,6 +510,8 @@ def copy_binaries(target_arch, component, create_debug_archive,
       binaries = [ 'chromedriver', 'clang_x86_v8_arm/mksnapshot' ]
     elif target_arch == 'arm64':
       binaries = [ 'chromedriver', 'clang_x64_v8_arm64/mksnapshot' ]
+    elif target_arch == 'mips64el':
+      binaries = [ 'chromedriver', 'clang_x64_v8_mips64el/mksnapshot' ]
     else:
       binaries = [ 'chromedriver', 'mksnapshot' ]
 
@@ -653,6 +659,10 @@ def run_strip(target_arch, filename, create_debug_archive):
     strip = 'aarch64-linux-gnu-strip'
     objcopy = 'aarch64-linux-gnu--objcopy'
     gdb = 'aarch64-linux-gnu-gdb'
+  elif target_arch == 'mips64el' and filename.endswith(('.so', 'chromedriver')):
+    strip = 'mips64el-redhat-linux-strip'
+    objcopy = 'mips64el-redhat-linux--objcopy'
+    gdb = 'mips64el-redhat-linux-gdb'
   else:
     strip = 'strip'
     objcopy = 'objcopy'

@@ -9,17 +9,17 @@
 # Email: wangqing-hf@loongson.cn
 
 # automatic gernerate ffmpeg build config files with mips64el.
-pushd src/third_party/ffmpeg/
+cd src/third_party/ffmpeg/
 ./chromium/scripts/build_ffmpeg.py linux mips64el
 ./chromium/scripts/copy_config.sh
 ./chromium/scripts/generate_gn.py
-popd
+cd -
 
 # setup LASTCHANGE
-pushd src/build/util
+cd src/build/util
 ./lastchange.py > LASTCHANGE
 ./lastchange.py > LASTCHANGE.blink
-popd
+cd -
 
 # Add node from system
 if [ ! -f "src/third_party/node/linux/node-linux-x64/bin/node" ]; then
@@ -28,9 +28,11 @@ ln -s /usr/bin/node src/third_party/node/linux/node-linux-x64/bin/node
 fi
 
 # Use npm install the necessary node modules
-pushd src/third_party/node
+cd src/third_party/node
+if test `uname -m` = "mips64"; then
 if [ -f "package.json" ]; then
 rm -v package.json
+fi
 fi
 
 if [ ! -d "node_modules/vulcanize" ]; then
@@ -41,6 +43,10 @@ if [ ! -d "node_modules/crisper" ]; then
 npm install crisper
 fi
 
+if [ ! -d "node_modules/uglifyjs" ]; then
+npm install uglifyjs
+fi
+
 if [ ! -d "node_modules/uglify-js" ]; then
 npm install uglify-js
 fi
@@ -48,7 +54,7 @@ fi
 if [ ! -d "node_modules/polymer-css-build" ]; then
 npm install polymer-css-build
 fi
-popd
+cd -
 
 # Get skia/ext/skia_commit_hash.h 
 python src/build/util/lastchange.py -m SKIA_COMMIT_HASH -s src/third_party/skia --header src/skia/ext/skia_commit_hash.h

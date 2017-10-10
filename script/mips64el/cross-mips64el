@@ -1,0 +1,7 @@
+#! /bin/sh
+# cross build mips64el on x64.
+# get debian_jessie_mips64-sysroot for cross build.
+
+cd script/mips64el/
+tar -jxvf debian_jessie_mips64-sysroot.tar.bz2 -C ../../src/build/linux/
+cd -

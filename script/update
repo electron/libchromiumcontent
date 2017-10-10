@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import sys
 import urllib2
+import platform
 
 from lib.config import get_output_dir
 
@@ -265,8 +266,9 @@ def run_gn(target_arch, defines):
     target_cpu = target_arch
 
   if target_cpu == 'mips64el':
-    subprocess.call(['chmod', '+x', os.path.join(SOURCE_ROOT, 'script', 'mips64el', 'ninja-mips64el')], env=env)
-    os.system('sh script/mips64el/ninja-mips64el')
+    if platform.uname()[5] == 'mips64':
+      subprocess.call(['chmod', '+x', os.path.join(SOURCE_ROOT, 'script', 'mips64el', 'ninja-mips64el')], env=env)
+      os.system('sh script/mips64el/ninja-mips64el')
     env['PATH'] = os.pathsep.join([os.path.join(VENDOR_DIR, 'depot_tools'),
                                    env['PATH']])
     bootstrap = os.path.join(SRC_DIR, 'tools', 'gn', 'bootstrap', 'bootstrap.py')
@@ -297,7 +299,8 @@ def run_gn(target_arch, defines):
         args += ' use_gold=false'
         args += ' use_kerberos=true'
         args += ' use_pulseaudio=true'
-        args += ' use_sysroot=false'
+        if platform.uname()[5] == 'mips64':
+          args += ' use_sysroot=false'
 
     output_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
     subprocess.call([gn, 'gen', os.path.relpath(output_dir, SRC_DIR), '--args=' + args],
