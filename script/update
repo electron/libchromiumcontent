@@ -216,10 +216,7 @@ def update_clang():
                                  env['PATH']])
   env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
   update = os.path.join(SRC_DIR, 'tools', 'clang', 'scripts', 'update.py')
-  download_gold = os.path.join(SRC_DIR, 'build', 'download_gold_plugin.py')
-  return (subprocess.call([sys.executable, update, '--if-needed'], env=env) or
-          (0 if sys.platform != 'linux2'
-                else subprocess.call([sys.executable, download_gold], env=env)))
+  return subprocess.call([sys.executable, update, '--if-needed'], env=env)
 
 
 def run_gn(target_arch, defines):

@@ -220,13 +220,7 @@ if (is_electron_build && !is_component_build) {
       ":pdfium",
       ":webkit",
       ":webkitbindings",
-      ":webkitcore1",
-      ":webkitcore2",
-      ":webkitcore3",
-      ":webkitcore4",
-      ":webkitcore5",
       ":webkitmodules",
-      ":webkitwtf",
       ":webrtc",
       ":v8",
     ]
@@ -336,59 +330,11 @@ if (is_electron_build && !is_component_build) {
     }
   }
 
-  static_library("webkitcore1") {
-    complete_static_lib = true
-    sources = []
-    if (defined(obj_webkitcore1)) {
-      sources += obj_webkitcore1
-    }
-  }
-
-  static_library("webkitcore2") {
-    complete_static_lib = true
-    sources = []
-    if (defined(obj_webkitcore2)) {
-      sources += obj_webkitcore2
-    }
-  }
-
-  static_library("webkitcore3") {
-    complete_static_lib = true
-    sources = []
-    if (defined(obj_webkitcore3)) {
-      sources += obj_webkitcore3
-    }
-  }
-
-  static_library("webkitcore4") {
-    complete_static_lib = true
-    sources = []
-    if (defined(obj_webkitcore4)) {
-      sources += obj_webkitcore4
-    }
-  }
-
-  static_library("webkitcore5") {
-    complete_static_lib = true
-    sources = []
-    if (defined(obj_webkitcore5)) {
-      sources += obj_webkitcore5
-    }
-  }
-
   static_library("webkitmodules") {
     complete_static_lib = true
     sources = []
     if (defined(obj_webkitmodules)) {
       sources += obj_webkitmodules
-    }
-  }
-
-  static_library("webkitwtf") {
-    complete_static_lib = true
-    sources = []
-    if (defined(obj_webkitwtf)) {
-      sources += obj_webkitwtf
     }
   }
 
