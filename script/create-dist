@@ -511,7 +511,10 @@ def copy_binaries(target_arch, component, create_debug_archive,
     elif target_arch == 'arm64':
       binaries = [ 'chromedriver', 'clang_x64_v8_arm64/mksnapshot' ]
     elif target_arch == 'mips64el':
-      binaries = [ 'chromedriver', 'clang_x64_v8_mips64el/mksnapshot' ]
+      if platform.uname()[5] == 'mips64':
+        binaries = [ 'chromedriver', 'mksnapshot' ]
+      else:
+        binaries = [ 'chromedriver', 'clang_x64_v8_mips64el/mksnapshot' ]
     else:
       binaries = [ 'chromedriver', 'mksnapshot' ]
 
