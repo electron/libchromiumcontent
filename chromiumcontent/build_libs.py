@@ -98,13 +98,7 @@ with open(args.out, 'w') as out:
         out,
         "obj_base",
         [
-            "base/allocator",
-            "base/base",
-            "base/base_paths",
-            "base/base_static",
-            "base/build_utf8_validator_tables",
-            "base/i18n",
-            "base/third_party",
+            "base",
         ])
 
     gen_list(
