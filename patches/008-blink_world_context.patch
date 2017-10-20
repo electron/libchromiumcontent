@@ -1,8 +1,8 @@
-diff --git a/third_party/WebKit/Source/web/WebLocalFrameImpl.cpp b/third_party/WebKit/Source/web/WebLocalFrameImpl.cpp
-index 25513bd30a24..1a3db32e63b3 100644
---- a/third_party/WebKit/Source/web/WebLocalFrameImpl.cpp
-+++ b/third_party/WebKit/Source/web/WebLocalFrameImpl.cpp
-@@ -842,6 +842,13 @@ v8::Local<v8::Context> WebLocalFrameImpl::MainWorldScriptContext() const {
+diff --git a/third_party/WebKit/Source/core/frame/WebLocalFrameImpl.cpp b/third_party/WebKit/Source/core/frame/WebLocalFrameImpl.cpp
+index a93834fbe86e..937b7f335693 100644
+--- a/third_party/WebKit/Source/core/frame/WebLocalFrameImpl.cpp
++++ b/third_party/WebKit/Source/core/frame/WebLocalFrameImpl.cpp
+@@ -843,6 +843,13 @@ v8::Local<v8::Object> WebLocalFrameImpl::GlobalProxy() const {
    return MainWorldScriptContext()->Global();
  }
  
@@ -15,12 +15,12 @@ index 25513bd30a24..1a3db32e63b3 100644
 +
  bool WebFrame::ScriptCanAccess(WebFrame* target) {
    return BindingSecurity::ShouldAllowAccessToFrame(
-       CurrentDOMWindow(MainThreadIsolate()), ToCoreFrame(*target),
-diff --git a/third_party/WebKit/Source/web/WebLocalFrameImpl.h b/third_party/WebKit/Source/web/WebLocalFrameImpl.h
-index 6898061..b79db8d 100644
---- a/third_party/WebKit/Source/web/WebLocalFrameImpl.h
-+++ b/third_party/WebKit/Source/web/WebLocalFrameImpl.h
-@@ -148,6 +148,8 @@ class WEB_EXPORT WebLocalFrameImpl final
+       CurrentDOMWindow(V8PerIsolateData::MainThreadIsolate()),
+diff --git a/third_party/WebKit/Source/core/frame/WebLocalFrameImpl.h b/third_party/WebKit/Source/core/frame/WebLocalFrameImpl.h
+index d66499296ff8..bfea68983fda 100644
+--- a/third_party/WebKit/Source/core/frame/WebLocalFrameImpl.h
++++ b/third_party/WebKit/Source/core/frame/WebLocalFrameImpl.h
+@@ -142,6 +142,8 @@ class CORE_EXPORT WebLocalFrameImpl final
        int argc,
        v8::Local<v8::Value> argv[]) override;
    v8::Local<v8::Context> MainWorldScriptContext() const override;
@@ -30,10 +30,10 @@ index 6898061..b79db8d 100644
    void Reload(WebFrameLoadType) override;
    void ReloadWithOverrideURL(const WebURL& override_url,
 diff --git a/third_party/WebKit/public/web/WebLocalFrame.h b/third_party/WebKit/public/web/WebLocalFrame.h
-index 826ea3e..4509da9 100644
+index ad0fa84f9511..69f96587b1f1 100644
 --- a/third_party/WebKit/public/web/WebLocalFrame.h
 +++ b/third_party/WebKit/public/web/WebLocalFrame.h
-@@ -386,6 +386,9 @@ class WebFrame {
+@@ -404,6 +404,9 @@ class WebLocalFrame : public WebFrame {
    // be calling this API.
    virtual v8::Local<v8::Context> MainWorldScriptContext() const = 0;
  
