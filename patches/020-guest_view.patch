@@ -1,7 +1,7 @@
-diff --git a/content/browser/frame_host/render_widget_host_view_child_frame.cc b/content/browser/frame_host/render_widget_host_view_child_frame.cc
-index 69115f67c799..a2d83b8fa7b5 100644
---- a/content/browser/frame_host/render_widget_host_view_child_frame.cc
-+++ b/content/browser/frame_host/render_widget_host_view_child_frame.cc
+diff --git a/content/browser/renderer_host/render_widget_host_view_child_frame.cc b/content/browser/renderer_host/render_widget_host_view_child_frame.cc
+index fc5197ab84e9..caafd63c0219 100644
+--- a/content/browser/renderer_host/render_widget_host_view_child_frame.cc
++++ b/content/browser/renderer_host/render_widget_host_view_child_frame.cc
 @@ -31,12 +31,14 @@
  #include "content/browser/renderer_host/render_widget_host_impl.h"
  #include "content/browser/renderer_host/render_widget_host_input_event_router.h"
@@ -17,7 +17,7 @@ index 69115f67c799..a2d83b8fa7b5 100644
  #include "services/service_manager/runner/common/client_util.h"
  #include "third_party/WebKit/public/platform/WebTouchEvent.h"
  #include "ui/gfx/geometry/size_conversions.h"
-@@ -711,4 +713,28 @@ void RenderWidgetHostViewChildFrame::ResetCompositorFrameSinkSupport() {
+@@ -931,6 +933,30 @@ void RenderWidgetHostViewChildFrame::ResetCompositorFrameSinkSupport() {
    support_.reset();
  }
  
@@ -48,14 +48,14 @@ index 69115f67c799..a2d83b8fa7b5 100644
  bool RenderWidgetHostViewChildFrame::HasEmbedderChanged() {
    return false;
  }
-diff --git a/content/browser/frame_host/render_widget_host_view_child_frame.h b/content/browser/frame_host/render_widget_host_view_child_frame.h
-index 87e2de41..36edc3a 100644
---- a/content/browser/frame_host/render_widget_host_view_child_frame.h
-+++ b/content/browser/frame_host/render_widget_host_view_child_frame.h
-@@ -177,8 +177,11 @@ class CONTENT_EXPORT RenderWidgetHostViewChildFrame
-   void OnBeginFrame(const cc::BeginFrameArgs& args) override;
+diff --git a/content/browser/renderer_host/render_widget_host_view_child_frame.h b/content/browser/renderer_host/render_widget_host_view_child_frame.h
+index e994ab27f966..306d30f51ffe 100644
+--- a/content/browser/renderer_host/render_widget_host_view_child_frame.h
++++ b/content/browser/renderer_host/render_widget_host_view_child_frame.h
+@@ -180,8 +180,11 @@ class CONTENT_EXPORT RenderWidgetHostViewChildFrame
+   void OnBeginFrame(const viz::BeginFrameArgs& args) override;
    void ReclaimResources(
-       const std::vector<cc::ReturnedResource>& resources) override;
+       const std::vector<viz::ReturnedResource>& resources) override;
 -  void WillDrawSurface(const viz::LocalSurfaceId& id,
 -                       const gfx::Rect& damage_rect) override {}
 +  void WillDrawSurface(const viz::LocalSurfaceId& local_surface_id,
@@ -65,13 +65,13 @@ index 87e2de41..36edc3a 100644
 +  void EndFrameSubscription() override;
    void OnBeginFramePausedChanged(bool paused) override;
  
-   // Exposed for tests.
-@@ -258,6 +261,8 @@ class CONTENT_EXPORT RenderWidgetHostViewChildFrame
+   // viz::HostFrameSinkClient implementation.
+@@ -302,6 +305,8 @@ class CONTENT_EXPORT RenderWidgetHostViewChildFrame
    // The surface client ID of the parent RenderWidgetHostView.  0 if none.
    viz::FrameSinkId parent_frame_sink_id_;
  
 +  std::unique_ptr<RenderWidgetHostViewFrameSubscriber> frame_subscriber_;
 +
    bool has_frame_ = false;
-   cc::mojom::CompositorFrameSinkClient* renderer_compositor_frame_sink_ =
+   viz::mojom::CompositorFrameSinkClient* renderer_compositor_frame_sink_ =
        nullptr;
