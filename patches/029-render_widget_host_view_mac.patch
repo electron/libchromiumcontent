@@ -2,14 +2,6 @@ diff --git a/content/browser/renderer_host/render_widget_host_view_mac.mm b/cont
 index faedde495761..c9d2beabd798 100644
 --- a/content/browser/renderer_host/render_widget_host_view_mac.mm
 +++ b/content/browser/renderer_host/render_widget_host_view_mac.mm
-@@ -88,6 +88,7 @@
- #include "ui/gfx/geometry/size_conversions.h"
- #include "ui/gfx/scoped_ns_graphics_context_save_gstate_mac.h"
- #include "ui/gl/gl_switches.h"
-+#include "ui/gl/gpu_switching_manager.h"
- 
- using content::BrowserAccessibility;
- using content::BrowserAccessibilityManager;
 @@ -138,6 +139,11 @@ RenderWidgetHostView* GetRenderWidgetHostViewToUse(
  
  }  // namespace
@@ -80,14 +72,3 @@ index faedde495761..c9d2beabd798 100644
          nil]);
    }
    return validAttributesForMarkedText_.get();
-@@ -3537,6 +3555,10 @@ extern NSString *NSTextInputReplacementRangeAttributeName;
- }
- 
- - (BOOL)isOpaque {
-+  bool wantsTransparent = ui::GpuSwitchingManager::UseTransparent() ||
-+                          (self.window && ![self.window isOpaque]);
-+  if (wantsTransparent)
-+    return NO;
-   return opaque_;
- }
- 
