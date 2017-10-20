@@ -1,29 +1,16 @@
 diff --git a/content/browser/renderer_host/browser_compositor_view_mac.h b/content/browser/renderer_host/browser_compositor_view_mac.h
-index 1c73b7f3a..1b368aa0a 100644
+index 4355a8cdacb4..57961ef39f8d 100644
 --- a/content/browser/renderer_host/browser_compositor_view_mac.h
 +++ b/content/browser/renderer_host/browser_compositor_view_mac.h
-@@ -10,6 +10,7 @@
- #include "base/macros.h"
- #include "cc/scheduler/begin_frame_source.h"
- #include "content/browser/renderer_host/delegated_frame_host.h"
-+#include "content/common/content_export.h"
- #include "ui/compositor/compositor.h"
- #include "ui/compositor/compositor_observer.h"
- 
-@@ -39,7 +40,7 @@ class BrowserCompositorMacClient {
- //   is visible.
- // - The RenderWidgetHostViewMac that is used to display these frames is
- //   attached to the NSView hierarchy of an NSWindow.
--class BrowserCompositorMac : public DelegatedFrameHostClient {
-+class CONTENT_EXPORT BrowserCompositorMac : public DelegatedFrameHostClient {
-  public:
-   BrowserCompositorMac(
-       ui::AcceleratedWidgetMacNSView* accelerated_widget_mac_ns_view,
-@@ -51,9 +52,11 @@ class BrowserCompositorMac : public DelegatedFrameHostClient {
+@@ -50,6 +50,7 @@ class CONTENT_EXPORT BrowserCompositorMac : public DelegatedFrameHostClient {
  
    // These will not return nullptr until Destroy is called.
    DelegatedFrameHost* GetDelegatedFrameHost();
 +  ui::Layer* GetRootLayer() { return root_layer_.get(); }
+ 
+   // Ensure that the currect compositor frame be cleared (even if it is
+   // potentially visible).
+@@ -57,6 +58,7 @@ class CONTENT_EXPORT BrowserCompositorMac : public DelegatedFrameHostClient {
  
    // This may return nullptr, if this has detached itself from its
    // ui::Compositor.
