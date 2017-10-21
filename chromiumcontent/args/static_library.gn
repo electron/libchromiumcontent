@@ -8,4 +8,23 @@ enable_widevine = true
 proprietary_codecs = true
 is_component_ffmpeg = true
 ffmpeg_branding = "Chrome"
-v8_promise_internal_field_count = 1  # https://github.com/nodejs/node/pull/13242
+
+# Always use the system provided standard library
+use_custom_libcxx = false
+
+# This is required by Node.js
+# See https://github.com/nodejs/node/pull/13242
+v8_promise_internal_field_count = 1
+
+# On ARM64 Linux, use system provided freetype library to prevent this build failure:
+# warning: libfreetype.so.6, needed by ../../build/linux/debian_jessie_arm64-sysroot/usr/lib/aarch64-linux-gnu/libfontconfig.so, may conflict with libfreetype.so.6
+if (target_cpu == "arm64") {
+  use_system_freetype = true
+}
+
+# On Windows, we cannot use allocator shim because even though this is
+# a non-component build, we still use the dynamic CRT with which the shim
+# does not work
+if (target_os == "win") {
+  use_allocator_shim = false
+}
