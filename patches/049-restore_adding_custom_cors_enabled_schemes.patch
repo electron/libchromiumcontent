@@ -14,3 +14,15 @@ index e971477da892..bbf5304600cc 100644
  String SchemeRegistry::ListOfCORSEnabledURLSchemes() {
    StringBuilder builder;
    bool add_separator = false;
+diff --git a/third_party/WebKit/Source/platform/weborigin/SchemeRegistry.h b/third_party/WebKit/Source/platform/weborigin/SchemeRegistry.h
+index a568b97dde89..b7412bfaf406 100644
+--- a/third_party/WebKit/Source/platform/weborigin/SchemeRegistry.h
++++ b/third_party/WebKit/Source/platform/weborigin/SchemeRegistry.h
+@@ -87,6 +87,7 @@ class PLATFORM_EXPORT SchemeRegistry {
+       const String& scheme);
+ 
+   // Allow non-HTTP schemes to be registered to allow CORS requests.
++  static void RegisterURLSchemeAsCORSEnabled(const String& scheme);
+   static bool ShouldTreatURLSchemeAsCORSEnabled(const String& scheme);
+ 
+   // Serialize the registered schemes in a comma-separated list.
