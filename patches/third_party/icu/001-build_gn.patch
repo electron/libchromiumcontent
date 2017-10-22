@@ -1,5 +1,5 @@
 diff --git a/BUILD.gn b/BUILD.gn
-index 76914cd7..d86112fc 100644
+index 76914cd7..a79fefd8 100644
 --- a/BUILD.gn
 +++ b/BUILD.gn
 @@ -3,6 +3,7 @@
@@ -28,7 +28,7 @@ index 76914cd7..d86112fc 100644
    # find  source/i18n -maxdepth 1  ! -type d  | egrep  '\.(c|cpp|h)$' |\
    # sort | sed 's/^\(.*\)$/    "\1",/'
    sources = [
-@@ -533,7 +534,11 @@ component("icui18n") {
+@@ -533,6 +534,9 @@ component("icui18n") {
    ]
  
    defines = [ "U_I18N_IMPLEMENTATION" ]
@@ -36,11 +36,9 @@ index 76914cd7..d86112fc 100644
 +    defines += [ "U_COMBINED_IMPLEMENTATION" ]
 +  }
    deps = [
-+    "//build/config:exe_and_shlib_deps",
      ":icuuc",
    ]
- 
-@@ -551,7 +556,7 @@ component("icui18n") {
+@@ -551,7 +555,7 @@ component("icui18n") {
    public_configs = [ ":icu_config" ]
  }
  
@@ -49,7 +47,7 @@ index 76914cd7..d86112fc 100644
    # find  source/common -maxdepth 1  ! -type d  | egrep  '\.(c|cpp|h)$' |\
    # sort | sed 's/^\(.*\)$/    "\1",/'
    sources = [
-@@ -941,7 +946,11 @@ component("icuuc") {
+@@ -941,6 +945,9 @@ component("icuuc") {
      "source/common/unicode/uversion.h",
    ]
    defines = [ "U_COMMON_IMPLEMENTATION" ]
@@ -57,7 +55,5 @@ index 76914cd7..d86112fc 100644
 +    defines += [ "U_COMBINED_IMPLEMENTATION" ]
 +  }
    deps = [
-+    "//build/config:exe_and_shlib_deps",
      ":icudata",
    ]
- 
