@@ -24,7 +24,7 @@ index fc5197ab84e9..caafd63c0219 100644
 +void RenderWidgetHostViewChildFrame::WillDrawSurface(
 +    const viz::LocalSurfaceId& local_surface_id,
 +    const gfx::Rect& damage_rect) {
-+  if (local_surface_id != local_surface_id_ ||
++  if (local_surface_id != last_received_local_surface_id_ ||
 +      damage_rect.IsEmpty() ||
 +      !frame_subscriber_.get())
 +    return;
