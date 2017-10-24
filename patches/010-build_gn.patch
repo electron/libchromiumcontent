@@ -1,5 +1,5 @@
 diff --git a/build/config/BUILDCONFIG.gn b/build/config/BUILDCONFIG.gn
-index d055e70..c76ca27 100644
+index de3f35f124aa..eabb988c1711 100644
 --- a/build/config/BUILDCONFIG.gn
 +++ b/build/config/BUILDCONFIG.gn
 @@ -123,6 +123,8 @@ if (current_os == "") {
@@ -11,7 +11,7 @@ index d055e70..c76ca27 100644
    # Set to enable the official build level of optimization. This has nothing
    # to do with branding, but enables an additional level of optimization above
    # release (!is_debug). This might be better expressed as a tri-state
-@@ -483,6 +485,7 @@ default_compiler_configs = [
+@@ -520,6 +522,7 @@ default_compiler_configs = [
    "//build/config/compiler:no_rtti",
    "//build/config/compiler:runtime_library",
    "//build/config/sanitizers:default_sanitizer_flags",
@@ -19,11 +19,11 @@ index d055e70..c76ca27 100644
  ]
  if (is_win) {
    default_compiler_configs += [
-@@ -642,6 +645,7 @@
+@@ -642,6 +645,7 @@ template("component") {
      _component_mode = "shared_library"
    } else if (defined(invoker.static_component_type)) {
      assert(invoker.static_component_type == "static_library" ||
-+           invoker.static_component_type == "shared_library" ||
++           (is_electron_build && invoker.static_component_type == "shared_library") ||
             invoker.static_component_type == "source_set")
      _component_mode = invoker.static_component_type
    } else if (is_android || !defined(invoker.sources)) {
