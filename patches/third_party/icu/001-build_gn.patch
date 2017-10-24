@@ -1,16 +1,8 @@
 diff --git a/BUILD.gn b/BUILD.gn
-index 76914cd7..a79fefd8 100644
+index 76914cd7..a44d7896 100644
 --- a/BUILD.gn
 +++ b/BUILD.gn
-@@ -3,6 +3,7 @@
- # found in the LICENSE file.
- 
- import("//build/config/host_byteorder.gni")
-+import("//chromiumcontent/config.gni")
- import("//third_party/icu/config.gni")
- 
- if (is_android) {
-@@ -34,7 +35,7 @@ config("icu_config") {
+@@ -34,7 +34,7 @@ config("icu_config") {
      "U_ENABLE_DYLOAD=0",
    ]
  
@@ -19,41 +11,53 @@ index 76914cd7..a79fefd8 100644
      defines += [ "U_STATIC_IMPLEMENTATION" ]
    }
  
-@@ -108,7 +109,7 @@ config("icu_code") {
-   }
- }
- 
--component("icui18n") {
-+target(component_electron, "icui18n") {
-   # find  source/i18n -maxdepth 1  ! -type d  | egrep  '\.(c|cpp|h)$' |\
-   # sort | sed 's/^\(.*\)$/    "\1",/'
-   sources = [
-@@ -533,6 +534,9 @@ component("icui18n") {
-   ]
- 
-   defines = [ "U_I18N_IMPLEMENTATION" ]
-+  if (is_electron_build) {
-+    defines += [ "U_COMBINED_IMPLEMENTATION" ]
-+  }
-   deps = [
+@@ -537,6 +537,24 @@ component("icui18n") {
      ":icuuc",
    ]
-@@ -551,7 +555,7 @@ component("icui18n") {
-   public_configs = [ ":icu_config" ]
- }
  
--component("icuuc") {
-+target(component_electron, "icuuc") {
-   # find  source/common -maxdepth 1  ! -type d  | egrep  '\.(c|cpp|h)$' |\
-   # sort | sed 's/^\(.*\)$/    "\1",/'
-   sources = [
-@@ -941,6 +945,9 @@ component("icuuc") {
-     "source/common/unicode/uversion.h",
-   ]
-   defines = [ "U_COMMON_IMPLEMENTATION" ]
++  # In Electron all of ICU is in one binary, hence we must build with
++  # U_COMBINED_IMPLEMENTATION defined.
++  # Also, for the "static_library" configuration, keep icui18n as
++  # a shared library so that other Chromium targets build cleanly.
 +  if (is_electron_build) {
 +    defines += [ "U_COMBINED_IMPLEMENTATION" ]
++
++    if (!is_component_build) {
++      static_component_type = "shared_library"
++
++      # Because GN already applied the wrong defaults (see the
++      # set_defaults("component") statement in BUILDCONFIG.gn) we must reset
++      # the configs and assign those for shared libraries.
++      configs = []
++      configs = default_shared_library_configs
++    }
 +  }
-   deps = [
++
+   # ICU uses RTTI, replace the default "no rtti" config.
+   configs -= [
+     "//build/config/compiler:no_rtti",  # ICU uses RTTI.
+@@ -945,6 +963,24 @@ component("icuuc") {
      ":icudata",
    ]
+ 
++  # In Electron all of ICU is in one binary, hence we must build with
++  # U_COMBINED_IMPLEMENTATION defined.
++  # Also, for the "static_library" configuration, keep icuuc as
++  # a shared library so that other Chromium targets build cleanly.
++  if (is_electron_build) {
++    defines += [ "U_COMBINED_IMPLEMENTATION" ]
++
++    if (!is_component_build) {
++      static_component_type = "shared_library"
++
++      # Because GN already applied the wrong defaults (see the
++      # set_defaults("component") statement in BUILDCONFIG.gn) we must reset
++      # the configs and assign those for shared libraries.
++      configs = []
++      configs = default_shared_library_configs
++    }
++  }
++
+   configs -= [
+     "//build/config/compiler:no_rtti",  # ICU uses RTTI.
+     "//build/config/compiler:chromium_code",
