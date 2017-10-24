@@ -94,6 +94,27 @@ index 494ba22f29..6071422d7d 100644
    }
  
    v8_component("v8_for_testing") {
+diff --git a/gni/v8.gni b/gni/v8.gni
+index 9a2bb3dff4..53be2017c7 100644
+--- a/gni/v8.gni
++++ b/gni/v8.gni
+@@ -164,6 +164,16 @@ template("v8_executable") {
+ 
+ template("v8_component") {
+   component(target_name) {
++    # If this is a non-component build, but this target forces itself to be
++    # a shared library, we must reset the default configs that were applied
++    # (see the set_defaults("component") statement in BUILDCONFIG.gn)
++    # and assign those for shared libraries.
++    if (defined(invoker.static_component_type) &&
++        invoker.static_component_type == "shared_library") {
++      configs = []
++      configs = default_shared_library_configs
++    }
++
+     forward_variables_from(invoker, "*", [ "configs" ])
+     configs += invoker.configs
+     configs -= v8_remove_configs
 diff --git a/src/inspector/BUILD.gn b/src/inspector/BUILD.gn
 index e6742c0..ef3876d 100644
 --- a/src/inspector/BUILD.gn
