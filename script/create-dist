@@ -112,7 +112,7 @@ BINARIES_SHARED_LIBRARY = {
     os.path.join('obj', 'third_party', 'pdfium', 'libfxge.a'),
     os.path.join('obj', 'third_party', 'pdfium', 'libfxjs.a'),
     os.path.join('obj', 'third_party', 'pdfium', 'libjavascript.a'),
-    os.path.join('obj', 'third_party', 'pdfium', 'libpdfwindow.a'),
+    os.path.join('obj', 'third_party', 'pdfium', 'libpwl.a'),
   ],
   'linux': [
     os.path.join('obj', 'components', 'cdm', 'renderer', 'librenderer.a'),
@@ -134,7 +134,7 @@ BINARIES_SHARED_LIBRARY = {
     os.path.join('obj', 'third_party', 'pdfium', 'libfxge.a'),
     os.path.join('obj', 'third_party', 'pdfium', 'libfxjs.a'),
     os.path.join('obj', 'third_party', 'pdfium', 'libjavascript.a'),
-    os.path.join('obj', 'third_party', 'pdfium', 'libpdfwindow.a'),
+    os.path.join('obj', 'third_party', 'pdfium', 'libpwl.a'),
   ],
   'win32': [
     os.path.join('obj', 'base', 'base_static_cc.pdb'),
@@ -176,8 +176,8 @@ BINARIES_SHARED_LIBRARY = {
     os.path.join('obj', 'third_party', 'pdfium', 'fxjs.lib'),
     os.path.join('obj', 'third_party', 'pdfium', 'javascript_cc.pdb'),
     os.path.join('obj', 'third_party', 'pdfium', 'javascript.lib'),
-    os.path.join('obj', 'third_party', 'pdfium', 'pdfwindow_cc.pdb'),
-    os.path.join('obj', 'third_party', 'pdfium', 'pdfwindow.lib'),
+    os.path.join('obj', 'third_party', 'pdfium', 'pwl_cc.pdb'),
+    os.path.join('obj', 'third_party', 'pdfium', 'pwl.lib'),
     os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'bigint_cc.pdb'),
     os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'fx_agg_cc.pdb'),
     os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'fx_lcms2_c.pdb'),
