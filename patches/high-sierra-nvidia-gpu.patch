@@ -1,0 +1,29 @@
+diff --git a/gpu/config/software_rendering_list_json.cc b/gpu/config/software_rendering_list_json.cc
+index df24f4fe7fc6..c0acb34f3c44 100644
+--- a/gpu/config/software_rendering_list_json.cc
++++ b/gpu/config/software_rendering_list_json.cc
+@@ -1505,6 +1505,24 @@ LONG_STRING_CONST(
+       "features": [
+         "webgl2"
+       ]
++    },
++    {
++      "id": 150,
++       "description": "Macs with NVidia GPUs experience rendering issues on High Sierra",
++       "cr_bugs": [773705],
++       "os": {
++         "type": "macosx",
++         "version": {
++           "op": ">=",
++           "value": "10.13"
++         }
++       },
++       "vendor_id": "0x10de",
++       "multi_gpu_category": "any",
++       "features": [
++         "accelerated_2d_canvas",
++         "gpu_rasterization"
++       ]
+     }
+   ]
+ }
