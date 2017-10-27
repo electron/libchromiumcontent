@@ -25,6 +25,11 @@ NINJA = os.path.join(DEPOT_TOOLS, 'ninja')
 if sys.platform == 'win32':
   NINJA = '{0}.exe'.format(NINJA)
 
+# URL to the mips64el sysroot image.
+MIPS64EL_SYSROOT = 'https://github.com/electron/debian-sysroot-image-creator/releases/download/v0.5.0/debian_jessie_mips64-sysroot.tar.bz2'
+# Whether the host system is a mips64el machine.
+IS_MIPS64EL_HOST = platform.uname()[5] == 'mips64'
+
 DEBIAN_MIRROR = 'http://ftp.jp.debian.org/debian/pool/main/'
 BINTOOLS_NAME = 'c/cross-binutils/binutils-aarch64-linux-gnu_2.25-5_amd64.deb'
 GCLIENT_CONFIG_PATH = os.path.join(SOURCE_ROOT, '.gclient')
@@ -72,7 +77,7 @@ def main():
         gclient_sync(chromium_version(), args.clean, git_cache)
 
   if sys.platform == 'linux2':
-    install_sysroot()
+    install_sysroot(target_arch)
   elif sys.platform in ['win32', 'cygwin']:
     update_toolchain_json()
 
@@ -110,11 +115,36 @@ def chromium_version():
     return f.readline().strip()
 
 
-def install_sysroot():
+def install_sysroot(target_arch):
+  if target_arch == 'ia32':
+    target_cpu = 'i386'
+  elif target_arch == 'x64':
+    target_cpu = 'amd64'
+  else:
+    target_cpu = target_arch
+
   for arch in ('arm', 'arm64', 'amd64', 'i386'):
+    # Download from chromium's sysroot storage.
     install = os.path.join(SRC_DIR, 'build', 'linux', 'sysroot_scripts',
                            'install-sysroot.py')
     subprocess.check_call([sys.executable, install, '--arch', arch])
+
+  if target_cpu == 'mips64el':
+    # Download from our own sysroot storage.
+    destination = os.path.join(SRC_DIR, 'build', 'linux')
+    if os.path.exists(os.path.join(destination, 'debian_jessie_mips64-sysroot')):
+      return
+
+    tar_name = 'debian_jessie_mips64-sysroot.tar.bz2'
+    with open(tar_name, 'wb+') as f:
+      with contextlib.closing(urllib2.urlopen(MIPS64EL_SYSROOT)) as u:
+        while True:
+          chunk = u.read(1024*1024)
+          if not len(chunk):
+            break
+          f.write(chunk)
+    subprocess.call(['tar', '-jxf', tar_name, '-C', destination])
+    rm_f(tar_name)
 
 
 def install_aarch64_bintools():
@@ -266,9 +296,11 @@ def run_gn(target_arch, defines):
     target_cpu = target_arch
 
   if target_cpu == 'mips64el':
-    if platform.uname()[5] == 'mips64':
+    if IS_MIPS64EL_HOST:
+      # A hack to use the mips64el version of ninja.
       subprocess.call(['chmod', '+x', os.path.join(SOURCE_ROOT, 'script', 'mips64el', 'ninja-mips64el')], env=env)
       os.system('sh script/mips64el/ninja-mips64el')
+    # Build gn with the patch to support mips64el.
     env['PATH'] = os.pathsep.join([os.path.join(VENDOR_DIR, 'depot_tools'),
                                    env['PATH']])
     bootstrap = os.path.join(SRC_DIR, 'tools', 'gn', 'bootstrap', 'bootstrap.py')
@@ -299,7 +331,7 @@ def run_gn(target_arch, defines):
         args += ' use_gold=false'
         args += ' use_kerberos=true'
         args += ' use_pulseaudio=true'
-        if platform.uname()[5] == 'mips64':
+        if IS_MIPS64EL_HOST:
           args += ' use_sysroot=false'
 
     output_dir = get_output_dir(SOURCE_ROOT, target_arch, component)

@@ -44,9 +44,6 @@ def main():
   if target_arch == 'mips64el':
     subprocess.call(['chmod', '+x', os.path.join(SOURCE_ROOT, 'script', 'mips64el', 'runhooks-mips64el')], env=env)
     os.system('sh script/mips64el/runhooks-mips64el')
-    if platform.uname()[5] != 'mips64':
-      subprocess.call(['chmod', '+x', os.path.join(SOURCE_ROOT, 'script', 'mips64el', 'cross-mips64el')], env=env)
-      os.system('sh script/mips64el/cross-mips64el')
 
   for component in COMPONENTS:
     if args.component == 'all' or args.component == component:
