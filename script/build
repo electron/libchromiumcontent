@@ -14,6 +14,7 @@ VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
 TARGETS = ['chromiumcontent_all']
 COMPONENTS = ['static_library', 'shared_library', 'ffmpeg']
 
+MIPS64EL_GCC = 'gcc-4.8.3-d197-n64-loongson'
 # Whether the host system is a mips64el machine.
 IS_MIPS64EL_HOST = platform.uname()[5] == 'mips64'
 
@@ -33,10 +34,21 @@ def main():
                                  env['PATH']])
   if sys.platform in ['win32', 'cygwin']:
     env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
-  if target_arch == 'arm64':
+  elif target_arch == 'arm64':
     binutils_dir = os.path.join(VENDOR_DIR, 'binutils-aarch64')
     env['LD_LIBRARY_PATH'] = binutils_dir + '/usr/x86_64-linux-gnu/aarch64-linux-gnu/lib'
     env['PATH'] = os.pathsep.join([binutils_dir + '/usr/bin', env['PATH']])
+  elif target_arch == 'mips64el' and not IS_MIPS64EL_HOST:
+    gcc_dir = os.path.join(VENDOR_DIR, MIPS64EL_GCC)
+    ldlib_dirs = [
+      gcc_dir + '/usr/x86_64-unknown-linux-gnu/mips64el-redhat-linux/lib',
+      gcc_dir + '/usr/lib64',
+      gcc_dir + '/usr/mips64el-redhat-linux/lib64',
+      gcc_dir + '/usr/mips64el-redhat-linux/sysroot/lib64',
+      gcc_dir + '/usr/mips64el-redhat-linux/sysroot/usr/lib64',
+    ]
+    env['LD_LIBRARY_PATH'] = os.pathsep.join(ldlib_dirs)
+    env['PATH'] = os.pathsep.join([gcc_dir + '/usr/bin', env['PATH']])
 
   os.chdir(SOURCE_ROOT)
 
