@@ -63,18 +63,15 @@ def main():
   # More information: https://stackoverflow.com/a/9935126
   git_cache = args.git_cache or os.getenv('LIBCHROMIUMCONTENT_GIT_CACHE', '')
   target_arch = args.target_arch
-  if target_arch == 'mips64el':
-    if not args.skip_gclient:
-      if (args.source_only):
-        return gclient_sync_mips64el(chromium_version(), args.clean, git_cache)
-      else:
-        gclient_sync_mips64el(chromium_version(), args.clean, git_cache)
-  else:
-    if not args.skip_gclient:
-      if (args.source_only):
-        return gclient_sync(chromium_version(), args.clean, git_cache)
-      else:
-        gclient_sync(chromium_version(), args.clean, git_cache)
+  nohooks = target_arch == 'mips64el' and IS_MIPS64EL_HOST
+  if not args.skip_gclient:
+    if (args.source_only):
+      return gclient_sync(chromium_version(), args.clean, git_cache, nohooks)
+    else:
+      gclient_sync(chromium_version(), args.clean, git_cache, nohooks)
+
+  if target_arch == 'mips64el' and IS_MIPS64EL_HOST:
+    os.system('sh script/mips64el/runhooks-mips64el')
 
   if sys.platform == 'linux2':
     install_sysroot(target_arch)
@@ -218,7 +215,7 @@ def ensure_gclient_config(git_cache):
       ))
 
 
-def gclient_sync(version, force, git_cache):
+def gclient_sync(version, force, git_cache, nohooks):
   # Remove untracked files in src.
   if os.path.exists(os.path.join(SRC_DIR, '.git')):
     with scoped_cwd(SRC_DIR):
@@ -238,28 +235,8 @@ def gclient_sync(version, force, git_cache):
     args += ['--lock_timeout=15']
   if force:
     args += ['--force']
-  subprocess.check_call(args, env=env)
-
-def gclient_sync_mips64el(version, force, git_cache):
-  # Remove untracked files in src.
-  if os.path.exists(os.path.join(SRC_DIR, '.git')):
-    with scoped_cwd(SRC_DIR):
-      subprocess.check_call(['git', 'clean', '-df'])
-
-  ensure_gclient_config(git_cache)
-  env = os.environ.copy()
-  if sys.platform in ['win32', 'cygwin']:
-    env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
-  env['PATH'] = os.pathsep.join([os.path.join(VENDOR_DIR, 'depot_tools'),
-                                 env['PATH']])
-  gclient = os.path.join(VENDOR_DIR, 'depot_tools', 'gclient.py')
-  args = [sys.executable, gclient, 'sync', '--jobs', '16',
-          '--revision', 'src@{0}'.format(version), '--with_tags',
-          '--with_branch_heads', '--nohooks', '--reset', '--delete_unversioned_trees']
-  if git_cache:
-    args += ['--lock_timeout=15']
-  if force:
-    args += ['--force']
+  if nohooks:
+    args += ['--nohooks']
   subprocess.check_call(args, env=env)
 
 def apply_patches(skip_patches):
@@ -298,14 +275,14 @@ def run_gn(target_arch, defines):
   if target_cpu == 'mips64el':
     if IS_MIPS64EL_HOST:
       # A hack to use the mips64el version of ninja.
-      subprocess.call(['chmod', '+x', os.path.join(SOURCE_ROOT, 'script', 'mips64el', 'ninja-mips64el')], env=env)
       os.system('sh script/mips64el/ninja-mips64el')
     # Build gn with the patch to support mips64el.
-    env['PATH'] = os.pathsep.join([os.path.join(VENDOR_DIR, 'depot_tools'),
-                                   env['PATH']])
-    bootstrap = os.path.join(SRC_DIR, 'tools', 'gn', 'bootstrap', 'bootstrap.py')
-    subprocess.call([bootstrap, '-s'], cwd=SRC_DIR, env=env)
     gn = os.path.join(SRC_DIR, 'out', 'Release', 'gn')
+    if not os.path.exists(gn):
+      env['PATH'] = os.pathsep.join([os.path.join(VENDOR_DIR, 'depot_tools'),
+                                     env['PATH']])
+      bootstrap = os.path.join(SRC_DIR, 'tools', 'gn', 'bootstrap', 'bootstrap.py')
+      subprocess.call([bootstrap, '-s'], cwd=SRC_DIR, env=env)
 
   for component in COMPONENTS:
     args = 'import("//chromiumcontent/args/{0}.gn") target_cpu="{1}"'.format(component, target_cpu)
