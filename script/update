@@ -276,7 +276,12 @@ def run_gn(target_arch, defines):
   if target_cpu == 'mips64el':
     if IS_MIPS64EL_HOST:
       # A hack to use the mips64el version of ninja.
-      os.system('sh script/mips64el/ninja-mips64el')
+      subprocess.call(['script/mips64el/ninja-mips64el'])
+    # Gernerate ffmpeg build config files for mips64el.
+    ffmpeg_dir = os.path.join(SRC_DIR, 'third_party', 'ffmpeg')
+    subprocess.call(['chromium/scripts/build_ffmpeg.py', 'linux', 'mips64el'], cwd=ffmpeg_dir)
+    subprocess.call(['chromium/scripts/copy_config.sh'], cwd=ffmpeg_dir)
+    subprocess.call(['chromium/scripts/generate_gn.py'], cwd=ffmpeg_dir)
     # Build gn with the patch to support mips64el.
     gn = os.path.join(SRC_DIR, 'out', 'Release', 'gn')
     if not os.path.exists(gn):

@@ -8,13 +8,6 @@
 # Author: Wang Qing
 # Email: wangqing-hf@loongson.cn
 
-# automatic gernerate ffmpeg build config files with mips64el.
-cd src/third_party/ffmpeg/
-./chromium/scripts/build_ffmpeg.py linux mips64el
-./chromium/scripts/copy_config.sh
-./chromium/scripts/generate_gn.py
-cd -
-
 # setup LASTCHANGE
 cd src/build/util
 ./lastchange.py > LASTCHANGE
@@ -56,6 +49,5 @@ npm install polymer-css-build
 fi
 cd -
 
-# Get skia/ext/skia_commit_hash.h 
+# Get skia/ext/skia_commit_hash.h
 python src/build/util/lastchange.py -m SKIA_COMMIT_HASH -s src/third_party/skia --header src/skia/ext/skia_commit_hash.h
-
