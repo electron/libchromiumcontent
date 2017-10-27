@@ -36,12 +36,9 @@ if [ ! -d "node_modules/crisper" ]; then
 npm install crisper
 fi
 
-if [ ! -d "node_modules/uglifyjs" ]; then
-npm install uglifyjs
-fi
-
-if [ ! -d "node_modules/uglify-js" ]; then
-npm install uglify-js
+if [ ! -d "node_modules/uglify-es" ]; then
+npm install uglify-es
+ln -s node_modules/uglify-es node_modules/uglifyjs
 fi
 
 if [ ! -d "node_modules/polymer-css-build" ]; then
