@@ -79,7 +79,7 @@ index 4fa796b38b3f..376e8e143770 100644
 +	}
 +
 +	size_t child_count = parent_frame_host->frame_tree_node()->child_count();
-+	for (int i = 0; i < child_count; ++i) {
++	for (size_t i = 0; i < child_count; ++i) {
 +		RenderFrameHostImpl *sub_frame_host =
 +			parent_frame_host->frame_tree_node()->child_at(i)->current_frame_host();
 +		SenMessageToFrameTreeWebUIs(sub_frame_host, message, dispatch_count);
