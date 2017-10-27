@@ -10,6 +10,7 @@ from patch import apply_patches_from_directory
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 PATCHES_DIR = os.path.join(SOURCE_ROOT, 'patches')
 PATCHES_MAS_DIR = os.path.join(SOURCE_ROOT, 'patches-mas')
+PATCHES_MIPS64EL_DIR = os.path.join(SOURCE_ROOT, 'patches-mips64el')
 SRC = 'src'
 SRC_DIR = os.path.join(SOURCE_ROOT, SRC)
 
@@ -19,6 +20,8 @@ def main():
   if not error:
     if os.environ.has_key('MAS_BUILD'):
       error = apply_patches_for_dir(PATCHES_MAS_DIR)
+    elif sys.argv[1] == 'mips64el':
+      error = apply_patches_for_dir(PATCHES_MIPS64EL_DIR)
     if not error:
       return
 
