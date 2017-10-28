@@ -30,9 +30,15 @@ import ninja_syntax
 MAIN_DIR = os.path.join(DIST_DIR, 'main')
 DIST_SRC_DIR = os.path.join(MAIN_DIR, 'src')
 
+MIPS64EL_GCC = 'gcc-4.8.3-d197-n64-loongson'
+# Whether the host system is a mips64el machine.
+IS_MIPS64EL_HOST = platform.uname()[5] == 'mips64'
+
 NINJA = os.path.join(VENDOR_DIR, 'depot_tools', 'ninja')
 if sys.platform == 'win32':
   NINJA = '{0}.exe'.format(NINJA)
+elif IS_MIPS64EL_HOST:
+  NINJA = os.path.join(VENDOR_DIR, 'depot_tools', 'ninja-build')
 
 COPY_PY = os.path.join(TOOLS_DIR, 'copy.py')
 LICENSES_PY = os.path.join(TOOLS_DIR, 'licenses.py')
@@ -350,18 +356,12 @@ def main():
   args = parse_args()
   target_arch = args.target_arch
 
-  if target_arch == 'mips64el':
-    if platform.uname()[5] == 'mips64':
-      NINJA = os.path.join(VENDOR_DIR, 'depot_tools', 'ninja-build')
-    else:
-      NINJA = os.path.join(VENDOR_DIR, 'depot_tools', 'ninja')
-
   if args.create_debug_archive:
     check_create_debug_archive(args.target_arch)
 
   rm_rf(DIST_DIR)
   os.makedirs(MAIN_DIR)
-  
+
   with Ninja(open(os.path.join(MAIN_DIR, 'build.ninja'), 'wb')) as ninja:
     generate_ninja(args, ninja)
 
@@ -511,7 +511,7 @@ def copy_binaries(target_arch, component, create_debug_archive,
     elif target_arch == 'arm64':
       binaries = [ 'chromedriver', 'clang_x64_v8_arm64/mksnapshot' ]
     elif target_arch == 'mips64el':
-      if platform.uname()[5] == 'mips64':
+      if IS_MIPS64EL_HOST:
         binaries = [ 'chromedriver', 'mksnapshot' ]
       else:
         binaries = [ 'chromedriver', 'clang_x64_v8_mips64el/mksnapshot' ]
@@ -653,6 +653,17 @@ def run_strip(target_arch, filename, create_debug_archive):
     binutils_dir = os.path.join(VENDOR_DIR, 'binutils-aarch64')
     env['LD_LIBRARY_PATH'] = binutils_dir + '/usr/x86_64-linux-gnu/aarch64-linux-gnu/lib'
     env['PATH'] = os.pathsep.join([binutils_dir + '/usr/bin', env['PATH']])
+  elif target_arch == 'mips64el' and not IS_MIPS64EL_HOST:
+    gcc_dir = os.path.join(VENDOR_DIR, MIPS64EL_GCC)
+    ldlib_dirs = [
+      gcc_dir + '/usr/x86_64-unknown-linux-gnu/mips64el-redhat-linux/lib',
+      gcc_dir + '/usr/lib64',
+      gcc_dir + '/usr/mips64el-redhat-linux/lib64',
+      gcc_dir + '/usr/mips64el-redhat-linux/sysroot/lib64',
+      gcc_dir + '/usr/mips64el-redhat-linux/sysroot/usr/lib64',
+    ]
+    env['LD_LIBRARY_PATH'] = os.pathsep.join(ldlib_dirs)
+    env['PATH'] = os.pathsep.join([gcc_dir + '/usr/bin', env['PATH']])
 
   if target_arch == 'arm' and filename.endswith(('.so', 'chromedriver')):
     strip = 'arm-linux-gnueabihf-strip'
