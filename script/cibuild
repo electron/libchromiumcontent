@@ -73,7 +73,7 @@ def run_ci(args):
   return (run_script('bootstrap') or
           run_script('update', ['--clean'] + args) or
           run_script('build', args) or
-          run_script('create-dist', args) or
+          run_script('create-dist', ['--create-debug-archive'] + args) or
           run_script('upload', args))
 
 
