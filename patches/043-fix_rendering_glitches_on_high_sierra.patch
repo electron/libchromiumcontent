@@ -1,10 +1,10 @@
 diff --git a/gpu/config/software_rendering_list.json b/gpu/config/software_rendering_list.json
-index ebdfca0..bcbcb4a 100644
+index ed5c6d6c0e3c..ffec922b199d 100644
 --- a/gpu/config/software_rendering_list.json
 +++ b/gpu/config/software_rendering_list.json
-@@ -1460,6 +1460,24 @@
+@@ -1532,6 +1532,24 @@
        "features": [
-         "webgl2"
+         "gpu_rasterization"
        ]
 +    },
 +    {
