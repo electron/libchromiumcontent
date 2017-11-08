@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 import os
 import platform
 import subprocess
@@ -15,31 +16,41 @@ S3_CREDENTIALS_FILE = os.path.join(JENKINS_ROOT, 'config', 's3credentials')
 
 
 def main():
+  args = parse_args()
+  skip_upload = args.skip_upload
 
-  if (not 'LIBCHROMIUMCONTENT_S3_ACCESS_KEY' in os.environ and
+  if (not skip_upload and
+     not 'LIBCHROMIUMCONTENT_S3_ACCESS_KEY' in os.environ and
      not 'LIBCHROMIUMCONTENT_S3_BUCKET' in os.environ and
      not 'LIBCHROMIUMCONTENT_S3_SECRET_KEY' in os.environ):
-     if not os.path.isfile(S3_CREDENTIALS_FILE):
-       return 'Error: Can\'t find {0}'.format(S3_CREDENTIALS_FILE)
-     copy_to_environment(S3_CREDENTIALS_FILE)
-
+     if os.path.isfile(S3_CREDENTIALS_FILE):
+       copy_to_environment(S3_CREDENTIALS_FILE)
+     else:
+       skip_upload = True
+  if (skip_upload):
+    print 'WARNING: Upload to S3 will be skipped.'
   # Use by gclient to distinguish bot builds
   os.environ['CHROME_HEADLESS'] = '1'
 
   if 'TARGET_ARCH' in os.environ:
-    return run_ci(['-t', os.environ['TARGET_ARCH']])
+    return run_ci(['-t', os.environ['TARGET_ARCH']], skip_upload)
 
   if sys.platform in ['win32', 'cygwin']:
-    return (run_ci(['-t', 'x64']) or
-            run_ci(['-t', 'ia32']))
+    return (run_ci(['-t', 'x64'], skip_upload) or
+            run_ci(['-t', 'ia32'], skip_upload))
   elif sys.platform == 'linux2':
-    return (run_ci(['-t', 'x64']) or
-            run_ci(['-t', 'ia32']) or
-            run_ci(['-t', 'arm']) or
-            run_ci(['-t', 'arm64']))
+    return (run_ci(['-t', 'x64'], skip_upload) or
+            run_ci(['-t', 'ia32'], skip_upload) or
+            run_ci(['-t', 'arm'], skip_upload) or
+            run_ci(['-t', 'arm64'], skip_upload))
   else:
-    return run_ci([])
+    return run_ci([], skip_upload)
 
+def parse_args():
+  parser = argparse.ArgumentParser(description='Run CI build')
+  parser.add_argument('-s', '--skip_upload', action='store_true',
+                      help='Skip uploading to S3')
+  return parser.parse_args()
 
 def copy_to_environment(credentials_file):
     with open(credentials_file, 'r') as f:
@@ -60,7 +71,7 @@ def os_version():
     return platform.platform()
 
 
-def run_ci(args):
+def run_ci(args, skip_upload):
   if sys.platform in ['win32', 'cygwin']:
     target_arch = args[1]
     # Set build env for VS.
@@ -74,10 +85,12 @@ def run_ci(args):
           run_script('update', ['--clean'] + args) or
           run_script('build', args) or
           run_script('create-dist', args) or
-          run_script('upload', args))
+          run_script('upload', args, skip_upload))
 
 
-def run_script(script, args=[]):
+def run_script(script, args=[], skip_run=False):
+  if skip_run:
+    return True
   script = os.path.join('script', script)
   sys.stderr.write('+ {0}\n'.format(script))
   sys.stderr.flush()
