@@ -15,11 +15,9 @@ pipeline {
             }
             post {
               always {
+                archive 'libchromiumcontent.zip'
+                archive 'libchromiumcontent-static.zip'
                 cleanWs()
-              }
-              success {
-                 archive 'libchromiumcontent.zip'
-                 archive 'libchromiumcontent-static.zip'
               }
             }
         }
@@ -36,11 +34,9 @@ pipeline {
           }
           post {
             always {
+              archive 'libchromiumcontent.zip'
+              archive 'libchromiumcontent-static.zip'
               cleanWs()
-            }
-            success {
-               archive 'libchromiumcontent.zip'
-               archive 'libchromiumcontent-static.zip'
             }
           }
         }
