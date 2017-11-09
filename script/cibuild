@@ -90,7 +90,7 @@ def run_ci(args, skip_upload):
 
 def run_script(script, args=[], skip_run=False):
   if skip_run:
-    return True
+    return 0
   script = os.path.join('script', script)
   sys.stderr.write('+ {0}\n'.format(script))
   sys.stderr.flush()
