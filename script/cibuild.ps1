@@ -1,3 +1,4 @@
+param([switch]$skipUpload)
 function Run-Command([scriptblock]$Command, [switch]$Fatal, [switch]$Quiet) {
   $output = ""
   try {
@@ -32,4 +33,8 @@ function Run-Command([scriptblock]$Command, [switch]$Fatal, [switch]$Quiet) {
 }
 
 Write-Output ""
-Run-Command -Fatal { python .\script\cibuild }
+if ($skipUpload) {
+  Run-Command -Fatal { python .\script\cibuild --skip_upload }
+} else {
+  Run-Command -Fatal { python .\script\cibuild }
+}
