@@ -141,6 +141,8 @@ BINARIES_SHARED_LIBRARY = {
   'win32': [
     os.path.join('obj', 'base', 'base_static_cc.pdb'),
     os.path.join('obj', 'base', 'base_static.lib'),
+    os.path.join('obj', 'base', 'win', 'pe_image_cc.pdb'),
+    os.path.join('obj', 'base', 'win', 'pe_image.lib'),
     os.path.join('obj', 'components', 'cdm', 'renderer', 'renderer_cc.pdb'),
     os.path.join('obj', 'components', 'cdm', 'renderer', 'renderer.lib'),
     os.path.join('obj', 'components', 'network_session_configurator', 'common', 'common_cc.pdb'),
