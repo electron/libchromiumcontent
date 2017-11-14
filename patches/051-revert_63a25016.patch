@@ -101,10 +101,10 @@ index c72311bb90c5..85ebae9aa505 100644
    TestArrayBuffer* buffer = TestArrayBuffer::Create(contents);
    v8::Local<v8::Object> associatedWrapper = buffer->AssociateWithWrapper(v8::Isolate::GetCurrent(), buffer->GetWrapperTypeInfo(), object);
 diff --git a/third_party/WebKit/Source/platform/wtf/typed_arrays/ArrayBufferContents.cpp b/third_party/WebKit/Source/platform/wtf/typed_arrays/ArrayBufferContents.cpp
-index 336a685a9b5e..96eb326758ea 100644
+index 30cf7c9ac367..1144c9cdb450 100644
 --- a/third_party/WebKit/Source/platform/wtf/typed_arrays/ArrayBufferContents.cpp
 +++ b/third_party/WebKit/Source/platform/wtf/typed_arrays/ArrayBufferContents.cpp
-@@ -123,26 +123,10 @@ void* ArrayBufferContents::AllocateMemoryOrNull(size_t size,
+@@ -127,50 +127,10 @@ void* ArrayBufferContents::AllocateMemoryOrNull(size_t size,
    return AllocateMemoryWithFlags(size, policy, base::PartitionAllocReturnNull);
  }
  
@@ -114,6 +114,23 @@ index 336a685a9b5e..96eb326758ea 100644
 -void* ArrayBufferContents::ReserveMemory(size_t size) {
 -  void* const hint = nullptr;
 -  const size_t align = 64 << 10;  // Wasm page size
+-
+-#if defined(OS_LINUX)
+-  // Linux by default has a small address space limit, which we chew up pretty
+-  // quickly with large memory reservations. To mitigate this, we bump up the
+-  // limit for array buffer reservations. See https://crbug.com/750378
+-  //
+-  // In general, returning nullptr is dangerous, as unsuspecting code may do an
+-  // offset-from-null and end up with an accessible but incorrect address.  This
+-  // function (ReserveMemory) is only used in contexts that expect allocation
+-  // may fail and explicitly handle the nullptr return case. This code is also
+-  // only used on 64-bit to create guard regions, which provides further
+-  // protection.
+-  if (!sandbox::ResourceLimits::AdjustCurrent(RLIMIT_AS, size)) {
+-    return nullptr;
+-  }
+-#endif
+-
 -  // TODO(crbug.com/735209): On Windows this commits all the memory, rather than
 -  // just reserving it. This is very bad and should be fixed, but we don't use
 -  // this feature on Windows at all yet.
@@ -125,6 +142,13 @@ index 336a685a9b5e..96eb326758ea 100644
  }
  
 -void ArrayBufferContents::ReleaseReservedMemory(void* data, size_t size) {
+-#if defined(OS_LINUX)
+-  // Linux by default has a small address space limit, which we chew up pretty
+-  // quickly with large memory reservations. To mitigate this, we bump up the
+-  // limit for array buffer reservations. Here we need to lower it back down.
+-  // See https://crbug.com/750378
+-  CHECK(sandbox::ResourceLimits::AdjustCurrent(RLIMIT_AS, -size));
+-#endif
 -  base::FreePages(data, size);
 -}
 -
