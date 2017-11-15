@@ -30,6 +30,8 @@ jobs:
           name: Upload to S3
           command: |
             if [[ -z "${LIBCHROMIUMCONTENT_S3_ACCESS_KEY}" ]]; then
+              echo "Skipping upload to S3"
+            else
               script/upload -t $TARGET_ARCH
             fi
       - store_artifacts:
@@ -67,6 +69,8 @@ jobs:
           name: Upload to S3
           command: |
             if [[ -z "${LIBCHROMIUMCONTENT_S3_ACCESS_KEY}" ]]; then
+              echo "Skipping upload to S3"
+            else
               script/upload -t $TARGET_ARCH
             fi
       - store_artifacts:
@@ -104,6 +108,8 @@ jobs:
           name: Upload to S3
           command: |
             if [[ -z "${LIBCHROMIUMCONTENT_S3_ACCESS_KEY}" ]]; then
+              echo "Skipping upload to S3"
+            else
               script/upload -t $TARGET_ARCH
             fi
       - store_artifacts:
@@ -141,6 +147,8 @@ jobs:
           name: Upload to S3
           command: |
             if [[ -z "${LIBCHROMIUMCONTENT_S3_ACCESS_KEY}" ]]; then
+              echo "Skipping upload to S3"
+            else
               script/upload -t $TARGET_ARCH
             fi
       - store_artifacts:
