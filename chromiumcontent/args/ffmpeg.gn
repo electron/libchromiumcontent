@@ -7,6 +7,9 @@ proprietary_codecs = false
 is_component_ffmpeg = true
 ffmpeg_branding = "Chromium"
 
+# Always use the system provided standard library
+use_custom_libcxx = false
+
 # On ARM64 Linux, use system provided freetype library to prevent this build failure:
 # warning: libfreetype.so.6, needed by ../../build/linux/debian_jessie_arm64-sysroot/usr/lib/aarch64-linux-gnu/libfontconfig.so, may conflict with libfreetype.so.6
 if (target_cpu == "arm64") {

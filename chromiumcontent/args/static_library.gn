@@ -9,6 +9,9 @@ proprietary_codecs = true
 is_component_ffmpeg = true
 ffmpeg_branding = "Chrome"
 
+# Always use the system provided standard library
+use_custom_libcxx = false
+
 # This is required by Node.js
 # See https://github.com/nodejs/node/pull/13242
 v8_promise_internal_field_count = 1
