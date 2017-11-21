@@ -186,6 +186,3 @@ workflows:
   build-arm64:
     jobs:
       - libchromiumcontent-linux-arm64
-  build-mips64el:
-    jobs:
-      - libchromiumcontent-linux-mips64el
