@@ -1,0 +1,73 @@
+diff --git a/src/heap/gc-tracer.cc b/src/heap/gc-tracer.cc
+index ddfcd07cc1..e14fbb4862 100644
+--- a/src/heap/gc-tracer.cc
++++ b/src/heap/gc-tracer.cc
+@@ -490,6 +490,8 @@ void GCTracer::PrintNVP() const {
+           "promotion_rate=%.1f%% "
+           "semi_space_copy_rate=%.1f%% "
+           "new_space_allocation_throughput=%.1f "
++          "unmapper_chunks=%d "
++          "unmapper_delayed_chunks=%d "
+           "context_disposal_rate=%.1f\n",
+           duration, spent_in_mutator, current_.TypeName(true),
+           current_.reduce_memory, current_.scopes[Scope::HEAP_PROLOGUE],
+@@ -520,6 +522,8 @@ void GCTracer::PrintNVP() const {
+           AverageSurvivalRatio(), heap_->promotion_rate_,
+           heap_->semi_space_copied_rate_,
+           NewSpaceAllocationThroughputInBytesPerMillisecond(),
++          heap_->memory_allocator()->unmapper()->NumberOfChunks(),
++          heap_->memory_allocator()->unmapper()->NumberOfDelayedChunks(),
+           ContextDisposalRateInMilliseconds());
+       break;
+     case Event::MINOR_MARK_COMPACTOR:
+@@ -654,6 +658,8 @@ void GCTracer::PrintNVP() const {
+           "promotion_rate=%.1f%% "
+           "semi_space_copy_rate=%.1f%% "
+           "new_space_allocation_throughput=%.1f "
++          "unmapper_chunks=%d "
++          "unmapper_delayed_chunks=%d "
+           "context_disposal_rate=%.1f "
+           "compaction_speed=%.f\n",
+           duration, spent_in_mutator, current_.TypeName(true),
+@@ -731,6 +737,8 @@ void GCTracer::PrintNVP() const {
+           AverageSurvivalRatio(), heap_->promotion_rate_,
+           heap_->semi_space_copied_rate_,
+           NewSpaceAllocationThroughputInBytesPerMillisecond(),
++          heap_->memory_allocator()->unmapper()->NumberOfChunks(),
++          heap_->memory_allocator()->unmapper()->NumberOfDelayedChunks(),
+           ContextDisposalRateInMilliseconds(),
+           CompactionSpeedInBytesPerMillisecond());
+       break;
+diff --git a/src/heap/spaces.cc b/src/heap/spaces.cc
+index 66c63e5863..74fee75673 100644
+--- a/src/heap/spaces.cc
++++ b/src/heap/spaces.cc
+@@ -408,6 +408,15 @@ void MemoryAllocator::Unmapper::ReconsiderDelayedChunks() {
+   }
+ }
+ 
++int MemoryAllocator::Unmapper::NumberOfChunks() {
++  base::LockGuard<base::Mutex> guard(&mutex_);
++  size_t result = 0;
++  for (int i = 0; i < kNumberOfChunkQueues; i++) {
++    result += chunks_[i].size();
++  }
++  return static_cast<int>(result);
++}
++
+ bool MemoryAllocator::CanFreeMemoryChunk(MemoryChunk* chunk) {
+   MarkCompactCollector* mc = isolate_->heap()->mark_compact_collector();
+   // We cannot free a memory chunk in new space while the sweeper is running
+diff --git a/src/heap/spaces.h b/src/heap/spaces.h
+index 230a127809..4f4de139e4 100644
+--- a/src/heap/spaces.h
++++ b/src/heap/spaces.h
+@@ -1204,6 +1204,8 @@ class V8_EXPORT_PRIVATE MemoryAllocator {
+       return static_cast<int>(delayed_regular_chunks_.size());
+     }
+ 
++    int NumberOfChunks();
++
+    private:
+     static const int kReservedQueueingSlots = 64;
+     static const int kMaxUnmapperTasks = 24;
