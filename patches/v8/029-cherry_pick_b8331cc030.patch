@@ -1,0 +1,15 @@
+diff --git a/src/inspector/inspector.gypi b/src/inspector/inspector.gypi
+index a08a041012..bb96b0f610 100644
+--- a/src/inspector/inspector.gypi
++++ b/src/inspector/inspector.gypi
+@@ -31,8 +31,8 @@
+     'inspector_all_sources': [
+       '<@(inspector_generated_sources)',
+       '<(inspector_generated_injected_script)',
+-      '../../include/v8-inspector.h',
+-      '../../include/v8-inspector-protocol.h',
++      '../include/v8-inspector.h',
++      '../include/v8-inspector-protocol.h',
+       'inspector/injected-script.cc',
+       'inspector/injected-script.h',
+       'inspector/inspected-context.cc',
