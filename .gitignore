@@ -6,6 +6,8 @@
 /libchromiumcontent.zip
 /libchromiumcontent-static.zip
 /vendor/binutils-aarch64
+/vendor/gcc-4.8.3-d197-n64-loongson
+/vendor/readme-gcc483-loongson.txt
 .gclient
 .gclient_entries
 _gclient_src_*

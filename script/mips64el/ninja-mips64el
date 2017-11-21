@@ -1,0 +1,9 @@
+#! /bin/sh
+
+# ninja in depot_tools not support mips64el, So make
+# a soft connection to system ninja-build on loongson platform.
+cd vendor/depot_tools
+if [ ! -f "ninja-build" ]; then
+ln -sv /usr/bin/ninja-build .
+fi
+cd -

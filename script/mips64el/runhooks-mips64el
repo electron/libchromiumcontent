@@ -1,0 +1,50 @@
+#! /bin/sh
+# runhooks-mips64el script is doing the operation that "gclient sync --runhooks".
+# Since many files do not support mips, for example node.
+# get 'src/third_party/node/linux/node-linux-x64.tar.gz.sha1' from "gclient sync --runhooks",
+# but is x86, not support mips.
+# So Add --nohooks to "gclient sync" on mips, and write the script to get the file
+# needed for build chromiumcontent instead of "gclient sync --runhooks".
+# Author: Wang Qing
+# Email: wangqing-hf@loongson.cn
+
+# setup LASTCHANGE
+cd src/build/util
+./lastchange.py > LASTCHANGE
+./lastchange.py > LASTCHANGE.blink
+cd -
+
+# Add node from system
+if [ ! -f "src/third_party/node/linux/node-linux-x64/bin/node" ]; then
+mkdir -p src/third_party/node/linux/node-linux-x64/bin
+ln -s /usr/bin/node src/third_party/node/linux/node-linux-x64/bin/node
+fi
+
+# Use npm install the necessary node modules
+cd src/third_party/node
+if test `uname -m` = "mips64"; then
+if [ -f "package.json" ]; then
+rm -v package.json
+fi
+fi
+
+if [ ! -d "node_modules/vulcanize" ]; then
+npm install vulcanize
+fi
+
+if [ ! -d "node_modules/crisper" ]; then
+npm install crisper
+fi
+
+if [ ! -d "node_modules/uglify-es" ]; then
+npm install uglify-es
+ln -s node_modules/uglify-es node_modules/uglifyjs
+fi
+
+if [ ! -d "node_modules/polymer-css-build" ]; then
+npm install polymer-css-build
+fi
+cd -
+
+# Get skia/ext/skia_commit_hash.h
+python src/build/util/lastchange.py -m SKIA_COMMIT_HASH -s src/third_party/skia --header src/skia/ext/skia_commit_hash.h

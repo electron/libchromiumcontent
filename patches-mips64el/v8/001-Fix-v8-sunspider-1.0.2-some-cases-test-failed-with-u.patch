@@ -1,0 +1,68 @@
+From 69d1323ffac9b541c80d24d7d8fec6088ca6b2ce Mon Sep 17 00:00:00 2001
+From: Wang Qing <wangqing-hf@loongson.cn>
+Date: Fri, 15 Sep 2017 11:02:59 +0800
+Subject: [PATCH] Fix v8 sunspider-1.0.2 some cases test failed with use madd
+ instruction.
+
+This patch is similar to V8 master patch:
+https://chromium.googlesource.com/v8/v8/+/99459edf5fee3681da24356612e48b8afa14656f
+
+When update chromium and has this patch:
+https://chromium.googlesource.com/v8/v8/+/99459edf5fee3681da24356612e48b8afa14656f
+Then this patch is not needed.
+---
+ BUILD.gn                             |  3 +++
+ src/mips64/macro-assembler-mips64.cc | 14 ++++++++++++++
+ 2 files changed, 17 insertions(+)
+
+diff --git a/BUILD.gn b/BUILD.gn
+index e13162a..78762c6 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -369,6 +369,9 @@ config("toolchain") {
+       defines += [ "_MIPS_ARCH_MIPS64R6" ]
+     } else if (mips_arch_variant == "r2") {
+       defines += [ "_MIPS_ARCH_MIPS64R2" ]
++    } else if (mips_arch_variant == "loongson3") {
++      defines += [ "_MIPS_ARCH_LOONGSON" ]
++      defines += [ "FPU_MODE_FP64" ]
+     }
+   }
+   if (v8_current_cpu == "s390" || v8_current_cpu == "s390x") {
+diff --git a/src/mips64/macro-assembler-mips64.cc b/src/mips64/macro-assembler-mips64.cc
+index 84a55d4..c5088c5 100644
+--- a/src/mips64/macro-assembler-mips64.cc
++++ b/src/mips64/macro-assembler-mips64.cc
+@@ -2383,7 +2383,14 @@ void MacroAssembler::Trunc_ul_s(FPURegister fd, Register rs,
+ void MacroAssembler::Madd_s(FPURegister fd, FPURegister fr, FPURegister fs,
+                             FPURegister ft, FPURegister scratch) {
+   if (kArchVariant == kMips64r2) {
++// MADD not used on loongson mips64r2.
++#ifdef _MIPS_ARCH_LOONGSON
++    DCHECK(!fr.is(scratch) && !fs.is(scratch) && !ft.is(scratch));
++    mul_s(scratch, fs, ft);
++    add_s(fd, fr, scratch);
++#else
+     madd_s(fd, fr, fs, ft);
++#endif
+   } else {
+     DCHECK(!fr.is(scratch) && !fs.is(scratch) && !ft.is(scratch));
+     mul_s(scratch, fs, ft);
+@@ -2394,7 +2401,14 @@ void MacroAssembler::Madd_s(FPURegister fd, FPURegister fr, FPURegister fs,
+ void MacroAssembler::Madd_d(FPURegister fd, FPURegister fr, FPURegister fs,
+     FPURegister ft, FPURegister scratch) {
+   if (kArchVariant == kMips64r2) {
++// MADD not used on loongson mips64r2.
++#ifdef _MIPS_ARCH_LOONGSON
++    DCHECK(!fr.is(scratch) && !fs.is(scratch) && !ft.is(scratch));
++    mul_d(scratch, fs, ft);
++    add_d(fd, fr, scratch);
++#else
+     madd_d(fd, fr, fs, ft);
++#endif
+   } else {
+     DCHECK(!fr.is(scratch) && !fs.is(scratch) && !ft.is(scratch));
+     mul_d(scratch, fs, ft);
+-- 
+2.1.0
+

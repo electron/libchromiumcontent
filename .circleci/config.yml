@@ -156,6 +156,22 @@ jobs:
       - store_artifacts:
           path: libchromiumcontent-static.zip
 
+  libchromiumcontent-linux-mips64el:
+    docker:
+      - image: electronbuilds/libchromiumcontent:0.0.4
+        environment:
+          TARGET_ARCH: mips64el
+    resource_class: xlarge
+    steps:
+      - checkout
+      - run: script/bootstrap
+      - run: script/update --clean -t $TARGET_ARCH
+      - run: script/build -t $TARGET_ARCH -c static_library
+      - run: script/build -t $TARGET_ARCH -c shared_library
+      - run: script/build -t $TARGET_ARCH -c ffmpeg
+      - run: script/create-dist -t $TARGET_ARCH
+      - run: script/upload -t $TARGET_ARCH
+
 workflows:
   version: 2
   build-x64:
