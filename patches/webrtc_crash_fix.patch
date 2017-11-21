@@ -1,0 +1,63 @@
+# Backported patch from Chromium Patchset: https://codereview.chromium.org/2772283002
+diff --git a/content/renderer/media/rtc_peer_connection_handler.cc b/content/renderer/media/rtc_peer_connection_handler.cc
+index 3240a7a2fbe2e9e97bb3f0bade3ce22d159fb618..98b5dbe1824e33270c1b2bc936aedb48d7d4f5b7 100644
+--- a/content/renderer/media/rtc_peer_connection_handler.cc
++++ b/content/renderer/media/rtc_peer_connection_handler.cc
+@@ -738,14 +738,6 @@ class GetRTCStatsCallback : public webrtc::RTCStatsCollectorCallback {
+             this, report));
+   }
+ 
+-  void OnStatsDeliveredOnMainThread(
+-      const rtc::scoped_refptr<const webrtc::RTCStatsReport>& report) {
+-    DCHECK(main_thread_->BelongsToCurrentThread());
+-    DCHECK(report);
+-    callback_->OnStatsDelivered(std::unique_ptr<blink::WebRTCStatsReport>(
+-        new RTCStatsReport(make_scoped_refptr(report.get()))));
+-  }
+-
+  protected:
+   GetRTCStatsCallback(
+       const scoped_refptr<base::SingleThreadTaskRunner>& main_thread,
+@@ -753,6 +745,18 @@ class GetRTCStatsCallback : public webrtc::RTCStatsCollectorCallback {
+       : main_thread_(main_thread),
+         callback_(callback) {
+   }
++  ~GetRTCStatsCallback() override { DCHECK(!callback_); }
++
++  void OnStatsDeliveredOnMainThread(
++      const rtc::scoped_refptr<const webrtc::RTCStatsReport>& report) {
++    DCHECK(main_thread_->BelongsToCurrentThread());
++    DCHECK(report);
++    DCHECK(callback_);
++    callback_->OnStatsDelivered(std::unique_ptr<blink::WebRTCStatsReport>(
++        new RTCStatsReport(make_scoped_refptr(report.get()))));
++    // Make sure the callback is destroyed in the main thread as well.
++    callback_.reset();
++  }
+ 
+   const scoped_refptr<base::SingleThreadTaskRunner> main_thread_;
+   std::unique_ptr<blink::WebRTCStatsReportCallback> callback_;
+diff --git a/third_party/WebKit/Source/modules/peerconnection/RTCPeerConnection.cpp b/third_party/WebKit/Source/modules/peerconnection/RTCPeerConnection.cpp
+index 3ea3bc9602f0858f6c6515a79691b81cefd55fb2..fcea99b69faf1737293ee78a5592fd1dcd3292d2 100644
+--- a/third_party/WebKit/Source/modules/peerconnection/RTCPeerConnection.cpp
++++ b/third_party/WebKit/Source/modules/peerconnection/RTCPeerConnection.cpp
+@@ -393,13 +393,18 @@ class WebRTCStatsReportCallbackResolver : public WebRTCStatsReportCallback {
+         new WebRTCStatsReportCallbackResolver(resolver));
+   }
+ 
+-  ~WebRTCStatsReportCallbackResolver() override {}
++  ~WebRTCStatsReportCallbackResolver() override {
++    DCHECK(
++        m_resolver->getScriptState()->getExecutionContext()->isContextThread());
++  }
+ 
+  private:
+   WebRTCStatsReportCallbackResolver(ScriptPromiseResolver* resolver)
+       : m_resolver(resolver) {}
+ 
+   void OnStatsDelivered(std::unique_ptr<WebRTCStatsReport> report) override {
++    DCHECK(
++        m_resolver->getScriptState()->getExecutionContext()->isContextThread());
+     m_resolver->resolve(new RTCStatsReport(std::move(report)));
+   }
+ 
