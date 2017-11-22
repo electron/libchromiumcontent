@@ -59,6 +59,7 @@ with open(args.out, 'w') as out:
             "third_party/iccjpeg",
             "third_party/isimpledom",
             "third_party/leveldatabase",
+            "third_party/libdrm",
             "third_party/libXNVCtrl",
             "third_party/libjingle",
             "third_party/libjpeg_turbo",
