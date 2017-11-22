@@ -1,0 +1,85 @@
+diff --git a/src/lookup.h b/src/lookup.h
+index 25c5a6cc3b..9ea2d77cf6 100644
+--- a/src/lookup.h
++++ b/src/lookup.h
+@@ -22,7 +22,7 @@ class V8_EXPORT_PRIVATE LookupIterator final BASE_EMBEDDED {
+     kInterceptor = 1 << 0,
+     kPrototypeChain = 1 << 1,
+ 
+-    // Convience combinations of bits.
++    // Convenience combinations of bits.
+     OWN_SKIP_INTERCEPTOR = 0,
+     OWN = kInterceptor,
+     PROTOTYPE_CHAIN_SKIP_INTERCEPTOR = kPrototypeChain,
+diff --git a/src/objects.cc b/src/objects.cc
+index c1a2e41bf1..28c1cd681f 100644
+--- a/src/objects.cc
++++ b/src/objects.cc
+@@ -6713,17 +6713,6 @@ Maybe<bool> JSReceiver::OrdinaryDefineOwnProperty(Isolate* isolate,
+     it.Next();
+   }
+ 
+-  // Handle interceptor
+-  if (it.state() == LookupIterator::INTERCEPTOR) {
+-    if (it.HolderIsReceiverOrHiddenPrototype()) {
+-      Maybe<bool> result = DefinePropertyWithInterceptorInternal(
+-          &it, it.GetInterceptor(), should_throw, *desc);
+-      if (result.IsNothing() || result.FromJust()) {
+-        return result;
+-      }
+-    }
+-  }
+-
+   return OrdinaryDefineOwnProperty(&it, desc, should_throw);
+ }
+ 
+@@ -6739,6 +6728,20 @@ Maybe<bool> JSReceiver::OrdinaryDefineOwnProperty(LookupIterator* it,
+   PropertyDescriptor current;
+   MAYBE_RETURN(GetOwnPropertyDescriptor(it, &current), Nothing<bool>());
+ 
++  it->Restart();
++  // Handle interceptor
++  for (; it->IsFound(); it->Next()) {
++    if (it->state() == LookupIterator::INTERCEPTOR) {
++      if (it->HolderIsReceiverOrHiddenPrototype()) {
++        Maybe<bool> result = DefinePropertyWithInterceptorInternal(
++            it, it->GetInterceptor(), should_throw, *desc);
++        if (result.IsNothing() || result.FromJust()) {
++          return result;
++        }
++      }
++    }
++  }
++
+   // TODO(jkummerow/verwaest): It would be nice if we didn't have to reset
+   // the iterator every time. Currently, the reasons why we need it are:
+   // - handle interceptors correctly
+diff --git a/test/cctest/test-api-interceptors.cc b/test/cctest/test-api-interceptors.cc
+index 265698d131..ca9b18016d 100644
+--- a/test/cctest/test-api-interceptors.cc
++++ b/test/cctest/test-api-interceptors.cc
+@@ -716,20 +716,21 @@ bool define_was_called_in_order = false;
+ void GetterCallbackOrder(Local<Name> property,
+                          const v8::PropertyCallbackInfo<v8::Value>& info) {
+   get_was_called_in_order = true;
+-  CHECK(define_was_called_in_order);
++  CHECK(!define_was_called_in_order);
+   info.GetReturnValue().Set(property);
+ }
+ 
+ void DefinerCallbackOrder(Local<Name> property,
+                           const v8::PropertyDescriptor& desc,
+                           const v8::PropertyCallbackInfo<v8::Value>& info) {
+-  CHECK(!get_was_called_in_order);  // Define called before get.
++  // Get called before DefineProperty because we query the descriptor first.
++  CHECK(get_was_called_in_order);
+   define_was_called_in_order = true;
+ }
+ 
+ }  // namespace
+ 
+-// Check that definer callback is called before getter callback.
++// Check that getter callback is called before definer callback.
+ THREADED_TEST(DefinerCallbackGetAndDefine) {
+   v8::HandleScope scope(CcTest::isolate());
+   v8::Local<v8::FunctionTemplate> templ =
