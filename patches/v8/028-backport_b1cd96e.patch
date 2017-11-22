@@ -1,0 +1,111 @@
+diff --git a/include/v8-inspector.h b/include/v8-inspector.h
+index 43bf3b4f60..d0bb9b47fe 100644
+--- a/include/v8-inspector.h
++++ b/include/v8-inspector.h
+@@ -211,6 +211,8 @@ class V8_EXPORT V8InspectorClient {
+   // TODO(dgozman): this was added to support service worker shadow page. We
+   // should not connect at all.
+   virtual bool canExecuteScripts(int contextGroupId) { return true; }
++
++  virtual void maxAsyncCallStackDepthChanged(int depth) {}
+ };
+ 
+ class V8_EXPORT V8Inspector {
+diff --git a/src/inspector/v8-debugger.cc b/src/inspector/v8-debugger.cc
+index acd778b2b6..bc5437c6d4 100644
+--- a/src/inspector/v8-debugger.cc
++++ b/src/inspector/v8-debugger.cc
+@@ -726,6 +726,8 @@ void V8Debugger::setAsyncCallStackDepth(V8DebuggerAgentImpl* agent, int depth) {
+   if (m_maxAsyncCallStackDepth == maxAsyncCallStackDepth) return;
+   // TODO(dgozman): ideally, this should be per context group.
+   m_maxAsyncCallStackDepth = maxAsyncCallStackDepth;
++  m_inspector->client()->maxAsyncCallStackDepthChanged(
++      m_maxAsyncCallStackDepth);
+   if (!maxAsyncCallStackDepth) allAsyncTasksCanceled();
+ }
+ 
+diff --git a/test/inspector/inspector-test.cc b/test/inspector/inspector-test.cc
+index dcaf5823ef..de89271fbf 100644
+--- a/test/inspector/inspector-test.cc
++++ b/test/inspector/inspector-test.cc
+@@ -299,6 +299,10 @@ class UtilsExtension : public IsolateData::SetupGlobalTask {
+     utils->Set(ToV8String(isolate, "setLogConsoleApiMessageCalls"),
+                v8::FunctionTemplate::New(
+                    isolate, &UtilsExtension::SetLogConsoleApiMessageCalls));
++    utils->Set(
++        ToV8String(isolate, "setLogMaxAsyncCallStackDepthChanged"),
++        v8::FunctionTemplate::New(
++            isolate, &UtilsExtension::SetLogMaxAsyncCallStackDepthChanged));
+     utils->Set(ToV8String(isolate, "createContextGroup"),
+                v8::FunctionTemplate::New(isolate,
+                                          &UtilsExtension::CreateContextGroup));
+@@ -486,6 +490,17 @@ class UtilsExtension : public IsolateData::SetupGlobalTask {
+         args[0].As<v8::Boolean>()->Value());
+   }
+ 
++  static void SetLogMaxAsyncCallStackDepthChanged(
++      const v8::FunctionCallbackInfo<v8::Value>& args) {
++    if (args.Length() != 1 || !args[0]->IsBoolean()) {
++      fprintf(stderr,
++              "Internal error: setLogMaxAsyncCallStackDepthChanged(bool).");
++      Exit();
++    }
++    backend_runner_->data()->SetLogMaxAsyncCallStackDepthChanged(
++        args[0].As<v8::Boolean>()->Value());
++  }
++
+   static void CreateContextGroup(
+       const v8::FunctionCallbackInfo<v8::Value>& args) {
+     if (args.Length() != 0) {
+diff --git a/test/inspector/isolate-data.cc b/test/inspector/isolate-data.cc
+index 82a5cc0483..4c1d81670f 100644
+--- a/test/inspector/isolate-data.cc
++++ b/test/inspector/isolate-data.cc
+@@ -370,6 +370,10 @@ void IsolateData::SetLogConsoleApiMessageCalls(bool log) {
+   log_console_api_message_calls_ = log;
+ }
+ 
++void IsolateData::SetLogMaxAsyncCallStackDepthChanged(bool log) {
++  log_max_async_call_stack_depth_changed_ = log;
++}
++
+ v8::MaybeLocal<v8::Value> IsolateData::memoryInfo(v8::Isolate* isolate,
+                                                   v8::Local<v8::Context>) {
+   if (memory_info_.IsEmpty()) return v8::MaybeLocal<v8::Value>();
+@@ -396,3 +400,8 @@ void IsolateData::consoleAPIMessage(int contextGroupId,
+   Print(isolate_, stack->toString()->string());
+   fprintf(stdout, "\n");
+ }
++
++void IsolateData::maxAsyncCallStackDepthChanged(int depth) {
++  if (!log_max_async_call_stack_depth_changed_) return;
++  fprintf(stdout, "maxAsyncCallStackDepthChanged: %d\n", depth);
++}
+diff --git a/test/inspector/isolate-data.h b/test/inspector/isolate-data.h
+index b8f3b9e76c..455b44b49b 100644
+--- a/test/inspector/isolate-data.h
++++ b/test/inspector/isolate-data.h
+@@ -64,6 +64,7 @@ class IsolateData : public v8_inspector::V8InspectorClient {
+   void SetCurrentTimeMS(double time);
+   void SetMemoryInfo(v8::Local<v8::Value> memory_info);
+   void SetLogConsoleApiMessageCalls(bool log);
++  void SetLogMaxAsyncCallStackDepthChanged(bool log);
+   void SetMaxAsyncTaskStacksForTest(int limit);
+   void DumpAsyncTaskStacksStateForTest();
+   void FireContextCreated(v8::Local<v8::Context> context, int context_group_id);
+@@ -106,6 +107,7 @@ class IsolateData : public v8_inspector::V8InspectorClient {
+                          unsigned lineNumber, unsigned columnNumber,
+                          v8_inspector::V8StackTrace*) override;
+   bool isInspectableHeapObject(v8::Local<v8::Object>) override;
++  void maxAsyncCallStackDepthChanged(int depth) override;
+ 
+   TaskRunner* task_runner_;
+   SetupGlobalTasks setup_global_tasks_;
+@@ -123,6 +125,7 @@ class IsolateData : public v8_inspector::V8InspectorClient {
+   bool current_time_set_ = false;
+   double current_time_ = 0.0;
+   bool log_console_api_message_calls_ = false;
++  bool log_max_async_call_stack_depth_changed_ = false;
+   v8::Global<v8::Private> not_inspectable_private_;
+ 
+   DISALLOW_COPY_AND_ASSIGN(IsolateData);
