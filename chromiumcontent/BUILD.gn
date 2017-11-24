@@ -1,3 +1,5 @@
+import("//build/split_static_library.gni")
+
 group("targets") {
   deps = []
 
@@ -314,8 +316,19 @@ if (is_electron_build && !is_component_build) {
     }
   }
 
-  static_library("webkit") {
+  split_static_library("webkit") {
     complete_static_lib = true
+
+    # Split into multiple static libraries on Windows.
+    # We have hit size limits on Windows official builds.
+    # (We must check if sources actually exist before building
+    # a split library, otherwise build will fail with an error.)
+    if (is_win && defined(obj_webkit)) {
+      split_count = 7
+    } else {
+      split_count = 1
+    }
+
     sources = []
     if (defined(obj_webkit)) {
       sources += obj_webkit
