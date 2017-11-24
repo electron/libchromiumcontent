@@ -2,6 +2,14 @@ diff --git a/content/browser/renderer_host/render_widget_host_view_mac.mm b/cont
 index faedde495761..c9d2beabd798 100644
 --- a/content/browser/renderer_host/render_widget_host_view_mac.mm
 +++ b/content/browser/renderer_host/render_widget_host_view_mac.mm
+@@ -88,6 +88,7 @@
+ #include "ui/gfx/geometry/size_conversions.h"
+ #include "ui/gfx/scoped_ns_graphics_context_save_gstate_mac.h"
+ #include "ui/gl/gl_switches.h"
++#include "ui/gl/gpu_switching_manager.h"
+
+ using content::BrowserAccessibility;
+ using content::BrowserAccessibilityManager;
 @@ -138,6 +139,11 @@ RenderWidgetHostView* GetRenderWidgetHostViewToUse(
  
  }  // namespace
@@ -72,3 +80,16 @@ index faedde495761..c9d2beabd798 100644
          nil]);
    }
    return validAttributesForMarkedText_.get();
+@@ -1645,6 +1651,12 @@ new BrowserCompositorMac(this, this, render_widget_host_->is_hidden(),
+   DCHECK(SkColorGetA(color) == SK_AlphaOPAQUE ||
+          SkColorGetA(color) == SK_AlphaTRANSPARENT);
+   bool opaque = SkColorGetA(color) == SK_AlphaOPAQUE;
++  if (opaque) {
++    bool wantsTransparent = ui::GpuSwitchingManager::UseTransparent() ||
++                            ([cocoa_view_ window] && ![[cocoa_view_ window] isOpaque]);
++    if (wantsTransparent)
++      opaque = NO;
++  }
+   if (background_is_opaque_ != opaque) {
+     background_is_opaque_ = opaque;
+     browser_compositor_->SetHasTransparentBackground(!opaque);
