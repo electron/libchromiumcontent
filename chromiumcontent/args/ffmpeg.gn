@@ -7,6 +7,10 @@ proprietary_codecs = false
 is_component_ffmpeg = true
 ffmpeg_branding = "Chromium"
 
+# Everything that is intended to be shipped to users,
+# should be built with `is_official_build = true`.
+is_official_build = true
+
 # Always use the system provided standard library
 use_custom_libcxx = false
 
