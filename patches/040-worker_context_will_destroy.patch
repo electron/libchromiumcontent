@@ -1,8 +1,8 @@
 diff --git a/content/public/renderer/content_renderer_client.h b/content/public/renderer/content_renderer_client.h
-index 0764782..b3cd794 100644
+index 0e554ba8467a..8e56489a5152 100644
 --- a/content/public/renderer/content_renderer_client.h
 +++ b/content/public/renderer/content_renderer_client.h
-@@ -361,6 +361,11 @@ class CONTENT_EXPORT ContentRendererClient {
+@@ -351,6 +351,11 @@ class CONTENT_EXPORT ContentRendererClient {
    virtual void DidInitializeWorkerContextOnWorkerThread(
        v8::Local<v8::Context> context) {}
  
@@ -11,9 +11,9 @@ index 0764782..b3cd794 100644
 +  virtual void WillDestroyWorkerContextOnWorkerThread(
 +      v8::Local<v8::Context> context) {}
 +
-   // Allows the client to expose interfaces from the renderer process to the
-   // browser process via |registry|.
-   virtual void ExposeInterfacesToBrowser(
+   // Overwrites the given URL to use an HTML5 embed if possible.
+   // An empty URL is returned if the URL is not overriden.
+   virtual GURL OverrideFlashEmbedWithHTML(const GURL& url);
 diff --git a/content/renderer/renderer_blink_platform_impl.cc b/content/renderer/renderer_blink_platform_impl.cc
 index f30b509..6cfd9df 100644
 --- a/content/renderer/renderer_blink_platform_impl.cc

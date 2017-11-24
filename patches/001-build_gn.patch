@@ -1,17 +1,5 @@
-diff --git a/base/allocator/BUILD.gn b/base/allocator/BUILD.gn
-index 8cdb06161f5c..285461d3381d 100644
---- a/base/allocator/BUILD.gn
-+++ b/base/allocator/BUILD.gn
-@@ -16,6 +16,7 @@ declare_args() {
- # The Windows-only allocator shim is only enabled for Release static builds, and
- # is mutually exclusive with the generalized shim.
- win_use_allocator_shim = is_win && !is_component_build && !is_debug &&
-+                         !is_electron_build &&
-                          !use_experimental_allocator_shim && !is_asan
- 
- # This "allocator" meta-target will forward to the default allocator according
 diff --git a/build/config/BUILDCONFIG.gn b/build/config/BUILDCONFIG.gn
-index d055e70..c76ca27 100644
+index de3f35f124aa..eabb988c1711 100644
 --- a/build/config/BUILDCONFIG.gn
 +++ b/build/config/BUILDCONFIG.gn
 @@ -123,6 +123,8 @@ if (current_os == "") {
@@ -23,7 +11,7 @@ index d055e70..c76ca27 100644
    # Set to enable the official build level of optimization. This has nothing
    # to do with branding, but enables an additional level of optimization above
    # release (!is_debug). This might be better expressed as a tri-state
-@@ -483,6 +485,7 @@ default_compiler_configs = [
+@@ -520,6 +522,7 @@ default_compiler_configs = [
    "//build/config/compiler:no_rtti",
    "//build/config/compiler:runtime_library",
    "//build/config/sanitizers:default_sanitizer_flags",
@@ -31,6 +19,14 @@ index d055e70..c76ca27 100644
  ]
  if (is_win) {
    default_compiler_configs += [
+@@ -642,6 +645,7 @@ template("component") {
+     _component_mode = "shared_library"
+   } else if (defined(invoker.static_component_type)) {
+     assert(invoker.static_component_type == "static_library" ||
++           (is_electron_build && invoker.static_component_type == "shared_library") ||
+            invoker.static_component_type == "source_set")
+     _component_mode = invoker.static_component_type
+   } else if (is_android || !defined(invoker.sources)) {
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
 index 5e1f7fcc4d83..15723e6b7184 100644
 --- a/build/config/win/BUILD.gn
@@ -57,11 +53,11 @@ index 15bf689..9cdc19d 100644
      "text/CharacterPropertyDataGenerator.cpp",
      "text/CharacterPropertyDataGenerator.h",
 diff --git a/third_party/widevine/cdm/BUILD.gn b/third_party/widevine/cdm/BUILD.gn
-index dda9799..2bf3f57 100644
+index 9e744b9940e2..09208f2e98fa 100644
 --- a/third_party/widevine/cdm/BUILD.gn
 +++ b/third_party/widevine/cdm/BUILD.gn
-@@ -153,7 +153,7 @@ if (widevine_cdm_binary_files != []) {
-       "//build/config/sanitizers:deps",
+@@ -110,7 +110,7 @@ if (widevine_cdm_binary_files != []) {
+       "//build/config:exe_and_shlib_deps",
      ]
  
 -    if (is_mac) {

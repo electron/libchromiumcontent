@@ -232,10 +232,10 @@ def gclient_sync(version, force, git_cache, nohooks):
 
 
 def apply_patches(skip_patches, target_arch):
-  ap = os.path.join(SOURCE_ROOT, 'script', 'apply-patches')
-  return (subprocess.call([sys.executable, ap, target_arch])
-          if not skip_patches
-          else True)
+  if not skip_patches:
+    return subprocess.call([sys.executable,
+                            os.path.join(SOURCE_ROOT, 'script', 'apply-patches'),
+                            target_arch])
 
 
 def update_clang():
@@ -301,40 +301,33 @@ def run_gn(target_arch, defines):
   if sys.platform in ['win32', 'cygwin']:
     env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
 
+  target_os = {
+    "cygwin": "win",
+    "darwin": "mac",
+    "linux2": "linux",
+    "win32": "win",
+  }.get(sys.platform)
+
   if target_arch == 'ia32':
     target_cpu = 'x86'
   else:
     target_cpu = target_arch
 
   for component in COMPONENTS:
-    args = 'import("//chromiumcontent/args/{0}.gn") target_cpu="{1}"'.format(component, target_cpu)
-    if sys.platform in ['win32', 'cygwin']:
-      args += ' use_experimental_allocator_shim=false'
-    if sys.platform == 'linux2':
-      args += ' use_gtk3=false'
-      if target_arch == 'mips64el':
-        args += ' clang_use_chrome_plugins=false'
-        args += ' enable_hangout_services_extension=true'
-        args += ' enable_nacl_nonsfi=false'
-        args += ' fatal_linker_warnings=false'
-        args += ' fieldtrial_testing_like_official_build=true'
-        args += ' is_clang=false'
-        args += ' link_pulseaudio=true'
-        args += ' linux_use_bundled_binutils=false'
-        args += ' remove_webcore_debug_symbols=true'
-        args += ' treat_warnings_as_errors=false'
-        args += ' use_allocator="none"'
-        args += ' use_cups=true'
-        args += ' use_gconf=false'
-        args += ' use_gnome_keyring=false'
-        args += ' use_gold=false'
-        args += ' use_kerberos=true'
-        args += ' use_pulseaudio=true'
-        if IS_MIPS64EL_HOST:
-          args += ' use_sysroot=false'
-
     output_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
-    subprocess.call([gn, 'gen', os.path.relpath(output_dir, SRC_DIR), '--args=' + args],
+    if not os.path.isdir(output_dir): os.makedirs(output_dir)
+
+    with open(os.path.join(output_dir, 'args.gn'), 'w') as f:
+      f.writelines([
+        'target_os = "{}"\n'.format(target_os),
+        'target_cpu = "{}"\n'.format(target_cpu),
+        '#' * 80 + '\n',
+        ])
+      with open(os.path.join(CHROMIUMCONTENT_SOURCE_DIR, 'args',
+                             component + '.gn')) as argsfile:
+        f.write(argsfile.read())
+
+    subprocess.call([gn, 'gen', os.path.relpath(output_dir, SRC_DIR)],
                     cwd=SRC_DIR, env=env)
 
 

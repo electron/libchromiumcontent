@@ -78,7 +78,7 @@ index 89fe4d98eb76..f0dfa3a056ee 100644
        {NSAccessibilitySortDirectionAttribute, @"sortDirection"},
        {NSAccessibilitySubroleAttribute, @"subrole"},
 @@ -964,6 +972,7 @@ NSString* const NSAccessibilityRequiredAttribute = @"AXRequired";
-       !GetState(browserAccessibility_, ui::AX_STATE_DISABLED)];
+                                   ui::AX_RESTRICTION_DISABLED];
  }
  
 +#ifndef MAS_BUILD
@@ -199,13 +199,13 @@ index c6b659b777bc..fe03cb11f7d3 100644
      }
    }
  
-diff --git a/content/common/sandbox_mac.mm b/content/common/sandbox_mac.mm
+diff --git a/content/renderer/renderer_main_platform_delegate_mac.mm b/content/renderer/renderer_main_platform_delegate_mac.mm
 index 2c219956f05a..9fee8277e081 100644
---- a/content/common/sandbox_mac.mm
-+++ b/content/common/sandbox_mac.mm
-@@ -41,11 +41,13 @@
- #include "ui/base/layout.h"
- #include "ui/gl/init/gl_factory.h"
+--- a/content/renderer/renderer_main_platform_delegate_mac.mm
++++ b/content/renderer/renderer_main_platform_delegate_mac.mm
+@@ -21,11 +21,13 @@
+ #include "content/public/common/content_switches.h"
+ #include "sandbox/mac/seatbelt.h"
  
 +#ifndef MAS_BUILD
  extern "C" {
@@ -216,23 +216,23 @@ index 2c219956f05a..9fee8277e081 100644
 +#endif
  
  namespace content {
- namespace {
-@@ -306,6 +308,7 @@ void Sandbox::SandboxWarmup(int sandbox_type) {
-   }
  
-   if (sandbox_type == SANDBOX_TYPE_RENDERER) {
+@@ -306,6 +308,7 @@ void Sandbox::SandboxWarmup(int sandbox_type) {
+ // This disconnects from the window server, and then indicates that Chrome
+ // should continue execution without access to launchservicesd.
+ void DisconnectWindowServer() {
 +#ifndef MAS_BUILD
-     // Now disconnect from WindowServer, after all objects have been warmed up.
-     // Shutting down the connection requires connecting to WindowServer,
-     // so do this before actually engaging the sandbox. This may cause two log
+   // Now disconnect from WindowServer, after all objects have been warmed up.
+   // Shutting down the connection requires connecting to WindowServer,
+   // so do this before actually engaging the sandbox. This may cause two log
 @@ -318,6 +321,7 @@ void Sandbox::SandboxWarmup(int sandbox_type) {
-     // launchservicesd to get an ASN. By setting this flag, HIServices skips
-     // that.
-     SetApplicationIsDaemon(true);
+   // launchservicesd to get an ASN. By setting this flag, HIServices skips
+   // that.
+   SetApplicationIsDaemon(true);
 +#endif
-   }
  }
  
+ // You are about to read a pretty disgusting hack. In a static initializer,
 diff --git a/net/dns/dns_config_service_posix.cc b/net/dns/dns_config_service_posix.cc
 index c9c9d9231af0..2938808c4db0 100644
 --- a/net/dns/dns_config_service_posix.cc

@@ -99,13 +99,7 @@ with open(args.out, 'w') as out:
         out,
         "obj_base",
         [
-            "base/allocator",
-            "base/base",
-            "base/base_paths",
-            "base/base_static",
-            "base/build_utf8_validator_tables",
-            "base/i18n",
-            "base/third_party",
+            "base",
         ])
 
     gen_list(
@@ -138,6 +132,8 @@ with open(args.out, 'w') as out:
             "components/leveldb",
             "components/link_header_util",
             "components/memory_coordinator",
+            "components/metrics/public/interfaces",
+            "components/metrics/single_sample_metrics",
             "components/mime_util",
             "components/mus/clipboard",
             "components/mus/common",
@@ -145,6 +141,7 @@ with open(args.out, 'w') as out:
             "components/mus/gpu",
             "components/mus/input_devices",
             "components/mus/public",
+            "components/network_session_configurator/common",
             "components/os_crypt",
             "components/payments",
             "components/prefs",
@@ -157,7 +154,12 @@ with open(args.out, 'w') as out:
             "components/tracing/tracing",
             "components/url_formatter",
             "components/variations",
-            "components/viz/frame_sinks/frame_sinks",
+            "components/vector_icons",
+            "components/viz/client",
+            "components/viz/common",
+            "components/viz/hit_test",
+            "components/viz/host",
+            "components/viz/service/service",
             "components/webcrypto",
             "components/webmessaging",
         ])
@@ -185,14 +187,14 @@ with open(args.out, 'w') as out:
         out,
         "obj_net",
         [
-            "net",
+            "net/base",
+            "net/constants",
+            "net/extras",
+            "net/http_server",
+            "net/net",
+            "net/net_with_v8",
         ])
 
-    additional_services = []
-    if sys.platform == 'darwin':
-        additional_services = [
-            "services/service_manager/public/cpp/standalone_service",
-        ]
     gen_list(
         out,
         "obj_services",
@@ -201,12 +203,17 @@ with open(args.out, 'w') as out:
             "services/data_decoder",
             "services/device",
             "services/file",
+            "services/metrics/public",
             "services/resource_coordinator",
+            "services/service_manager/background",
             "services/service_manager/embedder",
-            "services/service_manager/public/cpp/sources",
+            "services/service_manager/public/cpp/cpp",
+            "services/service_manager/public/cpp/cpp_types",
+            "services/service_manager/public/cpp/standalone_service/standalone_service",
             "services/service_manager/public/interfaces",
             "services/service_manager/runner",
             "services/service_manager/service_manager",
+            "services/service_manager/standalone",
             "services/shape_detection",
             "services/shell/public",
             "services/shell/runner",
@@ -215,7 +222,9 @@ with open(args.out, 'w') as out:
             "services/ui/public",
             "services/ui/gpu",
             "services/user",
-        ] + additional_services)
+            "services/video_capture",
+            "services/viz/hit_test/public/interfaces",
+        ])
 
     gen_list(
         out,
@@ -236,6 +245,8 @@ with open(args.out, 'w') as out:
             "third_party/angle/libGLESv2",
             "third_party/angle/preprocessor",
             "third_party/angle/src/third_party/libXNVCtrl",
+            "third_party/angle/src/vulkan_support/glslang",
+            "third_party/angle/src/vulkan_support/vulkan_loader",
             "third_party/angle/translator",
             "third_party/angle/translator_lib",
         ])
@@ -254,14 +265,14 @@ with open(args.out, 'w') as out:
         [
             "third_party/WebKit/public",
             "third_party/WebKit/Source/core",
+            "third_party/WebKit/Source/controller",
             "third_party/WebKit/Source/platform/heap",
             "third_party/WebKit/Source/platform/blink_common",
             "third_party/WebKit/Source/platform/loader",
             "third_party/WebKit/Source/platform/mojo",
             "third_party/WebKit/Source/platform/platform",
-            "third_party/WebKit/Source/platform/wtf/platform_wtf",
+            "third_party/WebKit/Source/platform/wtf",
             "third_party/WebKit/Source/web",
-            "third_party/WebKit/Source/wtf",
         ])
 
     gen_list(

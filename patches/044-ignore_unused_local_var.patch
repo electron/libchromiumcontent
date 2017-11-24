@@ -1,0 +1,20 @@
+diff --git a/third_party/WebKit/Source/platform/graphics/paint/DisplayItemList.cpp
+index f338a95..cde934f 100644
+--- a/third_party/WebKit/Source/platform/graphics/paint/DisplayItemList.cpp
++++ b/third_party/WebKit/Source/platform/graphics/paint/DisplayItemList.cpp
+@@ -2,6 +2,7 @@
+ // Use of this source code is governed by a BSD-style license that can be
+ // found in the LICENSE file.
+ 
++#include "base/compiler_specific.h"
+ #include "platform/graphics/paint/DisplayItemList.h"
+ 
+ #include "platform/graphics/LoggingCanvas.h"
+@@ -49,6 +50,7 @@
+     json->SetInteger("index", i);
+ 
+     bool show_client_debug_name = options & kShowClientDebugName;
++    ALLOW_UNUSED_LOCAL(show_client_debug_name);
+ #if DCHECK_IS_ON()
+     if (display_item.HasValidClient()) {
+       if (display_item.Client().IsAlive())
