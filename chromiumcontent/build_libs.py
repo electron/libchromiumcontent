@@ -51,6 +51,7 @@ with open(args.out, 'w') as out:
             "third_party/brotli/common",
             "third_party/brotli/dec",
             "third_party/ced/ced",
+            "third_party/crc32c",  # for "third_party/leveldatabase"
             "third_party/decklink",
             "third_party/expat",
             "third_party/flac",
@@ -141,6 +142,7 @@ with open(args.out, 'w') as out:
             "components/mus/gpu",
             "components/mus/input_devices",
             "components/mus/public",
+            "components/network_session_configurator/browser",
             "components/network_session_configurator/common",
             "components/os_crypt",
             "components/payments",
@@ -204,6 +206,7 @@ with open(args.out, 'w') as out:
             "services/device",
             "services/file",
             "services/metrics/public",
+            "services/network/public",
             "services/resource_coordinator",
             "services/service_manager/background",
             "services/service_manager/embedder",
@@ -223,7 +226,8 @@ with open(args.out, 'w') as out:
             "services/ui/gpu",
             "services/user",
             "services/video_capture",
-            "services/viz/hit_test/public/interfaces",
+            "services/viz/privileged/interfaces",
+            "services/viz/public/interfaces",
         ])
 
     gen_list(
@@ -263,14 +267,17 @@ with open(args.out, 'w') as out:
         out,
         "obj_webkit",
         [
+            "third_party/WebKit/common",
             "third_party/WebKit/public",
             "third_party/WebKit/Source/core",
             "third_party/WebKit/Source/controller",
             "third_party/WebKit/Source/platform/heap",
             "third_party/WebKit/Source/platform/blink_common",
+            "third_party/WebKit/Source/platform/instrumentation",
             "third_party/WebKit/Source/platform/loader",
             "third_party/WebKit/Source/platform/mojo",
             "third_party/WebKit/Source/platform/platform",
+            "third_party/WebKit/Source/platform/scheduler",
             "third_party/WebKit/Source/platform/wtf",
             "third_party/WebKit/Source/web",
         ])
