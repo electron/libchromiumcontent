@@ -10,6 +10,10 @@ ffmpeg_branding = "Chromium"
 # Always use the system provided standard library
 use_custom_libcxx = false
 
+# Jumbo build should improve compilation times.
+# https://chromium.googlesource.com/chromium/src/+/master/docs/jumbo.md
+use_jumbo_build = true
+
 # On ARM64 Linux, use system provided freetype library to prevent this build failure:
 # warning: libfreetype.so.6, needed by ../../build/linux/debian_jessie_arm64-sysroot/usr/lib/aarch64-linux-gnu/libfontconfig.so, may conflict with libfreetype.so.6
 if (target_cpu == "arm64") {
