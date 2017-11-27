@@ -1,13 +1,76 @@
+diff --git a/base/BUILD.gn b/base/BUILD.gn
+index 6b922adf..061ac83 100644
+--- a/base/BUILD.gn
++++ b/base/BUILD.gn
+@@ -1678,6 +1678,10 @@ component("base") {
+     configs -= [ "//build/config/compiler:default_optimization" ]
+     configs += [ "//build/config/compiler:optimize_max" ]
+   }
++
++  if (is_electron_build) {
++    defines += [ "ELECTRON_NO_DCHECK" ]
++  }
+ }
+ 
+ buildflag_header("debugging_flags") {
 diff --git a/base/logging.h b/base/logging.h
-index c67b937e5b08..e61a35859450 100644
+index 582fb89..24d3e82 100644
 --- a/base/logging.h
 +++ b/base/logging.h
-@@ -718,7 +718,7 @@ DEFINE_CHECK_OP_IMPL(GT, > )
- #if defined(NDEBUG) && !defined(DCHECK_ALWAYS_ON)
- #define DCHECK_IS_ON() 0
- #else
--#define DCHECK_IS_ON() 1
-+#define DCHECK_IS_ON() 0
- #endif
+@@ -850,7 +850,7 @@ const LogSeverity LOG_DCHECK = LOG_INFO;
  
- // Definitions for DLOG et al.
+ #else  // !(defined(_PREFAST_) && defined(OS_WIN))
+ 
+-#if DCHECK_IS_ON()
++#if DCHECK_IS_ON() && !defined(ELECTRON_NO_DCHECK)
+ 
+ #define DCHECK(condition)                                           \
+   LAZY_STREAM(LOG_STREAM(DCHECK), !ANALYZER_ASSUME_TRUE(condition)) \
+diff --git a/content/browser/BUILD.gn b/content/browser/BUILD.gn
+index 4131815..d5500a2 100644
+--- a/content/browser/BUILD.gn
++++ b/content/browser/BUILD.gn
+@@ -2170,6 +2170,10 @@ source_set("browser") {
+       "hyphenation/hyphenation_impl.h",
+     ]
+   }
++  
++  if (is_electron_build) {
++    defines += [ "ELECTRON_NO_DCHECK" ]
++  }
+ }
+ 
+ buildflag_header("accessibility_flags") {
+diff --git a/net/BUILD.gn b/net/BUILD.gn
+index 13c5191..244883a 100644
+--- a/net/BUILD.gn
++++ b/net/BUILD.gn
+@@ -2170,6 +2170,13 @@ component("net") {
+       sources += [ "filter/brotli_source_stream_disabled.cc" ]
+     }
+   }
++
++  if (is_electron_build) {
++    if (!defined(defines)) {
++      defines = []
++    }
++    defines += [ "ELECTRON_NO_DCHECK" ]
++  }
+ }
+ 
+ grit("net_resources") {
+diff --git a/third_party/WebKit/Source/platform/BUILD.gn b/third_party/WebKit/Source/platform/BUILD.gn
+index 7806a71..4550819 100644
+--- a/third_party/WebKit/Source/platform/BUILD.gn
++++ b/third_party/WebKit/Source/platform/BUILD.gn
+@@ -1707,6 +1707,10 @@ component("platform") {
+     configs -= [ "//build/config/compiler:default_symbols" ]
+     configs += remove_webcore_symbols_config
+   }
++
++  if (is_electron_build) {
++    defines += [ "ELECTRON_NO_DCHECK" ]
++  }
+ }
+ 
+ static_library("test_support") {
