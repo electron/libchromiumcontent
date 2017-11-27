@@ -161,7 +161,7 @@ jobs:
       - image: electronbuilds/libchromiumcontent:0.0.4
         environment:
           TARGET_ARCH: mips64el
-    resource_class: xlarge
+    resource_class: 2xlarge
     steps:
       - checkout
       - run: script/bootstrap
@@ -186,3 +186,6 @@ workflows:
   build-arm64:
     jobs:
       - libchromiumcontent-linux-arm64
+  build-mips64el:
+    jobs:
+      - libchromiumcontent-linux-mips64el
