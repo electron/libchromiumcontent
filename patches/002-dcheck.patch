@@ -41,6 +41,21 @@ index 4131815..d5500a2 100644
  }
  
  buildflag_header("accessibility_flags") {
+diff --git a/device/geolocation/BUILD.gn b/device/geolocation/BUILD.gn
+index 27069c5f9700..8a4bb3842a42 100644
+--- a/device/geolocation/BUILD.gn
++++ b/device/geolocation/BUILD.gn
+@@ -115,6 +115,10 @@ component("geolocation") {
+       "Foundation.framework",
+     ]
+   }
++
++  if (is_electron_build) {
++    defines += [ "ELECTRON_NO_DCHECK" ]
++  }
+ }
+ 
+ if (is_android) {
 diff --git a/net/BUILD.gn b/net/BUILD.gn
 index 13c5191..244883a 100644
 --- a/net/BUILD.gn
