@@ -89,3 +89,18 @@ index 7806a71..4550819 100644
  }
  
  static_library("test_support") {
+diff --git a/url/BUILD.gn b/url/BUILD.gn
+index 82eb115ae666..b4806804cdbf 100644
+--- a/url/BUILD.gn
++++ b/url/BUILD.gn
+@@ -96,6 +96,10 @@ component("url") {
+     ]
+     deps += [ "//third_party/icu" ]
+   }
++
++  if (is_electron_build) {
++    defines += [ "ELECTRON_NO_DCHECK" ]
++  }
+ }
+ 
+ if (is_android) {
