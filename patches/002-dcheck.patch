@@ -41,6 +41,24 @@ index 4131815..d5500a2 100644
  }
  
  buildflag_header("accessibility_flags") {
+diff --git a/content/child/BUILD.gn b/content/child/BUILD.gn
+index db74c7691680..29e5895304be 100644
+--- a/content/child/BUILD.gn
++++ b/content/child/BUILD.gn
+@@ -293,6 +293,13 @@ target(link_target_type, "child") {
+     "//content:content_implementation",
+     "//build/config/compiler:no_size_t_to_int_warning",
+   ]
++
++  if (is_electron_build) {
++    if (!defined(defines)) {
++      defines = []
++    }
++    defines += [ "ELECTRON_NO_DCHECK" ]
++  }
+ }
+ 
+ # See comment at the top of //content/BUILD.gn for how this works.
 diff --git a/device/geolocation/BUILD.gn b/device/geolocation/BUILD.gn
 index 27069c5f9700..8a4bb3842a42 100644
 --- a/device/geolocation/BUILD.gn
@@ -74,6 +92,37 @@ index 13c5191..244883a 100644
  }
  
  grit("net_resources") {
+diff --git a/storage/browser/quota/client_usage_tracker.cc b/storage/browser/quota/client_usage_tracker.cc
+index 9b9e10a46397..dafc6e4efa32 100644
+--- a/storage/browser/quota/client_usage_tracker.cc
++++ b/storage/browser/quota/client_usage_tracker.cc
+@@ -149,8 +149,8 @@ void ClientUsageTracker::UpdateUsageCache(const GURL& origin, int64_t delta) {
+       global_unlimited_usage_ += delta;
+     else
+       global_limited_usage_ += delta;
+-    DCHECK_GE(cached_usage_by_host_[host][origin], 0);
+-    DCHECK_GE(global_limited_usage_, 0);
++    //DCHECK_GE(cached_usage_by_host_[host][origin], 0);
++    //DCHECK_GE(global_limited_usage_, 0);
+ 
+     // Notify the usage monitor that usage has changed. The storage monitor may
+     // be NULL during tests.
+diff --git a/third_party/WebKit/Source/core/loader/BUILD.gn b/third_party/WebKit/Source/core/loader/BUILD.gn
+index 86c8ada9d378..ff1155205218 100644
+--- a/third_party/WebKit/Source/core/loader/BUILD.gn
++++ b/third_party/WebKit/Source/core/loader/BUILD.gn
+@@ -125,4 +125,11 @@ blink_core_sources("loader") {
+     # TODO(jschuh): crbug.com/167187 fix size_t to int truncations.
+     "//build/config/compiler:no_size_t_to_int_warning",
+   ]
++
++  if (is_electron_build) {
++    if (!defined(defines)) {
++      defines = []
++    }
++    defines += [ "ELECTRON_NO_DCHECK" ]
++  }
+ }
 diff --git a/third_party/WebKit/Source/platform/BUILD.gn b/third_party/WebKit/Source/platform/BUILD.gn
 index 7806a71..4550819 100644
 --- a/third_party/WebKit/Source/platform/BUILD.gn
@@ -81,6 +130,21 @@ index 7806a71..4550819 100644
 @@ -1707,6 +1707,10 @@ component("platform") {
      configs -= [ "//build/config/compiler:default_symbols" ]
      configs += remove_webcore_symbols_config
+   }
++
++  if (is_electron_build) {
++    defines += [ "ELECTRON_NO_DCHECK" ]
++  }
+ }
+ 
+ static_library("test_support") {
+diff --git a/ui/base/BUILD.gn b/ui/base/BUILD.gn
+index 119d0fab47c9..7f9110f8b197 100644
+--- a/ui/base/BUILD.gn
++++ b/ui/base/BUILD.gn
+@@ -647,6 +647,10 @@ component("base") {
+   if (is_android || is_ios) {
+     sources -= [ "device_form_factor_desktop.cc" ]
    }
 +
 +  if (is_electron_build) {
