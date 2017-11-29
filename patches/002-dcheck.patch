@@ -63,14 +63,14 @@ index 582fb89..24d3e82 100644
  #define DCHECK(condition)                                           \
    LAZY_STREAM(LOG_STREAM(DCHECK), !ANALYZER_ASSUME_TRUE(condition)) \
 diff --git a/content/browser/BUILD.gn b/content/browser/BUILD.gn
-index 4131815..d5500a2 100644
+index 41318159a2ad..f23682f0b22d 100644
 --- a/content/browser/BUILD.gn
 +++ b/content/browser/BUILD.gn
 @@ -2170,6 +2170,10 @@ source_set("browser") {
        "hyphenation/hyphenation_impl.h",
      ]
    }
-+  
++
 +  if (is_electron_build) {
 +    defines += [ "ELECTRON_NO_DCHECK" ]
 +  }
