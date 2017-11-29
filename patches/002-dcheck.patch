@@ -30,6 +30,7 @@ These files have debug checks explicitly commented out:
 
   storage/browser/quota/client_usage_tracker.cc
   ui/latency/latency_histogram_macros.h
+  third_party/WebKit/Source/platform/wtf/ThreadRestrictionVerifier.h
 
 
 diff --git a/base/BUILD.gn b/base/BUILD.gn
@@ -172,6 +173,26 @@ index 7806a71..4550819 100644
  }
  
  static_library("test_support") {
+diff --git a/third_party/WebKit/Source/platform/wtf/ThreadRestrictionVerifier.h b/third_party/WebKit/Source/platform/wtf/ThreadRestrictionVerifier.h
+index 73c4d74ef3c1..d4a1a6c5696b 100644
+--- a/third_party/WebKit/Source/platform/wtf/ThreadRestrictionVerifier.h
++++ b/third_party/WebKit/Source/platform/wtf/ThreadRestrictionVerifier.h
+@@ -85,13 +85,13 @@ class ThreadRestrictionVerifier {
+  private:
+   // Indicates that the object may (or may not) be owned by more than one place.
+   void SetShared(bool shared) {
+-    bool previously_shared = shared_;
++    // bool previously_shared = shared_;
+     shared_ = shared;
+ 
+     if (!shared_)
+       return;
+ 
+-    DCHECK_NE(shared, previously_shared);
++    // DCHECK_NE(shared, previously_shared);
+     // Capture the current thread to verify that subsequent ref/deref happen on
+     // this thread.
+     owning_thread_ = CurrentThread();
 diff --git a/ui/base/BUILD.gn b/ui/base/BUILD.gn
 index 119d0fab47c9..7f9110f8b197 100644
 --- a/ui/base/BUILD.gn
