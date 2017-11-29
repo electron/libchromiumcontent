@@ -28,9 +28,10 @@ This patch applies the flag to the following GN targets:
 
 These files have debug checks explicitly commented out:
 
+  content/browser/webui/shared_resources_data_source.cc
   storage/browser/quota/client_usage_tracker.cc
-  ui/latency/latency_histogram_macros.h
   third_party/WebKit/Source/platform/wtf/ThreadRestrictionVerifier.h
+  ui/latency/latency_histogram_macros.h
 
 
 diff --git a/base/BUILD.gn b/base/BUILD.gn
@@ -76,6 +77,19 @@ index 4131815..d5500a2 100644
  }
  
  buildflag_header("accessibility_flags") {
+diff --git a/content/browser/webui/shared_resources_data_source.cc b/content/browser/webui/shared_resources_data_source.cc
+index 86f1cce409ed..f9ec23d6af89 100644
+--- a/content/browser/webui/shared_resources_data_source.cc
++++ b/content/browser/webui/shared_resources_data_source.cc
+@@ -103,7 +103,7 @@ void SharedResourcesDataSource::StartDataRequest(
+     const ResourceRequestInfo::WebContentsGetter& wc_getter,
+     const URLDataSource::GotDataCallback& callback) {
+   int idr = GetIdrForPath(path);
+-  DCHECK_NE(-1, idr) << " path: " << path;
++  // DCHECK_NE(-1, idr) << " path: " << path;
+   scoped_refptr<base::RefCountedMemory> bytes;
+ 
+   if (idr == IDR_WEBUI_CSS_TEXT_DEFAULTS) {
 diff --git a/content/child/BUILD.gn b/content/child/BUILD.gn
 index db74c7691680..29e5895304be 100644
 --- a/content/child/BUILD.gn
