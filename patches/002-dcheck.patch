@@ -29,6 +29,7 @@ This patch applies the flag to the following GN targets:
 These files have debug checks explicitly commented out:
 
   content/browser/webui/shared_resources_data_source.cc
+  ppapi/host/ppapi_host.cc
   storage/browser/quota/client_usage_tracker.cc
   third_party/WebKit/Source/platform/wtf/ThreadRestrictionVerifier.h
   ui/latency/latency_histogram_macros.h
@@ -141,6 +142,19 @@ index 13c5191..244883a 100644
  }
  
  grit("net_resources") {
+diff --git a/ppapi/host/ppapi_host.cc b/ppapi/host/ppapi_host.cc
+index f3c68fab3de6..b8609daf3ef9 100644
+--- a/ppapi/host/ppapi_host.cc
++++ b/ppapi/host/ppapi_host.cc
+@@ -240,7 +240,7 @@ void PpapiHost::OnHostMsgResourceCreated(
+       CreateResourceHost(params.pp_resource(), instance, nested_msg);
+ 
+   if (!resource_host.get()) {
+-    NOTREACHED();
++    // NOTREACHED();
+     return;
+   }
+ 
 diff --git a/storage/browser/quota/client_usage_tracker.cc b/storage/browser/quota/client_usage_tracker.cc
 index 9b9e10a46397..dafc6e4efa32 100644
 --- a/storage/browser/quota/client_usage_tracker.cc
