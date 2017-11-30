@@ -30,15 +30,13 @@ index 197b64b49fd6..2e94b03c4f44 100644
    // Called by |frame| to notify that it has received an update on focused
    // element. |bounds_in_root_view| is the rectangle containing the element that
 diff --git a/content/browser/frame_host/render_frame_host_impl.cc b/content/browser/frame_host/render_frame_host_impl.cc
-index 585a523bff87..2fa10398813d 100644
+index 82ab04e1019d..209dbd15d894 100644
 --- a/content/browser/frame_host/render_frame_host_impl.cc
 +++ b/content/browser/frame_host/render_frame_host_impl.cc
-@@ -2961,8 +2961,22 @@ bool RenderFrameHostImpl::UpdatePendingWebUI(const GURL& dest_url,
+@@ -3461,8 +3461,22 @@ bool RenderFrameHostImpl::UpdatePendingWebUI(const GURL& dest_url,
        DCHECK(web_ui_);
        should_reuse_web_ui_ = true;
      } else {
--      // Otherwise create a new pending WebUI.
--      pending_web_ui_ = delegate_->CreateWebUIForRenderFrameHost(dest_url);
 +      // Give the frame a name if it does not already have one.
 +      // The reason is web ui code base the frame look up on the frame name.
 +      std::string frame_name = GetFrameName();
@@ -53,7 +51,8 @@ index 585a523bff87..2fa10398813d 100644
 +        entry_bindings = NavigationEntryImpl::kInvalidBindings;
 +      }
 +
-+      // Otherwise create a new pending WebUI.
+       // Otherwise create a new pending WebUI.
+-      pending_web_ui_ = delegate_->CreateWebUIForRenderFrameHost(dest_url);
 +      pending_web_ui_ = delegate_->CreateWebUIForRenderFrameHost(dest_url, frame_name);
        DCHECK(pending_web_ui_);
        pending_web_ui_type_ = new_web_ui_type;

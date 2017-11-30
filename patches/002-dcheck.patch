@@ -28,6 +28,7 @@ This patch applies the flag to the following GN targets:
 
 These files have debug checks explicitly commented out:
 
+  content/browser/frame_host/render_frame_host_impl.cc
   content/browser/webui/shared_resources_data_source.cc
   ppapi/host/ppapi_host.cc
   storage/browser/quota/client_usage_tracker.cc
@@ -78,6 +79,21 @@ index 41318159a2ad..f23682f0b22d 100644
  }
  
  buildflag_header("accessibility_flags") {
+diff --git a/content/browser/frame_host/render_frame_host_impl.cc b/content/browser/frame_host/render_frame_host_impl.cc
+index 346765edaef9..1bf37e107a90 100644
+--- a/content/browser/frame_host/render_frame_host_impl.cc
++++ b/content/browser/frame_host/render_frame_host_impl.cc
+@@ -2072,8 +2072,8 @@ void RenderFrameHostImpl::AllowBindings(int bindings_flags) {
+   }
+ 
+   enabled_bindings_ |= bindings_flags;
+-  if (GetParent())
+-    DCHECK_EQ(GetParent()->GetEnabledBindings(), GetEnabledBindings());
++  // if (GetParent())
++  //   DCHECK_EQ(GetParent()->GetEnabledBindings(), GetEnabledBindings());
+ 
+   if (render_frame_created_) {
+     if (!frame_bindings_control_)
 diff --git a/content/browser/webui/shared_resources_data_source.cc b/content/browser/webui/shared_resources_data_source.cc
 index 86f1cce409ed..f9ec23d6af89 100644
 --- a/content/browser/webui/shared_resources_data_source.cc
