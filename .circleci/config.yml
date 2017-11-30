@@ -1,10 +1,46 @@
 version: 2.0
 jobs:
-  libchromiumcontent-linux-x64:
+  libchromiumcontent-linux-x64-shared:
     docker:
       - image: electronbuilds/libchromiumcontent:0.0.4
         environment:
           TARGET_ARCH: x64
+          COMPONENT: shared_library
+    resource_class: 2xlarge
+    steps:
+      - checkout
+      - run:
+          name: Bootstrap
+          command: script/bootstrap
+      - run:
+          name: Update
+          command: script/update --clean -t $TARGET_ARCH
+      - run:
+          name: Build shared library
+          command: script/build -t $TARGET_ARCH -c $COMPONENT
+      - run:
+          name: Build FFmpeg
+          command: script/build -t $TARGET_ARCH -c ffmpeg
+      - run:
+          name: Create distribution
+          command: script/create-dist -t $TARGET_ARCH -c $COMPONENT
+      - run:
+          name: Upload to S3
+          command: |
+            if [[ -z "${LIBCHROMIUMCONTENT_S3_ACCESS_KEY}" ]]; then
+              echo "Skipping upload to S3"
+            else
+              script/upload -t $TARGET_ARCH
+            fi
+      - store_artifacts:
+          path: libchromiumcontent.zip
+
+  libchromiumcontent-linux-x64-static:
+    docker:
+      - image: electronbuilds/libchromiumcontent:0.0.4
+        environment:
+          TARGET_ARCH: x64
+          COMPONENT: static_library
     resource_class: 2xlarge
     steps:
       - checkout
@@ -16,16 +52,13 @@ jobs:
           command: script/update --clean -t $TARGET_ARCH
       - run:
           name: Build static library
-          command: script/build -t $TARGET_ARCH -c static_library
-      - run:
-          name: Build shared library
-          command: script/build -t $TARGET_ARCH -c shared_library
+          command: script/build -t $TARGET_ARCH -c $COMPONENT
       - run:
           name: Build FFmpeg
           command: script/build -t $TARGET_ARCH -c ffmpeg
       - run:
           name: Create distribution
-          command: script/create-dist -t $TARGET_ARCH
+          command: script/create-dist -t $TARGET_ARCH -c $COMPONENT
       - run:
           name: Upload to S3
           command: |
@@ -35,15 +68,49 @@ jobs:
               script/upload -t $TARGET_ARCH
             fi
       - store_artifacts:
-          path: libchromiumcontent.zip
-      - store_artifacts:
           path: libchromiumcontent-static.zip
 
-  libchromiumcontent-linux-ia32:
+  libchromiumcontent-linux-ia32-shared:
     docker:
       - image: electronbuilds/libchromiumcontent:0.0.4
         environment:
           TARGET_ARCH: ia32
+          COMPONENT: shared_library
+    resource_class: 2xlarge
+    steps:
+      - checkout
+      - run:
+          name: Bootstrap
+          command: script/bootstrap
+      - run:
+          name: Update
+          command: script/update --clean -t $TARGET_ARCH
+      - run:
+          name: Build shared library
+          command: script/build -t $TARGET_ARCH -c $COMPONENT
+      - run:
+          name: Build FFmpeg
+          command: script/build -t $TARGET_ARCH -c ffmpeg
+      - run:
+          name: Create distribution
+          command: script/create-dist -t $TARGET_ARCH -c $COMPONENT
+      - run:
+          name: Upload to S3
+          command: |
+            if [[ -z "${LIBCHROMIUMCONTENT_S3_ACCESS_KEY}" ]]; then
+              echo "Skipping upload to S3"
+            else
+              script/upload -t $TARGET_ARCH
+            fi
+      - store_artifacts:
+          path: libchromiumcontent.zip
+
+  libchromiumcontent-linux-ia32-static:
+    docker:
+      - image: electronbuilds/libchromiumcontent:0.0.4
+        environment:
+          TARGET_ARCH: ia32
+          COMPONENT: static_library
     resource_class: 2xlarge
     steps:
       - checkout
@@ -55,16 +122,13 @@ jobs:
           command: script/update --clean -t $TARGET_ARCH
       - run:
           name: Build static library
-          command: script/build -t $TARGET_ARCH -c static_library
-      - run:
-          name: Build shared library
-          command: script/build -t $TARGET_ARCH -c shared_library
+          command: script/build -t $TARGET_ARCH -c $COMPONENT
       - run:
           name: Build FFmpeg
           command: script/build -t $TARGET_ARCH -c ffmpeg
       - run:
           name: Create distribution
-          command: script/create-dist -t $TARGET_ARCH
+          command: script/create-dist -t $TARGET_ARCH -c $COMPONENT
       - run:
           name: Upload to S3
           command: |
@@ -74,15 +138,49 @@ jobs:
               script/upload -t $TARGET_ARCH
             fi
       - store_artifacts:
-          path: libchromiumcontent.zip
-      - store_artifacts:
           path: libchromiumcontent-static.zip
 
-  libchromiumcontent-linux-arm:
+  libchromiumcontent-linux-arm-shared:
     docker:
       - image: electronbuilds/libchromiumcontent:0.0.4
         environment:
           TARGET_ARCH: arm
+          COMPONENT: shared_library
+    resource_class: 2xlarge
+    steps:
+      - checkout
+      - run:
+          name: Bootstrap
+          command: script/bootstrap
+      - run:
+          name: Update
+          command: script/update --clean -t $TARGET_ARCH
+      - run:
+          name: Build shared library
+          command: script/build -t $TARGET_ARCH -c $COMPONENT
+      - run:
+          name: Build FFmpeg
+          command: script/build -t $TARGET_ARCH -c ffmpeg
+      - run:
+          name: Create distribution
+          command: script/create-dist -t $TARGET_ARCH -c $COMPONENT
+      - run:
+          name: Upload to S3
+          command: |
+            if [[ -z "${LIBCHROMIUMCONTENT_S3_ACCESS_KEY}" ]]; then
+              echo "Skipping upload to S3"
+            else
+              script/upload -t $TARGET_ARCH
+            fi
+      - store_artifacts:
+          path: libchromiumcontent.zip
+
+  libchromiumcontent-linux-arm-static:
+    docker:
+      - image: electronbuilds/libchromiumcontent:0.0.4
+        environment:
+          TARGET_ARCH: arm
+          COMPONENT: static_library
     resource_class: 2xlarge
     steps:
       - checkout
@@ -94,16 +192,13 @@ jobs:
           command: script/update --clean -t $TARGET_ARCH
       - run:
           name: Build static library
-          command: script/build -t $TARGET_ARCH -c static_library
-      - run:
-          name: Build shared library
-          command: script/build -t $TARGET_ARCH -c shared_library
+          command: script/build -t $TARGET_ARCH -c $COMPONENT
       - run:
           name: Build FFmpeg
           command: script/build -t $TARGET_ARCH -c ffmpeg
       - run:
           name: Create distribution
-          command: script/create-dist -t $TARGET_ARCH
+          command: script/create-dist -t $TARGET_ARCH -c $COMPONENT
       - run:
           name: Upload to S3
           command: |
@@ -113,15 +208,49 @@ jobs:
               script/upload -t $TARGET_ARCH
             fi
       - store_artifacts:
-          path: libchromiumcontent.zip
-      - store_artifacts:
           path: libchromiumcontent-static.zip
 
-  libchromiumcontent-linux-arm64:
+  libchromiumcontent-linux-arm64-shared:
     docker:
       - image: electronbuilds/libchromiumcontent:0.0.4
         environment:
           TARGET_ARCH: arm64
+          COMPONENT: shared_library
+    resource_class: 2xlarge
+    steps:
+      - checkout
+      - run:
+          name: Bootstrap
+          command: script/bootstrap
+      - run:
+          name: Update
+          command: script/update --clean -t $TARGET_ARCH
+      - run:
+          name: Build shared library
+          command: script/build -t $TARGET_ARCH -c $COMPONENT
+      - run:
+          name: Build FFmpeg
+          command: script/build -t $TARGET_ARCH -c ffmpeg
+      - run:
+          name: Create distribution
+          command: script/create-dist -t $TARGET_ARCH -c $COMPONENT
+      - run:
+          name: Upload to S3
+          command: |
+            if [[ -z "${LIBCHROMIUMCONTENT_S3_ACCESS_KEY}" ]]; then
+              echo "Skipping upload to S3"
+            else
+              script/upload -t $TARGET_ARCH
+            fi
+      - store_artifacts:
+          path: libchromiumcontent.zip
+
+  libchromiumcontent-linux-arm64-static:
+    docker:
+      - image: electronbuilds/libchromiumcontent:0.0.4
+        environment:
+          TARGET_ARCH: arm64
+          COMPONENT: static_library
     resource_class: 2xlarge
     steps:
       - checkout
@@ -133,16 +262,48 @@ jobs:
           command: script/update --clean -t $TARGET_ARCH
       - run:
           name: Build static library
-          command: script/build -t $TARGET_ARCH -c static_library
-      - run:
-          name: Build shared library
-          command: script/build -t $TARGET_ARCH -c shared_library
+          command: script/build -t $TARGET_ARCH -c $COMPONENT
       - run:
           name: Build FFmpeg
           command: script/build -t $TARGET_ARCH -c ffmpeg
       - run:
           name: Create distribution
-          command: script/create-dist -t $TARGET_ARCH
+          command: script/create-dist -t $TARGET_ARCH -c $COMPONENT
+      - run:
+          name: Upload to S3
+          command: |
+            if [[ -z "${LIBCHROMIUMCONTENT_S3_ACCESS_KEY}" ]]; then
+              echo "Skipping upload to S3"
+            else
+              script/upload -t $TARGET_ARCH
+            fi
+      - store_artifacts:
+          path: libchromiumcontent-static.zip
+
+  libchromiumcontent-linux-mips64el-shared:
+    docker:
+      - image: electronbuilds/libchromiumcontent:0.0.4
+        environment:
+          TARGET_ARCH: mips64el
+          COMPONENT: shared_library
+    resource_class: 2xlarge
+    steps:
+      - checkout
+      - run:
+          name: Bootstrap
+          command: script/bootstrap
+      - run:
+          name: Update
+          command: script/update --clean -t $TARGET_ARCH
+      - run:
+          name: Build shared library
+          command: script/build -t $TARGET_ARCH -c $COMPONENT
+      - run:
+          name: Build FFmpeg
+          command: script/build -t $TARGET_ARCH -c ffmpeg
+      - run:
+          name: Create distribution
+          command: script/create-dist -t $TARGET_ARCH -c $COMPONENT
       - run:
           name: Upload to S3
           command: |
@@ -153,36 +314,57 @@ jobs:
             fi
       - store_artifacts:
           path: libchromiumcontent.zip
-      - store_artifacts:
-          path: libchromiumcontent-static.zip
 
-  libchromiumcontent-linux-mips64el:
+  libchromiumcontent-linux-mips64el-static:
     docker:
       - image: electronbuilds/libchromiumcontent:0.0.4
         environment:
           TARGET_ARCH: mips64el
+          COMPONENT: static_library
     resource_class: 2xlarge
     steps:
       - checkout
-      - run: script/bootstrap
-      - run: script/update --clean -t $TARGET_ARCH
-      - run: script/build -t $TARGET_ARCH -c static_library
-      - run: script/build -t $TARGET_ARCH -c shared_library
-      - run: script/build -t $TARGET_ARCH -c ffmpeg
-      - run: script/create-dist -t $TARGET_ARCH
-      - run: script/upload -t $TARGET_ARCH
+      - run:
+          name: Bootstrap
+          command: script/bootstrap
+      - run:
+          name: Update
+          command: script/update --clean -t $TARGET_ARCH
+      - run:
+          name: Build static library
+          command: script/build -t $TARGET_ARCH -c $COMPONENT
+      - run:
+          name: Build FFmpeg
+          command: script/build -t $TARGET_ARCH -c ffmpeg
+      - run:
+          name: Create distribution
+          command: script/create-dist -t $TARGET_ARCH -c $COMPONENT
+      - run:
+          name: Upload to S3
+          command: |
+            if [[ -z "${LIBCHROMIUMCONTENT_S3_ACCESS_KEY}" ]]; then
+              echo "Skipping upload to S3"
+            else
+              script/upload -t $TARGET_ARCH
+            fi
+      - store_artifacts:
+          path: libchromiumcontent-static.zip
 
 workflows:
   version: 2
   build-x64:
     jobs:
-      - libchromiumcontent-linux-x64
+      - libchromiumcontent-linux-x64-shared
+      - libchromiumcontent-linux-x64-static
   build-ia32:
     jobs:
-      - libchromiumcontent-linux-ia32
+      - libchromiumcontent-linux-ia32-shared
+      - libchromiumcontent-linux-ia32-static
   build-arm:
     jobs:
-      - libchromiumcontent-linux-arm
+      - libchromiumcontent-linux-arm-shared
+      - libchromiumcontent-linux-arm-static
   build-arm64:
     jobs:
-      - libchromiumcontent-linux-arm64
+      - libchromiumcontent-linux-arm64-shared
+      - libchromiumcontent-linux-arm64-static
