@@ -392,7 +392,7 @@ def main():
                      args.target_arch)
 
   if not args.no_zip:
-    create_zip(args.create_debug_archive)
+    create_zip(args.create_debug_archive, args.component)
 
 
 def generate_ninja(args, ninja):
@@ -729,17 +729,19 @@ def generate_licenses(ninja):
       entry_template], variables=data)
 
 
-def create_zip(create_debug_archive):
-  print 'Zipping shared_library builds...'
-  p = os.path.join(SOURCE_ROOT, 'libchromiumcontent.zip')
-  make_zip(MAIN_DIR, ['src', 'ffmpeg', 'shared_library'], ['LICENSES.chromium.html'], p)
+def create_zip(create_debug_archive, component):
+  if component == 'all' or component == 'shared_library':
+    print 'Zipping shared_library builds...'
+    p = os.path.join(SOURCE_ROOT, 'libchromiumcontent.zip')
+    make_zip(MAIN_DIR, ['src', 'ffmpeg', 'shared_library'], ['LICENSES.chromium.html'], p)
   if create_debug_archive:
     print 'Zipping shared library debug files...'
     p = os.path.join(SOURCE_ROOT, 'libchromiumcontent-dbg.zip')
     make_zip(MAIN_DIR, ['.debug'], [], p)
-  print 'Zipping static_library builds...'
-  p = os.path.join(SOURCE_ROOT, 'libchromiumcontent-static.zip')
-  make_zip(MAIN_DIR, ['static_library'], [], p)
+  if component == 'all' or component == 'static_library':
+    print 'Zipping static_library builds...'
+    p = os.path.join(SOURCE_ROOT, 'libchromiumcontent-static.zip')
+    make_zip(MAIN_DIR, ['static_library'], [], p)
 
 
 def make_zip(src, dirs, files, target):

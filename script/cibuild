@@ -33,7 +33,8 @@ def main():
   os.environ['CHROME_HEADLESS'] = '1'
 
   if 'TARGET_ARCH' in os.environ:
-    return run_ci(['-t', os.environ['TARGET_ARCH']], skip_upload)
+    args = ['-t', os.environ['TARGET_ARCH']]
+    return run_ci(args, skip_upload, os.environ['COMPONENT'])
 
   if sys.platform in ['win32', 'cygwin']:
     return (run_ci(['-t', 'x64'], skip_upload) or
@@ -71,7 +72,12 @@ def os_version():
     return platform.platform()
 
 
-def run_ci(args, skip_upload):
+def run_ci(args, skip_upload, component=None):
+  build_args = []
+  component_args = []
+  if component is not None:
+    component_args = ['-c', component]
+    build_args += component_args + ['-F']
   if sys.platform in ['win32', 'cygwin']:
     target_arch = args[1]
     # Set build env for VS.
@@ -83,8 +89,8 @@ def run_ci(args, skip_upload):
 
   return (run_script('bootstrap') or
           run_script('update', ['--clean'] + args) or
-          run_script('build', args) or
-          run_script('create-dist', args) or
+          run_script('build', args + build_args) or
+          run_script('create-dist', args + component_args) or
           run_script('upload', args, skip_upload))
 
 
