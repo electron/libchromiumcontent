@@ -30,7 +30,6 @@ These files have debug checks explicitly commented out:
 
   base/process/kill_win.cc
   content/browser/frame_host/render_frame_host_impl.cc
-  content/browser/webui/shared_resources_data_source.cc
   ppapi/host/ppapi_host.cc
   storage/browser/quota/client_usage_tracker.cc
   third_party/WebKit/Source/platform/wtf/ThreadRestrictionVerifier.h
@@ -108,19 +107,6 @@ index 346765edaef9..1bf37e107a90 100644
  
    if (render_frame_created_) {
      if (!frame_bindings_control_)
-diff --git a/content/browser/webui/shared_resources_data_source.cc b/content/browser/webui/shared_resources_data_source.cc
-index 86f1cce409ed..f9ec23d6af89 100644
---- a/content/browser/webui/shared_resources_data_source.cc
-+++ b/content/browser/webui/shared_resources_data_source.cc
-@@ -103,7 +103,7 @@ void SharedResourcesDataSource::StartDataRequest(
-     const ResourceRequestInfo::WebContentsGetter& wc_getter,
-     const URLDataSource::GotDataCallback& callback) {
-   int idr = GetIdrForPath(path);
--  DCHECK_NE(-1, idr) << " path: " << path;
-+  // DCHECK_NE(-1, idr) << " path: " << path;
-   scoped_refptr<base::RefCountedMemory> bytes;
- 
-   if (idr == IDR_WEBUI_CSS_TEXT_DEFAULTS) {
 diff --git a/content/child/BUILD.gn b/content/child/BUILD.gn
 index db74c7691680..29e5895304be 100644
 --- a/content/child/BUILD.gn
