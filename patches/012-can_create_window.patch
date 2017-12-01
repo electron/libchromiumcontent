@@ -1,8 +1,8 @@
 diff --git a/content/browser/frame_host/render_frame_host_impl.cc b/content/browser/frame_host/render_frame_host_impl.cc
-index cee576c37901..3cd8c5817d2d 100644
+index 1bf37e107a90..82ab04e1019d 100644
 --- a/content/browser/frame_host/render_frame_host_impl.cc
 +++ b/content/browser/frame_host/render_frame_host_impl.cc
-@@ -2617,6 +2617,48 @@ void RenderFrameHostImpl::CreateNewWindow(
+@@ -2716,6 +2716,48 @@ void RenderFrameHostImpl::CreateNewWindow(
                 "frame_tree_node", frame_tree_node_->frame_tree_node_id(), "url",
                 params->target_url.possibly_invalid_spec());
  
@@ -51,7 +51,7 @@ index cee576c37901..3cd8c5817d2d 100644
    bool no_javascript_access = false;
  
    // Filter out URLs that this process cannot request.
-@@ -2630,8 +2672,9 @@ void RenderFrameHostImpl::CreateNewWindow(
+@@ -2729,8 +2771,9 @@ void RenderFrameHostImpl::CreateNewWindow(
            frame_tree_node_->frame_tree()->GetMainFrame()->last_committed_url(),
            last_committed_origin_.GetURL(), params->window_container_type,
            params->target_url, params->referrer, params->frame_name,
