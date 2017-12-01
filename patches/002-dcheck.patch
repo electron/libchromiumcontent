@@ -28,6 +28,7 @@ This patch applies the flag to the following GN targets:
 
 These files have debug checks explicitly commented out:
 
+  base/process/kill_win.cc
   content/browser/frame_host/render_frame_host_impl.cc
   content/browser/webui/shared_resources_data_source.cc
   ppapi/host/ppapi_host.cc
@@ -64,6 +65,19 @@ index 582fb89..24d3e82 100644
  
  #define DCHECK(condition)                                           \
    LAZY_STREAM(LOG_STREAM(DCHECK), !ANALYZER_ASSUME_TRUE(condition)) \
+diff --git a/base/process/kill_win.cc b/base/process/kill_win.cc
+index 79e5ded316e8..cbe455c7417c 100644
+--- a/base/process/kill_win.cc
++++ b/base/process/kill_win.cc
+@@ -43,7 +43,7 @@ TerminationStatus GetTerminationStatus(ProcessHandle handle, int* exit_code) {
+   DWORD tmp_exit_code = 0;
+ 
+   if (!::GetExitCodeProcess(handle, &tmp_exit_code)) {
+-    DPLOG(FATAL) << "GetExitCodeProcess() failed";
++    // DPLOG(FATAL) << "GetExitCodeProcess() failed";
+     if (exit_code) {
+       // This really is a random number.  We haven't received any
+       // information about the exit code, presumably because this
 diff --git a/content/browser/BUILD.gn b/content/browser/BUILD.gn
 index 41318159a2ad..f23682f0b22d 100644
 --- a/content/browser/BUILD.gn
