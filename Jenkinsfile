@@ -118,7 +118,7 @@ pipeline {
             }
             withCredentials([string(credentialsId: 'libccbucket', variable: 'LIBCC_BUCKET')]) {
               withAWS(credentials:'libccs3',region:'us-east-1') {
-                s3Upload(file:'libchromiumcontent-static.zip', bucket:"${LIBCC_BUCKET}", path:"libchromiumcontent/mas/${env.TARGET_ARCH}/${GIT_COMMIT}/libchromiumcontent-static.zip'", acl:'PublicRead')
+                s3Upload(file:'libchromiumcontent-static.zip', bucket:"${LIBCC_BUCKET}", path:"libchromiumcontent/mas/${env.TARGET_ARCH}/${GIT_COMMIT}/libchromiumcontent-static.zip", acl:'PublicRead')
               }
             }
           }
