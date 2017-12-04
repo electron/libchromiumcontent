@@ -11,9 +11,9 @@ index de3f35f124aa..a52003f1b5e1 100644
    # Set to enable the official build level of optimization. This has nothing
    # to do with branding, but enables an additional level of optimization above
    # release (!is_debug). This might be better expressed as a tri-state
-@@ -520,6 +522,7 @@ default_compiler_configs = [
-   "//build/config/compiler:no_rtti",
+@@ -529,6 +529,7 @@ default_compiler_configs = [
    "//build/config/compiler:runtime_library",
+   "//build/config/coverage:default_coverage",
    "//build/config/sanitizers:default_sanitizer_flags",
 +  "//chromiumcontent/config:mas_build",
  ]
