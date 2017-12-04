@@ -1,39 +1,40 @@
 diff --git a/content/browser/compositor/gpu_process_transport_factory.cc b/content/browser/compositor/gpu_process_transport_factory.cc
-index 50a66bb..73a9515 100644
+index 45bf6b1b4618..f023beabaa65 100644
 --- a/content/browser/compositor/gpu_process_transport_factory.cc
 +++ b/content/browser/compositor/gpu_process_transport_factory.cc
-@@ -217,6 +217,12 @@ GpuProcessTransportFactory::~GpuProcessTransportFactory() {
- std::unique_ptr<cc::SoftwareOutputDevice>
+@@ -274,6 +274,13 @@ GpuProcessTransportFactory::~GpuProcessTransportFactory() {
+ std::unique_ptr<viz::SoftwareOutputDevice>
  GpuProcessTransportFactory::CreateSoftwareOutputDevice(
      ui::Compositor* compositor) {
 +  if (compositor->delegate()) {
-+    std::unique_ptr<cc::SoftwareOutputDevice> output_device =
++    std::unique_ptr<viz::SoftwareOutputDevice> output_device =
 +      compositor->delegate()->CreateSoftwareOutputDevice(compositor);
 +    if (output_device)
 +      return output_device;
 +  }
++
    base::CommandLine* command_line = base::CommandLine::ForCurrentProcess();
    if (command_line->HasSwitch(switches::kHeadless))
-     return base::WrapUnique(new cc::SoftwareOutputDevice);
+     return base::WrapUnique(new viz::SoftwareOutputDevice);
 diff --git a/ui/compositor/compositor.h b/ui/compositor/compositor.h
-index a3bc8cafc574..6cca225c2ba2 100644
+index d842aa55175b..2c2131774b71 100644
 --- a/ui/compositor/compositor.h
 +++ b/ui/compositor/compositor.h
-@@ -19,6 +19,7 @@
- #include "build/build_config.h"
- #include "cc/trees/layer_tree_host_client.h"
- #include "cc/trees/layer_tree_host_single_thread_client.h"
-+#include "cc/output/software_output_device.h"
- #include "components/viz/common/frame_sinks/begin_frame_args.h"
+@@ -23,6 +23,7 @@
  #include "components/viz/common/surfaces/local_surface_id.h"
  #include "components/viz/common/surfaces/surface_sequence.h"
-@@ -168,6 +169,15 @@ class COMPOSITOR_EXPORT CompositorLock
+ #include "components/viz/host/host_frame_sink_client.h"
++#include "components/viz/service/display/software_output_device.h"
+ #include "third_party/skia/include/core/SkColor.h"
+ #include "ui/compositor/compositor_animation_observer.h"
+ #include "ui/compositor/compositor_export.h"
+@@ -179,6 +180,15 @@ class COMPOSITOR_EXPORT ContextFactory {
    virtual void RemoveObserver(ContextFactoryObserver* observer) = 0;
  };
  
 +class COMPOSITOR_EXPORT CompositorDelegate {
 + public:
-+  virtual std::unique_ptr<cc::SoftwareOutputDevice> CreateSoftwareOutputDevice(
++  virtual std::unique_ptr<viz::SoftwareOutputDevice> CreateSoftwareOutputDevice(
 +      ui::Compositor* compositor) = 0;
 +
 + protected:
@@ -43,7 +44,7 @@ index a3bc8cafc574..6cca225c2ba2 100644
  // Compositor object to take care of GPU painting.
  // A Browser compositor object is responsible for generating the final
  // displayable form of pixels comprising a single widget's contents. It draws an
-@@ -200,6 +210,9 @@ class COMPOSITOR_EXPORT Compositor
+@@ -215,6 +225,9 @@ class COMPOSITOR_EXPORT Compositor : public cc::LayerTreeHostClient,
    // Schedules a redraw of the layer tree associated with this compositor.
    void ScheduleDraw();
  
@@ -53,7 +54,7 @@ index a3bc8cafc574..6cca225c2ba2 100644
    // Sets the root of the layer tree drawn by this Compositor. The root layer
    // must have no parent. The compositor's root layer is reset if the root layer
    // is destroyed. NULL can be passed to reset the root layer, in which case the
-@@ -379,6 +392,8 @@ class COMPOSITOR_EXPORT Compositor
+@@ -426,6 +439,8 @@ class COMPOSITOR_EXPORT Compositor : public cc::LayerTreeHostClient,
    ui::ContextFactory* context_factory_;
    ui::ContextFactoryPrivate* context_factory_private_;
  
