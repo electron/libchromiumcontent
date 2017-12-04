@@ -1,10 +1,10 @@
 diff --git a/src/base/logging.h b/src/base/logging.h
-index e852dde8dd..a57ddf5404 100644
+index 889c6885b2..a9fd0025ba 100644
 --- a/src/base/logging.h
 +++ b/src/base/logging.h
-@@ -62,7 +62,7 @@ DEFINE_CHECK_OP_IMPL(GT, > )
-       V8_Fatal(__FILE__, __LINE__, "Debug check failed: %s.", message); \
-     }                                                                   \
+@@ -70,7 +70,7 @@ V8_BASE_EXPORT void SetDcheckFunction(void (*dcheck_Function)(const char*, int,
+       V8_Dcheck(__FILE__, __LINE__, message); \
+     }                                         \
    } while (0)
 -#define DCHECK(condition) DCHECK_WITH_MSG(condition, #condition)
 +#define DCHECK(condition) DCHECK_WITH_MSG((condition) || true, #condition)
