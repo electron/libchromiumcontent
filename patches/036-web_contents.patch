@@ -79,12 +79,12 @@ index a93bc37..70f2f3b 100644
  
  RenderWidgetHostViewBase* WebContentsViewGuest::CreateViewForPopupWidget(
 diff --git a/content/public/browser/web_contents.h b/content/public/browser/web_contents.h
-index f968ca2..e9ca330 100644
+index 453942537f6c..6055b966ccee 100644
 --- a/content/public/browser/web_contents.h
 +++ b/content/public/browser/web_contents.h
-@@ -60,9 +60,12 @@ class PageState;
+@@ -68,9 +68,12 @@ class InterstitialPage;
+ class PageState;
  class RenderFrameHost;
- class RenderProcessHost;
  class RenderViewHost;
 +class RenderViewHostDelegateView;
  class RenderWidgetHost;
