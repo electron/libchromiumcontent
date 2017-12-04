@@ -40,11 +40,11 @@ index 98460d7a89e9..67dba849df43 100644
      const gfx::Point& point) {
    return point;
 diff --git a/content/browser/renderer_host/render_widget_host_view_base.h b/content/browser/renderer_host/render_widget_host_view_base.h
-index 657ad20..47920a9 100644
+index 1764ea8c31cd..b45bcb09ce24 100644
 --- a/content/browser/renderer_host/render_widget_host_view_base.h
 +++ b/content/browser/renderer_host/render_widget_host_view_base.h
-@@ -22,8 +22,10 @@
- #include "cc/output/compositor_frame.h"
+@@ -21,8 +21,10 @@
+ #include "components/viz/common/quads/compositor_frame.h"
  #include "components/viz/common/surfaces/surface_id.h"
  #include "content/browser/renderer_host/event_with_latency_info.h"
 +#include "content/browser/web_contents/web_contents_view.h"
