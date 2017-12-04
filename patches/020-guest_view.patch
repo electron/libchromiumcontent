@@ -49,23 +49,21 @@ index fc5197ab84e9..caafd63c0219 100644
    return false;
  }
 diff --git a/content/browser/renderer_host/render_widget_host_view_child_frame.h b/content/browser/renderer_host/render_widget_host_view_child_frame.h
-index e994ab27f966..306d30f51ffe 100644
+index b0617bb1fdb1..22b5e6ae4024 100644
 --- a/content/browser/renderer_host/render_widget_host_view_child_frame.h
 +++ b/content/browser/renderer_host/render_widget_host_view_child_frame.h
-@@ -180,8 +180,11 @@ class CONTENT_EXPORT RenderWidgetHostViewChildFrame
-   void OnBeginFrame(const viz::BeginFrameArgs& args) override;
+@@ -181,6 +181,11 @@ class CONTENT_EXPORT RenderWidgetHostViewChildFrame
    void ReclaimResources(
        const std::vector<viz::ReturnedResource>& resources) override;
--  void WillDrawSurface(const viz::LocalSurfaceId& id,
--                       const gfx::Rect& damage_rect) override {}
+   void OnBeginFramePausedChanged(bool paused) override;
 +  void WillDrawSurface(const viz::LocalSurfaceId& local_surface_id,
-+                       const gfx::Rect& damage_rect) override;
++                       const gfx::Rect& damage_rect);
 +  void BeginFrameSubscription(
 +      std::unique_ptr<RenderWidgetHostViewFrameSubscriber> subscriber) override;
 +  void EndFrameSubscription() override;
-   void OnBeginFramePausedChanged(bool paused) override;
  
    // viz::HostFrameSinkClient implementation.
+   void OnFirstSurfaceActivation(const viz::SurfaceInfo& surface_info) override;
 @@ -302,6 +305,8 @@ class CONTENT_EXPORT RenderWidgetHostViewChildFrame
    // The surface client ID of the parent RenderWidgetHostView.  0 if none.
    viz::FrameSinkId parent_frame_sink_id_;
