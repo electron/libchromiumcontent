@@ -67,13 +67,13 @@ index 82ab04e1019d..209dbd15d894 100644
        pending_web_ui_type_ = new_web_ui_type;
  
 diff --git a/content/browser/web_contents/web_contents_impl.cc b/content/browser/web_contents/web_contents_impl.cc
-index 4fa796b38b3f..376e8e143770 100644
+index f985ea2bceab..779cfd79312d 100644
 --- a/content/browser/web_contents/web_contents_impl.cc
 +++ b/content/browser/web_contents/web_contents_impl.cc
-@@ -685,12 +685,34 @@ RenderFrameHostManager* WebContentsImpl::GetRenderManagerForTesting() {
+@@ -768,6 +768,25 @@ RenderFrameHostManager* WebContentsImpl::GetRenderManagerForTesting() {
    return GetRenderManager();
  }
- 
+
 +void SendMessageToFrameTreeWebUIs(RenderFrameHostImpl* parent_frame_host,
 +                                  const IPC::Message& message,
 +                                  int& dispatch_count) {
@@ -81,7 +81,7 @@ index 4fa796b38b3f..376e8e143770 100644
 +  WebUIImpl* web_ui = parent_frame_host->web_ui()
 +      ? parent_frame_host->web_ui()
 +      : parent_frame_host->pending_web_ui();
-+  if (web_ui && web_ui->OnMessageReceived(message)) {
++  if (web_ui && web_ui->OnMessageReceived(message, parent_frame_host)) {
 +    ++dispatch_count;
 +  }
 +
@@ -95,27 +95,30 @@ index 4fa796b38b3f..376e8e143770 100644
 +
  bool WebContentsImpl::OnMessageReceived(RenderViewHostImpl* render_view_host,
                                          const IPC::Message& message) {
-   RenderFrameHost* main_frame = render_view_host->GetMainFrame();
+   for (auto& observer : observers_) {
+@@ -809,9 +828,10 @@ bool WebContentsImpl::OnMessageReceived(RenderViewHostImpl* render_view_host,
+
+ bool WebContentsImpl::OnMessageReceived(RenderFrameHostImpl* render_frame_host,
+                                         const IPC::Message& message) {
+-  {
+-    WebUIImpl* web_ui = render_frame_host->web_ui();
+-    if (web_ui && web_ui->OnMessageReceived(message, render_frame_host))
 +  int dispatch_count = 0;
-   if (main_frame) {
--    WebUIImpl* web_ui = static_cast<RenderFrameHostImpl*>(main_frame)->web_ui();
--    if (web_ui && web_ui->OnMessageReceived(message))
-+    RenderFrameHostImpl* main_frame_host =
-+        static_cast<RenderFrameHostImpl*>(main_frame);
-+    SendMessageToFrameTreeWebUIs(main_frame_host, message, dispatch_count);
++  if (render_frame_host) {
++    SendMessageToFrameTreeWebUIs(render_frame_host, message, dispatch_count);
 +    if (dispatch_count > 0)
        return true;
    }
- 
+
 @@ -5021,8 +5043,9 @@ NavigationControllerImpl& WebContentsImpl::GetControllerForRenderManager() {
  }
  
  std::unique_ptr<WebUIImpl> WebContentsImpl::CreateWebUIForRenderFrameHost(
 -    const GURL& url) {
--  return CreateWebUI(url, std::string());
-+    const GURL &url,
+-  return CreateWebUI(url);
++    const GURL& url,
 +    const std::string& frame_name) {
-+  return CreateWebUI(url, frame_name);
++  return CreateWebUI(url/*, frame_name*/);
  }
  
  NavigationEntry*
