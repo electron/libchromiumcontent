@@ -1,21 +1,21 @@
 diff --git a/src/snapshot/mksnapshot.cc b/src/snapshot/mksnapshot.cc
-index f4362e5..2cc8f43 100644
+index a6d9862c10..935928d67a 100644
 --- a/src/snapshot/mksnapshot.cc
 +++ b/src/snapshot/mksnapshot.cc
-@@ -108,7 +108,7 @@ class SnapshotWriter {
+@@ -101,7 +101,7 @@ class SnapshotWriter {
    }
  
    static FILE* GetFileDescriptorOrDie(const char* filename) {
--    FILE* fp = base::OS::FOpen(filename, "wb");
+-    FILE* fp = v8::base::OS::FOpen(filename, "wb");
 +    FILE* fp = ::fopen(filename, "wb");
      if (fp == NULL) {
        i::PrintF("Unable to open file \"%s\" for writing.\n", filename);
        exit(1);
-@@ -123,7 +123,7 @@ class SnapshotWriter {
+@@ -116,7 +116,7 @@ class SnapshotWriter {
  char* GetExtraCode(char* filename, const char* description) {
    if (filename == NULL || strlen(filename) == 0) return NULL;
    ::printf("Loading script for %s: %s\n", description, filename);
--  FILE* file = base::OS::FOpen(filename, "rb");
+-  FILE* file = v8::base::OS::FOpen(filename, "rb");
 +  FILE* file = ::fopen(filename, "rb");
    if (file == NULL) {
      fprintf(stderr, "Failed to open '%s': errno %d\n", filename, errno);
