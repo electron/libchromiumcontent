@@ -1,15 +1,15 @@
 diff --git a/content/common/dom_storage/dom_storage_map.cc b/content/common/dom_storage/dom_storage_map.cc
-index 5ac8bd57dc7f..0adccd0e9cf4 100644
+index 0a6b0176a982..35a1c3c11a58 100644
 --- a/content/common/dom_storage/dom_storage_map.cc
 +++ b/content/common/dom_storage/dom_storage_map.cc
-@@ -180,10 +180,12 @@ bool DOMStorageMap::SetItemInternal(MapType* map_type,
-   size_t new_item_size = size_of_item(key, value);
-   size_t new_bytes_used = bytes_used_ - old_item_size + new_item_size;
+@@ -182,10 +182,12 @@ bool DOMStorageMap::SetItemInternal(MapType* map_type,
+   size_t new_item_size = size_in_storage(key, value);
+   size_t new_storage_used = storage_used_ - old_item_size + new_item_size;
  
 +#if 0  // Disable localStorage size limit for Electron.
    // Only check quota if the size is increasing, this allows
    // shrinking changes to pre-existing files that are over budget.
-   if (new_item_size > old_item_size && new_bytes_used > quota_)
+   if (new_item_size > old_item_size && new_storage_used > quota_)
      return false;
 +#endif
  
