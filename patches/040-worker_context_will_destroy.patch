@@ -15,11 +15,11 @@ index 0e554ba8467a..8e56489a5152 100644
    // An empty URL is returned if the URL is not overriden.
    virtual GURL OverrideFlashEmbedWithHTML(const GURL& url);
 diff --git a/content/renderer/renderer_blink_platform_impl.cc b/content/renderer/renderer_blink_platform_impl.cc
-index f30b509..6cfd9df 100644
+index 1a9d6c2e7ef2..3eafb726a190 100644
 --- a/content/renderer/renderer_blink_platform_impl.cc
 +++ b/content/renderer/renderer_blink_platform_impl.cc
-@@ -1282,6 +1282,12 @@ RendererBlinkPlatformImpl::trialTokenValidator() {
-   return &trial_token_validator_;
+@@ -1336,6 +1336,12 @@ RendererBlinkPlatformImpl::OriginTrialPolicy() {
+   return std::make_unique<TrialPolicyImpl>();
  }
  
 +void RendererBlinkPlatformImpl::WorkerContextWillDestroy(
@@ -32,12 +32,12 @@ index f30b509..6cfd9df 100644
      const v8::Local<v8::Context>& worker) {
    GetContentClient()->renderer()->DidInitializeWorkerContextOnWorkerThread(
 diff --git a/content/renderer/renderer_blink_platform_impl.h b/content/renderer/renderer_blink_platform_impl.h
-index df62a99..75a3588 100644
+index 8d68defb758a..b1ec3279d2b0 100644
 --- a/content/renderer/renderer_blink_platform_impl.h
 +++ b/content/renderer/renderer_blink_platform_impl.h
-@@ -202,6 +202,7 @@ class CONTENT_EXPORT RendererBlinkPlatformImpl : public BlinkPlatformImpl {
- 
-   blink::WebTrialTokenValidator* TrialTokenValidator() override;
+@@ -215,6 +215,7 @@ class CONTENT_EXPORT RendererBlinkPlatformImpl : public BlinkPlatformImpl {
+   std::unique_ptr<blink::WebTrialTokenValidator> TrialTokenValidator() override;
+   std::unique_ptr<blink::TrialPolicy> OriginTrialPolicy() override;
    void WorkerContextCreated(const v8::Local<v8::Context>& worker) override;
 +  void WorkerContextWillDestroy(const v8::Local<v8::Context>& worker) override;
  
