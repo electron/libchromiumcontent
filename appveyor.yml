@@ -18,8 +18,25 @@ build_script:
       Write-warning "Skipping PR build for branch"; Exit-AppveyorBuild
     } else {
       script\cibuild.ps1
+
+      if ($? -ne 'True') {
+        throw "Build failed with exit code $?"
+      } else {
+        "Build succeeded."
+      }
     }
-test: off
+test_script:
+- ps: >-
+    if ($env:COMPONENT -eq 'shared_library') {
+      $env:DISABLE_CRASH_REPORTER_TESTS = 'true'
+      $env:LIBCHROMIUMCONTENT_COMMIT = $env:APPVEYOR_REPO_COMMIT
+      git clone --depth 1 https://github.com/electron/electron.git
+      cd electron
+      Write-Output "Bootstrapping for commit $env:LIBCHROMIUMCONTENT_COMMIT"
+      python script\bootstrap.py -v --dev --libcc_source_path d:\build\dist\main\src --libcc_shared_library_path d:\build\dist\main\shared_library --libcc_static_library_path d:\build\dist\main\static_library
+      python script\build.py -c D
+      python script\test.py --ci
+    }
 artifacts:
 - path: libchromiumcontent.zip
   name: libchromiumcontent.zip

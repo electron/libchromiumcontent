@@ -131,5 +131,56 @@ pipeline {
         }
       }
     }
+    stage('Test') {
+      parallel {
+        stage('libchromiumcontent-osx-test') {
+          agent {
+            label 'osx'
+          }
+          steps {
+            script {
+              env.LIBCHROMIUMCONTENT_COMMIT = sh(returnStdout: true, script: "git rev-parse HEAD").trim()
+            }
+            sh 'git clone --depth 1 https://github.com/electron/electron.git'
+            dir('electron') {
+              sh 'script/bootstrap.py --target_arch=x64'
+              sh 'script/build.py -c R'
+              sh 'script/test.py --ci -c R'
+              sh 'script/verify-ffmpeg.py'
+            }
+          }
+          post {
+            always {
+              cleanWs()
+            }
+          }
+        }
+        stage('libchromiumcontent-mas-test') {
+          agent {
+            label 'osx'
+          }
+          environment {
+            MAS_BUILD = '1'
+          }
+          steps {
+            script {
+              env.LIBCHROMIUMCONTENT_COMMIT = sh(returnStdout: true, script: "git rev-parse HEAD").trim()
+            }
+            sh 'git clone --depth 1 https://github.com/electron/electron.git'
+            dir('electron') {
+              sh 'script/bootstrap.py --target_arch=x64'
+              sh 'script/build.py -c R'
+              sh 'script/test.py --ci -c R'
+              sh 'script/verify-ffmpeg.py'
+            }
+          }
+          post {
+            always {
+              cleanWs()
+            }
+          }
+        }
+      }
+    }
   }
 }
