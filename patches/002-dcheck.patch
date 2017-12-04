@@ -31,7 +31,6 @@ These files have debug checks explicitly commented out:
   base/process/kill_win.cc
   content/browser/frame_host/render_frame_host_impl.cc
   ppapi/host/ppapi_host.cc
-  storage/browser/quota/client_usage_tracker.cc
   third_party/WebKit/Source/platform/wtf/ThreadRestrictionVerifier.h
   ui/latency/latency_histogram_macros.h
 
@@ -65,18 +64,18 @@ index 582fb89..24d3e82 100644
  #define DCHECK(condition)                                           \
    LAZY_STREAM(LOG_STREAM(DCHECK), !ANALYZER_ASSUME_TRUE(condition)) \
 diff --git a/base/process/kill_win.cc b/base/process/kill_win.cc
-index 79e5ded316e8..cbe455c7417c 100644
+index 6a0038e2c00d..dd00dfb3e5d0 100644
 --- a/base/process/kill_win.cc
 +++ b/base/process/kill_win.cc
-@@ -43,7 +43,7 @@ TerminationStatus GetTerminationStatus(ProcessHandle handle, int* exit_code) {
+@@ -45,7 +45,7 @@ TerminationStatus GetTerminationStatus(ProcessHandle handle, int* exit_code) {
    DWORD tmp_exit_code = 0;
  
    if (!::GetExitCodeProcess(handle, &tmp_exit_code)) {
 -    DPLOG(FATAL) << "GetExitCodeProcess() failed";
 +    // DPLOG(FATAL) << "GetExitCodeProcess() failed";
-     if (exit_code) {
-       // This really is a random number.  We haven't received any
-       // information about the exit code, presumably because this
+ 
+     // This really is a random number.  We haven't received any
+     // information about the exit code, presumably because this
 diff --git a/content/browser/BUILD.gn b/content/browser/BUILD.gn
 index 41318159a2ad..f23682f0b22d 100644
 --- a/content/browser/BUILD.gn
@@ -171,28 +170,13 @@ index f3c68fab3de6..b8609daf3ef9 100644
      return;
    }
  
-diff --git a/storage/browser/quota/client_usage_tracker.cc b/storage/browser/quota/client_usage_tracker.cc
-index 9b9e10a46397..dafc6e4efa32 100644
---- a/storage/browser/quota/client_usage_tracker.cc
-+++ b/storage/browser/quota/client_usage_tracker.cc
-@@ -149,8 +149,8 @@ void ClientUsageTracker::UpdateUsageCache(const GURL& origin, int64_t delta) {
-       global_unlimited_usage_ += delta;
-     else
-       global_limited_usage_ += delta;
--    DCHECK_GE(cached_usage_by_host_[host][origin], 0);
--    DCHECK_GE(global_limited_usage_, 0);
-+    //DCHECK_GE(cached_usage_by_host_[host][origin], 0);
-+    //DCHECK_GE(global_limited_usage_, 0);
- 
-     // Notify the usage monitor that usage has changed. The storage monitor may
-     // be NULL during tests.
 diff --git a/third_party/WebKit/Source/core/loader/BUILD.gn b/third_party/WebKit/Source/core/loader/BUILD.gn
-index 86c8ada9d378..ff1155205218 100644
+index 1e08519e1410..eceb046eb309 100644
 --- a/third_party/WebKit/Source/core/loader/BUILD.gn
 +++ b/third_party/WebKit/Source/core/loader/BUILD.gn
-@@ -125,4 +125,11 @@ blink_core_sources("loader") {
-     # TODO(jschuh): crbug.com/167187 fix size_t to int truncations.
-     "//build/config/compiler:no_size_t_to_int_warning",
+@@ -133,4 +133,11 @@ blink_core_sources("loader") {
+   public_deps = [
+     "//services/network/public/interfaces:interfaces_blink",
    ]
 +
 +  if (is_electron_build) {
@@ -203,15 +187,18 @@ index 86c8ada9d378..ff1155205218 100644
 +  }
  }
 diff --git a/third_party/WebKit/Source/platform/BUILD.gn b/third_party/WebKit/Source/platform/BUILD.gn
-index 7806a71..4550819 100644
+index 47da6e3093a5..1c57f2bd5d8c 100644
 --- a/third_party/WebKit/Source/platform/BUILD.gn
 +++ b/third_party/WebKit/Source/platform/BUILD.gn
-@@ -1707,6 +1707,10 @@ component("platform") {
+@@ -1635,6 +1636,13 @@ component("platform") {
      configs -= [ "//build/config/compiler:default_symbols" ]
      configs += remove_webcore_symbols_config
    }
 +
 +  if (is_electron_build) {
++    if (!defined(defines)) {
++      defines = []
++    }
 +    defines += [ "ELECTRON_NO_DCHECK" ]
 +  }
  }
