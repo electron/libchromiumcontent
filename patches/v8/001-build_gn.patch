@@ -53,16 +53,16 @@ index 494ba22f29..6071422d7d 100644
  }
  
  # This config should be applied to code using the libsampler.
-@@ -195,7 +223,7 @@ config("libsampler_config") {
- # This config should only be applied to code using V8 and not any V8 code
+@@ -209,7 +209,7 @@ config("libsampler_config") {
  # itself.
  config("external_config") {
+   defines = []
 -  if (is_component_build) {
 +  if (is_component_build || is_electron_build) {
-     defines = [ "USING_V8_SHARED" ]
+     defines += [ "USING_V8_SHARED" ]
    }
-   include_dirs = [
-@@ -2581,6 +2609,8 @@ if (current_toolchain == v8_snapshot_toolchain) {
+   if (v8_enable_v8_checks) {
+@@ -2674,6 +2674,8 @@ if (current_toolchain == v8_snapshot_toolchain) {
  
      configs = [ ":internal_config" ]
  
@@ -70,7 +70,7 @@ index 494ba22f29..6071422d7d 100644
 +
      deps = [
        ":v8_base",
-       ":v8_builtins_setup",
+       ":v8_init",
 @@ -2667,7 +2697,7 @@ group("v8_fuzzers") {
    ]
  }
