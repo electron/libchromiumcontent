@@ -11,9 +11,11 @@ import sys
 import tarfile
 import platform
 
-from lib.config import get_output_dir
 import lib.filesystem as filesystem
 import lib.util as util
+
+from lib.config import MIPS64EL_GCC, IS_MIPS64EL_HOST, set_mips64el_env, \
+                       get_output_dir
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -29,10 +31,6 @@ import ninja_syntax
 # Almost everything goes into the main archive
 MAIN_DIR = os.path.join(DIST_DIR, 'main')
 DIST_SRC_DIR = os.path.join(MAIN_DIR, 'src')
-
-MIPS64EL_GCC = 'gcc-4.8.3-d197-n64-loongson'
-# Whether the host system is a mips64el machine.
-IS_MIPS64EL_HOST = platform.uname()[5] == 'mips64'
 
 NINJA = os.path.join(VENDOR_DIR, 'depot_tools', 'ninja')
 if sys.platform == 'win32':
@@ -675,16 +673,7 @@ def run_strip(target_arch, filename, create_debug_archive):
     env['LD_LIBRARY_PATH'] = binutils_dir + '/usr/x86_64-linux-gnu/aarch64-linux-gnu/lib'
     env['PATH'] = os.pathsep.join([binutils_dir + '/usr/bin', env['PATH']])
   elif target_arch == 'mips64el' and not IS_MIPS64EL_HOST:
-    gcc_dir = os.path.join(VENDOR_DIR, MIPS64EL_GCC)
-    ldlib_dirs = [
-      gcc_dir + '/usr/x86_64-unknown-linux-gnu/mips64el-redhat-linux/lib',
-      gcc_dir + '/usr/lib64',
-      gcc_dir + '/usr/mips64el-redhat-linux/lib64',
-      gcc_dir + '/usr/mips64el-redhat-linux/sysroot/lib64',
-      gcc_dir + '/usr/mips64el-redhat-linux/sysroot/usr/lib64',
-    ]
-    env['LD_LIBRARY_PATH'] = os.pathsep.join(ldlib_dirs)
-    env['PATH'] = os.pathsep.join([gcc_dir + '/usr/bin', env['PATH']])
+    set_mips64el_env(env)
 
   if target_arch == 'arm' and filename.endswith(('.so', 'chromedriver')):
     strip = 'arm-linux-gnueabihf-strip'
@@ -695,9 +684,9 @@ def run_strip(target_arch, filename, create_debug_archive):
     objcopy = 'aarch64-linux-gnu--objcopy'
     gdb = 'aarch64-linux-gnu-gdb'
   elif target_arch == 'mips64el' and filename.endswith(('.so', 'chromedriver')):
-    strip = 'mips64el-redhat-linux-strip'
-    objcopy = 'mips64el-redhat-linux--objcopy'
-    gdb = 'mips64el-redhat-linux-gdb'
+    strip = 'mips64el-loongson-linux-strip'
+    objcopy = 'mips64el-loongson-linux--objcopy'
+    gdb = 'mips64el-loongson-linux-gdb'
   else:
     strip = 'strip'
     objcopy = 'objcopy'

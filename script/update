@@ -9,10 +9,12 @@ import sys
 import urllib2
 import platform
 
-from lib.config import get_output_dir
 import lib.filesystem as filesystem
 import lib.gn as gn
 import lib.util as util
+
+from lib.config import MIPS64EL_GCC, MIPS64EL_GCC_URL, MIPS64EL_SYSROOT, \
+                       IS_MIPS64EL_HOST, set_mips64el_env, get_output_dir
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -22,14 +24,6 @@ CHROMIUMCONTENT_SOURCE_DIR = os.path.join(SOURCE_ROOT, 'chromiumcontent')
 CHROMIUMCONTENT_DESTINATION_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
 COMPONENTS = ['static_library', 'shared_library', 'ffmpeg']
 DEPOT_TOOLS = os.path.join(VENDOR_DIR, 'depot_tools')
-
-# URL to the mips64el sysroot image.
-MIPS64EL_SYSROOT = 'https://github.com/electron/debian-sysroot-image-creator/releases/download/v0.5.0/debian_jessie_mips64-sysroot.tar.bz2'
-# URL to the mips64el toolchain.
-MIPS64EL_GCC = 'gcc-4.8.3-d197-n64-loongson'
-MIPS64EL_GCC_URL = 'http://ftp.loongnix.org/toolchain/gcc/release/' + MIPS64EL_GCC + '.tar.gz'
-# Whether the host system is a mips64el machine.
-IS_MIPS64EL_HOST = platform.uname()[5] == 'mips64'
 
 DEBIAN_MIRROR = 'http://ftp.jp.debian.org/debian/pool/main/'
 BINTOOLS_NAME = 'c/cross-binutils/binutils-aarch64-linux-gnu_2.25-5_amd64.deb'
@@ -259,16 +253,7 @@ def setup_mips64el_toolchain(target_arch):
   # Gernerate ffmpeg build config files for mips64el.
   env = os.environ.copy()
   if not IS_MIPS64EL_HOST:
-    gcc_dir = os.path.join(VENDOR_DIR, MIPS64EL_GCC)
-    ldlib_dirs = [
-      gcc_dir + '/usr/x86_64-unknown-linux-gnu/mips64el-redhat-linux/lib',
-      gcc_dir + '/usr/lib64',
-      gcc_dir + '/usr/mips64el-redhat-linux/lib64',
-      gcc_dir + '/usr/mips64el-redhat-linux/sysroot/lib64',
-      gcc_dir + '/usr/mips64el-redhat-linux/sysroot/usr/lib64',
-    ]
-    env['LD_LIBRARY_PATH'] = os.pathsep.join(ldlib_dirs)
-    env['PATH'] = os.pathsep.join([gcc_dir + '/usr/bin', env['PATH']])
+    set_mips64el_env(env)
   ffmpeg_dir = os.path.join(SRC_DIR, 'third_party', 'ffmpeg')
   subprocess.check_call(['chromium/scripts/build_ffmpeg.py', 'linux', 'mips64el'], cwd=ffmpeg_dir, env=env)
   subprocess.check_call(['chromium/scripts/copy_config.sh'], cwd=ffmpeg_dir)
