@@ -70,6 +70,52 @@ jobs:
       - store_artifacts:
           path: libchromiumcontent-static.zip
 
+  libchromiumcontent-linux-x64-test:
+    docker:
+      - image: electronbuilds/electron:0.0.3
+        environment:
+          TARGET_ARCH: x64
+          DISPLAY: ':99.0'
+    resource_class: 2xlarge
+    steps:
+      - run:
+          name: Checkout Electron for testing
+          command: |
+            git clone --depth 1 https://github.com/electron/electron.git
+      - run:
+          name: Setup for headless testing
+          command: sh -e /etc/init.d/xvfb start
+      - run:
+         name: Bootstrap Electron
+         command: |
+            cd electron
+            echo 'export LIBCHROMIUMCONTENT_COMMIT=$CIRCLE_SHA1' >> $BASH_ENV
+            echo "Bootstrapping Electron for release build with commit $CIRCLE_SHA1"
+            script/bootstrap.py --target_arch=$TARGET_ARCH
+      - run:
+         name: Build Electron release
+         command: |
+            cd electron
+            script/build.py -c R
+      - run:
+          name: Test Electron
+          environment:
+            MOCHA_FILE: junit/test-results.xml
+            MOCHA_REPORTER: mocha-junit-reporter
+          command: |
+            cd electron
+            mkdir junit
+            script/test.py --ci -c R
+      - run:
+          name: Verify FFmpeg
+          command: |
+             cd electron
+             script/verify-ffmpeg.py
+      - store_test_results:
+          path: electron/junit
+      - store_artifacts:
+          path: electron/junit
+
   libchromiumcontent-linux-ia32-shared:
     docker:
       - image: electronbuilds/libchromiumcontent:0.0.4
@@ -356,6 +402,10 @@ workflows:
     jobs:
       - libchromiumcontent-linux-x64-shared
       - libchromiumcontent-linux-x64-static
+      - libchromiumcontent-linux-x64-test:
+          requires:
+            - libchromiumcontent-linux-x64-shared
+            - libchromiumcontent-linux-x64-static
   build-ia32:
     jobs:
       - libchromiumcontent-linux-ia32-shared
