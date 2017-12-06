@@ -1,0 +1,14 @@
+140d82d6f8e2aba78c45ef74317678cb54a29dde
+diff --git a/build/linux/sysroot_scripts/sysroot-creator.sh b/build/linux/sysroot_scripts/sysroot-creator.sh
+index cf984516e4c9..87720e50997b 100644
+--- a/build/linux/sysroot_scripts/sysroot-creator.sh
++++ b/build/linux/sysroot_scripts/sysroot-creator.sh
+@@ -184,7 +184,7 @@ ClearInstallDir() {
+ 
+ CreateTarBall() {
+   Banner "Creating tarball ${TARBALL}"
+-  tar Jcf ${TARBALL} -C ${INSTALL_ROOT} .
++  tar -I "xz -9 -T0" -cf ${TARBALL} -C ${INSTALL_ROOT} .
+ }
+ 
+ ExtractPackageGz() {
