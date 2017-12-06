@@ -1,0 +1,31 @@
+72f0a9302524579a14a6625fc30cf8377fc197e8
+diff --git a/build/linux/sysroot_scripts/sysroot-creator.sh b/build/linux/sysroot_scripts/sysroot-creator.sh
+index ef2759f9e009..0f3ee70b9506 100644
+--- a/build/linux/sysroot_scripts/sysroot-creator.sh
++++ b/build/linux/sysroot_scripts/sysroot-creator.sh
+@@ -329,7 +329,9 @@ HacksAndPatchesARM() {
+ 
+ 
+ HacksAndPatchesARM64() {
+-  HacksAndPatchesCommon aarch64 linux-gnu aarch64-linux-gnu-strip
++  # Use the unstripped libdbus for arm64 to prevent linker errors.
++  # https://bugs.chromium.org/p/webrtc/issues/detail?id=8535
++  HacksAndPatchesCommon aarch64 linux-gnu true
+ }
+ 
+ 
+diff --git a/build/linux/sysroot_scripts/sysroots.json b/build/linux/sysroot_scripts/sysroots.json
+index 2e818f3033af..8478178b8dc3 100644
+--- a/build/linux/sysroot_scripts/sysroots.json
++++ b/build/linux/sysroot_scripts/sysroots.json
+@@ -12,8 +12,8 @@
+         "Tarball": "debian_stretch_arm_sysroot.tar.xz"
+     },
+     "stretch_arm64": {
+-        "Revision": "2202c161310ffde63729f29d27fe7bb24a0bc540",
+-        "Sha1Sum": "2649a7ffa2e0d9a42a9a567a33967ec706bd3b8e",
++        "Revision": "62a209c44d63af015bfd7b2bccb3ec37b08686e3",
++        "Sha1Sum": "f2e564cd96221820a0bd241d34158dfb24f6a220",
+         "SysrootDir": "debian_stretch_arm64-sysroot",
+         "Tarball": "debian_stretch_arm64_sysroot.tar.xz"
+     },

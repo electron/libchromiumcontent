@@ -1,0 +1,16 @@
+d3131378a4efcb4cdd710c4da969565ee9ebbcf6
+diff --git a/build/linux/sysroot_scripts/sysroots.json b/build/linux/sysroot_scripts/sysroots.json
+index e5f2f44cb3bc..243394ed7a2f 100644
+--- a/build/linux/sysroot_scripts/sysroots.json
++++ b/build/linux/sysroot_scripts/sysroots.json
+@@ -12,8 +12,8 @@
+         "Tarball": "debian_stretch_arm_sysroot.tar.xz"
+     },
+     "stretch_arm64": {
+-        "Revision": "f5b4828fe6550e64f2b09951d07d93a1b9d17c5a",
+-        "Sha1Sum": "5c1ae57960b399ac191511715321a26b436f8d0b",
++        "Revision": "1e9c6777efb621794e8385ab9b4faf3546c29bf2",
++        "Sha1Sum": "35fd438e9dfc39d75d1e03badc8b309e3ad94acd",
+         "SysrootDir": "debian_stretch_arm64-sysroot",
+         "Tarball": "debian_stretch_arm64_sysroot.tar.xz"
+     },

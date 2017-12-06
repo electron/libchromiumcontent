@@ -1,0 +1,64 @@
+97f5f9df69889a313470a8530a8a724cf17cca90
+diff --git a/build/config/sysroot.gni b/build/config/sysroot.gni
+index 4dec4e909bcb..f26a55f5d077 100644
+--- a/build/config/sysroot.gni
++++ b/build/config/sysroot.gni
+@@ -40,7 +40,9 @@ if (current_os == target_os && current_cpu == target_cpu &&
+   } else {
+     assert(false, "No android sysroot for cpu: $target_cpu")
+   }
+-} else if (is_chromeos && use_sysroot) {
++} else if (is_linux && use_sysroot) {
++  # By default build against a sysroot image downloaded from Cloud Storage
++  # during gclient runhooks.
+   if (current_cpu == "x64") {
+     sysroot = "$target_sysroot_dir/debian_stretch_amd64-sysroot"
+   } else if (current_cpu == "x86") {
+@@ -51,22 +53,6 @@ if (current_os == target_os && current_cpu == target_cpu &&
+     sysroot = "$target_sysroot_dir/debian_stretch_arm-sysroot"
+   } else if (current_cpu == "arm64") {
+     sysroot = "$target_sysroot_dir/debian_stretch_arm64-sysroot"
+-  } else {
+-    assert(false, "No chromeos sysroot for cpu: $target_cpu")
+-  }
+-} else if (is_linux && use_sysroot) {
+-  # By default build against a sysroot image downloaded from Cloud Storage
+-  # during gclient runhooks.
+-  if (current_cpu == "x64") {
+-    sysroot = "$target_sysroot_dir/debian_jessie_amd64-sysroot"
+-  } else if (current_cpu == "x86") {
+-    sysroot = "$target_sysroot_dir/debian_jessie_i386-sysroot"
+-  } else if (current_cpu == "mipsel") {
+-    sysroot = "$target_sysroot_dir/debian_jessie_mips-sysroot"
+-  } else if (current_cpu == "arm") {
+-    sysroot = "$target_sysroot_dir/debian_jessie_arm-sysroot"
+-  } else if (current_cpu == "arm64") {
+-    sysroot = "$target_sysroot_dir/debian_jessie_arm64-sysroot"
+   } else {
+     assert(false, "No linux sysroot for cpu: $target_cpu")
+   }
+diff --git a/build/linux/sysroot_scripts/install-sysroot.py b/build/linux/sysroot_scripts/install-sysroot.py
+index e6c2c9b8ef65..fe01daa67451 100755
+--- a/build/linux/sysroot_scripts/install-sysroot.py
++++ b/build/linux/sysroot_scripts/install-sysroot.py
+@@ -159,19 +159,13 @@ def main(args):
+     print 'You much specify either --arch, --all or --running-as-hook'
+     return 1
+ 
+-  # Desktop Chromium OS builds require the stretch sysroot.
+-  # TODO(thomasanderson): only download this when the GN arg target_os
+-  # == 'chromeos', when the functionality to perform the check becomes
+-  # available.
+-  InstallSysroot('Stretch', 'amd64')
+-
+   return 0
+ 
+ 
+ def InstallDefaultSysrootForArch(target_arch):
+   if target_arch not in VALID_ARCHS:
+     raise Error('Unknown architecture: %s' % target_arch)
+-  InstallSysroot('Jessie', target_arch)
++  InstallSysroot('Stretch', target_arch)
+ 
+ 
+ def InstallSysroot(target_platform, target_arch):

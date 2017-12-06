@@ -1,0 +1,210 @@
+1ed08ea9dbb0ce745e974f8a541259a4e8a6a82a
+diff --git a/build/linux/sysroot_scripts/sysroot-creator.sh b/build/linux/sysroot_scripts/sysroot-creator.sh
+index c4b56ab8eef4..aeba9bcf5ae5 100644
+--- a/build/linux/sysroot_scripts/sysroot-creator.sh
++++ b/build/linux/sysroot_scripts/sysroot-creator.sh
+@@ -280,24 +280,27 @@ VerifyPackageFilesMatch() {
+ #
+ ######################################################################
+ 
+-HacksAndPatchesAmd64() {
++HacksAndPatchesCommon() {
++  local arch=$1
++  local os=$2
++  local strip=$3
+   Banner "Misc Hacks & Patches"
+   # these are linker scripts with absolute pathnames in them
+   # which we rewrite here
+-  lscripts="${INSTALL_ROOT}/usr/lib/x86_64-linux-gnu/libpthread.so \
+-            ${INSTALL_ROOT}/usr/lib/x86_64-linux-gnu/libc.so"
++  lscripts="${INSTALL_ROOT}/usr/lib/${arch}-${os}/libpthread.so \
++            ${INSTALL_ROOT}/usr/lib/${arch}-${os}/libc.so"
+ 
+   # Rewrite linker scripts
+-  sed -i -e 's|/usr/lib/x86_64-linux-gnu/||g'  ${lscripts}
+-  sed -i -e 's|/lib/x86_64-linux-gnu/||g' ${lscripts}
++  sed -i -e 's|/usr/lib/${arch}-${os}/||g'  ${lscripts}
++  sed -i -e 's|/lib/${arch}-${os}/||g' ${lscripts}
+ 
+   # Unversion libdbus symbols.  This is required because libdbus-1-3
+   # switched from unversioned symbols to versioned ones, and we must
+   # still support distros using the unversioned library.  This hack
+   # can be removed once support for Ubuntu Trusty and Debian Jessie
+   # are dropped.
+-  strip -R .gnu.version_d -R .gnu.version \
+-    "${INSTALL_ROOT}/lib/x86_64-linux-gnu/libdbus-1.so.3"
++  ${strip} -R .gnu.version_d -R .gnu.version \
++    "${INSTALL_ROOT}/lib/${arch}-${os}/libdbus-1.so.3"
+   cp "${SCRIPT_DIR}/libdbus-1-3-symbols" \
+     "${INSTALL_ROOT}/debian/libdbus-1-3/DEBIAN/symbols"
+ 
+@@ -305,157 +308,38 @@ HacksAndPatchesAmd64() {
+   # which overwrites PKG_CONFIG_LIBDIR internally
+   SubBanner "Move pkgconfig scripts"
+   mkdir -p ${INSTALL_ROOT}/usr/lib/pkgconfig
+-  mv ${INSTALL_ROOT}/usr/lib/x86_64-linux-gnu/pkgconfig/* \
++  mv ${INSTALL_ROOT}/usr/lib/${arch}-${os}/pkgconfig/* \
+       ${INSTALL_ROOT}/usr/lib/pkgconfig
+ }
+ 
+ 
+-HacksAndPatchesI386() {
+-  Banner "Misc Hacks & Patches"
+-  # these are linker scripts with absolute pathnames in them
+-  # which we rewrite here
+-  lscripts="${INSTALL_ROOT}/usr/lib/i386-linux-gnu/libpthread.so \
+-            ${INSTALL_ROOT}/usr/lib/i386-linux-gnu/libc.so"
+-
+-  # Rewrite linker scripts
+-  sed -i -e 's|/usr/lib/i386-linux-gnu/||g'  ${lscripts}
+-  sed -i -e 's|/lib/i386-linux-gnu/||g' ${lscripts}
++HacksAndPatchesAmd64() {
++  HacksAndPatchesCommon x86_64 linux-gnu strip
++}
+ 
+-  # Unversion libdbus symbols.  This is required because libdbus-1-3
+-  # switched from unversioned symbols to versioned ones, and we must
+-  # still support distros using the unversioned library.  This hack
+-  # can be removed once support for Ubuntu Trusty and Debian Jessie
+-  # are dropped.
+-  strip -R .gnu.version_d -R .gnu.version \
+-    "${INSTALL_ROOT}/lib/i386-linux-gnu/libdbus-1.so.3"
+-  cp "${SCRIPT_DIR}/libdbus-1-3-symbols" \
+-    "${INSTALL_ROOT}/debian/libdbus-1-3/DEBIAN/symbols"
+ 
+-  # This is for chrome's ./build/linux/pkg-config-wrapper
+-  # which overwrites PKG_CONFIG_LIBDIR internally
+-  SubBanner "Move pkgconfig scripts"
+-  mkdir -p ${INSTALL_ROOT}/usr/lib/pkgconfig
+-  mv ${INSTALL_ROOT}/usr/lib/i386-linux-gnu/pkgconfig/* \
+-    ${INSTALL_ROOT}/usr/lib/pkgconfig
++HacksAndPatchesI386() {
++  HacksAndPatchesCommon i386 linux-gnu strip
+ }
+ 
+ 
+ HacksAndPatchesARM() {
+-  Banner "Misc Hacks & Patches"
+-  # these are linker scripts with absolute pathnames in them
+-  # which we rewrite here
+-  lscripts="${INSTALL_ROOT}/usr/lib/arm-linux-gnueabihf/libpthread.so \
+-            ${INSTALL_ROOT}/usr/lib/arm-linux-gnueabihf/libc.so"
+-
+-  # Rewrite linker scripts
+-  sed -i -e 's|/usr/lib/arm-linux-gnueabihf/||g' ${lscripts}
+-  sed -i -e 's|/lib/arm-linux-gnueabihf/||g' ${lscripts}
+-
+-  # Unversion libdbus symbols.  This is required because libdbus-1-3
+-  # switched from unversioned symbols to versioned ones, and we must
+-  # still support distros using the unversioned library.  This hack
+-  # can be removed once support for Ubuntu Trusty and Debian Jessie
+-  # are dropped.
+-  arm-linux-gnueabihf-strip -R .gnu.version_d -R .gnu.version \
+-    "${INSTALL_ROOT}/lib/arm-linux-gnueabihf/libdbus-1.so.3"
+-  cp "${SCRIPT_DIR}/libdbus-1-3-symbols" \
+-    "${INSTALL_ROOT}/debian/libdbus-1-3/DEBIAN/symbols"
+-
+-  # This is for chrome's ./build/linux/pkg-config-wrapper
+-  # which overwrites PKG_CONFIG_LIBDIR internally
+-  SubBanner "Move pkgconfig files"
+-  mkdir -p ${INSTALL_ROOT}/usr/lib/pkgconfig
+-  mv ${INSTALL_ROOT}/usr/lib/arm-linux-gnueabihf/pkgconfig/* \
+-      ${INSTALL_ROOT}/usr/lib/pkgconfig
++  HacksAndPatchesCommon arm linux-gnueabihf arm-linux-gnueabihf-strip
+ }
+ 
+-HacksAndPatchesARM64() {
+-  Banner "Misc Hacks & Patches"
+-  # these are linker scripts with absolute pathnames in them
+-  # which we rewrite here
+-  lscripts="${INSTALL_ROOT}/usr/lib/aarch64-linux-gnu/libpthread.so \
+-            ${INSTALL_ROOT}/usr/lib/aarch64-linux-gnu/libc.so"
+-
+-  # Rewrite linker scripts
+-  sed -i -e 's|/usr/lib/aarch64-linux-gnu/||g' ${lscripts}
+-  sed -i -e 's|/lib/aarch64-linux-gnu/||g' ${lscripts}
+-
+-  # Unversion libdbus symbols.  This is required because libdbus-1-3
+-  # switched from unversioned symbols to versioned ones, and we must
+-  # still support distros using the unversioned library.  This hack
+-  # can be removed once support for Ubuntu Trusty and Debian Jessie
+-  # are dropped.
+-  aarch64-linux-gnu-strip -R .gnu.version_d  -R .gnu.version \
+-    "${INSTALL_ROOT}/lib/aarch64-linux-gnu/libdbus-1.so.3"
+-  cp "${SCRIPT_DIR}/libdbus-1-3-symbols" \
+-    "${INSTALL_ROOT}/debian/libdbus-1-3/DEBIAN/symbols"
+-
+-  # This is for chrome's ./build/linux/pkg-config-wrapper
+-  # which overwrites PKG_CONFIG_LIBDIR internally
+-  SubBanner "Move pkgconfig files"
+-  mkdir -p ${INSTALL_ROOT}/usr/lib/pkgconfig
+-  mv ${INSTALL_ROOT}/usr/lib/aarch64-linux-gnu/pkgconfig/* \
+-      ${INSTALL_ROOT}/usr/lib/pkgconfig
+ 
++HacksAndPatchesARM64() {
++  HacksAndPatchesCommon aarch64 linux-gnu aarch64-linux-gnu-strip
+ }
+ 
+-HacksAndPatchesMips() {
+-  Banner "Misc Hacks & Patches"
+-  # these are linker scripts with absolute pathnames in them
+-  # which we rewrite here
+-  lscripts="${INSTALL_ROOT}/usr/lib/mipsel-linux-gnu/libpthread.so \
+-            ${INSTALL_ROOT}/usr/lib/mipsel-linux-gnu/libc.so"
+-
+-  # Rewrite linker scripts
+-  sed -i -e 's|/usr/lib/mipsel-linux-gnu/||g' ${lscripts}
+-  sed -i -e 's|/lib/mipsel-linux-gnu/||g' ${lscripts}
+-
+-  # Unversion libdbus symbols.  This is required because libdbus-1-3
+-  # switched from unversioned symbols to versioned ones, and we must
+-  # still support distros using the unversioned library.  This hack
+-  # can be removed once support for Ubuntu Trusty and Debian Jessie
+-  # are dropped.
+-  mipsel-linux-gnu-strip -R .gnu.version_d -R .gnu.version \
+-    "${INSTALL_ROOT}/lib/mipsel-linux-gnu/libdbus-1.so.3"
+-  cp "${SCRIPT_DIR}/libdbus-1-3-symbols" \
+-    "${INSTALL_ROOT}/debian/libdbus-1-3/DEBIAN/symbols"
+ 
+-  # This is for chrome's ./build/linux/pkg-config-wrapper
+-  # which overwrites PKG_CONFIG_LIBDIR internally
+-  SubBanner "Move pkgconfig files"
+-  mkdir -p ${INSTALL_ROOT}/usr/lib/pkgconfig
+-  mv ${INSTALL_ROOT}/usr/lib/mipsel-linux-gnu/pkgconfig/* \
+-      ${INSTALL_ROOT}/usr/lib/pkgconfig
++HacksAndPatchesMips() {
++  HacksAndPatchesCommon mipsel linux-gnu mipsel-linux-gnu-strip
+ }
+ 
+ 
+ HacksAndPatchesMips64el() {
+-  Banner "Misc Hacks & Patches"
+-  # these are linker scripts with absolute pathnames in them
+-  # which we rewrite here
+-  lscripts="${INSTALL_ROOT}/usr/lib/mips64el-linux-gnuabi64/libpthread.so \
+-            ${INSTALL_ROOT}/usr/lib/mips64el-linux-gnuabi64/libc.so"
+-
+-  # Rewrite linker scripts
+-  sed -i -e 's|/usr/lib/mips64el-linux-gnuabi64/||g' ${lscripts}
+-  sed -i -e 's|/lib/mips64el-linux-gnuabi64/||g' ${lscripts}
+-
+-  # Unversion libdbus symbols.  This is required because libdbus-1-3
+-  # switched from unversioned symbols to versioned ones, and we must
+-  # still support distros using the unversioned library.  This hack
+-  # can be removed once support for Ubuntu Trusty and Debian Jessie
+-  # are dropped.
+-  mips64el-linux-gnuabi64-strip -R .gnu.version_d -R .gnu.version \
+-    "${INSTALL_ROOT}/lib/mips64el-linux-gnuabi64/libdbus-1.so.3"
+-  cp "${SCRIPT_DIR}/libdbus-1-3-symbols" \
+-    "${INSTALL_ROOT}/debian/libdbus-1-3/DEBIAN/symbols"
+-
+-  # This is for chrome's ./build/linux/pkg-config-wrapper
+-  # which overwrites PKG_CONFIG_LIBDIR internally
+-  SubBanner "Move pkgconfig files"
+-  mkdir -p ${INSTALL_ROOT}/usr/lib/pkgconfig
+-  mv ${INSTALL_ROOT}/usr/lib/mips64el-linux-gnuabi64/pkgconfig/* \
+-      ${INSTALL_ROOT}/usr/lib/pkgconfig
++  HacksAndPatchesCommon mips64el linux-gnuabi64 mips64el-linux-gnuabi64-strip
+ }
+ 
+ 
