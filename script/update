@@ -76,15 +76,14 @@ def main():
   if target_arch == 'mips64el' and IS_MIPS64EL_HOST:
     os.system('sh script/mips64el/runhooks-mips64el')
 
-  if sys.platform == 'linux2':
-    install_sysroot(target_arch)
-  elif sys.platform in ['win32', 'cygwin']:
+  if sys.platform in ['win32', 'cygwin']:
     update_toolchain_json()
 
   if target_arch == 'arm64':
     install_aarch64_bintools()
 
   return (apply_patches(args.skip_patches, target_arch) or
+          install_sysroot_if_needed(target_arch) or
           copy_chromiumcontent_files() or
           update_clang() or
           setup_mips64el_toolchain(target_arch) or
@@ -116,7 +115,10 @@ def chromium_version():
     return f.readline().strip()
 
 
-def install_sysroot(target_arch):
+def install_sysroot_if_needed(target_arch):
+  if sys.platform != 'linux2':
+    return 0
+
   if target_arch == 'ia32':
     target_cpu = 'i386'
   elif target_arch == 'x64':
@@ -140,6 +142,8 @@ def install_sysroot(target_arch):
     download(MIPS64EL_SYSROOT, tar_name)
     subprocess.call(['tar', '-jxf', tar_name, '-C', destination])
     rm_f(tar_name)
+
+  return 0
 
 
 def install_aarch64_bintools():
