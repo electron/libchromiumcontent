@@ -1,0 +1,1016 @@
+4dfcf263240a67065f940ca458cddca1d882959a
+diff --git a/build/config/sysroot.gni b/build/config/sysroot.gni
+index fa361e6d389a..4dec4e909bcb 100644
+--- a/build/config/sysroot.gni
++++ b/build/config/sysroot.gni
+@@ -40,6 +40,20 @@ if (current_os == target_os && current_cpu == target_cpu &&
+   } else {
+     assert(false, "No android sysroot for cpu: $target_cpu")
+   }
++} else if (is_chromeos && use_sysroot) {
++  if (current_cpu == "x64") {
++    sysroot = "$target_sysroot_dir/debian_stretch_amd64-sysroot"
++  } else if (current_cpu == "x86") {
++    sysroot = "$target_sysroot_dir/debian_stretch_i386-sysroot"
++  } else if (current_cpu == "mipsel") {
++    sysroot = "$target_sysroot_dir/debian_stretch_mips-sysroot"
++  } else if (current_cpu == "arm") {
++    sysroot = "$target_sysroot_dir/debian_stretch_arm-sysroot"
++  } else if (current_cpu == "arm64") {
++    sysroot = "$target_sysroot_dir/debian_stretch_arm64-sysroot"
++  } else {
++    assert(false, "No chromeos sysroot for cpu: $target_cpu")
++  }
+ } else if (is_linux && use_sysroot) {
+   # By default build against a sysroot image downloaded from Cloud Storage
+   # during gclient runhooks.
+diff --git a/build/linux/sysroot_scripts/install-sysroot.py b/build/linux/sysroot_scripts/install-sysroot.py
+index de4eead5efe1..e6c2c9b8ef65 100755
+--- a/build/linux/sysroot_scripts/install-sysroot.py
++++ b/build/linux/sysroot_scripts/install-sysroot.py
+@@ -159,6 +159,12 @@ def main(args):
+     print 'You much specify either --arch, --all or --running-as-hook'
+     return 1
+ 
++  # Desktop Chromium OS builds require the stretch sysroot.
++  # TODO(thomasanderson): only download this when the GN arg target_os
++  # == 'chromeos', when the functionality to perform the check becomes
++  # available.
++  InstallSysroot('Stretch', 'amd64')
++
+   return 0
+ 
+ 
+diff --git a/build/linux/sysroot_scripts/packagelist.jessie.amd64 b/build/linux/sysroot_scripts/packagelist.jessie.amd64
+index 7642c264b57a..6ac2bd9eebde 100644
+--- a/build/linux/sysroot_scripts/packagelist.jessie.amd64
++++ b/build/linux/sysroot_scripts/packagelist.jessie.amd64
+@@ -69,6 +69,14 @@ http://ftp.us.debian.org/debian/pool/main/libn/libnss-db/libnss-db_2.2.3pre1-5+b
+ http://ftp.us.debian.org/debian/pool/main/libp/libp11/libp11-2_0.2.8-5_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/libp/libpthread-stubs/libpthread-stubs0-dev_0.3-4_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/libs/libselinux/libselinux1_2.3-2_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva1_1.4.1-1_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-dev_1.4.1-1_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-drm1_1.4.1-1_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-egl1_1.4.1-1_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-glx1_1.4.1-1_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-tpi1_1.4.1-1_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-wayland1_1.4.1-1_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-x11-1_1.4.1-1_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-6_1.6.2-3_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-dev_1.6.2-3_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-xcb1_1.6.2-3_amd64.deb
+@@ -206,7 +214,7 @@ http://security.debian.org/pool/updates/main/libp/libpng/libpng12-dev_1.2.50-2+d
+ http://security.debian.org/pool/updates/main/libt/libtasn1-6/libtasn1-6_4.2-3+deb8u3_amd64.deb
+ http://security.debian.org/pool/updates/main/n/nspr/libnspr4_4.12-1+debu8u1_amd64.deb
+ http://security.debian.org/pool/updates/main/n/nspr/libnspr4-dev_4.12-1+debu8u1_amd64.deb
+-http://security.debian.org/pool/updates/main/n/nss/libnss3_3.26-1+debu8u2_amd64.deb
+-http://security.debian.org/pool/updates/main/n/nss/libnss3-dev_3.26-1+debu8u2_amd64.deb
+-http://security.debian.org/pool/updates/main/o/openssl/libssl1.0.0_1.0.1t-1+deb8u6_amd64.deb
+-http://security.debian.org/pool/updates/main/o/openssl/libssl-dev_1.0.1t-1+deb8u6_amd64.deb
++http://security.debian.org/pool/updates/main/n/nss/libnss3_3.26-1+debu8u3_amd64.deb
++http://security.debian.org/pool/updates/main/n/nss/libnss3-dev_3.26-1+debu8u3_amd64.deb
++http://security.debian.org/pool/updates/main/o/openssl/libssl1.0.0_1.0.1t-1+deb8u7_amd64.deb
++http://security.debian.org/pool/updates/main/o/openssl/libssl-dev_1.0.1t-1+deb8u7_amd64.deb
+diff --git a/build/linux/sysroot_scripts/packagelist.jessie.arm b/build/linux/sysroot_scripts/packagelist.jessie.arm
+index 4d220fe94852..7aa87489baae 100644
+--- a/build/linux/sysroot_scripts/packagelist.jessie.arm
++++ b/build/linux/sysroot_scripts/packagelist.jessie.arm
+@@ -66,6 +66,14 @@ http://ftp.us.debian.org/debian/pool/main/libn/libnss-db/libnss-db_2.2.3pre1-5+b
+ http://ftp.us.debian.org/debian/pool/main/libp/libp11/libp11-2_0.2.8-5_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/libp/libpthread-stubs/libpthread-stubs0-dev_0.3-4_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/libs/libselinux/libselinux1_2.3-2_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva1_1.4.1-1_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-dev_1.4.1-1_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-drm1_1.4.1-1_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-egl1_1.4.1-1_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-glx1_1.4.1-1_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-tpi1_1.4.1-1_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-wayland1_1.4.1-1_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-x11-1_1.4.1-1_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-6_1.6.2-3_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-dev_1.6.2-3_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-xcb1_1.6.2-3_armhf.deb
+@@ -203,7 +211,7 @@ http://security.debian.org/pool/updates/main/libp/libpng/libpng12-dev_1.2.50-2+d
+ http://security.debian.org/pool/updates/main/libt/libtasn1-6/libtasn1-6_4.2-3+deb8u3_armhf.deb
+ http://security.debian.org/pool/updates/main/n/nspr/libnspr4_4.12-1+debu8u1_armhf.deb
+ http://security.debian.org/pool/updates/main/n/nspr/libnspr4-dev_4.12-1+debu8u1_armhf.deb
+-http://security.debian.org/pool/updates/main/n/nss/libnss3_3.26-1+debu8u2_armhf.deb
+-http://security.debian.org/pool/updates/main/n/nss/libnss3-dev_3.26-1+debu8u2_armhf.deb
+-http://security.debian.org/pool/updates/main/o/openssl/libssl1.0.0_1.0.1t-1+deb8u6_armhf.deb
+-http://security.debian.org/pool/updates/main/o/openssl/libssl-dev_1.0.1t-1+deb8u6_armhf.deb
++http://security.debian.org/pool/updates/main/n/nss/libnss3_3.26-1+debu8u3_armhf.deb
++http://security.debian.org/pool/updates/main/n/nss/libnss3-dev_3.26-1+debu8u3_armhf.deb
++http://security.debian.org/pool/updates/main/o/openssl/libssl1.0.0_1.0.1t-1+deb8u7_armhf.deb
++http://security.debian.org/pool/updates/main/o/openssl/libssl-dev_1.0.1t-1+deb8u7_armhf.deb
+diff --git a/build/linux/sysroot_scripts/packagelist.jessie.arm64 b/build/linux/sysroot_scripts/packagelist.jessie.arm64
+index 69da69db9095..0793eb503690 100644
+--- a/build/linux/sysroot_scripts/packagelist.jessie.arm64
++++ b/build/linux/sysroot_scripts/packagelist.jessie.arm64
+@@ -65,6 +65,14 @@ http://ftp.us.debian.org/debian/pool/main/libp/libp11/libp11-2_0.2.8-5_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/libp/libpthread-stubs/libpthread-stubs0-dev_0.3-4_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/libs/libselinux/libselinux1_2.3-2_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/libt/libthai/libthai0_0.1.21-1_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva1_1.4.1-1_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-dev_1.4.1-1_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-drm1_1.4.1-1_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-egl1_1.4.1-1_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-glx1_1.4.1-1_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-tpi1_1.4.1-1_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-wayland1_1.4.1-1_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-x11-1_1.4.1-1_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-6_1.6.2-3_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-dev_1.6.2-3_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-xcb1_1.6.2-3_arm64.deb
+@@ -205,7 +213,7 @@ http://security.debian.org/pool/updates/main/libp/libpng/libpng12-dev_1.2.50-2+d
+ http://security.debian.org/pool/updates/main/libt/libtasn1-6/libtasn1-6_4.2-3+deb8u3_arm64.deb
+ http://security.debian.org/pool/updates/main/n/nspr/libnspr4_4.12-1+debu8u1_arm64.deb
+ http://security.debian.org/pool/updates/main/n/nspr/libnspr4-dev_4.12-1+debu8u1_arm64.deb
+-http://security.debian.org/pool/updates/main/n/nss/libnss3_3.26-1+debu8u2_arm64.deb
+-http://security.debian.org/pool/updates/main/n/nss/libnss3-dev_3.26-1+debu8u2_arm64.deb
+-http://security.debian.org/pool/updates/main/o/openssl/libssl1.0.0_1.0.1t-1+deb8u6_arm64.deb
+-http://security.debian.org/pool/updates/main/o/openssl/libssl-dev_1.0.1t-1+deb8u6_arm64.deb
++http://security.debian.org/pool/updates/main/n/nss/libnss3_3.26-1+debu8u3_arm64.deb
++http://security.debian.org/pool/updates/main/n/nss/libnss3-dev_3.26-1+debu8u3_arm64.deb
++http://security.debian.org/pool/updates/main/o/openssl/libssl1.0.0_1.0.1t-1+deb8u7_arm64.deb
++http://security.debian.org/pool/updates/main/o/openssl/libssl-dev_1.0.1t-1+deb8u7_arm64.deb
+diff --git a/build/linux/sysroot_scripts/packagelist.jessie.i386 b/build/linux/sysroot_scripts/packagelist.jessie.i386
+index 6c8e62351f58..8e979febb429 100644
+--- a/build/linux/sysroot_scripts/packagelist.jessie.i386
++++ b/build/linux/sysroot_scripts/packagelist.jessie.i386
+@@ -67,6 +67,14 @@ http://ftp.us.debian.org/debian/pool/main/libn/libnss-db/libnss-db_2.2.3pre1-5+b
+ http://ftp.us.debian.org/debian/pool/main/libp/libp11/libp11-2_0.2.8-5_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/libp/libpthread-stubs/libpthread-stubs0-dev_0.3-4_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/libs/libselinux/libselinux1_2.3-2_i386.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva1_1.4.1-1_i386.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-dev_1.4.1-1_i386.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-drm1_1.4.1-1_i386.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-egl1_1.4.1-1_i386.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-glx1_1.4.1-1_i386.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-tpi1_1.4.1-1_i386.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-wayland1_1.4.1-1_i386.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-x11-1_1.4.1-1_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-6_1.6.2-3_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-dev_1.6.2-3_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-xcb1_1.6.2-3_i386.deb
+@@ -204,7 +212,7 @@ http://security.debian.org/pool/updates/main/libp/libpng/libpng12-dev_1.2.50-2+d
+ http://security.debian.org/pool/updates/main/libt/libtasn1-6/libtasn1-6_4.2-3+deb8u3_i386.deb
+ http://security.debian.org/pool/updates/main/n/nspr/libnspr4_4.12-1+debu8u1_i386.deb
+ http://security.debian.org/pool/updates/main/n/nspr/libnspr4-dev_4.12-1+debu8u1_i386.deb
+-http://security.debian.org/pool/updates/main/n/nss/libnss3_3.26-1+debu8u2_i386.deb
+-http://security.debian.org/pool/updates/main/n/nss/libnss3-dev_3.26-1+debu8u2_i386.deb
+-http://security.debian.org/pool/updates/main/o/openssl/libssl1.0.0_1.0.1t-1+deb8u6_i386.deb
+-http://security.debian.org/pool/updates/main/o/openssl/libssl-dev_1.0.1t-1+deb8u6_i386.deb
++http://security.debian.org/pool/updates/main/n/nss/libnss3_3.26-1+debu8u3_i386.deb
++http://security.debian.org/pool/updates/main/n/nss/libnss3-dev_3.26-1+debu8u3_i386.deb
++http://security.debian.org/pool/updates/main/o/openssl/libssl1.0.0_1.0.1t-1+deb8u7_i386.deb
++http://security.debian.org/pool/updates/main/o/openssl/libssl-dev_1.0.1t-1+deb8u7_i386.deb
+diff --git a/build/linux/sysroot_scripts/packagelist.jessie.mipsel b/build/linux/sysroot_scripts/packagelist.jessie.mipsel
+index 4392e12ae583..4f328ddc423b 100644
+--- a/build/linux/sysroot_scripts/packagelist.jessie.mipsel
++++ b/build/linux/sysroot_scripts/packagelist.jessie.mipsel
+@@ -61,6 +61,14 @@ http://ftp.us.debian.org/debian/pool/main/libn/libnss-db/libnss-db_2.2.3pre1-5+b
+ http://ftp.us.debian.org/debian/pool/main/libp/libp11/libp11-2_0.2.8-5_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/libp/libpthread-stubs/libpthread-stubs0-dev_0.3-4_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/libs/libselinux/libselinux1_2.3-2_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva1_1.4.1-1_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-dev_1.4.1-1_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-drm1_1.4.1-1_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-egl1_1.4.1-1_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-glx1_1.4.1-1_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-tpi1_1.4.1-1_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-wayland1_1.4.1-1_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-x11-1_1.4.1-1_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-6_1.6.2-3_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-dev_1.6.2-3_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-xcb1_1.6.2-3_mipsel.deb
+@@ -198,7 +206,7 @@ http://security.debian.org/pool/updates/main/libp/libpng/libpng12-dev_1.2.50-2+d
+ http://security.debian.org/pool/updates/main/libt/libtasn1-6/libtasn1-6_4.2-3+deb8u3_mipsel.deb
+ http://security.debian.org/pool/updates/main/n/nspr/libnspr4_4.12-1+debu8u1_mipsel.deb
+ http://security.debian.org/pool/updates/main/n/nspr/libnspr4-dev_4.12-1+debu8u1_mipsel.deb
+-http://security.debian.org/pool/updates/main/n/nss/libnss3_3.26-1+debu8u2_mipsel.deb
+-http://security.debian.org/pool/updates/main/n/nss/libnss3-dev_3.26-1+debu8u2_mipsel.deb
+-http://security.debian.org/pool/updates/main/o/openssl/libssl1.0.0_1.0.1t-1+deb8u6_mipsel.deb
+-http://security.debian.org/pool/updates/main/o/openssl/libssl-dev_1.0.1t-1+deb8u6_mipsel.deb
++http://security.debian.org/pool/updates/main/n/nss/libnss3_3.26-1+debu8u3_mipsel.deb
++http://security.debian.org/pool/updates/main/n/nss/libnss3-dev_3.26-1+debu8u3_mipsel.deb
++http://security.debian.org/pool/updates/main/o/openssl/libssl1.0.0_1.0.1t-1+deb8u7_mipsel.deb
++http://security.debian.org/pool/updates/main/o/openssl/libssl-dev_1.0.1t-1+deb8u7_mipsel.deb
+diff --git a/build/linux/sysroot_scripts/packagelist.stretch.amd64 b/build/linux/sysroot_scripts/packagelist.stretch.amd64
+index 39f8b9e098c4..6e01c0def726 100644
+--- a/build/linux/sysroot_scripts/packagelist.stretch.amd64
++++ b/build/linux/sysroot_scripts/packagelist.stretch.amd64
+@@ -4,8 +4,8 @@ http://ftp.us.debian.org/debian/pool/main/a/atk1.0/libatk1.0-0_2.22.0-1_amd64.de
+ http://ftp.us.debian.org/debian/pool/main/a/atk1.0/libatk1.0-dev_2.22.0-1_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/a/at-spi2-atk/libatk-bridge2.0-0_2.22.0-2_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/a/at-spi2-atk/libatk-bridge2.0-dev_2.22.0-2_amd64.deb
+-http://ftp.us.debian.org/debian/pool/main/a/at-spi2-core/libatspi2.0-0_2.22.0-6_amd64.deb
+-http://ftp.us.debian.org/debian/pool/main/a/at-spi2-core/libatspi2.0-dev_2.22.0-6_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/a/at-spi2-core/libatspi2.0-0_2.22.0-6+deb9u1_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/a/at-spi2-core/libatspi2.0-dev_2.22.0-6+deb9u1_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/a/attr/libattr1_2.4.47-2+b2_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/a/audit/libaudit1_2.6.7-2_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/a/avahi/libavahi-client3_0.6.32-2_amd64.deb
+@@ -21,8 +21,8 @@ http://ftp.us.debian.org/debian/pool/main/c/cups/libcups2-dev_2.2.1-8_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/c/cups/libcupsimage2_2.2.1-8_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/c/cups/libcupsimage2-dev_2.2.1-8_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/d/dbus-glib/libdbus-glib-1-2_0.108-2_amd64.deb
+-http://ftp.us.debian.org/debian/pool/main/d/dbus/libdbus-1-3_1.10.18-1_amd64.deb
+-http://ftp.us.debian.org/debian/pool/main/d/dbus/libdbus-1-dev_1.10.18-1_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/d/dbus/libdbus-1-3_1.10.22-0+deb9u1_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/d/dbus/libdbus-1-dev_1.10.22-0+deb9u1_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/d/d-conf/libdconf1_0.26.0-2+b1_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/d/d-conf/libdconf-dev_0.26.0-2+b1_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/e/e2fsprogs/comerr-dev_2.1-1.43.4-2_amd64.deb
+@@ -63,16 +63,16 @@ http://ftp.us.debian.org/debian/pool/main/h/harfbuzz/libharfbuzz-dev_1.4.2-1_amd
+ http://ftp.us.debian.org/debian/pool/main/h/harfbuzz/libharfbuzz-gobject0_1.4.2-1_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/h/harfbuzz/libharfbuzz-icu0_1.4.2-1_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/k/keyutils/libkeyutils1_1.5.9-9_amd64.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/krb5-multidev_1.15-1_amd64.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libgssapi-krb5-2_1.15-1_amd64.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libgssrpc4_1.15-1_amd64.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libk5crypto3_1.15-1_amd64.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkadm5clnt-mit11_1.15-1_amd64.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkadm5srv-mit11_1.15-1_amd64.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkdb5-8_1.15-1_amd64.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-3_1.15-1_amd64.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-dev_1.15-1_amd64.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5support0_1.15-1_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/krb5-multidev_1.15-1+deb9u1_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libgssapi-krb5-2_1.15-1+deb9u1_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libgssrpc4_1.15-1+deb9u1_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libk5crypto3_1.15-1+deb9u1_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkadm5clnt-mit11_1.15-1+deb9u1_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkadm5srv-mit11_1.15-1+deb9u1_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkdb5-8_1.15-1+deb9u1_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-3_1.15-1+deb9u1_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-dev_1.15-1+deb9u1_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5support0_1.15-1+deb9u1_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/libc/libcap2/libcap2_2.25-1_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/libc/libcap2/libcap-dev_2.25-1_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/libd/libdrm/libdrm2_2.4.74-1_amd64.deb
+@@ -96,8 +96,16 @@ http://ftp.us.debian.org/debian/pool/main/libp/libp11/libp11-2_0.4.3-1_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/libp/libpng1.6/libpng16-16_1.6.28-1_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/libp/libpng1.6/libpng-dev_1.6.28-1_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/libp/libpthread-stubs/libpthread-stubs0-dev_0.3-4_amd64.deb
+-http://ftp.us.debian.org/debian/pool/main/libs/libselinux/libselinux1_2.6-3+b1_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/libs/libselinux/libselinux1_2.6-3+b3_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/libt/libtasn1-6/libtasn1-6_4.10-1.1_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva1_1.7.3-2_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-dev_1.7.3-2_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-drm1_1.7.3-2_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-egl1_1.7.3-2_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-glx1_1.7.3-2_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-tpi1_1.7.3-2_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-wayland1_1.7.3-2_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-x11-1_1.7.3-2_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-6_1.6.4-3_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-dev_1.6.4-3_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-xcb1_1.6.4-3_amd64.deb
+@@ -156,11 +164,6 @@ http://ftp.us.debian.org/debian/pool/main/m/mesa/libwayland-egl1-mesa_13.0.6-1+b
+ http://ftp.us.debian.org/debian/pool/main/m/mesa/mesa-common-dev_13.0.6-1+b2_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/n/nspr/libnspr4_4.12-6_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/n/nspr/libnspr4-dev_4.12-6_amd64.deb
+-http://ftp.us.debian.org/debian/pool/main/n/nss/libnss3_3.26.2-1.1_amd64.deb
+-http://ftp.us.debian.org/debian/pool/main/n/nss/libnss3-dev_3.26.2-1.1_amd64.deb
+-http://ftp.us.debian.org/debian/pool/main/o/openssl1.0/libssl1.0.2_1.0.2l-2_amd64.deb
+-http://ftp.us.debian.org/debian/pool/main/o/openssl/libssl1.1_1.1.0f-3_amd64.deb
+-http://ftp.us.debian.org/debian/pool/main/o/openssl/libssl-dev_1.1.0f-3_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/o/orbit2/liborbit2_2.14.19-2+b1_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/p/p11-kit/libp11-kit0_0.23.3-2_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/p/pam/libpam0g_1.1.8-3.6_amd64.deb
+@@ -183,9 +186,9 @@ http://ftp.us.debian.org/debian/pool/main/p/pixman/libpixman-1-dev_0.34.0-1_amd6
+ http://ftp.us.debian.org/debian/pool/main/p/pulseaudio/libpulse0_10.0-1+deb9u1_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/p/pulseaudio/libpulse-dev_10.0-1+deb9u1_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/p/pulseaudio/libpulse-mainloop-glib0_10.0-1+deb9u1_amd64.deb
+-http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/libspeechd2_0.8.6-4_amd64.deb
+-http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/libspeechd-dev_0.8.6-4_amd64.deb
+-http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/speech-dispatcher_0.8.6-4_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/libspeechd2_0.8.6-4+deb9u1_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/libspeechd-dev_0.8.6-4+deb9u1_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/speech-dispatcher_0.8.6-4+deb9u1_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/s/systemd/libudev1_232-25+deb9u1_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/s/systemd/libudev-dev_232-25+deb9u1_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/w/wayland/libwayland-client0_1.12.0-1_amd64.deb
+@@ -223,3 +226,8 @@ http://security.debian.org/pool/updates/main/g/gnutls28/libgnutlsxx28_3.5.8-5+de
+ http://security.debian.org/pool/updates/main/libg/libgcrypt20/libgcrypt20_1.7.6-2+deb9u2_amd64.deb
+ http://security.debian.org/pool/updates/main/libg/libgcrypt20/libgcrypt20-dev_1.7.6-2+deb9u2_amd64.deb
+ http://security.debian.org/pool/updates/main/l/linux/linux-libc-dev_4.9.30-2+deb9u5_amd64.deb
++http://security.debian.org/pool/updates/main/n/nss/libnss3_3.26.2-1.1+deb9u1_amd64.deb
++http://security.debian.org/pool/updates/main/n/nss/libnss3-dev_3.26.2-1.1+deb9u1_amd64.deb
++http://security.debian.org/pool/updates/main/o/openssl1.0/libssl1.0.2_1.0.2l-2+deb9u1_amd64.deb
++http://security.debian.org/pool/updates/main/o/openssl/libssl1.1_1.1.0f-3+deb9u1_amd64.deb
++http://security.debian.org/pool/updates/main/o/openssl/libssl-dev_1.1.0f-3+deb9u1_amd64.deb
+diff --git a/build/linux/sysroot_scripts/packagelist.stretch.arm b/build/linux/sysroot_scripts/packagelist.stretch.arm
+index e87baa316e7e..d58ff93ef92a 100644
+--- a/build/linux/sysroot_scripts/packagelist.stretch.arm
++++ b/build/linux/sysroot_scripts/packagelist.stretch.arm
+@@ -4,8 +4,8 @@ http://ftp.us.debian.org/debian/pool/main/a/atk1.0/libatk1.0-0_2.22.0-1_armhf.de
+ http://ftp.us.debian.org/debian/pool/main/a/atk1.0/libatk1.0-dev_2.22.0-1_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/a/at-spi2-atk/libatk-bridge2.0-0_2.22.0-2_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/a/at-spi2-atk/libatk-bridge2.0-dev_2.22.0-2_armhf.deb
+-http://ftp.us.debian.org/debian/pool/main/a/at-spi2-core/libatspi2.0-0_2.22.0-6_armhf.deb
+-http://ftp.us.debian.org/debian/pool/main/a/at-spi2-core/libatspi2.0-dev_2.22.0-6_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/a/at-spi2-core/libatspi2.0-0_2.22.0-6+deb9u1_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/a/at-spi2-core/libatspi2.0-dev_2.22.0-6+deb9u1_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/a/attr/libattr1_2.4.47-2+b2_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/a/audit/libaudit1_2.6.7-2_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/a/avahi/libavahi-client3_0.6.32-2_armhf.deb
+@@ -21,8 +21,8 @@ http://ftp.us.debian.org/debian/pool/main/c/cups/libcups2-dev_2.2.1-8_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/c/cups/libcupsimage2_2.2.1-8_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/c/cups/libcupsimage2-dev_2.2.1-8_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/d/dbus-glib/libdbus-glib-1-2_0.108-2_armhf.deb
+-http://ftp.us.debian.org/debian/pool/main/d/dbus/libdbus-1-3_1.10.18-1_armhf.deb
+-http://ftp.us.debian.org/debian/pool/main/d/dbus/libdbus-1-dev_1.10.18-1_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/d/dbus/libdbus-1-3_1.10.22-0+deb9u1_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/d/dbus/libdbus-1-dev_1.10.22-0+deb9u1_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/d/d-conf/libdconf1_0.26.0-2+b1_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/d/d-conf/libdconf-dev_0.26.0-2+b1_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/e/e2fsprogs/comerr-dev_2.1-1.43.4-2_armhf.deb
+@@ -57,16 +57,16 @@ http://ftp.us.debian.org/debian/pool/main/h/harfbuzz/libharfbuzz-dev_1.4.2-1_arm
+ http://ftp.us.debian.org/debian/pool/main/h/harfbuzz/libharfbuzz-gobject0_1.4.2-1_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/h/harfbuzz/libharfbuzz-icu0_1.4.2-1_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/k/keyutils/libkeyutils1_1.5.9-9_armhf.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/krb5-multidev_1.15-1_armhf.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libgssapi-krb5-2_1.15-1_armhf.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libgssrpc4_1.15-1_armhf.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libk5crypto3_1.15-1_armhf.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkadm5clnt-mit11_1.15-1_armhf.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkadm5srv-mit11_1.15-1_armhf.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkdb5-8_1.15-1_armhf.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-3_1.15-1_armhf.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-dev_1.15-1_armhf.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5support0_1.15-1_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/krb5-multidev_1.15-1+deb9u1_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libgssapi-krb5-2_1.15-1+deb9u1_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libgssrpc4_1.15-1+deb9u1_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libk5crypto3_1.15-1+deb9u1_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkadm5clnt-mit11_1.15-1+deb9u1_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkadm5srv-mit11_1.15-1+deb9u1_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkdb5-8_1.15-1+deb9u1_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-3_1.15-1+deb9u1_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-dev_1.15-1+deb9u1_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5support0_1.15-1+deb9u1_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/libc/libcap2/libcap2_2.25-1_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/libc/libcap2/libcap-dev_2.25-1_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/libd/libdrm/libdrm2_2.4.74-1_armhf.deb
+@@ -93,8 +93,16 @@ http://ftp.us.debian.org/debian/pool/main/libp/libp11/libp11-2_0.4.3-1_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/libp/libpng1.6/libpng16-16_1.6.28-1_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/libp/libpng1.6/libpng-dev_1.6.28-1_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/libp/libpthread-stubs/libpthread-stubs0-dev_0.3-4_armhf.deb
+-http://ftp.us.debian.org/debian/pool/main/libs/libselinux/libselinux1_2.6-3+b1_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/libs/libselinux/libselinux1_2.6-3+b3_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/libt/libtasn1-6/libtasn1-6_4.10-1.1_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva1_1.7.3-2_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-dev_1.7.3-2_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-drm1_1.7.3-2_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-egl1_1.7.3-2_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-glx1_1.7.3-2_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-tpi1_1.7.3-2_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-wayland1_1.7.3-2_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-x11-1_1.7.3-2_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-6_1.6.4-3_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-dev_1.6.4-3_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-xcb1_1.6.4-3_armhf.deb
+@@ -153,11 +161,6 @@ http://ftp.us.debian.org/debian/pool/main/m/mesa/libwayland-egl1-mesa_13.0.6-1+b
+ http://ftp.us.debian.org/debian/pool/main/m/mesa/mesa-common-dev_13.0.6-1+b2_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/n/nspr/libnspr4_4.12-6_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/n/nspr/libnspr4-dev_4.12-6_armhf.deb
+-http://ftp.us.debian.org/debian/pool/main/n/nss/libnss3_3.26.2-1.1_armhf.deb
+-http://ftp.us.debian.org/debian/pool/main/n/nss/libnss3-dev_3.26.2-1.1_armhf.deb
+-http://ftp.us.debian.org/debian/pool/main/o/openssl1.0/libssl1.0.2_1.0.2l-2_armhf.deb
+-http://ftp.us.debian.org/debian/pool/main/o/openssl/libssl1.1_1.1.0f-3_armhf.deb
+-http://ftp.us.debian.org/debian/pool/main/o/openssl/libssl-dev_1.1.0f-3_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/o/orbit2/liborbit2_2.14.19-2+b1_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/p/p11-kit/libp11-kit0_0.23.3-2_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/p/pam/libpam0g_1.1.8-3.6_armhf.deb
+@@ -180,9 +183,9 @@ http://ftp.us.debian.org/debian/pool/main/p/pixman/libpixman-1-dev_0.34.0-1_armh
+ http://ftp.us.debian.org/debian/pool/main/p/pulseaudio/libpulse0_10.0-1+deb9u1_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/p/pulseaudio/libpulse-dev_10.0-1+deb9u1_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/p/pulseaudio/libpulse-mainloop-glib0_10.0-1+deb9u1_armhf.deb
+-http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/libspeechd2_0.8.6-4_armhf.deb
+-http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/libspeechd-dev_0.8.6-4_armhf.deb
+-http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/speech-dispatcher_0.8.6-4_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/libspeechd2_0.8.6-4+deb9u1_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/libspeechd-dev_0.8.6-4+deb9u1_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/speech-dispatcher_0.8.6-4+deb9u1_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/s/systemd/libudev1_232-25+deb9u1_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/s/systemd/libudev-dev_232-25+deb9u1_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/w/wayland/libwayland-client0_1.12.0-1_armhf.deb
+@@ -220,3 +223,8 @@ http://security.debian.org/pool/updates/main/g/gnutls28/libgnutlsxx28_3.5.8-5+de
+ http://security.debian.org/pool/updates/main/libg/libgcrypt20/libgcrypt20_1.7.6-2+deb9u2_armhf.deb
+ http://security.debian.org/pool/updates/main/libg/libgcrypt20/libgcrypt20-dev_1.7.6-2+deb9u2_armhf.deb
+ http://security.debian.org/pool/updates/main/l/linux/linux-libc-dev_4.9.30-2+deb9u5_armhf.deb
++http://security.debian.org/pool/updates/main/n/nss/libnss3_3.26.2-1.1+deb9u1_armhf.deb
++http://security.debian.org/pool/updates/main/n/nss/libnss3-dev_3.26.2-1.1+deb9u1_armhf.deb
++http://security.debian.org/pool/updates/main/o/openssl1.0/libssl1.0.2_1.0.2l-2+deb9u1_armhf.deb
++http://security.debian.org/pool/updates/main/o/openssl/libssl1.1_1.1.0f-3+deb9u1_armhf.deb
++http://security.debian.org/pool/updates/main/o/openssl/libssl-dev_1.1.0f-3+deb9u1_armhf.deb
+diff --git a/build/linux/sysroot_scripts/packagelist.stretch.arm64 b/build/linux/sysroot_scripts/packagelist.stretch.arm64
+index cd75e2cdefc1..830ac4751209 100644
+--- a/build/linux/sysroot_scripts/packagelist.stretch.arm64
++++ b/build/linux/sysroot_scripts/packagelist.stretch.arm64
+@@ -4,8 +4,8 @@ http://ftp.us.debian.org/debian/pool/main/a/atk1.0/libatk1.0-0_2.22.0-1_arm64.de
+ http://ftp.us.debian.org/debian/pool/main/a/atk1.0/libatk1.0-dev_2.22.0-1_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/a/at-spi2-atk/libatk-bridge2.0-0_2.22.0-2_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/a/at-spi2-atk/libatk-bridge2.0-dev_2.22.0-2_arm64.deb
+-http://ftp.us.debian.org/debian/pool/main/a/at-spi2-core/libatspi2.0-0_2.22.0-6_arm64.deb
+-http://ftp.us.debian.org/debian/pool/main/a/at-spi2-core/libatspi2.0-dev_2.22.0-6_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/a/at-spi2-core/libatspi2.0-0_2.22.0-6+deb9u1_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/a/at-spi2-core/libatspi2.0-dev_2.22.0-6+deb9u1_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/a/attr/libattr1_2.4.47-2+b2_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/a/audit/libaudit1_2.6.7-2_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/a/avahi/libavahi-client3_0.6.32-2_arm64.deb
+@@ -21,8 +21,8 @@ http://ftp.us.debian.org/debian/pool/main/c/cups/libcups2-dev_2.2.1-8_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/c/cups/libcupsimage2_2.2.1-8_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/c/cups/libcupsimage2-dev_2.2.1-8_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/d/dbus-glib/libdbus-glib-1-2_0.108-2_arm64.deb
+-http://ftp.us.debian.org/debian/pool/main/d/dbus/libdbus-1-3_1.10.18-1_arm64.deb
+-http://ftp.us.debian.org/debian/pool/main/d/dbus/libdbus-1-dev_1.10.18-1_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/d/dbus/libdbus-1-3_1.10.22-0+deb9u1_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/d/dbus/libdbus-1-dev_1.10.22-0+deb9u1_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/d/d-conf/libdconf1_0.26.0-2+b1_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/d/d-conf/libdconf-dev_0.26.0-2+b1_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/e/e2fsprogs/comerr-dev_2.1-1.43.4-2_arm64.deb
+@@ -59,16 +59,16 @@ http://ftp.us.debian.org/debian/pool/main/h/harfbuzz/libharfbuzz-dev_1.4.2-1_arm
+ http://ftp.us.debian.org/debian/pool/main/h/harfbuzz/libharfbuzz-gobject0_1.4.2-1_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/h/harfbuzz/libharfbuzz-icu0_1.4.2-1_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/k/keyutils/libkeyutils1_1.5.9-9_arm64.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/krb5-multidev_1.15-1_arm64.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libgssapi-krb5-2_1.15-1_arm64.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libgssrpc4_1.15-1_arm64.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libk5crypto3_1.15-1_arm64.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkadm5clnt-mit11_1.15-1_arm64.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkadm5srv-mit11_1.15-1_arm64.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkdb5-8_1.15-1_arm64.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-3_1.15-1_arm64.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-dev_1.15-1_arm64.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5support0_1.15-1_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/krb5-multidev_1.15-1+deb9u1_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libgssapi-krb5-2_1.15-1+deb9u1_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libgssrpc4_1.15-1+deb9u1_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libk5crypto3_1.15-1+deb9u1_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkadm5clnt-mit11_1.15-1+deb9u1_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkadm5srv-mit11_1.15-1+deb9u1_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkdb5-8_1.15-1+deb9u1_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-3_1.15-1+deb9u1_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-dev_1.15-1+deb9u1_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5support0_1.15-1+deb9u1_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/libc/libcap2/libcap2_2.25-1_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/libc/libcap2/libcap-dev_2.25-1_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/libd/libdatrie/libdatrie1_0.2.10-4+b1_arm64.deb
+@@ -94,9 +94,17 @@ http://ftp.us.debian.org/debian/pool/main/libp/libp11/libp11-2_0.4.3-1_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/libp/libpng1.6/libpng16-16_1.6.28-1_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/libp/libpng1.6/libpng-dev_1.6.28-1_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/libp/libpthread-stubs/libpthread-stubs0-dev_0.3-4_arm64.deb
+-http://ftp.us.debian.org/debian/pool/main/libs/libselinux/libselinux1_2.6-3+b1_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/libs/libselinux/libselinux1_2.6-3+b3_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/libt/libtasn1-6/libtasn1-6_4.10-1.1_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/libt/libthai/libthai0_0.1.26-1_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva1_1.7.3-2_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-dev_1.7.3-2_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-drm1_1.7.3-2_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-egl1_1.7.3-2_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-glx1_1.7.3-2_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-tpi1_1.7.3-2_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-wayland1_1.7.3-2_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-x11-1_1.7.3-2_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-6_1.6.4-3_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-dev_1.6.4-3_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-xcb1_1.6.4-3_arm64.deb
+@@ -155,11 +163,6 @@ http://ftp.us.debian.org/debian/pool/main/m/mesa/libwayland-egl1-mesa_13.0.6-1+b
+ http://ftp.us.debian.org/debian/pool/main/m/mesa/mesa-common-dev_13.0.6-1+b2_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/n/nspr/libnspr4_4.12-6_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/n/nspr/libnspr4-dev_4.12-6_arm64.deb
+-http://ftp.us.debian.org/debian/pool/main/n/nss/libnss3_3.26.2-1.1_arm64.deb
+-http://ftp.us.debian.org/debian/pool/main/n/nss/libnss3-dev_3.26.2-1.1_arm64.deb
+-http://ftp.us.debian.org/debian/pool/main/o/openssl1.0/libssl1.0.2_1.0.2l-2_arm64.deb
+-http://ftp.us.debian.org/debian/pool/main/o/openssl/libssl1.1_1.1.0f-3_arm64.deb
+-http://ftp.us.debian.org/debian/pool/main/o/openssl/libssl-dev_1.1.0f-3_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/o/orbit2/liborbit2_2.14.19-2+b1_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/p/p11-kit/libp11-kit0_0.23.3-2_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/p/pam/libpam0g_1.1.8-3.6_arm64.deb
+@@ -182,9 +185,9 @@ http://ftp.us.debian.org/debian/pool/main/p/pixman/libpixman-1-dev_0.34.0-1_arm6
+ http://ftp.us.debian.org/debian/pool/main/p/pulseaudio/libpulse0_10.0-1+deb9u1_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/p/pulseaudio/libpulse-dev_10.0-1+deb9u1_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/p/pulseaudio/libpulse-mainloop-glib0_10.0-1+deb9u1_arm64.deb
+-http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/libspeechd2_0.8.6-4_arm64.deb
+-http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/libspeechd-dev_0.8.6-4_arm64.deb
+-http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/speech-dispatcher_0.8.6-4_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/libspeechd2_0.8.6-4+deb9u1_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/libspeechd-dev_0.8.6-4+deb9u1_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/speech-dispatcher_0.8.6-4+deb9u1_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/s/systemd/libudev1_232-25+deb9u1_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/s/systemd/libudev-dev_232-25+deb9u1_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/w/wayland/libwayland-client0_1.12.0-1_arm64.deb
+@@ -222,3 +225,8 @@ http://security.debian.org/pool/updates/main/g/gnutls28/libgnutlsxx28_3.5.8-5+de
+ http://security.debian.org/pool/updates/main/libg/libgcrypt20/libgcrypt20_1.7.6-2+deb9u2_arm64.deb
+ http://security.debian.org/pool/updates/main/libg/libgcrypt20/libgcrypt20-dev_1.7.6-2+deb9u2_arm64.deb
+ http://security.debian.org/pool/updates/main/l/linux/linux-libc-dev_4.9.30-2+deb9u5_arm64.deb
++http://security.debian.org/pool/updates/main/n/nss/libnss3_3.26.2-1.1+deb9u1_arm64.deb
++http://security.debian.org/pool/updates/main/n/nss/libnss3-dev_3.26.2-1.1+deb9u1_arm64.deb
++http://security.debian.org/pool/updates/main/o/openssl1.0/libssl1.0.2_1.0.2l-2+deb9u1_arm64.deb
++http://security.debian.org/pool/updates/main/o/openssl/libssl1.1_1.1.0f-3+deb9u1_arm64.deb
++http://security.debian.org/pool/updates/main/o/openssl/libssl-dev_1.1.0f-3+deb9u1_arm64.deb
+diff --git a/build/linux/sysroot_scripts/packagelist.stretch.i386 b/build/linux/sysroot_scripts/packagelist.stretch.i386
+index 6c803a1e8300..8c305746d3bf 100644
+--- a/build/linux/sysroot_scripts/packagelist.stretch.i386
++++ b/build/linux/sysroot_scripts/packagelist.stretch.i386
+@@ -4,8 +4,8 @@ http://ftp.us.debian.org/debian/pool/main/a/atk1.0/libatk1.0-0_2.22.0-1_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/a/atk1.0/libatk1.0-dev_2.22.0-1_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/a/at-spi2-atk/libatk-bridge2.0-0_2.22.0-2_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/a/at-spi2-atk/libatk-bridge2.0-dev_2.22.0-2_i386.deb
+-http://ftp.us.debian.org/debian/pool/main/a/at-spi2-core/libatspi2.0-0_2.22.0-6_i386.deb
+-http://ftp.us.debian.org/debian/pool/main/a/at-spi2-core/libatspi2.0-dev_2.22.0-6_i386.deb
++http://ftp.us.debian.org/debian/pool/main/a/at-spi2-core/libatspi2.0-0_2.22.0-6+deb9u1_i386.deb
++http://ftp.us.debian.org/debian/pool/main/a/at-spi2-core/libatspi2.0-dev_2.22.0-6+deb9u1_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/a/attr/libattr1_2.4.47-2+b2_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/a/audit/libaudit1_2.6.7-2_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/a/avahi/libavahi-client3_0.6.32-2_i386.deb
+@@ -21,8 +21,8 @@ http://ftp.us.debian.org/debian/pool/main/c/cups/libcups2-dev_2.2.1-8_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/c/cups/libcupsimage2_2.2.1-8_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/c/cups/libcupsimage2-dev_2.2.1-8_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/d/dbus-glib/libdbus-glib-1-2_0.108-2_i386.deb
+-http://ftp.us.debian.org/debian/pool/main/d/dbus/libdbus-1-3_1.10.18-1_i386.deb
+-http://ftp.us.debian.org/debian/pool/main/d/dbus/libdbus-1-dev_1.10.18-1_i386.deb
++http://ftp.us.debian.org/debian/pool/main/d/dbus/libdbus-1-3_1.10.22-0+deb9u1_i386.deb
++http://ftp.us.debian.org/debian/pool/main/d/dbus/libdbus-1-dev_1.10.22-0+deb9u1_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/d/d-conf/libdconf1_0.26.0-2+b1_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/d/d-conf/libdconf-dev_0.26.0-2+b1_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/e/e2fsprogs/comerr-dev_2.1-1.43.4-2_i386.deb
+@@ -61,16 +61,16 @@ http://ftp.us.debian.org/debian/pool/main/h/harfbuzz/libharfbuzz-dev_1.4.2-1_i38
+ http://ftp.us.debian.org/debian/pool/main/h/harfbuzz/libharfbuzz-gobject0_1.4.2-1_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/h/harfbuzz/libharfbuzz-icu0_1.4.2-1_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/k/keyutils/libkeyutils1_1.5.9-9_i386.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/krb5-multidev_1.15-1_i386.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libgssapi-krb5-2_1.15-1_i386.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libgssrpc4_1.15-1_i386.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libk5crypto3_1.15-1_i386.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkadm5clnt-mit11_1.15-1_i386.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkadm5srv-mit11_1.15-1_i386.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkdb5-8_1.15-1_i386.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-3_1.15-1_i386.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-dev_1.15-1_i386.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5support0_1.15-1_i386.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/krb5-multidev_1.15-1+deb9u1_i386.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libgssapi-krb5-2_1.15-1+deb9u1_i386.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libgssrpc4_1.15-1+deb9u1_i386.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libk5crypto3_1.15-1+deb9u1_i386.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkadm5clnt-mit11_1.15-1+deb9u1_i386.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkadm5srv-mit11_1.15-1+deb9u1_i386.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkdb5-8_1.15-1+deb9u1_i386.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-3_1.15-1+deb9u1_i386.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-dev_1.15-1+deb9u1_i386.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5support0_1.15-1+deb9u1_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/libc/libcap2/libcap2_2.25-1_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/libc/libcap2/libcap-dev_2.25-1_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/libd/libdrm/libdrm2_2.4.74-1_i386.deb
+@@ -94,8 +94,16 @@ http://ftp.us.debian.org/debian/pool/main/libp/libp11/libp11-2_0.4.3-1_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/libp/libpng1.6/libpng16-16_1.6.28-1_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/libp/libpng1.6/libpng-dev_1.6.28-1_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/libp/libpthread-stubs/libpthread-stubs0-dev_0.3-4_i386.deb
+-http://ftp.us.debian.org/debian/pool/main/libs/libselinux/libselinux1_2.6-3+b1_i386.deb
++http://ftp.us.debian.org/debian/pool/main/libs/libselinux/libselinux1_2.6-3+b3_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/libt/libtasn1-6/libtasn1-6_4.10-1.1_i386.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva1_1.7.3-2_i386.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-dev_1.7.3-2_i386.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-drm1_1.7.3-2_i386.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-egl1_1.7.3-2_i386.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-glx1_1.7.3-2_i386.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-tpi1_1.7.3-2_i386.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-wayland1_1.7.3-2_i386.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-x11-1_1.7.3-2_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-6_1.6.4-3_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-dev_1.6.4-3_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-xcb1_1.6.4-3_i386.deb
+@@ -154,11 +162,6 @@ http://ftp.us.debian.org/debian/pool/main/m/mesa/libwayland-egl1-mesa_13.0.6-1+b
+ http://ftp.us.debian.org/debian/pool/main/m/mesa/mesa-common-dev_13.0.6-1+b2_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/n/nspr/libnspr4_4.12-6_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/n/nspr/libnspr4-dev_4.12-6_i386.deb
+-http://ftp.us.debian.org/debian/pool/main/n/nss/libnss3_3.26.2-1.1_i386.deb
+-http://ftp.us.debian.org/debian/pool/main/n/nss/libnss3-dev_3.26.2-1.1_i386.deb
+-http://ftp.us.debian.org/debian/pool/main/o/openssl1.0/libssl1.0.2_1.0.2l-2_i386.deb
+-http://ftp.us.debian.org/debian/pool/main/o/openssl/libssl1.1_1.1.0f-3_i386.deb
+-http://ftp.us.debian.org/debian/pool/main/o/openssl/libssl-dev_1.1.0f-3_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/o/orbit2/liborbit2_2.14.19-2+b1_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/p/p11-kit/libp11-kit0_0.23.3-2_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/p/pam/libpam0g_1.1.8-3.6_i386.deb
+@@ -181,9 +184,9 @@ http://ftp.us.debian.org/debian/pool/main/p/pixman/libpixman-1-dev_0.34.0-1_i386
+ http://ftp.us.debian.org/debian/pool/main/p/pulseaudio/libpulse0_10.0-1+deb9u1_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/p/pulseaudio/libpulse-dev_10.0-1+deb9u1_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/p/pulseaudio/libpulse-mainloop-glib0_10.0-1+deb9u1_i386.deb
+-http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/libspeechd2_0.8.6-4_i386.deb
+-http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/libspeechd-dev_0.8.6-4_i386.deb
+-http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/speech-dispatcher_0.8.6-4_i386.deb
++http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/libspeechd2_0.8.6-4+deb9u1_i386.deb
++http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/libspeechd-dev_0.8.6-4+deb9u1_i386.deb
++http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/speech-dispatcher_0.8.6-4+deb9u1_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/s/systemd/libudev1_232-25+deb9u1_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/s/systemd/libudev-dev_232-25+deb9u1_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/w/wayland/libwayland-client0_1.12.0-1_i386.deb
+@@ -221,3 +224,8 @@ http://security.debian.org/pool/updates/main/g/gnutls28/libgnutlsxx28_3.5.8-5+de
+ http://security.debian.org/pool/updates/main/libg/libgcrypt20/libgcrypt20_1.7.6-2+deb9u2_i386.deb
+ http://security.debian.org/pool/updates/main/libg/libgcrypt20/libgcrypt20-dev_1.7.6-2+deb9u2_i386.deb
+ http://security.debian.org/pool/updates/main/l/linux/linux-libc-dev_4.9.30-2+deb9u5_i386.deb
++http://security.debian.org/pool/updates/main/n/nss/libnss3_3.26.2-1.1+deb9u1_i386.deb
++http://security.debian.org/pool/updates/main/n/nss/libnss3-dev_3.26.2-1.1+deb9u1_i386.deb
++http://security.debian.org/pool/updates/main/o/openssl1.0/libssl1.0.2_1.0.2l-2+deb9u1_i386.deb
++http://security.debian.org/pool/updates/main/o/openssl/libssl1.1_1.1.0f-3+deb9u1_i386.deb
++http://security.debian.org/pool/updates/main/o/openssl/libssl-dev_1.1.0f-3+deb9u1_i386.deb
+diff --git a/build/linux/sysroot_scripts/packagelist.stretch.mips64el b/build/linux/sysroot_scripts/packagelist.stretch.mips64el
+index 9179d18f6eaa..199b6418aba8 100644
+--- a/build/linux/sysroot_scripts/packagelist.stretch.mips64el
++++ b/build/linux/sysroot_scripts/packagelist.stretch.mips64el
+@@ -4,8 +4,8 @@ http://ftp.us.debian.org/debian/pool/main/a/atk1.0/libatk1.0-0_2.22.0-1_mips64el
+ http://ftp.us.debian.org/debian/pool/main/a/atk1.0/libatk1.0-dev_2.22.0-1_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/a/at-spi2-atk/libatk-bridge2.0-0_2.22.0-2_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/a/at-spi2-atk/libatk-bridge2.0-dev_2.22.0-2_mips64el.deb
+-http://ftp.us.debian.org/debian/pool/main/a/at-spi2-core/libatspi2.0-0_2.22.0-6_mips64el.deb
+-http://ftp.us.debian.org/debian/pool/main/a/at-spi2-core/libatspi2.0-dev_2.22.0-6_mips64el.deb
++http://ftp.us.debian.org/debian/pool/main/a/at-spi2-core/libatspi2.0-0_2.22.0-6+deb9u1_mips64el.deb
++http://ftp.us.debian.org/debian/pool/main/a/at-spi2-core/libatspi2.0-dev_2.22.0-6+deb9u1_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/a/attr/libattr1_2.4.47-2+b2_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/a/audit/libaudit1_2.6.7-2_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/a/avahi/libavahi-client3_0.6.32-2_mips64el.deb
+@@ -21,8 +21,8 @@ http://ftp.us.debian.org/debian/pool/main/c/cups/libcups2-dev_2.2.1-8_mips64el.d
+ http://ftp.us.debian.org/debian/pool/main/c/cups/libcupsimage2_2.2.1-8_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/c/cups/libcupsimage2-dev_2.2.1-8_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/d/dbus-glib/libdbus-glib-1-2_0.108-2_mips64el.deb
+-http://ftp.us.debian.org/debian/pool/main/d/dbus/libdbus-1-3_1.10.18-1_mips64el.deb
+-http://ftp.us.debian.org/debian/pool/main/d/dbus/libdbus-1-dev_1.10.18-1_mips64el.deb
++http://ftp.us.debian.org/debian/pool/main/d/dbus/libdbus-1-3_1.10.22-0+deb9u1_mips64el.deb
++http://ftp.us.debian.org/debian/pool/main/d/dbus/libdbus-1-dev_1.10.22-0+deb9u1_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/d/d-conf/libdconf1_0.26.0-2+b1_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/d/d-conf/libdconf-dev_0.26.0-2+b1_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/e/e2fsprogs/comerr-dev_2.1-1.43.4-2_mips64el.deb
+@@ -55,16 +55,16 @@ http://ftp.us.debian.org/debian/pool/main/h/harfbuzz/libharfbuzz-dev_1.4.2-1_mip
+ http://ftp.us.debian.org/debian/pool/main/h/harfbuzz/libharfbuzz-gobject0_1.4.2-1_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/h/harfbuzz/libharfbuzz-icu0_1.4.2-1_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/k/keyutils/libkeyutils1_1.5.9-9_mips64el.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/krb5-multidev_1.15-1_mips64el.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libgssapi-krb5-2_1.15-1_mips64el.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libgssrpc4_1.15-1_mips64el.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libk5crypto3_1.15-1_mips64el.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkadm5clnt-mit11_1.15-1_mips64el.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkadm5srv-mit11_1.15-1_mips64el.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkdb5-8_1.15-1_mips64el.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-3_1.15-1_mips64el.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-dev_1.15-1_mips64el.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5support0_1.15-1_mips64el.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/krb5-multidev_1.15-1+deb9u1_mips64el.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libgssapi-krb5-2_1.15-1+deb9u1_mips64el.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libgssrpc4_1.15-1+deb9u1_mips64el.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libk5crypto3_1.15-1+deb9u1_mips64el.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkadm5clnt-mit11_1.15-1+deb9u1_mips64el.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkadm5srv-mit11_1.15-1+deb9u1_mips64el.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkdb5-8_1.15-1+deb9u1_mips64el.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-3_1.15-1+deb9u1_mips64el.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-dev_1.15-1+deb9u1_mips64el.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5support0_1.15-1+deb9u1_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/libc/libcap2/libcap2_2.25-1_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/libc/libcap2/libcap-dev_2.25-1_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/libd/libdrm/libdrm2_2.4.74-1_mips64el.deb
+@@ -87,8 +87,16 @@ http://ftp.us.debian.org/debian/pool/main/libp/libp11/libp11-2_0.4.3-1_mips64el.
+ http://ftp.us.debian.org/debian/pool/main/libp/libpng1.6/libpng16-16_1.6.28-1_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/libp/libpng1.6/libpng-dev_1.6.28-1_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/libp/libpthread-stubs/libpthread-stubs0-dev_0.3-4_mips64el.deb
+-http://ftp.us.debian.org/debian/pool/main/libs/libselinux/libselinux1_2.6-3+b1_mips64el.deb
++http://ftp.us.debian.org/debian/pool/main/libs/libselinux/libselinux1_2.6-3+b3_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/libt/libtasn1-6/libtasn1-6_4.10-1.1_mips64el.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva1_1.7.3-2_mips64el.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-dev_1.7.3-2_mips64el.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-drm1_1.7.3-2_mips64el.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-egl1_1.7.3-2_mips64el.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-glx1_1.7.3-2_mips64el.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-tpi1_1.7.3-2_mips64el.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-wayland1_1.7.3-2_mips64el.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-x11-1_1.7.3-2_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-6_1.6.4-3_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-dev_1.6.4-3_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-xcb1_1.6.4-3_mips64el.deb
+@@ -147,11 +155,6 @@ http://ftp.us.debian.org/debian/pool/main/m/mesa/libwayland-egl1-mesa_13.0.6-1+b
+ http://ftp.us.debian.org/debian/pool/main/m/mesa/mesa-common-dev_13.0.6-1+b2_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/n/nspr/libnspr4_4.12-6_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/n/nspr/libnspr4-dev_4.12-6_mips64el.deb
+-http://ftp.us.debian.org/debian/pool/main/n/nss/libnss3_3.26.2-1.1_mips64el.deb
+-http://ftp.us.debian.org/debian/pool/main/n/nss/libnss3-dev_3.26.2-1.1_mips64el.deb
+-http://ftp.us.debian.org/debian/pool/main/o/openssl1.0/libssl1.0.2_1.0.2l-2_mips64el.deb
+-http://ftp.us.debian.org/debian/pool/main/o/openssl/libssl1.1_1.1.0f-3_mips64el.deb
+-http://ftp.us.debian.org/debian/pool/main/o/openssl/libssl-dev_1.1.0f-3_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/o/orbit2/liborbit2_2.14.19-2+b1_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/p/p11-kit/libp11-kit0_0.23.3-2_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/p/pam/libpam0g_1.1.8-3.6_mips64el.deb
+@@ -174,9 +177,9 @@ http://ftp.us.debian.org/debian/pool/main/p/pixman/libpixman-1-dev_0.34.0-1_mips
+ http://ftp.us.debian.org/debian/pool/main/p/pulseaudio/libpulse0_10.0-1+deb9u1_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/p/pulseaudio/libpulse-dev_10.0-1+deb9u1_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/p/pulseaudio/libpulse-mainloop-glib0_10.0-1+deb9u1_mips64el.deb
+-http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/libspeechd2_0.8.6-4_mips64el.deb
+-http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/libspeechd-dev_0.8.6-4_mips64el.deb
+-http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/speech-dispatcher_0.8.6-4_mips64el.deb
++http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/libspeechd2_0.8.6-4+deb9u1_mips64el.deb
++http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/libspeechd-dev_0.8.6-4+deb9u1_mips64el.deb
++http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/speech-dispatcher_0.8.6-4+deb9u1_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/s/systemd/libudev1_232-25+deb9u1_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/s/systemd/libudev-dev_232-25+deb9u1_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/w/wayland/libwayland-client0_1.12.0-1_mips64el.deb
+@@ -214,3 +217,8 @@ http://security.debian.org/pool/updates/main/g/gnutls28/libgnutlsxx28_3.5.8-5+de
+ http://security.debian.org/pool/updates/main/libg/libgcrypt20/libgcrypt20_1.7.6-2+deb9u2_mips64el.deb
+ http://security.debian.org/pool/updates/main/libg/libgcrypt20/libgcrypt20-dev_1.7.6-2+deb9u2_mips64el.deb
+ http://security.debian.org/pool/updates/main/l/linux/linux-libc-dev_4.9.30-2+deb9u5_mips64el.deb
++http://security.debian.org/pool/updates/main/n/nss/libnss3_3.26.2-1.1+deb9u1_mips64el.deb
++http://security.debian.org/pool/updates/main/n/nss/libnss3-dev_3.26.2-1.1+deb9u1_mips64el.deb
++http://security.debian.org/pool/updates/main/o/openssl1.0/libssl1.0.2_1.0.2l-2+deb9u1_mips64el.deb
++http://security.debian.org/pool/updates/main/o/openssl/libssl1.1_1.1.0f-3+deb9u1_mips64el.deb
++http://security.debian.org/pool/updates/main/o/openssl/libssl-dev_1.1.0f-3+deb9u1_mips64el.deb
+diff --git a/build/linux/sysroot_scripts/packagelist.stretch.mipsel b/build/linux/sysroot_scripts/packagelist.stretch.mipsel
+index 8465c68d1647..54ef06294504 100644
+--- a/build/linux/sysroot_scripts/packagelist.stretch.mipsel
++++ b/build/linux/sysroot_scripts/packagelist.stretch.mipsel
+@@ -4,8 +4,8 @@ http://ftp.us.debian.org/debian/pool/main/a/atk1.0/libatk1.0-0_2.22.0-1_mipsel.d
+ http://ftp.us.debian.org/debian/pool/main/a/atk1.0/libatk1.0-dev_2.22.0-1_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/a/at-spi2-atk/libatk-bridge2.0-0_2.22.0-2_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/a/at-spi2-atk/libatk-bridge2.0-dev_2.22.0-2_mipsel.deb
+-http://ftp.us.debian.org/debian/pool/main/a/at-spi2-core/libatspi2.0-0_2.22.0-6_mipsel.deb
+-http://ftp.us.debian.org/debian/pool/main/a/at-spi2-core/libatspi2.0-dev_2.22.0-6_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/a/at-spi2-core/libatspi2.0-0_2.22.0-6+deb9u1_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/a/at-spi2-core/libatspi2.0-dev_2.22.0-6+deb9u1_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/a/attr/libattr1_2.4.47-2+b2_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/a/audit/libaudit1_2.6.7-2_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/a/avahi/libavahi-client3_0.6.32-2_mipsel.deb
+@@ -21,8 +21,8 @@ http://ftp.us.debian.org/debian/pool/main/c/cups/libcups2-dev_2.2.1-8_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/c/cups/libcupsimage2_2.2.1-8_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/c/cups/libcupsimage2-dev_2.2.1-8_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/d/dbus-glib/libdbus-glib-1-2_0.108-2_mipsel.deb
+-http://ftp.us.debian.org/debian/pool/main/d/dbus/libdbus-1-3_1.10.18-1_mipsel.deb
+-http://ftp.us.debian.org/debian/pool/main/d/dbus/libdbus-1-dev_1.10.18-1_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/d/dbus/libdbus-1-3_1.10.22-0+deb9u1_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/d/dbus/libdbus-1-dev_1.10.22-0+deb9u1_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/d/d-conf/libdconf1_0.26.0-2+b1_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/d/d-conf/libdconf-dev_0.26.0-2+b1_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/e/e2fsprogs/comerr-dev_2.1-1.43.4-2_mipsel.deb
+@@ -55,16 +55,16 @@ http://ftp.us.debian.org/debian/pool/main/h/harfbuzz/libharfbuzz-dev_1.4.2-1_mip
+ http://ftp.us.debian.org/debian/pool/main/h/harfbuzz/libharfbuzz-gobject0_1.4.2-1_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/h/harfbuzz/libharfbuzz-icu0_1.4.2-1_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/k/keyutils/libkeyutils1_1.5.9-9_mipsel.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/krb5-multidev_1.15-1_mipsel.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libgssapi-krb5-2_1.15-1_mipsel.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libgssrpc4_1.15-1_mipsel.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libk5crypto3_1.15-1_mipsel.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkadm5clnt-mit11_1.15-1_mipsel.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkadm5srv-mit11_1.15-1_mipsel.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkdb5-8_1.15-1_mipsel.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-3_1.15-1_mipsel.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-dev_1.15-1_mipsel.deb
+-http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5support0_1.15-1_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/krb5-multidev_1.15-1+deb9u1_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libgssapi-krb5-2_1.15-1+deb9u1_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libgssrpc4_1.15-1+deb9u1_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libk5crypto3_1.15-1+deb9u1_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkadm5clnt-mit11_1.15-1+deb9u1_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkadm5srv-mit11_1.15-1+deb9u1_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkdb5-8_1.15-1+deb9u1_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-3_1.15-1+deb9u1_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-dev_1.15-1+deb9u1_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5support0_1.15-1+deb9u1_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/libc/libcap2/libcap2_2.25-1_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/libc/libcap2/libcap-dev_2.25-1_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/libd/libdrm/libdrm2_2.4.74-1_mipsel.deb
+@@ -87,8 +87,16 @@ http://ftp.us.debian.org/debian/pool/main/libp/libp11/libp11-2_0.4.3-1_mipsel.de
+ http://ftp.us.debian.org/debian/pool/main/libp/libpng1.6/libpng16-16_1.6.28-1_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/libp/libpng1.6/libpng-dev_1.6.28-1_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/libp/libpthread-stubs/libpthread-stubs0-dev_0.3-4_mipsel.deb
+-http://ftp.us.debian.org/debian/pool/main/libs/libselinux/libselinux1_2.6-3+b1_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/libs/libselinux/libselinux1_2.6-3+b3_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/libt/libtasn1-6/libtasn1-6_4.10-1.1_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva1_1.7.3-2_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-dev_1.7.3-2_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-drm1_1.7.3-2_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-egl1_1.7.3-2_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-glx1_1.7.3-2_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-tpi1_1.7.3-2_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-wayland1_1.7.3-2_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/libv/libva/libva-x11-1_1.7.3-2_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-6_1.6.4-3_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-dev_1.6.4-3_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/libx/libx11/libx11-xcb1_1.6.4-3_mipsel.deb
+@@ -147,11 +155,6 @@ http://ftp.us.debian.org/debian/pool/main/m/mesa/libwayland-egl1-mesa_13.0.6-1+b
+ http://ftp.us.debian.org/debian/pool/main/m/mesa/mesa-common-dev_13.0.6-1+b2_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/n/nspr/libnspr4_4.12-6_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/n/nspr/libnspr4-dev_4.12-6_mipsel.deb
+-http://ftp.us.debian.org/debian/pool/main/n/nss/libnss3_3.26.2-1.1_mipsel.deb
+-http://ftp.us.debian.org/debian/pool/main/n/nss/libnss3-dev_3.26.2-1.1_mipsel.deb
+-http://ftp.us.debian.org/debian/pool/main/o/openssl1.0/libssl1.0.2_1.0.2l-2_mipsel.deb
+-http://ftp.us.debian.org/debian/pool/main/o/openssl/libssl1.1_1.1.0f-3_mipsel.deb
+-http://ftp.us.debian.org/debian/pool/main/o/openssl/libssl-dev_1.1.0f-3_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/o/orbit2/liborbit2_2.14.19-2+b1_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/p/p11-kit/libp11-kit0_0.23.3-2_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/p/pam/libpam0g_1.1.8-3.6_mipsel.deb
+@@ -174,9 +177,9 @@ http://ftp.us.debian.org/debian/pool/main/p/pixman/libpixman-1-dev_0.34.0-1_mips
+ http://ftp.us.debian.org/debian/pool/main/p/pulseaudio/libpulse0_10.0-1+deb9u1_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/p/pulseaudio/libpulse-dev_10.0-1+deb9u1_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/p/pulseaudio/libpulse-mainloop-glib0_10.0-1+deb9u1_mipsel.deb
+-http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/libspeechd2_0.8.6-4_mipsel.deb
+-http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/libspeechd-dev_0.8.6-4_mipsel.deb
+-http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/speech-dispatcher_0.8.6-4_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/libspeechd2_0.8.6-4+deb9u1_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/libspeechd-dev_0.8.6-4+deb9u1_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/s/speech-dispatcher/speech-dispatcher_0.8.6-4+deb9u1_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/s/systemd/libudev1_232-25+deb9u1_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/s/systemd/libudev-dev_232-25+deb9u1_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/w/wayland/libwayland-client0_1.12.0-1_mipsel.deb
+@@ -214,3 +217,8 @@ http://security.debian.org/pool/updates/main/g/gnutls28/libgnutlsxx28_3.5.8-5+de
+ http://security.debian.org/pool/updates/main/libg/libgcrypt20/libgcrypt20_1.7.6-2+deb9u2_mipsel.deb
+ http://security.debian.org/pool/updates/main/libg/libgcrypt20/libgcrypt20-dev_1.7.6-2+deb9u2_mipsel.deb
+ http://security.debian.org/pool/updates/main/l/linux/linux-libc-dev_4.9.30-2+deb9u5_mipsel.deb
++http://security.debian.org/pool/updates/main/n/nss/libnss3_3.26.2-1.1+deb9u1_mipsel.deb
++http://security.debian.org/pool/updates/main/n/nss/libnss3-dev_3.26.2-1.1+deb9u1_mipsel.deb
++http://security.debian.org/pool/updates/main/o/openssl1.0/libssl1.0.2_1.0.2l-2+deb9u1_mipsel.deb
++http://security.debian.org/pool/updates/main/o/openssl/libssl1.1_1.1.0f-3+deb9u1_mipsel.deb
++http://security.debian.org/pool/updates/main/o/openssl/libssl-dev_1.1.0f-3+deb9u1_mipsel.deb
+diff --git a/build/linux/sysroot_scripts/sysroot-creator-jessie.sh b/build/linux/sysroot_scripts/sysroot-creator-jessie.sh
+index 0a4cb2f16a0f..0ca91cf2bea7 100755
+--- a/build/linux/sysroot_scripts/sysroot-creator-jessie.sh
++++ b/build/linux/sysroot_scripts/sysroot-creator-jessie.sh
+@@ -163,6 +163,14 @@ DEBIAN_PACKAGES="\
+   libtasn1-6
+   libudev-dev
+   libudev1
++  libva1
++  libva-dev
++  libva-drm1
++  libva-egl1
++  libva-glx1
++  libva-tpi1
++  libva-wayland1
++  libva-x11-1
+   libwayland-client0
+   libwayland-cursor0
+   libwayland-dev
+diff --git a/build/linux/sysroot_scripts/sysroot-creator-stretch.sh b/build/linux/sysroot_scripts/sysroot-creator-stretch.sh
+index 81c314787af9..40cf046d2609 100755
+--- a/build/linux/sysroot_scripts/sysroot-creator-stretch.sh
++++ b/build/linux/sysroot_scripts/sysroot-creator-stretch.sh
+@@ -175,6 +175,14 @@ DEBIAN_PACKAGES="\
+   libtasn1-6
+   libudev-dev
+   libudev1
++  libva1
++  libva-dev
++  libva-drm1
++  libva-egl1
++  libva-glx1
++  libva-tpi1
++  libva-wayland1
++  libva-x11-1
+   libwayland-client0
+   libwayland-cursor0
+   libwayland-dev
+diff --git a/build/linux/sysroot_scripts/sysroots.json b/build/linux/sysroot_scripts/sysroots.json
+index 14c6716cf06d..1c87b26c167e 100644
+--- a/build/linux/sysroot_scripts/sysroots.json
++++ b/build/linux/sysroot_scripts/sysroots.json
+@@ -1,67 +1,67 @@
+ {
+     "jessie_amd64": {
+-        "Revision": "823bd3badb80d935f8029a06218d88dcf380ca82",
+-        "Sha1Sum": "cdf4b63d578b78491a3dd527730b4abb6ad3c0ef",
++        "Revision": "1126d9b629c97385a503debac7a1b59e60a3ab1b",
++        "Sha1Sum": "3f608208f525d85a934e5d74ca0a76f8f234aea5",
+         "SysrootDir": "debian_jessie_amd64-sysroot",
+         "Tarball": "debian_jessie_amd64_sysroot.tar.xz"
+     },
+     "jessie_arm": {
+-        "Revision": "823bd3badb80d935f8029a06218d88dcf380ca82",
+-        "Sha1Sum": "c5eeee2f84f07c76f4d46849de561b7ec3ca7638",
++        "Revision": "1126d9b629c97385a503debac7a1b59e60a3ab1b",
++        "Sha1Sum": "5565736d389d834938b238bf6391a7facef1c26f",
+         "SysrootDir": "debian_jessie_arm-sysroot",
+         "Tarball": "debian_jessie_arm_sysroot.tar.xz"
+     },
+     "jessie_arm64": {
+-        "Revision": "823bd3badb80d935f8029a06218d88dcf380ca82",
+-        "Sha1Sum": "ed372720bf897cd5565e552c6a7f0d510b572c44",
++        "Revision": "1126d9b629c97385a503debac7a1b59e60a3ab1b",
++        "Sha1Sum": "6281c416ea24fdb4d1e5c411feb7cc88eb87aecd",
+         "SysrootDir": "debian_jessie_arm64-sysroot",
+         "Tarball": "debian_jessie_arm64_sysroot.tar.xz"
+     },
+     "jessie_i386": {
+-        "Revision": "823bd3badb80d935f8029a06218d88dcf380ca82",
+-        "Sha1Sum": "3c9ce5efc973b5342b04e9c9c97551ce8ce2c76b",
++        "Revision": "1126d9b629c97385a503debac7a1b59e60a3ab1b",
++        "Sha1Sum": "0315e93779f58164ff307f89c11756aa9377dfac",
+         "SysrootDir": "debian_jessie_i386-sysroot",
+         "Tarball": "debian_jessie_i386_sysroot.tar.xz"
+     },
+     "jessie_mips": {
+-        "Revision": "823bd3badb80d935f8029a06218d88dcf380ca82",
+-        "Sha1Sum": "567a036527d98388271c097f225212080cf814a2",
++        "Revision": "1126d9b629c97385a503debac7a1b59e60a3ab1b",
++        "Sha1Sum": "3e2487e2048c0d468685068dbd96950af50a4165",
+         "SysrootDir": "debian_jessie_mips-sysroot",
+         "Tarball": "debian_jessie_mips_sysroot.tar.xz"
+     },
+     "stretch_amd64": {
+-        "Revision": "823bd3badb80d935f8029a06218d88dcf380ca82",
+-        "Sha1Sum": "83e93938092c750565435663049272a50b657c3e",
++        "Revision": "1126d9b629c97385a503debac7a1b59e60a3ab1b",
++        "Sha1Sum": "a73bcd43fc4910afe264f730f7c06f5ef5c965cd",
+         "SysrootDir": "debian_stretch_amd64-sysroot",
+         "Tarball": "debian_stretch_amd64_sysroot.tar.xz"
+     },
+     "stretch_arm": {
+-        "Revision": "823bd3badb80d935f8029a06218d88dcf380ca82",
+-        "Sha1Sum": "4f61e21b003d94d6004c07390e663d3f8e638fc5",
++        "Revision": "1126d9b629c97385a503debac7a1b59e60a3ab1b",
++        "Sha1Sum": "7c5c22fbfca6fd825a63363bc906fbfa800d7f95",
+         "SysrootDir": "debian_stretch_arm-sysroot",
+         "Tarball": "debian_stretch_arm_sysroot.tar.xz"
+     },
+     "stretch_arm64": {
+-        "Revision": "823bd3badb80d935f8029a06218d88dcf380ca82",
+-        "Sha1Sum": "f812db22eba59fe4890b06fca3ddcc109f616de0",
++        "Revision": "1126d9b629c97385a503debac7a1b59e60a3ab1b",
++        "Sha1Sum": "ab8063f2d9d6b777797653041851c3f9274a33af",
+         "SysrootDir": "debian_stretch_arm64-sysroot",
+         "Tarball": "debian_stretch_arm64_sysroot.tar.xz"
+     },
+     "stretch_i386": {
+-        "Revision": "823bd3badb80d935f8029a06218d88dcf380ca82",
+-        "Sha1Sum": "f45dd3370b5d40e3e8489766f5ec6c015647c1d6",
++        "Revision": "1126d9b629c97385a503debac7a1b59e60a3ab1b",
++        "Sha1Sum": "72ed2ce337bd40e8e7a89e5501b0b63050453d6c",
+         "SysrootDir": "debian_stretch_i386-sysroot",
+         "Tarball": "debian_stretch_i386_sysroot.tar.xz"
+     },
+     "stretch_mips": {
+-        "Revision": "823bd3badb80d935f8029a06218d88dcf380ca82",
+-        "Sha1Sum": "2ea51db835e777858befcbb6e7cfb42f3f655f9f",
++        "Revision": "1126d9b629c97385a503debac7a1b59e60a3ab1b",
++        "Sha1Sum": "fe5949ed3795aa64913a27389052637ea2629da3",
+         "SysrootDir": "debian_stretch_mips-sysroot",
+         "Tarball": "debian_stretch_mips_sysroot.tar.xz"
+     },
+     "stretch_mips64el": {
+-        "Revision": "823bd3badb80d935f8029a06218d88dcf380ca82",
+-        "Sha1Sum": "1d35dfdc1573a7a2a6237160a8dd122dc7a5fff8",
++        "Revision": "1126d9b629c97385a503debac7a1b59e60a3ab1b",
++        "Sha1Sum": "5d95b45a9633c3c874d3ab9326306b0e951f01f1",
+         "SysrootDir": "debian_stretch_mips64el-sysroot",
+         "Tarball": "debian_stretch_mips64el_sysroot.tar.xz"
+     }
+diff --git a/tools/checklicenses/checklicenses.py b/tools/checklicenses/checklicenses.py
+index 3c84c26f6a6c..e4530ec4de93 100755
+--- a/tools/checklicenses/checklicenses.py
++++ b/tools/checklicenses/checklicenses.py
+@@ -657,6 +657,11 @@ EXCLUDED_PATHS = [
+     'build/linux/debian_jessie_arm-sysroot/',
+     'build/linux/debian_jessie_i386-sysroot/',
+     'build/linux/debian_jessie_mips-sysroot/',
++    'build/linux/debian_stretch_arm64-sysroot/',
++    'build/linux/debian_stretch_amd64-sysroot/',
++    'build/linux/debian_stretch_arm-sysroot/',
++    'build/linux/debian_stretch_i386-sysroot/',
++    'build/linux/debian_stretch_mips-sysroot/',
+ ]
+ 
+ 
+diff --git a/tools/mb/mb_config.pyl b/tools/mb/mb_config.pyl
+index 974bf438bb06..386be3802d90 100644
+--- a/tools/mb/mb_config.pyl
++++ b/tools/mb/mb_config.pyl
+@@ -1099,19 +1099,19 @@
+     ],
+ 
+     'chromeos_with_codecs_debug_bot': [
+-      'chromeos_with_codecs', 'debug_bot',
++      'chromeos_with_codecs', 'debug_bot', 'use_vaapi',
+     ],
+ 
+     'chromeos_with_codecs_debug_trybot': [
+-      'chromeos_with_codecs', 'debug_trybot',
++      'chromeos_with_codecs', 'debug_trybot', 'use_vaapi',
+     ],
+ 
+     'chromeos_with_codecs_release_bot': [
+-      'chromeos_with_codecs', 'release_bot',
++      'chromeos_with_codecs', 'release_bot', 'use_vaapi',
+     ],
+ 
+     'chromeos_with_codecs_release_trybot': [
+-      'chromeos_with_codecs', 'release_trybot',
++      'chromeos_with_codecs', 'release_trybot', 'use_vaapi',
+     ],
+ 
+     'clang_debug_trybot_x86': [
+@@ -2146,6 +2146,10 @@
+       'gn_args': 'use_lld=true',
+     },
+ 
++    'use_vaapi': {
++      'gn_args': 'use_vaapi=true',
++    },
++
+     'v8_concurrent_marking': {
+       'gn_args': 'v8_enable_concurrent_marking=true',
+     },

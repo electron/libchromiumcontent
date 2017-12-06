@@ -1,0 +1,139 @@
+a6977980088b9112787e4d69b116032379a164e4
+diff --git a/build/linux/sysroot_scripts/packagelist.stretch.amd64 b/build/linux/sysroot_scripts/packagelist.stretch.amd64
+index 6e01c0def726..537faa690096 100644
+--- a/build/linux/sysroot_scripts/packagelist.stretch.amd64
++++ b/build/linux/sysroot_scripts/packagelist.stretch.amd64
+@@ -73,6 +73,7 @@ http://ftp.us.debian.org/debian/pool/main/k/krb5/libkdb5-8_1.15-1+deb9u1_amd64.d
+ http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-3_1.15-1+deb9u1_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-dev_1.15-1+deb9u1_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5support0_1.15-1+deb9u1_amd64.deb
++http://ftp.us.debian.org/debian/pool/main/libb/libbsd/libbsd0_0.8.3-1_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/libc/libcap2/libcap2_2.25-1_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/libc/libcap2/libcap-dev_2.25-1_amd64.deb
+ http://ftp.us.debian.org/debian/pool/main/libd/libdrm/libdrm2_2.4.74-1_amd64.deb
+diff --git a/build/linux/sysroot_scripts/packagelist.stretch.arm b/build/linux/sysroot_scripts/packagelist.stretch.arm
+index d58ff93ef92a..3de9a8efa4d0 100644
+--- a/build/linux/sysroot_scripts/packagelist.stretch.arm
++++ b/build/linux/sysroot_scripts/packagelist.stretch.arm
+@@ -67,6 +67,7 @@ http://ftp.us.debian.org/debian/pool/main/k/krb5/libkdb5-8_1.15-1+deb9u1_armhf.d
+ http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-3_1.15-1+deb9u1_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-dev_1.15-1+deb9u1_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5support0_1.15-1+deb9u1_armhf.deb
++http://ftp.us.debian.org/debian/pool/main/libb/libbsd/libbsd0_0.8.3-1_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/libc/libcap2/libcap2_2.25-1_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/libc/libcap2/libcap-dev_2.25-1_armhf.deb
+ http://ftp.us.debian.org/debian/pool/main/libd/libdrm/libdrm2_2.4.74-1_armhf.deb
+diff --git a/build/linux/sysroot_scripts/packagelist.stretch.arm64 b/build/linux/sysroot_scripts/packagelist.stretch.arm64
+index 830ac4751209..25437eaa8e21 100644
+--- a/build/linux/sysroot_scripts/packagelist.stretch.arm64
++++ b/build/linux/sysroot_scripts/packagelist.stretch.arm64
+@@ -69,6 +69,7 @@ http://ftp.us.debian.org/debian/pool/main/k/krb5/libkdb5-8_1.15-1+deb9u1_arm64.d
+ http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-3_1.15-1+deb9u1_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-dev_1.15-1+deb9u1_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5support0_1.15-1+deb9u1_arm64.deb
++http://ftp.us.debian.org/debian/pool/main/libb/libbsd/libbsd0_0.8.3-1_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/libc/libcap2/libcap2_2.25-1_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/libc/libcap2/libcap-dev_2.25-1_arm64.deb
+ http://ftp.us.debian.org/debian/pool/main/libd/libdatrie/libdatrie1_0.2.10-4+b1_arm64.deb
+diff --git a/build/linux/sysroot_scripts/packagelist.stretch.i386 b/build/linux/sysroot_scripts/packagelist.stretch.i386
+index 8c305746d3bf..28a2423d23fd 100644
+--- a/build/linux/sysroot_scripts/packagelist.stretch.i386
++++ b/build/linux/sysroot_scripts/packagelist.stretch.i386
+@@ -71,6 +71,7 @@ http://ftp.us.debian.org/debian/pool/main/k/krb5/libkdb5-8_1.15-1+deb9u1_i386.de
+ http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-3_1.15-1+deb9u1_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-dev_1.15-1+deb9u1_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5support0_1.15-1+deb9u1_i386.deb
++http://ftp.us.debian.org/debian/pool/main/libb/libbsd/libbsd0_0.8.3-1_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/libc/libcap2/libcap2_2.25-1_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/libc/libcap2/libcap-dev_2.25-1_i386.deb
+ http://ftp.us.debian.org/debian/pool/main/libd/libdrm/libdrm2_2.4.74-1_i386.deb
+diff --git a/build/linux/sysroot_scripts/packagelist.stretch.mips64el b/build/linux/sysroot_scripts/packagelist.stretch.mips64el
+index 199b6418aba8..7390896af5c9 100644
+--- a/build/linux/sysroot_scripts/packagelist.stretch.mips64el
++++ b/build/linux/sysroot_scripts/packagelist.stretch.mips64el
+@@ -65,6 +65,7 @@ http://ftp.us.debian.org/debian/pool/main/k/krb5/libkdb5-8_1.15-1+deb9u1_mips64e
+ http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-3_1.15-1+deb9u1_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-dev_1.15-1+deb9u1_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5support0_1.15-1+deb9u1_mips64el.deb
++http://ftp.us.debian.org/debian/pool/main/libb/libbsd/libbsd0_0.8.3-1_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/libc/libcap2/libcap2_2.25-1_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/libc/libcap2/libcap-dev_2.25-1_mips64el.deb
+ http://ftp.us.debian.org/debian/pool/main/libd/libdrm/libdrm2_2.4.74-1_mips64el.deb
+diff --git a/build/linux/sysroot_scripts/packagelist.stretch.mipsel b/build/linux/sysroot_scripts/packagelist.stretch.mipsel
+index 54ef06294504..8fd9d5b4eb10 100644
+--- a/build/linux/sysroot_scripts/packagelist.stretch.mipsel
++++ b/build/linux/sysroot_scripts/packagelist.stretch.mipsel
+@@ -65,6 +65,7 @@ http://ftp.us.debian.org/debian/pool/main/k/krb5/libkdb5-8_1.15-1+deb9u1_mipsel.
+ http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-3_1.15-1+deb9u1_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5-dev_1.15-1+deb9u1_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/k/krb5/libkrb5support0_1.15-1+deb9u1_mipsel.deb
++http://ftp.us.debian.org/debian/pool/main/libb/libbsd/libbsd0_0.8.3-1_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/libc/libcap2/libcap2_2.25-1_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/libc/libcap2/libcap-dev_2.25-1_mipsel.deb
+ http://ftp.us.debian.org/debian/pool/main/libd/libdrm/libdrm2_2.4.74-1_mipsel.deb
+diff --git a/build/linux/sysroot_scripts/sysroot-creator-stretch.sh b/build/linux/sysroot_scripts/sysroot-creator-stretch.sh
+index 40cf046d2609..d39745ac11b7 100755
+--- a/build/linux/sysroot_scripts/sysroot-creator-stretch.sh
++++ b/build/linux/sysroot_scripts/sysroot-creator-stretch.sh
+@@ -47,6 +47,7 @@ DEBIAN_PACKAGES="\
+   libbluetooth-dev
+   libbrlapi0.6
+   libbrlapi-dev
++  libbsd0
+   libc6
+   libc6-dev
+   libcairo2
+diff --git a/build/linux/sysroot_scripts/sysroots.json b/build/linux/sysroot_scripts/sysroots.json
+index 62e63e58747d..2e818f3033af 100644
+--- a/build/linux/sysroot_scripts/sysroots.json
++++ b/build/linux/sysroot_scripts/sysroots.json
+@@ -1,37 +1,37 @@
+ {
+     "stretch_amd64": {
+-        "Revision": "78c7b1906cf3ee5f342eddc46398c97530e8757a",
+-        "Sha1Sum": "ee33ea4e4de55a2d24c4d28aea83cfcf3eecad4e",
++        "Revision": "2202c161310ffde63729f29d27fe7bb24a0bc540",
++        "Sha1Sum": "eb7e2d2c563b6a6f6e32b967d5585a6d33636d35",
+         "SysrootDir": "debian_stretch_amd64-sysroot",
+         "Tarball": "debian_stretch_amd64_sysroot.tar.xz"
+     },
+     "stretch_arm": {
+-        "Revision": "78c7b1906cf3ee5f342eddc46398c97530e8757a",
+-        "Sha1Sum": "d322e43a2b714eae47dd5defdc96217c87a4b3de",
++        "Revision": "2202c161310ffde63729f29d27fe7bb24a0bc540",
++        "Sha1Sum": "1d827c64de8f0205bef7ec0c9c7f769326e32141",
+         "SysrootDir": "debian_stretch_arm-sysroot",
+         "Tarball": "debian_stretch_arm_sysroot.tar.xz"
+     },
+     "stretch_arm64": {
+-        "Revision": "78c7b1906cf3ee5f342eddc46398c97530e8757a",
+-        "Sha1Sum": "9d045c8c2c302f88d99f84e9c82953beeb495164",
++        "Revision": "2202c161310ffde63729f29d27fe7bb24a0bc540",
++        "Sha1Sum": "2649a7ffa2e0d9a42a9a567a33967ec706bd3b8e",
+         "SysrootDir": "debian_stretch_arm64-sysroot",
+         "Tarball": "debian_stretch_arm64_sysroot.tar.xz"
+     },
+     "stretch_i386": {
+-        "Revision": "78c7b1906cf3ee5f342eddc46398c97530e8757a",
+-        "Sha1Sum": "9c7a45ab99ce6bb24935108b2d92a129f935c459",
++        "Revision": "2202c161310ffde63729f29d27fe7bb24a0bc540",
++        "Sha1Sum": "8fa3ac112fe5bb583624100379f715f3db5d6965",
+         "SysrootDir": "debian_stretch_i386-sysroot",
+         "Tarball": "debian_stretch_i386_sysroot.tar.xz"
+     },
+     "stretch_mips": {
+-        "Revision": "78c7b1906cf3ee5f342eddc46398c97530e8757a",
+-        "Sha1Sum": "191df324dba5f82ffffbb750fa2c887146db28a7",
++        "Revision": "2202c161310ffde63729f29d27fe7bb24a0bc540",
++        "Sha1Sum": "85a3f9e3f2d6ff2a5b2623f202689ef03ea12231",
+         "SysrootDir": "debian_stretch_mips-sysroot",
+         "Tarball": "debian_stretch_mips_sysroot.tar.xz"
+     },
+     "stretch_mips64el": {
+-        "Revision": "78c7b1906cf3ee5f342eddc46398c97530e8757a",
+-        "Sha1Sum": "3941b9493d200423bb55bd5ab4ff2585fbf667c4",
++        "Revision": "2202c161310ffde63729f29d27fe7bb24a0bc540",
++        "Sha1Sum": "004ad054e0613b9d8d51573068387625bb657d12",
+         "SysrootDir": "debian_stretch_mips64el-sysroot",
+         "Tarball": "debian_stretch_mips64el_sysroot.tar.xz"
+     }
