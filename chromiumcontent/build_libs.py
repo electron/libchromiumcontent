@@ -22,7 +22,7 @@ with open(args.out, 'w') as out:
     additional_libchromiumcontent = []
     if sys.platform in ['win32', 'cygwin'] and args.target_cpu == "x64":
         additional_libchromiumcontent = [
-            "../clang_x64/obj/third_party/libyuv",
+            "../win_clang_x64/obj/third_party/libyuv",
         ]
     gen_list(
         out,
