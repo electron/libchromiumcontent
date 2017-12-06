@@ -1,0 +1,26 @@
+8a62aea7a676b02ef09717aabd7b4213420893fc
+diff --git a/ui/accessibility/ax_event_generator.cc b/ui/accessibility/ax_event_generator.cc
+index dfe82d7b2546..a3fcd73cac0d 100644
+--- a/ui/accessibility/ax_event_generator.cc
++++ b/ui/accessibility/ax_event_generator.cc
+@@ -23,6 +23,8 @@ AXEventGenerator::Iterator::Iterator(
+ AXEventGenerator::Iterator::Iterator(const AXEventGenerator::Iterator& other) =
+     default;
+ 
++AXEventGenerator::Iterator::~Iterator() = default;
++
+ bool AXEventGenerator::Iterator::operator!=(
+     const AXEventGenerator::Iterator& rhs) const {
+   return map_iter_ != rhs.map_iter_ ||
+diff --git a/ui/accessibility/ax_event_generator.h b/ui/accessibility/ax_event_generator.h
+index ee4996858f06..db5d3e4cae31 100644
+--- a/ui/accessibility/ax_event_generator.h
++++ b/ui/accessibility/ax_event_generator.h
+@@ -58,6 +58,7 @@ class AX_EXPORT AXEventGenerator : public AXTreeDelegate {
+     Iterator(const std::map<AXNode*, std::set<Event>>& map,
+              const std::map<AXNode*, std::set<Event>>::const_iterator& head);
+     Iterator(const Iterator& other);
++    ~Iterator();
+ 
+     bool operator!=(const Iterator& rhs) const;
+     Iterator& operator++();
