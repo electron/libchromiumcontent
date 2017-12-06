@@ -202,12 +202,12 @@ index c6b659b777bc..fe03cb11f7d3 100644
    }
  
 diff --git a/content/renderer/renderer_main_platform_delegate_mac.mm b/content/renderer/renderer_main_platform_delegate_mac.mm
-index 3d828fc09d39..57660c320371 100644
+index 205ef42470de..c94ed6c8cd26 100644
 --- a/content/renderer/renderer_main_platform_delegate_mac.mm
 +++ b/content/renderer/renderer_main_platform_delegate_mac.mm
 @@ -21,6 +21,7 @@
- #include "content/public/common/content_switches.h"
  #include "sandbox/mac/seatbelt.h"
+ #include "services/service_manager/sandbox/mac/sandbox_mac.h"
  
 +#ifndef MAS_BUILD
  extern "C" {
