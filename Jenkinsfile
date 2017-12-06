@@ -13,6 +13,16 @@ pipeline {
               TARGET_ARCH = 'x64'
             }
             steps {
+              echo "Branch name is:${BRANCH_NAME}"
+              script {
+                if (BRANCH_NAME ==~ /master|electron-\n-\n-x|PR-\d+/) {
+                  echo "BRANCH IS SPECIAL"
+                } else {
+                  echo "BRANCH IS NOT SPECIAL"
+                }
+                currentBuild.result = 'ABORTED'
+                error('Stopping early because this is a test')
+              }
               sh 'script/bootstrap'
               sh 'script/update --clean -t $TARGET_ARCH'
               sh 'script/build -t $TARGET_ARCH -c $COMPONENT'
@@ -44,6 +54,15 @@ pipeline {
               TARGET_ARCH = 'x64'
             }
             steps {
+              script {
+                if ("${BRANCH_NAME}" ==~ /master|electron-\n-\n-x|PR-\d+/) {
+                  echo "BRANCH IS SPECIAL"
+                } else {
+                  echo "BRANCH IS NOT SPECIAL"
+                }
+                currentBuild.result = 'ABORTED'
+                error('Stopping early because this is a test')
+              }
               sh 'script/bootstrap'
               sh 'script/update --clean -t $TARGET_ARCH'
               sh 'script/build -t $TARGET_ARCH -c $COMPONENT'
@@ -76,6 +95,15 @@ pipeline {
             TARGET_ARCH = 'x64'
           }
           steps {
+            script {
+              if ("${BRANCH_NAME}" ==~ /master|electron-\n-\n-x|PR-\d+/) {
+                echo "BRANCH IS SPECIAL"
+              } else {
+                echo "BRANCH IS NOT SPECIAL"
+              }
+              currentBuild.result = 'ABORTED'
+              error('Stopping early because this is a test')
+            }
             sh 'script/bootstrap'
             sh 'script/update --clean -t $TARGET_ARCH'
             sh 'script/build -t $TARGET_ARCH -c $COMPONENT'
@@ -108,6 +136,15 @@ pipeline {
             TARGET_ARCH = 'x64'
           }
           steps {
+            script {
+              if ("${BRANCH_NAME}" ==~ /master|electron-\n-\n-x|PR-\d+/) {
+                echo "BRANCH IS SPECIAL"
+              } else {
+                echo "BRANCH IS NOT SPECIAL"
+              }
+              currentBuild.result = 'ABORTED'
+              error('Stopping early because this is a test')
+            }            
             sh 'script/bootstrap'
             sh 'script/update --clean -t $TARGET_ARCH'
             sh 'script/build -t $TARGET_ARCH -c $COMPONENT'
