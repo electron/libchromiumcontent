@@ -19,14 +19,14 @@ index bd37707..2fbc4d6e 100644
 -  cc = "gcc"
 -  cxx = "g++"
 -  ar = "ar"
-+  cc = "mips64el-redhat-linux-gcc"
-+  cxx = "mips64el-redhat-linux-g++"
-+  ar = "mips64el-redhat-linux-ar"
++  cc = "mips64el-loongson-linux-gcc"
++  cxx = "mips64el-loongson-linux-g++"
++  ar = "mips64el-loongson-linux-ar"
    ld = cxx
 -  readelf = "readelf"
 -  nm = "nm"
-+  readelf = "mips64el-redhat-linux-readelf"
-+  nm = "mips64el-redhat-linux-nm"
++  readelf = "mips64el-loongson-linux-readelf"
++  nm = "mips64el-loongson-linux-nm"
  
    toolchain_args = {
      cc_wrapper = ""
