@@ -16,6 +16,11 @@ use_custom_libcxx = false
 # Jumbo build should improve compilation times.
 # https://chromium.googlesource.com/chromium/src/+/master/docs/jumbo.md
 use_jumbo_build = true
+if (target_cpu == "arm64") {
+  # Temporary disable on arm64 due to "error: '__' macro redefined".
+  # Should be enabled back eventually.
+  use_jumbo_build = false
+}
 
 # This is required by Node.js
 # See https://github.com/nodejs/node/pull/13242
