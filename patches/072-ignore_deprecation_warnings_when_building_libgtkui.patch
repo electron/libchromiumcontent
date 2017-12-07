@@ -1,0 +1,14 @@
+diff --git a/chrome/browser/ui/libgtkui/BUILD.gn b/chrome/browser/ui/libgtkui/BUILD.gn
+index 33b4f820bb49..3f29c2e270f5 100644
+--- a/chrome/browser/ui/libgtkui/BUILD.gn
++++ b/chrome/browser/ui/libgtkui/BUILD.gn
+@@ -24,6 +24,9 @@ group("libgtkui") {
+ 
+ template("libgtkui") {
+   component(target_name) {
++    # FIXME(alexeykuzmin): Remove after the upgrade to Chromium 63 or 64.
++    cflags = [ "-Wno-deprecated-declarations" ]
++
+     sources = invoker.sources + [
+                 "app_indicator_icon.cc",
+                 "app_indicator_icon.h",
