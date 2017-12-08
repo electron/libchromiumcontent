@@ -1,0 +1,32 @@
+version: 1.0.{build}
+build_cloud: libcc-20
+image: libcc-20-vs2017
+clone_folder: c:\build
+environment:
+  matrix:
+  - TARGET_ARCH: ia32
+    COMPONENT: shared_library
+  - TARGET_ARCH: x64
+    COMPONENT: shared_library
+  - TARGET_ARCH: ia32
+    COMPONENT: static_library
+  - TARGET_ARCH: x64
+    COMPONENT: static_library
+build_script:
+- ps: >-
+    if(($env:APPVEYOR_PULL_REQUEST_HEAD_REPO_NAME -split "/")[0] -eq ($env:APPVEYOR_REPO_NAME -split "/")[0]) {
+      Write-warning "Skipping PR build for branch"; Exit-AppveyorBuild
+    } else {
+      script\cibuild.ps1 -skipUpload
+      if ($? -ne 'True') {
+        throw "Build failed with exit code $?"
+      } else {
+        "Build succeeded."
+      }
+    }
+test: off
+artifacts:
+- path: libchromiumcontent.zip
+  name: libchromiumcontent.zip
+- path: libchromiumcontent-static.zip
+  name: libchromiumcontent-static.zip
