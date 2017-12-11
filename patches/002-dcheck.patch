@@ -35,32 +35,17 @@ These files have debug checks explicitly commented out:
   third_party/WebKit/Source/platform/wtf/ThreadRestrictionVerifier.h
 
 
-diff --git a/base/BUILD.gn b/base/BUILD.gn
-index 6b922adf..061ac83 100644
---- a/base/BUILD.gn
-+++ b/base/BUILD.gn
-@@ -1678,6 +1678,10 @@ component("base") {
-     configs -= [ "//build/config/compiler:default_optimization" ]
-     configs += [ "//build/config/compiler:optimize_max" ]
-   }
-+
-+  if (is_electron_build) {
-+    defines += [ "ELECTRON_NO_DCHECK" ]
-+  }
- }
- 
- buildflag_header("debugging_flags") {
 diff --git a/base/logging.h b/base/logging.h
 index 582fb89..24d3e82 100644
 --- a/base/logging.h
 +++ b/base/logging.h
 @@ -850,7 +850,7 @@ const LogSeverity LOG_DCHECK = LOG_INFO;
- 
+
  #else  // !(defined(_PREFAST_) && defined(OS_WIN))
- 
+
 -#if DCHECK_IS_ON()
 +#if DCHECK_IS_ON() && !defined(ELECTRON_NO_DCHECK)
- 
+
  #define DCHECK(condition)                                           \
    LAZY_STREAM(LOG_STREAM(DCHECK), !ANALYZER_ASSUME_TRUE(condition)) \
 diff --git a/base/process/kill_win.cc b/base/process/kill_win.cc
@@ -69,7 +54,7 @@ index 79e5ded316e8..cbe455c7417c 100644
 +++ b/base/process/kill_win.cc
 @@ -43,7 +43,7 @@ TerminationStatus GetTerminationStatus(ProcessHandle handle, int* exit_code) {
    DWORD tmp_exit_code = 0;
- 
+
    if (!::GetExitCodeProcess(handle, &tmp_exit_code)) {
 -    DPLOG(FATAL) << "GetExitCodeProcess() failed";
 +    // DPLOG(FATAL) << "GetExitCodeProcess() failed";
@@ -89,7 +74,7 @@ index 41318159a2ad..f23682f0b22d 100644
 +    defines += [ "ELECTRON_NO_DCHECK" ]
 +  }
  }
- 
+
  buildflag_header("accessibility_flags") {
 diff --git a/content/browser/frame_host/render_frame_host_impl.cc b/content/browser/frame_host/render_frame_host_impl.cc
 index 346765edaef9..1bf37e107a90 100644
@@ -97,13 +82,13 @@ index 346765edaef9..1bf37e107a90 100644
 +++ b/content/browser/frame_host/render_frame_host_impl.cc
 @@ -2072,8 +2072,8 @@ void RenderFrameHostImpl::AllowBindings(int bindings_flags) {
    }
- 
+
    enabled_bindings_ |= bindings_flags;
 -  if (GetParent())
 -    DCHECK_EQ(GetParent()->GetEnabledBindings(), GetEnabledBindings());
 +  // if (GetParent())
 +  //   DCHECK_EQ(GetParent()->GetEnabledBindings(), GetEnabledBindings());
- 
+
    if (render_frame_created_) {
      if (!frame_bindings_control_)
 diff --git a/content/child/BUILD.gn b/content/child/BUILD.gn
@@ -122,7 +107,7 @@ index db74c7691680..29e5895304be 100644
 +    defines += [ "ELECTRON_NO_DCHECK" ]
 +  }
  }
- 
+
  # See comment at the top of //content/BUILD.gn for how this works.
 diff --git a/device/geolocation/BUILD.gn b/device/geolocation/BUILD.gn
 index 27069c5f9700..8a4bb3842a42 100644
@@ -137,7 +122,7 @@ index 27069c5f9700..8a4bb3842a42 100644
 +    defines += [ "ELECTRON_NO_DCHECK" ]
 +  }
  }
- 
+
  if (is_android) {
 diff --git a/net/BUILD.gn b/net/BUILD.gn
 index 13c5191..244883a 100644
@@ -155,7 +140,7 @@ index 13c5191..244883a 100644
 +    defines += [ "ELECTRON_NO_DCHECK" ]
 +  }
  }
- 
+
  grit("net_resources") {
 diff --git a/ppapi/host/ppapi_host.cc b/ppapi/host/ppapi_host.cc
 index f3c68fab3de6..b8609daf3ef9 100644
@@ -163,13 +148,13 @@ index f3c68fab3de6..b8609daf3ef9 100644
 +++ b/ppapi/host/ppapi_host.cc
 @@ -240,7 +240,7 @@ void PpapiHost::OnHostMsgResourceCreated(
        CreateResourceHost(params.pp_resource(), instance, nested_msg);
- 
+
    if (!resource_host.get()) {
 -    NOTREACHED();
 +    // NOTREACHED();
      return;
    }
- 
+
 diff --git a/storage/browser/quota/client_usage_tracker.cc b/storage/browser/quota/client_usage_tracker.cc
 index 9b9e10a46397..dafc6e4efa32 100644
 --- a/storage/browser/quota/client_usage_tracker.cc
@@ -182,7 +167,7 @@ index 9b9e10a46397..dafc6e4efa32 100644
 -    DCHECK_GE(global_limited_usage_, 0);
 +    //DCHECK_GE(cached_usage_by_host_[host][origin], 0);
 +    //DCHECK_GE(global_limited_usage_, 0);
- 
+
      // Notify the usage monitor that usage has changed. The storage monitor may
      // be NULL during tests.
 diff --git a/third_party/WebKit/Source/core/loader/BUILD.gn b/third_party/WebKit/Source/core/loader/BUILD.gn
@@ -214,7 +199,7 @@ index 7806a71..4550819 100644
 +    defines += [ "ELECTRON_NO_DCHECK" ]
 +  }
  }
- 
+
  static_library("test_support") {
 diff --git a/third_party/WebKit/Source/platform/wtf/ThreadRestrictionVerifier.h b/third_party/WebKit/Source/platform/wtf/ThreadRestrictionVerifier.h
 index 73c4d74ef3c1..d4a1a6c5696b 100644
@@ -227,10 +212,10 @@ index 73c4d74ef3c1..d4a1a6c5696b 100644
 -    bool previously_shared = shared_;
 +    // bool previously_shared = shared_;
      shared_ = shared;
- 
+
      if (!shared_)
        return;
- 
+
 -    DCHECK_NE(shared, previously_shared);
 +    // DCHECK_NE(shared, previously_shared);
      // Capture the current thread to verify that subsequent ref/deref happen on
@@ -249,7 +234,7 @@ index 119d0fab47c9..7f9110f8b197 100644
 +    defines += [ "ELECTRON_NO_DCHECK" ]
 +  }
  }
- 
+
  static_library("test_support") {
 diff --git a/url/BUILD.gn b/url/BUILD.gn
 index 82eb115ae666..b4806804cdbf 100644
@@ -264,5 +249,5 @@ index 82eb115ae666..b4806804cdbf 100644
 +    defines += [ "ELECTRON_NO_DCHECK" ]
 +  }
  }
- 
+
  if (is_android) {
