@@ -25,6 +25,12 @@ if (target_cpu == "arm64") {
   fatal_linker_warnings = false
 }
 
+# ERROR at //chrome/installer/linux/BUILD.gn:385:7: Assertion failed.
+# Linux installer not configured for this architecture.
+if (target_cpu == "arm64") {
+  enable_linux_installer = false
+}
+
 # Configuration for mips64el
 if (target_cpu == "mips64el") {
   is_clang = false
