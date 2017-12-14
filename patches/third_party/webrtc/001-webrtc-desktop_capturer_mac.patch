@@ -1,0 +1,122 @@
+diff --git a/modules/desktop_capture/screen_capturer_mac.mm b/modules/desktop_capture/screen_capturer_mac.mm
+index 78d977b47..306b3e6d9 100644
+--- a/modules/desktop_capture/screen_capturer_mac.mm
++++ b/modules/desktop_capture/screen_capturer_mac.mm
+@@ -37,6 +37,7 @@
+ #include "webrtc/rtc_base/logging.h"
+ #include "webrtc/rtc_base/macutils.h"
+ #include "webrtc/rtc_base/timeutils.h"
++#include "webrtc/system_wrappers/include/rw_lock_wrapper.h"
+ 
+ // Once Chrome no longer supports OSX 10.8, everything within this
+ // preprocessor block can be removed. https://crbug.com/579255
+@@ -70,20 +71,33 @@ namespace {
+ // destroy itself once it's done.
+ class DisplayStreamManager {
+  public:
+-  int GetUniqueId() { return ++unique_id_generator_; }
+-  void DestroyStream(int unique_id) {
+-    auto it = display_stream_wrappers_.find(unique_id);
+-    RTC_CHECK(it != display_stream_wrappers_.end());
+-    RTC_CHECK(!it->second.active);
+-    CFRelease(it->second.stream);
+-    display_stream_wrappers_.erase(it);
++  DisplayStreamManager() : rw_lock_(RWLockWrapper::CreateRWLock()) {}
++  void ReaderLock() { rw_lock_->AcquireLockShared(); }
++  void ReaderUnlock() { rw_lock_->ReleaseLockShared(); }
+ 
+-    if (ready_for_self_destruction_ && display_stream_wrappers_.empty())
++  int GetUniqueId() {
++    WriteLockScoped scoped_display_stream_manager_lock(*rw_lock_);
++    return ++unique_id_generator_;
++  }
++  void DestroyStream(int unique_id) {
++    bool finalize;
++    {
++      WriteLockScoped scoped_display_stream_manager_lock(*rw_lock_);
++      auto it = display_stream_wrappers_.find(unique_id);
++      RTC_CHECK(it != display_stream_wrappers_.end());
++      RTC_CHECK(!it->second.active);
++      CFRelease(it->second.stream);
++      display_stream_wrappers_.erase(it);
++      finalize = ready_for_self_destruction_ && display_stream_wrappers_.empty();
++    }
++    if (finalize) {
+       delete this;
++    }
+   }
+ 
+   void SaveStream(int unique_id,
+                   CGDisplayStreamRef stream) {
++    WriteLockScoped scoped_display_stream_manager_lock(*rw_lock_);
+     RTC_CHECK(unique_id <= unique_id_generator_);
+     DisplayStreamWrapper wrapper;
+     wrapper.stream = stream;
+@@ -91,6 +105,7 @@ class DisplayStreamManager {
+   }
+ 
+   void UnregisterActiveStreams() {
++    WriteLockScoped scoped_display_stream_manager_lock(*rw_lock_);
+     for (auto& pair : display_stream_wrappers_) {
+       DisplayStreamWrapper& wrapper = pair.second;
+       if (wrapper.active) {
+@@ -105,15 +120,23 @@ class DisplayStreamManager {
+   }
+ 
+   void PrepareForSelfDestruction() {
+-    ready_for_self_destruction_ = true;
+-
+-    if (display_stream_wrappers_.empty())
++    bool finalize;
++    {
++      WriteLockScoped scoped_display_stream_manager_lock(*rw_lock_);
++      ready_for_self_destruction_ = true;
++      finalize = display_stream_wrappers_.empty();
++    }
++    if (finalize) {
+       delete this;
++    }
+   }
+ 
+   // Once the DisplayStreamManager is ready for destruction, the
+   // ScreenCapturerMac is no longer present. Any updates should be ignored.
+-  bool ShouldIgnoreUpdates() { return ready_for_self_destruction_; }
++  // Note: not thread-safe! Call ReaderLock() and ReaderUnlock() manually.
++  bool ShouldIgnoreUpdates() {
++     return ready_for_self_destruction_;
++  }
+ 
+  private:
+   struct DisplayStreamWrapper {
+@@ -128,6 +151,7 @@ class DisplayStreamManager {
+   std::map<int, DisplayStreamWrapper> display_stream_wrappers_;
+   int unique_id_generator_ = 0;
+   bool ready_for_self_destruction_ = false;
++  std::unique_ptr<RWLockWrapper> rw_lock_;
+ };
+ 
+ // Definitions used to dynamic-link to deprecated OS 10.6 functions.
+@@ -950,9 +974,6 @@ bool ScreenCapturerMac::RegisterRefreshAndMoveHandlers() {
+             return;
+           }
+ 
+-          if (manager->ShouldIgnoreUpdates())
+-            return;
+-
+           // Only pay attention to frame updates.
+           if (status != kCGDisplayStreamFrameStatusFrameComplete)
+             return;
+@@ -963,7 +984,12 @@ bool ScreenCapturerMac::RegisterRefreshAndMoveHandlers() {
+           if (count != 0) {
+             // According to CGDisplayStream.h, it's safe to call
+             // CGDisplayStreamStop() from within the callback.
+-            ScreenRefresh(count, rects, display_origin);
++	    manager->ReaderLock();
++	    bool screen_capturer_mac_invalidated = manager->ShouldIgnoreUpdates();
++	    if (!screen_capturer_mac_invalidated) {
++              ScreenRefresh(count, rects, display_origin);
++	    }
++	    manager->ReaderUnlock();
+           }
+         };
+     CGDisplayStreamRef display_stream = CGDisplayStreamCreate(
