@@ -320,8 +320,8 @@ def run_gn(target_arch, defines):
                              component + '.gn')) as argsfile:
         f.write(argsfile.read())
 
-    subprocess.call([gn, 'gen', os.path.relpath(output_dir, SRC_DIR)],
-                    cwd=SRC_DIR, env=env)
+    subprocess.check_call([gn, 'gen', os.path.relpath(output_dir, SRC_DIR)],
+                          cwd=SRC_DIR, env=env)
 
 
 def is_newer(destination, source):
