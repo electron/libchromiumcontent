@@ -38,6 +38,12 @@ if (target_cpu == "arm64") {
   use_system_freetype = true
 }
 
+# ERROR at //chrome/installer/linux/BUILD.gn:385:7: Assertion failed.
+# Linux installer not configured for this architecture.
+if (target_cpu == "arm64") {
+  enable_linux_installer = false
+}
+
 # On Windows, we cannot use allocator shim because even though this is
 # a non-component build, we still use the dynamic CRT with which the shim
 # does not work
