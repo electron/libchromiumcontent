@@ -1,0 +1,505 @@
+From c1690d39c1e6875377f4685b53a5423cb69e2947 Mon Sep 17 00:00:00 2001
+From: Bruce Dawson <brucedawson@chromium.org>
+Date: Mon, 16 Oct 2017 20:02:46 +0000
+Subject: [PATCH] Updates to build with Fall Creators Update SDK
+
+Some Microsoft::WRL classes in the Fall Creators Update SDK reference an
+undefined function called FillArrayWithIidHelper. This is normally never
+instantiated but __declspec(dllexport) of a class that derives from one
+of these classes leads to compile errors, as reported here:
+
+https://developercommunity.visualstudio.com/content/problem/128961/idwritetextanalysissource-error-in-vs-2017-update.html
+
+The response so far from Microsoft has been "don't do that" which is not
+totally unreasonable, especially given the compile cost of generating
+and exporting all those unneeded functions. It appears that a small
+number of factory functions can avoid the need to export these classes,
+so that's what this change does.
+
+Bug: 773476
+Change-Id: I7f201e56e64f880fc71d369a48ffdf6e07e2c5e3
+Reviewed-on: https://chromium-review.googlesource.com/717480
+Reviewed-by: Avi Drissman <avi@chromium.org>
+Reviewed-by: Robert Liao <robliao@chromium.org>
+Commit-Queue: Bruce Dawson <brucedawson@chromium.org>
+Cr-Commit-Position: refs/heads/master@{#509146}
+---
+
+diff --git a/content/browser/renderer_host/dwrite_font_proxy_message_filter_win.cc b/content/browser/renderer_host/dwrite_font_proxy_message_filter_win.cc
+index ce525f84..cbe75f9 100644
+--- a/content/browser/renderer_host/dwrite_font_proxy_message_filter_win.cc
++++ b/content/browser/renderer_host/dwrite_font_proxy_message_filter_win.cc
+@@ -395,7 +395,7 @@
+     return;
+   }
+   mswr::ComPtr<IDWriteTextAnalysisSource> analysis_source;
+-  if (FAILED(mswr::MakeAndInitialize<gfx::win::TextAnalysisSource>(
++  if (FAILED(gfx::win::TextAnalysisSource::Create(
+           &analysis_source, text, locale_name, number_substitution.Get(),
+           static_cast<DWRITE_READING_DIRECTION>(reading_direction)))) {
+     DCHECK(false);
+diff --git a/content/child/dwrite_font_proxy/dwrite_font_proxy_init_impl_win.cc b/content/child/dwrite_font_proxy/dwrite_font_proxy_init_impl_win.cc
+index 741bd36..123353a 100644
+--- a/content/child/dwrite_font_proxy/dwrite_font_proxy_init_impl_win.cc
++++ b/content/child/dwrite_font_proxy/dwrite_font_proxy_init_impl_win.cc
+@@ -66,15 +66,14 @@
+     sender = ChildThreadImpl::current()->thread_safe_sender();
+ 
+   if (!g_font_collection) {
+-    mswr::MakeAndInitialize<DWriteFontCollectionProxy>(&g_font_collection,
+-                                                       factory.Get(), sender);
++    DWriteFontCollectionProxy::Create(&g_font_collection, factory.Get(),
++                                      sender);
+   }
+ 
+   mswr::ComPtr<IDWriteFactory2> factory2;
+ 
+   if (SUCCEEDED(factory.As(&factory2)) && factory2.Get()) {
+-    mswr::MakeAndInitialize<FontFallback>(&g_font_fallback,
+-                                          g_font_collection.Get(), sender);
++    FontFallback::Create(&g_font_fallback, g_font_collection.Get(), sender);
+   }
+ 
+   sk_sp<SkFontMgr> skia_font_manager = SkFontMgr_New_DirectWrite(
+diff --git a/content/child/dwrite_font_proxy/dwrite_font_proxy_win.cc b/content/child/dwrite_font_proxy/dwrite_font_proxy_win.cc
+index 15dded6..f23b7e2 100644
+--- a/content/child/dwrite_font_proxy/dwrite_font_proxy_win.cc
++++ b/content/child/dwrite_font_proxy/dwrite_font_proxy_win.cc
+@@ -75,6 +75,13 @@
+ 
+ }  // namespace
+ 
++HRESULT DWriteFontCollectionProxy::Create(DWriteFontCollectionProxy** proxy_out,
++                                          IDWriteFactory* dwrite_factory,
++                                          IPC::Sender* sender) {
++  return Microsoft::WRL::MakeAndInitialize<DWriteFontCollectionProxy>(
++      proxy_out, dwrite_factory, sender);
++}
++
+ DWriteFontCollectionProxy::DWriteFontCollectionProxy() = default;
+ 
+ DWriteFontCollectionProxy::~DWriteFontCollectionProxy() = default;
+diff --git a/content/child/dwrite_font_proxy/dwrite_font_proxy_win.h b/content/child/dwrite_font_proxy/dwrite_font_proxy_win.h
+index 2346e5e..3d01477 100644
+--- a/content/child/dwrite_font_proxy/dwrite_font_proxy_win.h
++++ b/content/child/dwrite_font_proxy/dwrite_font_proxy_win.h
+@@ -30,13 +30,21 @@
+ // into a custom font collection.
+ // This is needed because the sandbox interferes with DirectWrite's
+ // communication with the system font service.
+-class CONTENT_EXPORT DWriteFontCollectionProxy
++class DWriteFontCollectionProxy
+     : public Microsoft::WRL::RuntimeClass<
+           Microsoft::WRL::RuntimeClassFlags<Microsoft::WRL::ClassicCom>,
+           IDWriteFontCollection,
+           IDWriteFontCollectionLoader,
+           IDWriteFontFileLoader> {
+  public:
++  // Factory method to avoid exporting the class and all it derives from.
++  static CONTENT_EXPORT HRESULT Create(DWriteFontCollectionProxy** proxy_out,
++                                       IDWriteFactory* dwrite_factory,
++                                       IPC::Sender* sender);
++
++  // Use Create() to construct these objects. Direct calls to the constructor
++  // are an error - it is only public because a WRL helper function creates the
++  // objects.
+   DWriteFontCollectionProxy();
+   ~DWriteFontCollectionProxy() override;
+ 
+@@ -63,10 +71,10 @@
+                       UINT32 font_file_reference_key_size,
+                       IDWriteFontFileStream** font_file_stream) override;
+ 
+-  HRESULT STDMETHODCALLTYPE
++  CONTENT_EXPORT HRESULT STDMETHODCALLTYPE
+   RuntimeClassInitialize(IDWriteFactory* factory, IPC::Sender* sender_override);
+ 
+-  void Unregister();
++  CONTENT_EXPORT void Unregister();
+ 
+   bool LoadFamily(UINT32 family_index,
+                   IDWriteFontCollection** containing_collection);
+@@ -99,7 +107,7 @@
+ // stub, until something calls a method that requires actual font data. At that
+ // point this will load the font files into a custom collection and
+ // subsequently calls will be proxied to the resulting DirectWrite object.
+-class CONTENT_EXPORT DWriteFontFamilyProxy
++class DWriteFontFamilyProxy
+     : public Microsoft::WRL::RuntimeClass<
+           Microsoft::WRL::RuntimeClassFlags<Microsoft::WRL::ClassicCom>,
+           IDWriteFontFamily> {
+@@ -151,7 +159,7 @@
+ 
+ // Implements the DirectWrite font file enumerator interface, backed by a list
+ // of font files.
+-class CONTENT_EXPORT FontFileEnumerator
++class FontFileEnumerator
+     : public Microsoft::WRL::RuntimeClass<
+           Microsoft::WRL::RuntimeClassFlags<Microsoft::WRL::ClassicCom>,
+           IDWriteFontFileEnumerator> {
+@@ -181,7 +189,7 @@
+ // Implements the DirectWrite font file stream interface that maps the file to
+ // be loaded as a memory mapped file, and subsequently returns pointers into
+ // the mapped memory block.
+-class CONTENT_EXPORT FontFileStream
++class FontFileStream
+     : public Microsoft::WRL::RuntimeClass<
+           Microsoft::WRL::RuntimeClassFlags<Microsoft::WRL::ClassicCom>,
+           IDWriteFontFileStream> {
+diff --git a/content/child/dwrite_font_proxy/dwrite_font_proxy_win_unittest.cc b/content/child/dwrite_font_proxy/dwrite_font_proxy_win_unittest.cc
+index 2fb66ba..002b683 100644
+--- a/content/child/dwrite_font_proxy/dwrite_font_proxy_win_unittest.cc
++++ b/content/child/dwrite_font_proxy/dwrite_font_proxy_win_unittest.cc
+@@ -29,8 +29,9 @@
+   DWriteFontProxyUnitTest() {
+     fake_collection_ = new FakeFontCollection();
+     SetupFonts(fake_collection_.get());
+-    mswr::MakeAndInitialize<DWriteFontCollectionProxy>(
+-        &collection_, factory.Get(), fake_collection_->GetTrackingSender());
++    DWriteFontCollectionProxy::Create(&collection_, factory.Get(),
++                                      fake_collection_->GetTrackingSender());
++    EXPECT_TRUE(collection_.Get());
+   }
+ 
+   ~DWriteFontProxyUnitTest() override {
+@@ -343,8 +344,8 @@
+     arial.AddFileHandle(IPC::TakePlatformFileForTransit(std::move(file)));
+   }
+   mswr::ComPtr<DWriteFontCollectionProxy> collection;
+-  mswr::MakeAndInitialize<DWriteFontCollectionProxy>(
+-      &collection, factory.Get(), fonts->GetTrackingSender());
++  DWriteFontCollectionProxy::Create(&collection, factory.Get(),
++                                    fonts->GetTrackingSender());
+ 
+   // Check that we can get the font family and match a font.
+   UINT32 index = UINT_MAX;
+diff --git a/content/child/dwrite_font_proxy/font_fallback_win.cc b/content/child/dwrite_font_proxy/font_fallback_win.cc
+index 4bf78d2..d864240 100644
+--- a/content/child/dwrite_font_proxy/font_fallback_win.cc
++++ b/content/child/dwrite_font_proxy/font_fallback_win.cc
+@@ -43,6 +43,13 @@
+ 
+ }  // namespace
+ 
++HRESULT FontFallback::Create(FontFallback** font_fallback_out,
++                             DWriteFontCollectionProxy* collection,
++                             IPC::Sender* sender) {
++  return Microsoft::WRL::MakeAndInitialize<FontFallback>(font_fallback_out,
++                                                         collection, sender);
++}
++
+ FontFallback::FontFallback() = default;
+ FontFallback::~FontFallback() = default;
+ 
+diff --git a/content/child/dwrite_font_proxy/font_fallback_win.h b/content/child/dwrite_font_proxy/font_fallback_win.h
+index 195941d..3277482 100644
+--- a/content/child/dwrite_font_proxy/font_fallback_win.h
++++ b/content/child/dwrite_font_proxy/font_fallback_win.h
+@@ -20,11 +20,19 @@
+ 
+ // Implements an  IDWriteFontFallback that uses IPC to proxy the fallback calls
+ // to the system fallback in the browser process.
+-class CONTENT_EXPORT FontFallback
++class FontFallback
+     : public Microsoft::WRL::RuntimeClass<
+           Microsoft::WRL::RuntimeClassFlags<Microsoft::WRL::ClassicCom>,
+           IDWriteFontFallback> {
+  public:
++  // Factory method to avoid exporting the class and all it derives from.
++  static CONTENT_EXPORT HRESULT Create(FontFallback** font_fallback_out,
++                                       DWriteFontCollectionProxy* collection,
++                                       IPC::Sender* sender);
++
++  // Use Create() to construct these objects. Direct calls to the constructor
++  // are an error - it is only public because a WRL helper function creates the
++  // objects.
+   FontFallback();
+ 
+   HRESULT STDMETHODCALLTYPE
+diff --git a/content/child/dwrite_font_proxy/font_fallback_win_unittest.cc b/content/child/dwrite_font_proxy/font_fallback_win_unittest.cc
+index 7bc539b..64b54ff 100644
+--- a/content/child/dwrite_font_proxy/font_fallback_win_unittest.cc
++++ b/content/child/dwrite_font_proxy/font_fallback_win_unittest.cc
+@@ -44,8 +44,8 @@
+         .AddFamilyName(L"en-us", L"Segoe UI Symbol")
+         .AddFilePath(segoe_path);
+ 
+-    mswr::MakeAndInitialize<DWriteFontCollectionProxy>(
+-        &collection_, factory_.Get(), fake_collection_->GetSender());
++    DWriteFontCollectionProxy::Create(&collection_, factory_.Get(),
++                                      fake_collection_->GetSender());
+   }
+ 
+   scoped_refptr<FakeFontCollection> fake_collection_;
+@@ -56,17 +56,17 @@
+ 
+ TEST_F(FontFallbackUnitTest, MapCharacters) {
+   mswr::ComPtr<FontFallback> fallback;
+-  mswr::MakeAndInitialize<FontFallback>(&fallback, collection_.Get(),
+-                                        fake_collection_->GetSender());
++  FontFallback::Create(&fallback, collection_.Get(),
++                       fake_collection_->GetSender());
+ 
+   mswr::ComPtr<IDWriteFont> font;
+   UINT32 mapped_length = 0;
+   float scale = 0.0;
+ 
+-  mswr::ComPtr<gfx::win::TextAnalysisSource> text;
+-  mswr::MakeAndInitialize<gfx::win::TextAnalysisSource>(
+-      &text, L"hello", L"en-us", number_substitution_.Get(),
+-      DWRITE_READING_DIRECTION_LEFT_TO_RIGHT);
++  mswr::ComPtr<IDWriteTextAnalysisSource> text;
++  gfx::win::TextAnalysisSource::Create(&text, L"hello", L"en-us",
++                                       number_substitution_.Get(),
++                                       DWRITE_READING_DIRECTION_LEFT_TO_RIGHT);
+   fallback->MapCharacters(text.Get(), 0, 5, nullptr, nullptr,
+                           DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
+                           DWRITE_FONT_STRETCH_NORMAL, &mapped_length, &font,
+@@ -78,17 +78,17 @@
+ 
+ TEST_F(FontFallbackUnitTest, DuplicateCallsShouldNotRepeatIPC) {
+   mswr::ComPtr<FontFallback> fallback;
+-  mswr::MakeAndInitialize<FontFallback>(&fallback, collection_.Get(),
+-                                        fake_collection_->GetTrackingSender());
++  FontFallback::Create(&fallback, collection_.Get(),
++                       fake_collection_->GetTrackingSender());
+ 
+   mswr::ComPtr<IDWriteFont> font;
+   UINT32 mapped_length = 0;
+   float scale = 0.0;
+ 
+-  mswr::ComPtr<gfx::win::TextAnalysisSource> text;
+-  mswr::MakeAndInitialize<gfx::win::TextAnalysisSource>(
+-      &text, L"hello", L"en-us", number_substitution_.Get(),
+-      DWRITE_READING_DIRECTION_LEFT_TO_RIGHT);
++  mswr::ComPtr<IDWriteTextAnalysisSource> text;
++  gfx::win::TextAnalysisSource::Create(&text, L"hello", L"en-us",
++                                       number_substitution_.Get(),
++                                       DWRITE_READING_DIRECTION_LEFT_TO_RIGHT);
+   fallback->MapCharacters(text.Get(), 0, 5, nullptr, nullptr,
+                           DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
+                           DWRITE_FONT_STRETCH_NORMAL, &mapped_length, &font,
+@@ -105,17 +105,17 @@
+ 
+ TEST_F(FontFallbackUnitTest, DifferentFamilyShouldNotReuseCache) {
+   mswr::ComPtr<FontFallback> fallback;
+-  mswr::MakeAndInitialize<FontFallback>(&fallback, collection_.Get(),
+-                                        fake_collection_->GetTrackingSender());
++  FontFallback::Create(&fallback, collection_.Get(),
++                       fake_collection_->GetTrackingSender());
+ 
+   mswr::ComPtr<IDWriteFont> font;
+   UINT32 mapped_length = 0;
+   float scale = 0.0;
+ 
+-  mswr::ComPtr<gfx::win::TextAnalysisSource> text;
+-  mswr::MakeAndInitialize<gfx::win::TextAnalysisSource>(
+-      &text, L"hello", L"en-us", number_substitution_.Get(),
+-      DWRITE_READING_DIRECTION_LEFT_TO_RIGHT);
++  mswr::ComPtr<IDWriteTextAnalysisSource> text;
++  gfx::win::TextAnalysisSource::Create(&text, L"hello", L"en-us",
++                                       number_substitution_.Get(),
++                                       DWRITE_READING_DIRECTION_LEFT_TO_RIGHT);
+   fallback->MapCharacters(text.Get(), 0, 5, nullptr, L"font1",
+                           DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
+                           DWRITE_FONT_STRETCH_NORMAL, &mapped_length, &font,
+@@ -130,21 +130,21 @@
+ 
+ TEST_F(FontFallbackUnitTest, CacheMissShouldRepeatIPC) {
+   mswr::ComPtr<FontFallback> fallback;
+-  mswr::MakeAndInitialize<FontFallback>(&fallback, collection_.Get(),
+-                                        fake_collection_->GetTrackingSender());
++  FontFallback::Create(&fallback, collection_.Get(),
++                       fake_collection_->GetTrackingSender());
+ 
+   mswr::ComPtr<IDWriteFont> font;
+   UINT32 mapped_length = 0;
+   float scale = 0.0;
+ 
+-  mswr::ComPtr<gfx::win::TextAnalysisSource> text;
+-  mswr::MakeAndInitialize<gfx::win::TextAnalysisSource>(
+-      &text, L"hello", L"en-us", number_substitution_.Get(),
+-      DWRITE_READING_DIRECTION_LEFT_TO_RIGHT);
+-  mswr::ComPtr<gfx::win::TextAnalysisSource> unmappable_text;
+-  mswr::MakeAndInitialize<gfx::win::TextAnalysisSource>(
+-      &unmappable_text, L"\uffff", L"en-us", number_substitution_.Get(),
+-      DWRITE_READING_DIRECTION_LEFT_TO_RIGHT);
++  mswr::ComPtr<IDWriteTextAnalysisSource> text;
++  gfx::win::TextAnalysisSource::Create(&text, L"hello", L"en-us",
++                                       number_substitution_.Get(),
++                                       DWRITE_READING_DIRECTION_LEFT_TO_RIGHT);
++  mswr::ComPtr<IDWriteTextAnalysisSource> unmappable_text;
++  gfx::win::TextAnalysisSource::Create(&unmappable_text, L"\uffff", L"en-us",
++                                       number_substitution_.Get(),
++                                       DWRITE_READING_DIRECTION_LEFT_TO_RIGHT);
+   fallback->MapCharacters(text.Get(), 0, 5, nullptr, nullptr,
+                           DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
+                           DWRITE_FONT_STRETCH_NORMAL, &mapped_length, &font,
+@@ -159,21 +159,21 @@
+ 
+ TEST_F(FontFallbackUnitTest, SurrogatePairCacheHit) {
+   mswr::ComPtr<FontFallback> fallback;
+-  mswr::MakeAndInitialize<FontFallback>(&fallback, collection_.Get(),
+-                                        fake_collection_->GetTrackingSender());
++  FontFallback::Create(&fallback, collection_.Get(),
++                       fake_collection_->GetTrackingSender());
+ 
+   mswr::ComPtr<IDWriteFont> font;
+   UINT32 mapped_length = 0;
+   float scale = 0.0;
+ 
+-  mswr::ComPtr<gfx::win::TextAnalysisSource> text;
+-  mswr::MakeAndInitialize<gfx::win::TextAnalysisSource>(
+-      &text, L"hello", L"en-us", number_substitution_.Get(),
+-      DWRITE_READING_DIRECTION_LEFT_TO_RIGHT);
+-  mswr::ComPtr<gfx::win::TextAnalysisSource> surrogate_pair_text;
+-  mswr::MakeAndInitialize<gfx::win::TextAnalysisSource>(
+-      &surrogate_pair_text, L"\U0001d300", L"en-us", number_substitution_.Get(),
+-      DWRITE_READING_DIRECTION_LEFT_TO_RIGHT);
++  mswr::ComPtr<IDWriteTextAnalysisSource> text;
++  gfx::win::TextAnalysisSource::Create(&text, L"hello", L"en-us",
++                                       number_substitution_.Get(),
++                                       DWRITE_READING_DIRECTION_LEFT_TO_RIGHT);
++  mswr::ComPtr<IDWriteTextAnalysisSource> surrogate_pair_text;
++  gfx::win::TextAnalysisSource::Create(&surrogate_pair_text, L"\U0001d300",
++                                       L"en-us", number_substitution_.Get(),
++                                       DWRITE_READING_DIRECTION_LEFT_TO_RIGHT);
+   fallback->MapCharacters(text.Get(), 0, 5, nullptr, nullptr,
+                           DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
+                           DWRITE_FONT_STRETCH_NORMAL, &mapped_length, &font,
+diff --git a/ui/base/dragdrop/drag_source_win.cc b/ui/base/dragdrop/drag_source_win.cc
+index 292ba3e..a797a721 100644
+--- a/ui/base/dragdrop/drag_source_win.cc
++++ b/ui/base/dragdrop/drag_source_win.cc
+@@ -8,6 +8,10 @@
+ 
+ namespace ui {
+ 
++Microsoft::WRL::ComPtr<ui::DragSourceWin> DragSourceWin::Create() {
++  return Microsoft::WRL::Make<ui::DragSourceWin>();
++}
++
+ DragSourceWin::DragSourceWin() : cancel_drag_(false), data_(nullptr) {
+ }
+ 
+diff --git a/ui/base/dragdrop/drag_source_win.h b/ui/base/dragdrop/drag_source_win.h
+index 6051de2..ccb79aa 100644
+--- a/ui/base/dragdrop/drag_source_win.h
++++ b/ui/base/dragdrop/drag_source_win.h
+@@ -20,11 +20,17 @@
+ // drag-drop operation as the user mouses over other drop targets on their
+ // system. This object tells Windows whether or not the drag should continue,
+ // and supplies the appropriate cursors.
+-class UI_BASE_EXPORT DragSourceWin
++class DragSourceWin
+     : public Microsoft::WRL::RuntimeClass<
+           Microsoft::WRL::RuntimeClassFlags<Microsoft::WRL::ClassicCom>,
+           IDropSource> {
+  public:
++  // Factory method to avoid exporting the class and all it derives from.
++  static UI_BASE_EXPORT Microsoft::WRL::ComPtr<ui::DragSourceWin> Create();
++
++  // Use Create() to construct these objects. Direct calls to the constructor
++  // are an error - it is only public because a WRL helper function creates the
++  // objects.
+   DragSourceWin();
+   ~DragSourceWin() override {}
+ 
+diff --git a/ui/gfx/font_fallback_win.cc b/ui/gfx/font_fallback_win.cc
+index 17ac788..a05c7d7 100644
+--- a/ui/gfx/font_fallback_win.cc
++++ b/ui/gfx/font_fallback_win.cc
+@@ -379,7 +379,7 @@
+   DWRITE_READING_DIRECTION reading_direction =
+       base::i18n::IsRTL() ? DWRITE_READING_DIRECTION_RIGHT_TO_LEFT
+                           : DWRITE_READING_DIRECTION_LEFT_TO_RIGHT;
+-  if (FAILED(Microsoft::WRL::MakeAndInitialize<gfx::win::TextAnalysisSource>(
++  if (FAILED(gfx::win::TextAnalysisSource::Create(
+           text_analysis.GetAddressOf(), text, locale.c_str(),
+           number_substitution.Get(), reading_direction))) {
+     return false;
+diff --git a/ui/gfx/win/text_analysis_source.cc b/ui/gfx/win/text_analysis_source.cc
+index 74bfbc8..0f9779e 100644
+--- a/ui/gfx/win/text_analysis_source.cc
++++ b/ui/gfx/win/text_analysis_source.cc
+@@ -9,6 +9,17 @@
+ namespace gfx {
+ namespace win {
+ 
++HRESULT TextAnalysisSource::Create(
++    IDWriteTextAnalysisSource** text_analysis_out,
++    const base::string16& text,
++    const base::string16& locale_name,
++    IDWriteNumberSubstitution* number_substitution,
++    DWRITE_READING_DIRECTION reading_direction) {
++  return Microsoft::WRL::MakeAndInitialize<gfx::win::TextAnalysisSource>(
++      text_analysis_out, text, locale_name, number_substitution,
++      reading_direction);
++}
++
+ TextAnalysisSource::TextAnalysisSource() = default;
+ TextAnalysisSource::~TextAnalysisSource() = default;
+ 
+diff --git a/ui/gfx/win/text_analysis_source.h b/ui/gfx/win/text_analysis_source.h
+index 8307c9f..dd45d4d 100644
+--- a/ui/gfx/win/text_analysis_source.h
++++ b/ui/gfx/win/text_analysis_source.h
+@@ -18,13 +18,23 @@
+ // Implements an IDWriteTextAnalysisSource, describing a single pre-defined
+ // chunk of text with a uniform locale, reading direction, and number
+ // substitution.
+-class GFX_EXPORT TextAnalysisSource
++class TextAnalysisSource
+     : public Microsoft::WRL::RuntimeClass<
+           Microsoft::WRL::RuntimeClassFlags<Microsoft::WRL::ClassicCom>,
+           IDWriteTextAnalysisSource> {
+  public:
+-  TextAnalysisSource();
++  // Factory method to avoid exporting the class and all it derives from.
++  static GFX_EXPORT HRESULT
++  Create(IDWriteTextAnalysisSource** text_analysis_out,
++         const base::string16& text,
++         const base::string16& locale_name,
++         IDWriteNumberSubstitution* number_substitution,
++         DWRITE_READING_DIRECTION reading_direction);
+ 
++  // Use Create() to construct these objects. Direct calls to the constructor
++  // are an error - it is only public because a WRL helper function creates the
++  // objects.
++  TextAnalysisSource();
+   // IDWriteTextAnalysisSource:
+   HRESULT STDMETHODCALLTYPE GetLocaleName(UINT32 text_position,
+                                           UINT32* text_length,
+diff --git a/ui/gfx/win/text_analysis_source_unittest.cc b/ui/gfx/win/text_analysis_source_unittest.cc
+index 8d673d4..ed77d2d 100644
+--- a/ui/gfx/win/text_analysis_source_unittest.cc
++++ b/ui/gfx/win/text_analysis_source_unittest.cc
+@@ -33,12 +33,12 @@
+                                       kLocale, true /* ignoreUserOverride */,
+                                       &number_substitution);
+ 
+-    mswr::MakeAndInitialize<TextAnalysisSource>(
+-        &source_, kText, kLocale, number_substitution.Get(), kReadingDirection);
++    TextAnalysisSource::Create(&source_, kText, kLocale,
++                               number_substitution.Get(), kReadingDirection);
+   }
+ 
+  protected:
+-  mswr::ComPtr<TextAnalysisSource> source_;
++  mswr::ComPtr<IDWriteTextAnalysisSource> source_;
+ 
+  private:
+   DISALLOW_COPY_AND_ASSIGN(TextAnalysisSourceTest);
+diff --git a/ui/views/widget/desktop_aura/desktop_drag_drop_client_win.cc b/ui/views/widget/desktop_aura/desktop_drag_drop_client_win.cc
+index 1267b56..0871f43 100644
+--- a/ui/views/widget/desktop_aura/desktop_drag_drop_client_win.cc
++++ b/ui/views/widget/desktop_aura/desktop_drag_drop_client_win.cc
+@@ -40,7 +40,7 @@
+ 
+   base::WeakPtr<DesktopDragDropClientWin> alive(weak_factory_.GetWeakPtr());
+ 
+-  drag_source_ = Microsoft::WRL::Make<ui::DragSourceWin>();
++  drag_source_ = ui::DragSourceWin::Create();
+   Microsoft::WRL::ComPtr<ui::DragSourceWin> drag_source_copy = drag_source_;
+   drag_source_copy->set_data(&data);
+   ui::OSExchangeDataProviderWin::GetDataObjectImpl(data)
