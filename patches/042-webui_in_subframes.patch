@@ -33,7 +33,15 @@ diff --git a/content/browser/frame_host/render_frame_host_impl.cc b/content/brow
 index 82ab04e1019d..209dbd15d894 100644
 --- a/content/browser/frame_host/render_frame_host_impl.cc
 +++ b/content/browser/frame_host/render_frame_host_impl.cc
-@@ -3461,8 +3461,22 @@ bool RenderFrameHostImpl::UpdatePendingWebUI(const GURL& dest_url,
+@@ -17,6 +17,7 @@
+ #include "base/metrics/user_metrics.h"
+ #include "base/process/kill.h"
+ #include "base/time/time.h"
++#include "base/unguessable_token.h"
+ #include "build/build_config.h"
+ #include "content/browser/accessibility/browser_accessibility_manager.h"
+ #include "content/browser/accessibility/browser_accessibility_state_impl.h"
+@@ -3418,8 +3464,23 @@ bool RenderFrameHostImpl::UpdatePendingWebUI(const GURL& dest_url,
        DCHECK(web_ui_);
        should_reuse_web_ui_ = true;
      } else {
@@ -42,7 +50,8 @@ index 82ab04e1019d..209dbd15d894 100644
 +      std::string frame_name = GetFrameName();
 +      if (frame_name.empty() && !frame_tree_node_->IsMainFrame()) {
 +        frame_name = base::StringPrintf("frame_%i", frame_tree_node_->frame_tree_node_id());
-+        frame_tree_node_->SetFrameName(frame_name, "");
++        frame_tree_node_->SetFrameName(
++            frame_name, frame_name + base::UnguessableToken::Create().ToString());
 +      }
 +
 +      // If the web ui is in subframes, the parent frame bindings does not have the web ui binding,
