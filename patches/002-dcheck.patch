@@ -16,9 +16,7 @@ Please keep the following lists updated.
 The ELECTRON_NO_DCHECK build flag disables debug checks universally.
 This patch applies the flag to the following GN targets:
 
-  content/child:child
   third_party/WebKit/Source/core/loader:loader
-  third_party/WebKit/Source/platform:platform
   url:url
 
 These files have debug checks explicitly commented out:
@@ -27,9 +25,10 @@ These files have debug checks explicitly commented out:
   base/process/kill_win.cc
   content/browser/frame_host/navigation_controller_impl.cc
   content/browser/frame_host/render_frame_host_impl.cc
+  content/browser/renderer_host/render_widget_host_view_mac.mm
   ppapi/host/ppapi_host.cc
   storage/browser/quota/client_usage_tracker.cc
-  third_party/WebKit/Source/platform/wtf/ThreadRestrictionVerifier.h
+  third_party/WebKit/Source/platform/wtf/text/StringImpl.h
 
 
 diff --git a/base/logging.h b/base/logging.h
@@ -107,24 +106,21 @@ index 346765edaef9..a30e87bfcda6 100644
  
    if (render_frame_created_) {
      if (!frame_bindings_control_)
-diff --git a/content/child/BUILD.gn b/content/child/BUILD.gn
-index db74c7691680..29e5895304be 100644
---- a/content/child/BUILD.gn
-+++ b/content/child/BUILD.gn
-@@ -293,6 +293,13 @@ target(link_target_type, "child") {
-     "//content:content_implementation",
-     "//build/config/compiler:no_size_t_to_int_warning",
-   ]
-+
-+  if (is_electron_build) {
-+    if (!defined(defines)) {
-+      defines = []
-+    }
-+    defines += [ "ELECTRON_NO_DCHECK" ]
-+  }
- }
+diff --git a/content/browser/renderer_host/render_widget_host_view_mac.mm b/content/browser/renderer_host/render_widget_host_view_mac.mm
+index 79e4cc1a0479..19ba3236477e 100644
+--- a/content/browser/renderer_host/render_widget_host_view_mac.mm
++++ b/content/browser/renderer_host/render_widget_host_view_mac.mm
+@@ -2093,8 +2104,8 @@ - (void)keyEvent:(NSEvent*)theEvent wasKeyEquivalent:(BOOL)equiv {
+   if (EventIsReservedBySystem(theEvent))
+     return;
  
- # See comment at the top of //content/BUILD.gn for how this works.
+-  DCHECK([theEvent type] != NSKeyDown ||
+-         !equiv == !([theEvent modifierFlags] & NSCommandKeyMask));
++  //DCHECK([theEvent type] != NSKeyDown ||
++  //       !equiv == !([theEvent modifierFlags] & NSCommandKeyMask));
+ 
+   if ([theEvent type] == NSFlagsChanged) {
+     // Ignore NSFlagsChanged events from the NumLock and Fn keys as
 diff --git a/ppapi/host/ppapi_host.cc b/ppapi/host/ppapi_host.cc
 index f3c68fab3de6..b8609daf3ef9 100644
 --- a/ppapi/host/ppapi_host.cc
@@ -169,56 +165,35 @@ index 86c8ada9d378..ff1155205218 100644
 +    defines += [ "ELECTRON_NO_DCHECK" ]
 +  }
  }
-diff --git a/third_party/WebKit/Source/platform/BUILD.gn b/third_party/WebKit/Source/platform/BUILD.gn
-index 7806a71..4550819 100644
---- a/third_party/WebKit/Source/platform/BUILD.gn
-+++ b/third_party/WebKit/Source/platform/BUILD.gn
-@@ -1707,6 +1707,10 @@ component("platform") {
-     configs -= [ "//build/config/compiler:default_symbols" ]
-     configs += remove_webcore_symbols_config
+diff --git a/third_party/WebKit/Source/platform/wtf/text/StringImpl.h b/third_party/WebKit/Source/platform/wtf/text/StringImpl.h
+index 9a02085a635e..1f4de626ee1b 100644
+--- a/third_party/WebKit/Source/platform/wtf/text/StringImpl.h
++++ b/third_party/WebKit/Source/platform/wtf/text/StringImpl.h
+@@ -252,21 +252,21 @@ class WTF_EXPORT StringImpl {
    }
-+
-+  if (is_electron_build) {
-+    defines += [ "ELECTRON_NO_DCHECK" ]
-+  }
- }
  
- static_library("test_support") {
-diff --git a/third_party/WebKit/Source/platform/wtf/ThreadRestrictionVerifier.h b/third_party/WebKit/Source/platform/wtf/ThreadRestrictionVerifier.h
-index 73c4d74ef3c1..d4a1a6c5696b 100644
---- a/third_party/WebKit/Source/platform/wtf/ThreadRestrictionVerifier.h
-+++ b/third_party/WebKit/Source/platform/wtf/ThreadRestrictionVerifier.h
-@@ -85,13 +85,13 @@ class ThreadRestrictionVerifier {
-  private:
-   // Indicates that the object may (or may not) be owned by more than one place.
-   void SetShared(bool shared) {
--    bool previously_shared = shared_;
-+    // bool previously_shared = shared_;
-     shared_ = shared;
- 
-     if (!shared_)
-       return;
- 
--    DCHECK_NE(shared, previously_shared);
-+    // DCHECK_NE(shared, previously_shared);
-     // Capture the current thread to verify that subsequent ref/deref happen on
-     // this thread.
-     owning_thread_ = CurrentThread();
-diff --git a/ui/base/BUILD.gn b/ui/base/BUILD.gn
-index 119d0fab47c9..7f9110f8b197 100644
---- a/ui/base/BUILD.gn
-+++ b/ui/base/BUILD.gn
-@@ -647,6 +647,10 @@ component("base") {
-   if (is_android || is_ios) {
-     sources -= [ "device_form_factor_desktop.cc" ]
+   ALWAYS_INLINE bool HasOneRef() const {
+-#if DCHECK_IS_ON()
++#if 0
+     DCHECK(IsStatic() || verifier_.IsSafeToUse()) << AsciiForDebugging();
+ #endif
+     return ref_count_ == 1;
    }
-+
-+  if (is_electron_build) {
-+    defines += [ "ELECTRON_NO_DCHECK" ]
-+  }
- }
-
- static_library("test_support") {
+ 
+   ALWAYS_INLINE void Ref() const {
+-#if DCHECK_IS_ON()
++#if 0
+     DCHECK(IsStatic() || verifier_.OnRef(ref_count_)) << AsciiForDebugging();
+ #endif
+     ++ref_count_;
+   }
+ 
+   ALWAYS_INLINE void Deref() const {
+-#if DCHECK_IS_ON()
++#if 0
+     DCHECK(IsStatic() || verifier_.OnDeref(ref_count_))
+         << AsciiForDebugging() << " " << CurrentThread();
+ #endif
 diff --git a/url/BUILD.gn b/url/BUILD.gn
 index 82eb115ae666..b4806804cdbf 100644
 --- a/url/BUILD.gn
