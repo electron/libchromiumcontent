@@ -246,6 +246,7 @@ SYMBOLS = {
 INCLUDE_DIRS = [
   'base',
   'build',
+  'build/config/linux/pangocairo',
   'cc',
   'chrome/browser/ui/libgtkui',
   'components/cdm',
@@ -282,6 +283,7 @@ INCLUDE_DIRS = [
   'third_party/boringssl',
   'third_party/googletest',
   'third_party/khronos',
+  'third_party/leveldatabase',
   'third_party/protobuf/src/google/protobuf',
   'third_party/WebKit/common',
   'third_party/WebKit/Source/platform',
