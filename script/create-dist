@@ -305,6 +305,7 @@ INCLUDE_DIRS = [
 }[TARGET_PLATFORM]
 GENERATED_INCLUDE_DIRS = [
   'base',
+  'build',
   'cc',
   'components/filesystem',
   'components/leveldb',
