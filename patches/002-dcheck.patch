@@ -33,7 +33,6 @@ These files have debug checks explicitly commented out:
   ppapi/host/ppapi_host.cc
   storage/browser/quota/client_usage_tracker.cc
   third_party/WebKit/Source/platform/wtf/ThreadRestrictionVerifier.h
-  ui/latency/latency_histogram_macros.h
 
 
 diff --git a/base/BUILD.gn b/base/BUILD.gn
@@ -252,19 +251,6 @@ index 119d0fab47c9..7f9110f8b197 100644
  }
  
  static_library("test_support") {
-diff --git a/ui/latency/latency_histogram_macros.h b/ui/latency/latency_histogram_macros.h
-index 77e3eeef70ba..e4f94f550778 100644
---- a/ui/latency/latency_histogram_macros.h
-+++ b/ui/latency/latency_histogram_macros.h
-@@ -23,7 +23,7 @@
-       1, 1000000, 100);
- 
- #define UMA_HISTOGRAM_INPUT_LATENCY_MILLISECONDS(name, start, end)           \
--  CONFIRM_VALID_TIMING(start, end)                                           \
-+  /* CONFIRM_VALID_TIMING(start, end) */                                     \
-   base::UmaHistogramCustomCounts(                                            \
-       name, (end.last_event_time - start.first_event_time).InMilliseconds(), \
-       1, 1000, 50);
 diff --git a/url/BUILD.gn b/url/BUILD.gn
 index 82eb115ae666..b4806804cdbf 100644
 --- a/url/BUILD.gn
