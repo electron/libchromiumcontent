@@ -308,6 +308,7 @@ def run_gn(target_arch, defines):
         args += ' remove_webcore_debug_symbols=true'
         args += ' treat_warnings_as_errors=false'
         args += ' use_allocator="none"'
+        args += ' use_experimental_allocator_shim=false'
         args += ' use_cups=true'
         args += ' use_gconf=false'
         args += ' use_gnome_keyring=false'
