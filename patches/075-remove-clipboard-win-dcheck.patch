@@ -1,0 +1,16 @@
+diff --git a/ui/base/clipboard/clipboard_win.cc b/ui/base/clipboard/clipboard_win.cc
+index 674b0e9a909c..a1bff6e40f56 100644
+--- a/ui/base/clipboard/clipboard_win.cc
++++ b/ui/base/clipboard/clipboard_win.cc
+@@ -886,9 +886,9 @@ void ClipboardWin::WriteBitmapFromHandle(HBITMAP source_hbitmap,
+ }
+ 
+ void ClipboardWin::WriteToClipboard(unsigned int format, HANDLE handle) {
+-  DCHECK(clipboard_owner_->hwnd() != NULL);
++  // DCHECK(clipboard_owner_->hwnd() != NULL);
+   if (handle && !::SetClipboardData(format, handle)) {
+-    DCHECK(ERROR_CLIPBOARD_NOT_OPEN != GetLastError());
++    // DCHECK(ERROR_CLIPBOARD_NOT_OPEN != GetLastError());
+     FreeData(format, handle);
+   }
+ }
