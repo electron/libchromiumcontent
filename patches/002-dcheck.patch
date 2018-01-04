@@ -16,42 +16,24 @@ Please keep the following lists updated.
 The ELECTRON_NO_DCHECK build flag disables debug checks universally.
 This patch applies the flag to the following GN targets:
 
-  base:base
-  content/browser:browser
-  content/child:child
-  device/geolocation:geolocation
-  net:net
   third_party/WebKit/Source/core/loader:loader
-  third_party/WebKit/Source/platform:platform
-  ui/base:base
   url:url
 
 These files have debug checks explicitly commented out:
 
+  base/memory/weak_ptr.cc
   base/process/kill_win.cc
+  content/browser/frame_host/navigation_controller_impl.cc
   content/browser/frame_host/render_frame_host_impl.cc
+  content/browser/renderer_host/render_widget_host_view_mac.mm
   ppapi/host/ppapi_host.cc
   storage/browser/quota/client_usage_tracker.cc
-  third_party/WebKit/Source/platform/wtf/ThreadRestrictionVerifier.h
+  third_party/WebKit/Source/platform/wtf/text/StringImpl.h
+  ui/base/clipboard/clipboard_win.cc
 
 
-diff --git a/base/BUILD.gn b/base/BUILD.gn
-index 6b922adf..061ac83 100644
---- a/base/BUILD.gn
-+++ b/base/BUILD.gn
-@@ -1678,6 +1678,10 @@ component("base") {
-     configs -= [ "//build/config/compiler:default_optimization" ]
-     configs += [ "//build/config/compiler:optimize_max" ]
-   }
-+
-+  if (is_electron_build) {
-+    defines += [ "ELECTRON_NO_DCHECK" ]
-+  }
- }
- 
- buildflag_header("debugging_flags") {
 diff --git a/base/logging.h b/base/logging.h
-index 582fb89..24d3e82 100644
+index 582fb89868cd..24d3e82232b6 100644
 --- a/base/logging.h
 +++ b/base/logging.h
 @@ -850,7 +850,7 @@ const LogSeverity LOG_DCHECK = LOG_INFO;
@@ -63,6 +45,21 @@ index 582fb89..24d3e82 100644
  
  #define DCHECK(condition)                                           \
    LAZY_STREAM(LOG_STREAM(DCHECK), !ANALYZER_ASSUME_TRUE(condition)) \
+diff --git a/base/memory/weak_ptr.cc b/base/memory/weak_ptr.cc
+index 8879651e6da7..33fe8948a063 100644
+--- a/base/memory/weak_ptr.cc
++++ b/base/memory/weak_ptr.cc
+@@ -23,8 +23,8 @@ void WeakReference::Flag::Invalidate() {
+ }
+ 
+ bool WeakReference::Flag::IsValid() const {
+-  DCHECK(sequence_checker_.CalledOnValidSequence())
+-      << "WeakPtrs must be checked on the same sequenced thread.";
++  // DCHECK(sequence_checker_.CalledOnValidSequence())
++  //    << "WeakPtrs must be checked on the same sequenced thread.";
+   return is_valid_;
+ }
+ 
 diff --git a/base/process/kill_win.cc b/base/process/kill_win.cc
 index 79e5ded316e8..cbe455c7417c 100644
 --- a/base/process/kill_win.cc
@@ -76,87 +73,55 @@ index 79e5ded316e8..cbe455c7417c 100644
      if (exit_code) {
        // This really is a random number.  We haven't received any
        // information about the exit code, presumably because this
-diff --git a/content/browser/BUILD.gn b/content/browser/BUILD.gn
-index 41318159a2ad..f23682f0b22d 100644
---- a/content/browser/BUILD.gn
-+++ b/content/browser/BUILD.gn
-@@ -2170,6 +2170,10 @@ source_set("browser") {
-       "hyphenation/hyphenation_impl.h",
-     ]
+diff --git a/content/browser/frame_host/navigation_controller_impl.cc b/content/browser/frame_host/navigation_controller_impl.cc
+index 4eb65b14dd49..8fd5d9ec9a1d 100644
+--- a/content/browser/frame_host/navigation_controller_impl.cc
++++ b/content/browser/frame_host/navigation_controller_impl.cc
+@@ -1053,8 +1053,10 @@ NavigationType NavigationControllerImpl::ClassifyNavigation(
+     return NAVIGATION_TYPE_NEW_PAGE;
    }
-+
-+  if (is_electron_build) {
-+    defines += [ "ELECTRON_NO_DCHECK" ]
-+  }
- }
  
- buildflag_header("accessibility_flags") {
+-  // We only clear the session history when navigating to a new page.
+-  DCHECK(!params.history_list_was_cleared);
++  // Electron does its own book keeping of navigation entries and we
++  // expect content to not track any, by clearing history list for
++  // all navigations.
++  // DCHECK(!params.history_list_was_cleared);
+ 
+   if (rfh->GetParent()) {
+     // All manual subframes would be did_create_new_entry and handled above, so
 diff --git a/content/browser/frame_host/render_frame_host_impl.cc b/content/browser/frame_host/render_frame_host_impl.cc
-index 346765edaef9..1bf37e107a90 100644
+index 346765edaef9..a30e87bfcda6 100644
 --- a/content/browser/frame_host/render_frame_host_impl.cc
 +++ b/content/browser/frame_host/render_frame_host_impl.cc
-@@ -2072,8 +2072,8 @@ void RenderFrameHostImpl::AllowBindings(int bindings_flags) {
+@@ -2072,8 +2073,10 @@ void RenderFrameHostImpl::AllowBindings(int bindings_flags) {
    }
  
    enabled_bindings_ |= bindings_flags;
 -  if (GetParent())
 -    DCHECK_EQ(GetParent()->GetEnabledBindings(), GetEnabledBindings());
++  // WebUI in sub frames require binding policy while the parent does not,
++  // Fix this when we use OOPIF in Electron.
 +  // if (GetParent())
-+  //   DCHECK_EQ(GetParent()->GetEnabledBindings(), GetEnabledBindings());
++  //  DCHECK_EQ(GetParent()->GetEnabledBindings(), GetEnabledBindings());
  
    if (render_frame_created_) {
      if (!frame_bindings_control_)
-diff --git a/content/child/BUILD.gn b/content/child/BUILD.gn
-index db74c7691680..29e5895304be 100644
---- a/content/child/BUILD.gn
-+++ b/content/child/BUILD.gn
-@@ -293,6 +293,13 @@ target(link_target_type, "child") {
-     "//content:content_implementation",
-     "//build/config/compiler:no_size_t_to_int_warning",
-   ]
-+
-+  if (is_electron_build) {
-+    if (!defined(defines)) {
-+      defines = []
-+    }
-+    defines += [ "ELECTRON_NO_DCHECK" ]
-+  }
- }
+diff --git a/content/browser/renderer_host/render_widget_host_view_mac.mm b/content/browser/renderer_host/render_widget_host_view_mac.mm
+index 79e4cc1a0479..19ba3236477e 100644
+--- a/content/browser/renderer_host/render_widget_host_view_mac.mm
++++ b/content/browser/renderer_host/render_widget_host_view_mac.mm
+@@ -2093,8 +2104,8 @@ - (void)keyEvent:(NSEvent*)theEvent wasKeyEquivalent:(BOOL)equiv {
+   if (EventIsReservedBySystem(theEvent))
+     return;
  
- # See comment at the top of //content/BUILD.gn for how this works.
-diff --git a/device/geolocation/BUILD.gn b/device/geolocation/BUILD.gn
-index 27069c5f9700..8a4bb3842a42 100644
---- a/device/geolocation/BUILD.gn
-+++ b/device/geolocation/BUILD.gn
-@@ -115,6 +115,10 @@ component("geolocation") {
-       "Foundation.framework",
-     ]
-   }
-+
-+  if (is_electron_build) {
-+    defines += [ "ELECTRON_NO_DCHECK" ]
-+  }
- }
+-  DCHECK([theEvent type] != NSKeyDown ||
+-         !equiv == !([theEvent modifierFlags] & NSCommandKeyMask));
++  //DCHECK([theEvent type] != NSKeyDown ||
++  //       !equiv == !([theEvent modifierFlags] & NSCommandKeyMask));
  
- if (is_android) {
-diff --git a/net/BUILD.gn b/net/BUILD.gn
-index 13c5191..244883a 100644
---- a/net/BUILD.gn
-+++ b/net/BUILD.gn
-@@ -2170,6 +2170,13 @@ component("net") {
-       sources += [ "filter/brotli_source_stream_disabled.cc" ]
-     }
-   }
-+
-+  if (is_electron_build) {
-+    if (!defined(defines)) {
-+      defines = []
-+    }
-+    defines += [ "ELECTRON_NO_DCHECK" ]
-+  }
- }
- 
- grit("net_resources") {
+   if ([theEvent type] == NSFlagsChanged) {
+     // Ignore NSFlagsChanged events from the NumLock and Fn keys as
 diff --git a/ppapi/host/ppapi_host.cc b/ppapi/host/ppapi_host.cc
 index f3c68fab3de6..b8609daf3ef9 100644
 --- a/ppapi/host/ppapi_host.cc
@@ -201,56 +166,35 @@ index 86c8ada9d378..ff1155205218 100644
 +    defines += [ "ELECTRON_NO_DCHECK" ]
 +  }
  }
-diff --git a/third_party/WebKit/Source/platform/BUILD.gn b/third_party/WebKit/Source/platform/BUILD.gn
-index 7806a71..4550819 100644
---- a/third_party/WebKit/Source/platform/BUILD.gn
-+++ b/third_party/WebKit/Source/platform/BUILD.gn
-@@ -1707,6 +1707,10 @@ component("platform") {
-     configs -= [ "//build/config/compiler:default_symbols" ]
-     configs += remove_webcore_symbols_config
+diff --git a/third_party/WebKit/Source/platform/wtf/text/StringImpl.h b/third_party/WebKit/Source/platform/wtf/text/StringImpl.h
+index 9a02085a635e..1f4de626ee1b 100644
+--- a/third_party/WebKit/Source/platform/wtf/text/StringImpl.h
++++ b/third_party/WebKit/Source/platform/wtf/text/StringImpl.h
+@@ -252,21 +252,21 @@ class WTF_EXPORT StringImpl {
    }
-+
-+  if (is_electron_build) {
-+    defines += [ "ELECTRON_NO_DCHECK" ]
-+  }
- }
  
- static_library("test_support") {
-diff --git a/third_party/WebKit/Source/platform/wtf/ThreadRestrictionVerifier.h b/third_party/WebKit/Source/platform/wtf/ThreadRestrictionVerifier.h
-index 73c4d74ef3c1..d4a1a6c5696b 100644
---- a/third_party/WebKit/Source/platform/wtf/ThreadRestrictionVerifier.h
-+++ b/third_party/WebKit/Source/platform/wtf/ThreadRestrictionVerifier.h
-@@ -85,13 +85,13 @@ class ThreadRestrictionVerifier {
-  private:
-   // Indicates that the object may (or may not) be owned by more than one place.
-   void SetShared(bool shared) {
--    bool previously_shared = shared_;
-+    // bool previously_shared = shared_;
-     shared_ = shared;
- 
-     if (!shared_)
-       return;
- 
--    DCHECK_NE(shared, previously_shared);
-+    // DCHECK_NE(shared, previously_shared);
-     // Capture the current thread to verify that subsequent ref/deref happen on
-     // this thread.
-     owning_thread_ = CurrentThread();
-diff --git a/ui/base/BUILD.gn b/ui/base/BUILD.gn
-index 119d0fab47c9..7f9110f8b197 100644
---- a/ui/base/BUILD.gn
-+++ b/ui/base/BUILD.gn
-@@ -647,6 +647,10 @@ component("base") {
-   if (is_android || is_ios) {
-     sources -= [ "device_form_factor_desktop.cc" ]
+   ALWAYS_INLINE bool HasOneRef() const {
+-#if DCHECK_IS_ON()
++#if 0
+     DCHECK(IsStatic() || verifier_.IsSafeToUse()) << AsciiForDebugging();
+ #endif
+     return ref_count_ == 1;
    }
-+
-+  if (is_electron_build) {
-+    defines += [ "ELECTRON_NO_DCHECK" ]
-+  }
- }
  
- static_library("test_support") {
+   ALWAYS_INLINE void Ref() const {
+-#if DCHECK_IS_ON()
++#if 0
+     DCHECK(IsStatic() || verifier_.OnRef(ref_count_)) << AsciiForDebugging();
+ #endif
+     ++ref_count_;
+   }
+ 
+   ALWAYS_INLINE void Deref() const {
+-#if DCHECK_IS_ON()
++#if 0
+     DCHECK(IsStatic() || verifier_.OnDeref(ref_count_))
+         << AsciiForDebugging() << " " << CurrentThread();
+ #endif
 diff --git a/url/BUILD.gn b/url/BUILD.gn
 index 82eb115ae666..b4806804cdbf 100644
 --- a/url/BUILD.gn
@@ -266,3 +210,19 @@ index 82eb115ae666..b4806804cdbf 100644
  }
  
  if (is_android) {
+diff --git a/ui/base/clipboard/clipboard_win.cc b/ui/base/clipboard/clipboard_win.cc
+index 674b0e9a909c..a1bff6e40f56 100644
+--- a/ui/base/clipboard/clipboard_win.cc
++++ b/ui/base/clipboard/clipboard_win.cc
+@@ -886,9 +886,9 @@ void ClipboardWin::WriteBitmapFromHandle(HBITMAP source_hbitmap,
+ }
+ 
+ void ClipboardWin::WriteToClipboard(unsigned int format, HANDLE handle) {
+-  DCHECK(clipboard_owner_->hwnd() != NULL);
++  // DCHECK(clipboard_owner_->hwnd() != NULL);
+   if (handle && !::SetClipboardData(format, handle)) {
+-    DCHECK(ERROR_CLIPBOARD_NOT_OPEN != GetLastError());
++    // DCHECK(ERROR_CLIPBOARD_NOT_OPEN != GetLastError());
+     FreeData(format, handle);
+   }
+ }
