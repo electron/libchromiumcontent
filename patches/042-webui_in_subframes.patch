@@ -33,15 +33,15 @@ diff --git a/content/browser/frame_host/render_frame_host_impl.cc b/content/brow
 index 82ab04e1019d..209dbd15d894 100644
 --- a/content/browser/frame_host/render_frame_host_impl.cc
 +++ b/content/browser/frame_host/render_frame_host_impl.cc
-@@ -17,6 +17,7 @@
+@@ -18,6 +18,7 @@
  #include "base/metrics/user_metrics.h"
  #include "base/process/kill.h"
  #include "base/time/time.h"
 +#include "base/unguessable_token.h"
  #include "build/build_config.h"
+ #include "cc/base/switches.h"
  #include "content/browser/accessibility/browser_accessibility_manager.h"
- #include "content/browser/accessibility/browser_accessibility_state_impl.h"
-@@ -3418,8 +3464,23 @@ bool RenderFrameHostImpl::UpdatePendingWebUI(const GURL& dest_url,
+@@ -3468,8 +3514,23 @@ bool RenderFrameHostImpl::UpdatePendingWebUI(const GURL& dest_url,
        DCHECK(web_ui_);
        should_reuse_web_ui_ = true;
      } else {
