@@ -11,7 +11,7 @@ is_component_ffmpeg = true
 ffmpeg_branding = "Chrome"
 
 # Always use the system provided standard library
-use_custom_libcxx = false
+# use_custom_libcxx = false
 
 # Jumbo build should improve compilation times.
 # https://chromium.googlesource.com/chromium/src/+/master/docs/jumbo.md
