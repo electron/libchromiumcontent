@@ -1,0 +1,1448 @@
+diff --git a/include/v8-version.h b/include/v8-version.h
+index a812b241e4..2760fe3f29 100644
+--- a/include/v8-version.h
++++ b/include/v8-version.h
+@@ -11,7 +11,7 @@
+ #define V8_MAJOR_VERSION 6
+ #define V8_MINOR_VERSION 2
+ #define V8_BUILD_NUMBER 414
+-#define V8_PATCH_LEVEL 42
++#define V8_PATCH_LEVEL 46
+ 
+ // Use 1 for candidates and 0 otherwise.
+ // (Boolean macro values are not supported by all preprocessors.)
+diff --git a/src/debug/debug.cc b/src/debug/debug.cc
+index 8d5adfbaea..e2beaed6ab 100644
+--- a/src/debug/debug.cc
++++ b/src/debug/debug.cc
+@@ -1895,6 +1895,7 @@ void Debug::ProcessCompileEvent(v8::DebugEvent event, Handle<Script> script) {
+   HandleScope scope(isolate_);
+   PostponeInterruptsScope postpone(isolate_);
+   DisableBreak no_recursive_break(this);
++  AllowJavascriptExecution allow_script(isolate_);
+   debug_delegate_->ScriptCompiled(ToApiHandle<debug::Script>(script),
+                                   live_edit_enabled(),
+                                   event != v8::AfterCompile);
+diff --git a/tools/mb/docs/design_spec.md b/tools/mb/docs/design_spec.md
+index 33fda806e8..fb202da74e 100644
+--- a/tools/mb/docs/design_spec.md
++++ b/tools/mb/docs/design_spec.md
+@@ -411,9 +411,9 @@ config file change, however.
+ ### Non-goals
+ 
+ * MB is not intended to replace direct invocation of GN or GYP for
+-  complicated build scenarios (aka ChromeOS), where multiple flags need
++  complicated build scenarios (a.k.a. Chrome OS), where multiple flags need
+   to be set to user-defined paths for specific toolchains (e.g., where
+-  ChromeOS needs to specify specific board types and compilers).
++  Chrome OS needs to specify specific board types and compilers).
+ 
+ * MB is not intended at this time to be something developers use frequently,
+   or to add a lot of features to. We hope to be able to get rid of it once
+diff --git a/tools/mb/docs/user_guide.md b/tools/mb/docs/user_guide.md
+index b897fa4d67..a7d72c8839 100644
+--- a/tools/mb/docs/user_guide.md
++++ b/tools/mb/docs/user_guide.md
+@@ -20,7 +20,7 @@ For more discussion of MB, see also [the design spec](design_spec.md).
+ 
+ ### `mb analyze`
+ 
+-`mb analyze` is responsible for determining what targets are affected by
++`mb analyze` is reponsible for determining what targets are affected by
+ a list of files (e.g., the list of files in a patch on a trybot):
+ 
+ ```
+@@ -45,12 +45,12 @@ a single object with the following fields:
+     reflect the stuff we might want to build *in addition to* the list
+     passed in `test_targets`. Targets in this list will be treated 
+     specially, in the following way: if a given target is a "meta"
+-    (GN: group, GYP: none) target like 'blink_tests' or
+-    'chromium_builder_tests', or even the ninja-specific 'all' target, 
+-    then only the *dependencies* of the target that are affected by
+-    the modified files will be rebuilt (not the target itself, which
+-    might also cause unaffected dependencies to be rebuilt). An empty
+-    list will be treated as if there are no additional targets to build.
++    (GN: group, GYP: none) target like 'blink_tests' or or even the
++    ninja-specific 'all' target, then only the *dependencies* of the
++    target that are affected by the modified files will be rebuilt
++    (not the target itself, which might also cause unaffected dependencies
++    to be rebuilt). An empty list will be treated as if there are no additional
++    targets to build.
+     Empty lists for both `test_targets` and `additional_compile_targets`
+     would cause no work to be done, so will result in an error.
+   * `targets`: a legacy field that resembled a union of `compile_targets`
+@@ -167,6 +167,21 @@ The `-f/--config-file` and `-q/--quiet` flags work as documented for
+ This is mostly useful as a presubmit check and for verifying changes to
+ the config file.
+ 
++### `mb gerrit-buildbucket-config`
++
++Generates a gerrit buildbucket configuration file and prints it to
++stdout. This file contains the list of trybots shown in gerrit's UI.
++
++The master copy of the buildbucket.config file lives
++in a separate branch of the chromium repository. Run `mb
++gerrit-buildbucket-config > buildbucket.config.new && git fetch origin
++refs/meta/config:refs/remotes/origin/meta/config && git checkout
++-t -b meta_config origin/meta/config && mv buildbucket.config.new
++buildbucket.config` to update the file.
++
++Note that after committing, `git cl upload` will not work. Instead, use `git
++push origin HEAD:refs/for/refs/meta/config` to upload the CL for review.
++
+ ## Isolates and Swarming
+ 
+ `mb gen` is also responsible for generating the `.isolate` and
+diff --git a/tools/mb/mb.py b/tools/mb/mb.py
+index b37c9dde7d..9a6600225b 100755
+--- a/tools/mb/mb.py
++++ b/tools/mb/mb.py
+@@ -10,6 +10,10 @@ MB is a wrapper script for GYP and GN that can be used to generate build files
+ for sets of canned configurations and analyze them.
+ """
+ 
++# TODO(thomasanderson): Remove this comment.  It is added to
++# workaround https://crbug.com/736215 for CL
++# https://codereview.chromium.org/2974603002/
++
+ from __future__ import print_function
+ 
+ import argparse
+@@ -46,11 +50,14 @@ class MetaBuildWrapper(object):
+     self.chromium_src_dir = CHROMIUM_SRC_DIR
+     self.default_config = os.path.join(self.chromium_src_dir, 'infra', 'mb',
+                                        'mb_config.pyl')
++    self.default_isolate_map = os.path.join(self.chromium_src_dir, 'infra',
++                                            'mb', 'gn_isolate_map.pyl')
+     self.executable = sys.executable
+     self.platform = sys.platform
+     self.sep = os.sep
+     self.args = argparse.Namespace()
+     self.configs = {}
++    self.luci_tryservers = {}
+     self.masters = {}
+     self.mixins = {}
+ 
+@@ -62,7 +69,7 @@ class MetaBuildWrapper(object):
+         self.DumpInputFiles()
+       return ret
+     except KeyboardInterrupt:
+-      self.Print('interrupted, exiting', stream=sys.stderr)
++      self.Print('interrupted, exiting')
+       return 130
+     except Exception:
+       self.DumpInputFiles()
+@@ -79,13 +86,18 @@ class MetaBuildWrapper(object):
+                         help='master name to look up config from')
+       subp.add_argument('-c', '--config',
+                         help='configuration to analyze')
+-      subp.add_argument('--phase', type=int,
+-                        help=('build phase for a given build '
+-                              '(int in [1, 2, ...))'))
++      subp.add_argument('--phase',
++                        help='optional phase name (used when builders '
++                             'do multiple compiles with different '
++                             'arguments in a single build)')
+       subp.add_argument('-f', '--config-file', metavar='PATH',
+                         default=self.default_config,
+                         help='path to config file '
+-                            '(default is //tools/mb/mb_config.pyl)')
++                             '(default is %(default)s)')
++      subp.add_argument('-i', '--isolate-map-file', metavar='PATH',
++                        default=self.default_isolate_map,
++                        help='path to isolate map file '
++                             '(default is %(default)s)')
+       subp.add_argument('-g', '--goma-dir',
+                         help='path to goma directory')
+       subp.add_argument('--gyp-script', metavar='PATH',
+@@ -121,6 +133,16 @@ class MetaBuildWrapper(object):
+                            'as a JSON object.')
+     subp.set_defaults(func=self.CmdAnalyze)
+ 
++    subp = subps.add_parser('export',
++                            help='print out the expanded configuration for'
++                                 'each builder as a JSON object')
++    subp.add_argument('-f', '--config-file', metavar='PATH',
++                      default=self.default_config,
++                      help='path to config file (default is %(default)s)')
++    subp.add_argument('-g', '--goma-dir',
++                      help='path to goma directory')
++    subp.set_defaults(func=self.CmdExport)
++
+     subp = subps.add_parser('gen',
+                             help='generate a new set of build files')
+     AddCommonOptions(subp)
+@@ -192,16 +214,14 @@ class MetaBuildWrapper(object):
+                             help='validate the config file')
+     subp.add_argument('-f', '--config-file', metavar='PATH',
+                       default=self.default_config,
+-                      help='path to config file '
+-                          '(default is //infra/mb/mb_config.pyl)')
++                      help='path to config file (default is %(default)s)')
+     subp.set_defaults(func=self.CmdValidate)
+ 
+     subp = subps.add_parser('audit',
+                             help='Audit the config file to track progress')
+     subp.add_argument('-f', '--config-file', metavar='PATH',
+                       default=self.default_config,
+-                      help='path to config file '
+-                          '(default is //infra/mb/mb_config.pyl)')
++                      help='path to config file (default is %(default)s)')
+     subp.add_argument('-i', '--internal', action='store_true',
+                       help='check internal masters also')
+     subp.add_argument('-m', '--master', action='append',
+@@ -217,6 +237,14 @@ class MetaBuildWrapper(object):
+                            ' do compiles')
+     subp.set_defaults(func=self.CmdAudit)
+ 
++    subp = subps.add_parser('gerrit-buildbucket-config',
++                            help='Print buildbucket.config for gerrit '
++                            '(see MB user guide)')
++    subp.add_argument('-f', '--config-file', metavar='PATH',
++                      default=self.default_config,
++                      help='path to config file (default is %(default)s)')
++    subp.set_defaults(func=self.CmdBuildbucket)
++
+     subp = subps.add_parser('help',
+                             help='Get help on a subcommand.')
+     subp.add_argument(nargs='?', action='store', dest='subcommand',
+@@ -225,12 +253,16 @@ class MetaBuildWrapper(object):
+ 
+     self.args = parser.parse_args(argv)
+ 
++    # TODO(machenbach): This prepares passing swarming targets to isolate on the
++    # infra side.
++    self.args.swarming_targets_file = None
++
+   def DumpInputFiles(self):
+ 
+     def DumpContentsOfFilePassedTo(arg_name, path):
+       if path and self.Exists(path):
+         self.Print("\n# To recreate the file passed to %s:" % arg_name)
+-        self.Print("%% cat > %s <<EOF)" % path)
++        self.Print("%% cat > %s <<EOF" % path)
+         contents = self.ReadFile(path)
+         self.Print(contents)
+         self.Print("EOF\n%\n")
+@@ -250,6 +282,34 @@ class MetaBuildWrapper(object):
+     else:
+       return self.RunGYPAnalyze(vals)
+ 
++  def CmdExport(self):
++    self.ReadConfigFile()
++    obj = {}
++    for master, builders in self.masters.items():
++      obj[master] = {}
++      for builder in builders:
++        config = self.masters[master][builder]
++        if not config:
++          continue
++
++        if isinstance(config, dict):
++          args = {k: self.FlattenConfig(v)['gn_args']
++                  for k, v in config.items()}
++        elif config.startswith('//'):
++          args = config
++        else:
++          args = self.FlattenConfig(config)['gn_args']
++          if 'error' in args:
++            continue
++
++        obj[master][builder] = args
++
++    # Dump object and trim trailing whitespace.
++    s = '\n'.join(l.rstrip() for l in
++                  json.dumps(obj, sort_keys=True, indent=2).splitlines())
++    self.Print(s)
++    return 0
++
+   def CmdGen(self):
+     vals = self.Lookup()
+     self.ClobberIfNeeded(vals)
+@@ -270,7 +330,7 @@ class MetaBuildWrapper(object):
+       return 1
+ 
+     if vals['type'] == 'gn':
+-      return self.RunGNIsolate(vals)
++      return self.RunGNIsolate()
+     else:
+       return self.Build('%s_run' % self.args.target[0])
+ 
+@@ -300,7 +360,7 @@ class MetaBuildWrapper(object):
+         ret = self.Build(target)
+         if ret:
+           return ret
+-      ret = self.RunGNIsolate(vals)
++      ret = self.RunGNIsolate()
+       if ret:
+         return ret
+     else:
+@@ -322,6 +382,25 @@ class MetaBuildWrapper(object):
+ 
+     return ret
+ 
++  def CmdBuildbucket(self):
++    self.ReadConfigFile()
++
++    self.Print('# This file was generated using '
++               '"tools/mb/mb.py gerrit-buildbucket-config".')
++
++    for luci_tryserver in sorted(self.luci_tryservers):
++      self.Print('[bucket "luci.%s"]' % luci_tryserver)
++      for bot in sorted(self.luci_tryservers[luci_tryserver]):
++        self.Print('\tbuilder = %s' % bot)
++
++    for master in sorted(self.masters):
++      if master.startswith('tryserver.'):
++        self.Print('[bucket "master.%s"]' % master)
++        for bot in sorted(self.masters[master]):
++          self.Print('\tbuilder = %s' % bot)
++
++    return 0
++
+   def CmdValidate(self, print_ok=True):
+     errs = []
+ 
+@@ -332,8 +411,8 @@ class MetaBuildWrapper(object):
+     all_configs = {}
+     for master in self.masters:
+       for config in self.masters[master].values():
+-        if isinstance(config, list):
+-          for c in config:
++        if isinstance(config, dict):
++          for c in config.values():
+             all_configs[c] = master
+         else:
+           all_configs[config] = master
+@@ -461,8 +540,8 @@ class MetaBuildWrapper(object):
+         config = self.masters[master][builder]
+         if config == 'tbd':
+           tbd.add(builder)
+-        elif isinstance(config, list):
+-          vals = self.FlattenConfig(config[0])
++        elif isinstance(config, dict):
++          vals = self.FlattenConfig(config.values()[0])
+           if vals['type'] == 'gyp':
+             gyp.add(builder)
+           else:
+@@ -504,7 +583,7 @@ class MetaBuildWrapper(object):
+   def GetConfig(self):
+     build_dir = self.args.path[0]
+ 
+-    vals = {}
++    vals = self.DefaultVals()
+     if self.args.builder or self.args.master or self.args.config:
+       vals = self.Lookup()
+       if vals['type'] == 'gn':
+@@ -528,14 +607,12 @@ class MetaBuildWrapper(object):
+       mb_type = self.ReadFile(mb_type_path).strip()
+ 
+     if mb_type == 'gn':
+-      vals = self.GNValsFromDir(build_dir)
+-    else:
+-      vals = {}
++      vals['gn_args'] = self.GNArgsFromDir(build_dir)
+     vals['type'] = mb_type
+ 
+     return vals
+ 
+-  def GNValsFromDir(self, build_dir):
++  def GNArgsFromDir(self, build_dir):
+     args_contents = ""
+     gn_args_path = self.PathJoin(self.ToAbsPath(build_dir), 'args.gn')
+     if self.Exists(gn_args_path):
+@@ -547,27 +624,18 @@ class MetaBuildWrapper(object):
+       val = ' '.join(fields[2:])
+       gn_args.append('%s=%s' % (name, val))
+ 
+-    return {
+-      'gn_args': ' '.join(gn_args),
+-      'type': 'gn',
+-    }
++    return ' '.join(gn_args)
+ 
+   def Lookup(self):
+-    vals = self.ReadBotConfig()
++    vals = self.ReadIOSBotConfig()
+     if not vals:
+       self.ReadConfigFile()
+       config = self.ConfigFromArgs()
+       if config.startswith('//'):
+         if not self.Exists(self.ToAbsPath(config)):
+           raise MBErr('args file "%s" not found' % config)
+-        vals = {
+-          'args_file': config,
+-          'cros_passthrough': False,
+-          'gn_args': '',
+-          'gyp_crosscompile': False,
+-          'gyp_defines': '',
+-          'type': 'gn',
+-        }
++        vals = self.DefaultVals()
++        vals['args_file'] = config
+       else:
+         if not config in self.configs:
+           raise MBErr('Config "%s" not found in %s' %
+@@ -576,13 +644,14 @@ class MetaBuildWrapper(object):
+ 
+     # Do some basic sanity checking on the config so that we
+     # don't have to do this in every caller.
+-    assert 'type' in vals, 'No meta-build type specified in the config'
++    if 'type' not in vals:
++        vals['type'] = 'gn'
+     assert vals['type'] in ('gn', 'gyp'), (
+         'Unknown meta-build type "%s"' % vals['gn_args'])
+ 
+     return vals
+ 
+-  def ReadBotConfig(self):
++  def ReadIOSBotConfig(self):
+     if not self.args.master or not self.args.builder:
+       return {}
+     path = self.PathJoin(self.chromium_src_dir, 'ios', 'build', 'bots',
+@@ -598,14 +667,11 @@ class MetaBuildWrapper(object):
+       gyp_defines = ' '.join(gyp_vals)
+     gn_args = ' '.join(contents.get('gn_args', []))
+ 
+-    return {
+-        'args_file': '',
+-        'cros_passthrough': False,
+-        'gn_args': gn_args,
+-        'gyp_crosscompile': False,
+-        'gyp_defines': gyp_defines,
+-        'type': contents.get('mb_type', ''),
+-    }
++    vals = self.DefaultVals()
++    vals['gn_args'] = gn_args
++    vals['gyp_defines'] = gyp_defines
++    vals['type'] = contents.get('mb_type', 'gn')
++    return vals
+ 
+   def ReadConfigFile(self):
+     if not self.Exists(self.args.config_file):
+@@ -618,9 +684,20 @@ class MetaBuildWrapper(object):
+                  (self.args.config_file, e))
+ 
+     self.configs = contents['configs']
++    self.luci_tryservers = contents.get('luci_tryservers', {})
+     self.masters = contents['masters']
+     self.mixins = contents['mixins']
+ 
++  def ReadIsolateMap(self):
++    if not self.Exists(self.args.isolate_map_file):
++      raise MBErr('isolate map file not found at %s' %
++                  self.args.isolate_map_file)
++    try:
++      return ast.literal_eval(self.ReadFile(self.args.isolate_map_file))
++    except SyntaxError as e:
++      raise MBErr('Failed to parse isolate map file "%s": %s' %
++                  (self.args.isolate_map_file, e))
++
+   def ConfigFromArgs(self):
+     if self.args.config:
+       if self.args.master or self.args.builder:
+@@ -642,15 +719,15 @@ class MetaBuildWrapper(object):
+                   (self.args.builder, self.args.master, self.args.config_file))
+ 
+     config = self.masters[self.args.master][self.args.builder]
+-    if isinstance(config, list):
++    if isinstance(config, dict):
+       if self.args.phase is None:
+         raise MBErr('Must specify a build --phase for %s on %s' %
+                     (self.args.builder, self.args.master))
+-      phase = int(self.args.phase)
+-      if phase < 1 or phase > len(config):
+-        raise MBErr('Phase %d out of bounds for %s on %s' %
++      phase = str(self.args.phase)
++      if phase not in config:
++        raise MBErr('Phase %s doesn\'t exist for %s on %s' %
+                     (phase, self.args.builder, self.args.master))
+-      return config[phase-1]
++      return config[phase]
+ 
+     if self.args.phase is not None:
+       raise MBErr('Must not specify a build --phase for %s on %s' %
+@@ -659,19 +736,22 @@ class MetaBuildWrapper(object):
+ 
+   def FlattenConfig(self, config):
+     mixins = self.configs[config]
+-    vals = {
++    vals = self.DefaultVals()
++
++    visited = []
++    self.FlattenMixins(mixins, vals, visited)
++    return vals
++
++  def DefaultVals(self):
++    return {
+       'args_file': '',
+       'cros_passthrough': False,
+-      'gn_args': [],
++      'gn_args': '',
+       'gyp_defines': '',
+       'gyp_crosscompile': False,
+-      'type': None,
++      'type': 'gn',
+     }
+ 
+-    visited = []
+-    self.FlattenMixins(mixins, vals, visited)
+-    return vals
+-
+   def FlattenMixins(self, mixins, vals, visited):
+     for m in mixins:
+       if m not in self.mixins:
+@@ -683,6 +763,11 @@ class MetaBuildWrapper(object):
+ 
+       if 'cros_passthrough' in mixin_vals:
+         vals['cros_passthrough'] = mixin_vals['cros_passthrough']
++      if 'args_file' in mixin_vals:
++        if vals['args_file']:
++            raise MBErr('args_file specified multiple times in mixins '
++                        'for %s on %s' % (self.args.builder, self.args.master))
++        vals['args_file'] = mixin_vals['args_file']
+       if 'gn_args' in mixin_vals:
+         if vals['gn_args']:
+           vals['gn_args'] += ' ' + mixin_vals['gn_args']
+@@ -732,11 +817,13 @@ class MetaBuildWrapper(object):
+     self.MaybeMakeDirectory(build_dir)
+     self.WriteFile(mb_type_path, new_mb_type)
+ 
+-  def RunGNGen(self, vals):
++  def RunGNGen(self, vals, compute_grit_inputs_for_analyze=False):
+     build_dir = self.args.path[0]
+ 
+     cmd = self.GNCmd('gen', build_dir, '--check')
+     gn_args = self.GNArgs(vals)
++    if compute_grit_inputs_for_analyze:
++      gn_args += ' compute_grit_inputs_for_analyze=true'
+ 
+     # Since GN hasn't run yet, the build directory may not even exist.
+     self.MaybeMakeDirectory(self.ToAbsPath(build_dir))
+@@ -748,7 +835,7 @@ class MetaBuildWrapper(object):
+     if getattr(self.args, 'swarming_targets_file', None):
+       # We need GN to generate the list of runtime dependencies for
+       # the compile targets listed (one per line) in the file so
+-      # we can run them via swarming. We use ninja_to_gn.pyl to convert
++      # we can run them via swarming. We use gn_isolate_map.pyl to convert
+       # the compile targets to the matching GN labels.
+       path = self.args.swarming_targets_file
+       if not self.Exists(path):
+@@ -756,34 +843,17 @@ class MetaBuildWrapper(object):
+                                   output_path=None)
+       contents = self.ReadFile(path)
+       swarming_targets = set(contents.splitlines())
+-      gn_isolate_map = ast.literal_eval(self.ReadFile(self.PathJoin(
+-          self.chromium_src_dir, 'testing', 'buildbot', 'gn_isolate_map.pyl')))
+-      gn_labels = []
+-      err = ''
+-      for target in swarming_targets:
+-        target_name = self.GNTargetName(target)
+-        if not target_name in gn_isolate_map:
+-          err += ('test target "%s" not found\n' % target_name)
+-        elif gn_isolate_map[target_name]['type'] == 'unknown':
+-          err += ('test target "%s" type is unknown\n' % target_name)
+-        else:
+-          gn_labels.append(gn_isolate_map[target_name]['label'])
+ 
++      isolate_map = self.ReadIsolateMap()
++      err, labels = self.MapTargetsToLabels(isolate_map, swarming_targets)
+       if err:
+-          raise MBErr('Error: Failed to match swarming targets to %s:\n%s' %
+-                      ('//testing/buildbot/gn_isolate_map.pyl', err))
++          raise MBErr(err)
+ 
+       gn_runtime_deps_path = self.ToAbsPath(build_dir, 'runtime_deps')
+-      self.WriteFile(gn_runtime_deps_path, '\n'.join(gn_labels) + '\n')
++      self.WriteFile(gn_runtime_deps_path, '\n'.join(labels) + '\n')
+       cmd.append('--runtime-deps-list-file=%s' % gn_runtime_deps_path)
+ 
+-    # Override msvs infra environment variables.
+-    # TODO(machenbach): Remove after GYP_MSVS_VERSION is removed on infra side.
+-    env = {}
+-    env.update(os.environ)
+-    env['GYP_MSVS_VERSION'] = '2015'
+-
+-    ret, _, _ = self.Run(cmd, env=env)
++    ret, _, _ = self.Run(cmd)
+     if ret:
+         # If `gn gen` failed, we should exit early rather than trying to
+         # generate isolates. Run() will have already logged any error output.
+@@ -796,24 +866,23 @@ class MetaBuildWrapper(object):
+         # Android targets may be either android_apk or executable. The former
+         # will result in runtime_deps associated with the stamp file, while the
+         # latter will result in runtime_deps associated with the executable.
+-        target_name = self.GNTargetName(target)
+-        label = gn_isolate_map[target_name]['label']
++        label = isolate_map[target]['label']
+         runtime_deps_targets = [
+-            target_name + '.runtime_deps',
++            target + '.runtime_deps',
+             'obj/%s.stamp.runtime_deps' % label.replace(':', '/')]
+-      elif gn_isolate_map[target]['type'] == 'gpu_browser_test':
+-        if self.platform == 'win32':
+-          runtime_deps_targets = ['browser_tests.exe.runtime_deps']
+-        else:
+-          runtime_deps_targets = ['browser_tests.runtime_deps']
+-      elif (gn_isolate_map[target]['type'] == 'script' or
+-            gn_isolate_map[target].get('label_type') == 'group'):
++      elif (isolate_map[target]['type'] == 'script' or
++            isolate_map[target].get('label_type') == 'group'):
+         # For script targets, the build target is usually a group,
+         # for which gn generates the runtime_deps next to the stamp file
+-        # for the label, which lives under the obj/ directory.
+-        label = gn_isolate_map[target]['label']
++        # for the label, which lives under the obj/ directory, but it may
++        # also be an executable.
++        label = isolate_map[target]['label']
+         runtime_deps_targets = [
+             'obj/%s.stamp.runtime_deps' % label.replace(':', '/')]
++        if self.platform == 'win32':
++          runtime_deps_targets += [ target + '.exe.runtime_deps' ]
++        else:
++          runtime_deps_targets += [ target + '.runtime_deps' ]
+       elif self.platform == 'win32':
+         runtime_deps_targets = [target + '.exe.runtime_deps']
+       else:
+@@ -827,26 +896,22 @@ class MetaBuildWrapper(object):
+         raise MBErr('did not generate any of %s' %
+                     ', '.join(runtime_deps_targets))
+ 
+-      command, extra_files = self.GetIsolateCommand(target, vals,
+-                                                    gn_isolate_map)
+-
+       runtime_deps = self.ReadFile(runtime_deps_path).splitlines()
+ 
+-      self.WriteIsolateFiles(build_dir, command, target, runtime_deps,
+-                             extra_files)
++      self.WriteIsolateFiles(build_dir, target, runtime_deps)
+ 
+     return 0
+ 
+-  def RunGNIsolate(self, vals):
+-    gn_isolate_map = ast.literal_eval(self.ReadFile(self.PathJoin(
+-        self.chromium_src_dir, 'testing', 'buildbot', 'gn_isolate_map.pyl')))
++  def RunGNIsolate(self):
++    target = self.args.target[0]
++    isolate_map = self.ReadIsolateMap()
++    err, labels = self.MapTargetsToLabels(isolate_map, [target])
++    if err:
++      raise MBErr(err)
++    label = labels[0]
+ 
+     build_dir = self.args.path[0]
+-    target = self.args.target[0]
+-    target_name = self.GNTargetName(target)
+-    command, extra_files = self.GetIsolateCommand(target, vals, gn_isolate_map)
+ 
+-    label = gn_isolate_map[target_name]['label']
+     cmd = self.GNCmd('desc', build_dir, label, 'runtime_deps')
+     ret, out, _ = self.Call(cmd)
+     if ret:
+@@ -856,8 +921,7 @@ class MetaBuildWrapper(object):
+ 
+     runtime_deps = out.splitlines()
+ 
+-    self.WriteIsolateFiles(build_dir, command, target, runtime_deps,
+-                           extra_files)
++    self.WriteIsolateFiles(build_dir, target, runtime_deps)
+ 
+     ret, _, _ = self.Run([
+         self.executable,
+@@ -871,14 +935,12 @@ class MetaBuildWrapper(object):
+ 
+     return ret
+ 
+-  def WriteIsolateFiles(self, build_dir, command, target, runtime_deps,
+-                        extra_files):
++  def WriteIsolateFiles(self, build_dir, target, runtime_deps):
+     isolate_path = self.ToAbsPath(build_dir, target + '.isolate')
+     self.WriteFile(isolate_path,
+       pprint.pformat({
+         'variables': {
+-          'command': command,
+-          'files': sorted(runtime_deps + extra_files),
++          'files': sorted(runtime_deps),
+         }
+       }) + '\n')
+ 
+@@ -896,6 +958,27 @@ class MetaBuildWrapper(object):
+       isolate_path + 'd.gen.json',
+     )
+ 
++  def MapTargetsToLabels(self, isolate_map, targets):
++    labels = []
++    err = ''
++
++    for target in targets:
++      if target == 'all':
++        labels.append(target)
++      elif target.startswith('//'):
++        labels.append(target)
++      else:
++        if target in isolate_map:
++          if isolate_map[target]['type'] == 'unknown':
++            err += ('test target "%s" type is unknown\n' % target)
++          else:
++            labels.append(isolate_map[target]['label'])
++        else:
++          err += ('target "%s" not found in '
++                  '//infra/mb/gn_isolate_map.pyl\n' % target)
++
++    return err, labels
++
+   def GNCmd(self, subcommand, path, *args):
+     if self.platform == 'linux2':
+       subdir, exe = 'linux64', 'gn'
+@@ -905,9 +988,9 @@ class MetaBuildWrapper(object):
+       subdir, exe = 'win', 'gn.exe'
+ 
+     gn_path = self.PathJoin(self.chromium_src_dir, 'buildtools', subdir, exe)
+-
+     return [gn_path, subcommand, path] + list(args)
+ 
++
+   def GNArgs(self, vals):
+     if vals['cros_passthrough']:
+       if not 'GN_ARGS' in os.environ:
+@@ -972,109 +1055,6 @@ class MetaBuildWrapper(object):
+ 
+     return ret
+ 
+-  def GetIsolateCommand(self, target, vals, gn_isolate_map):
+-    android = 'target_os="android"' in vals['gn_args']
+-
+-    # This needs to mirror the settings in //build/config/ui.gni:
+-    # use_x11 = is_linux && !use_ozone.
+-    use_x11 = (self.platform == 'linux2' and
+-               not android and
+-               not 'use_ozone=true' in vals['gn_args'])
+-
+-    asan = 'is_asan=true' in vals['gn_args']
+-    msan = 'is_msan=true' in vals['gn_args']
+-    tsan = 'is_tsan=true' in vals['gn_args']
+-
+-    target_name = self.GNTargetName(target)
+-    test_type = gn_isolate_map[target_name]['type']
+-
+-    executable = gn_isolate_map[target_name].get('executable', target_name)
+-    executable_suffix = '.exe' if self.platform == 'win32' else ''
+-
+-    cmdline = []
+-    extra_files = []
+-
+-    if android and test_type != "script":
+-      logdog_command = [
+-          '--logdog-bin-cmd', './../../bin/logdog_butler',
+-          '--project', 'chromium',
+-          '--service-account-json',
+-          '/creds/service_accounts/service-account-luci-logdog-publisher.json',
+-          '--prefix', 'android/swarming/logcats/${SWARMING_TASK_ID}',
+-          '--source', '${ISOLATED_OUTDIR}/logcats',
+-          '--name', 'unified_logcats',
+-      ]
+-      test_cmdline = [
+-          self.PathJoin('bin', 'run_%s' % target_name),
+-          '--logcat-output-file', '${ISOLATED_OUTDIR}/logcats',
+-          '--target-devices-file', '${SWARMING_BOT_FILE}',
+-          '-v'
+-      ]
+-      cmdline = (['./../../build/android/test_wrapper/logdog_wrapper.py']
+-                 + logdog_command + test_cmdline)
+-    elif use_x11 and test_type == 'windowed_test_launcher':
+-      extra_files = [
+-          '../../testing/test_env.py',
+-          '../../testing/xvfb.py',
+-      ]
+-      cmdline = [
+-        '../../testing/xvfb.py',
+-        '.',
+-        './' + str(executable) + executable_suffix,
+-        '--brave-new-test-launcher',
+-        '--test-launcher-bot-mode',
+-        '--asan=%d' % asan,
+-        '--msan=%d' % msan,
+-        '--tsan=%d' % tsan,
+-      ]
+-    elif test_type in ('windowed_test_launcher', 'console_test_launcher'):
+-      extra_files = [
+-          '../../testing/test_env.py'
+-      ]
+-      cmdline = [
+-          '../../testing/test_env.py',
+-          './' + str(executable) + executable_suffix,
+-          '--brave-new-test-launcher',
+-          '--test-launcher-bot-mode',
+-          '--asan=%d' % asan,
+-          '--msan=%d' % msan,
+-          '--tsan=%d' % tsan,
+-      ]
+-    elif test_type == 'gpu_browser_test':
+-      extra_files = [
+-          '../../testing/test_env.py'
+-      ]
+-      gtest_filter = gn_isolate_map[target]['gtest_filter']
+-      cmdline = [
+-          '../../testing/test_env.py',
+-          './browser_tests' + executable_suffix,
+-          '--test-launcher-bot-mode',
+-          '--enable-gpu',
+-          '--test-launcher-jobs=1',
+-          '--gtest_filter=%s' % gtest_filter,
+-      ]
+-    elif test_type == 'script':
+-      extra_files = [
+-          '../../testing/test_env.py'
+-      ]
+-      cmdline = [
+-          '../../testing/test_env.py',
+-          '../../' + self.ToSrcRelPath(gn_isolate_map[target]['script'])
+-      ]
+-    elif test_type in ('raw'):
+-      extra_files = []
+-      cmdline = [
+-          './' + str(target) + executable_suffix,
+-      ]
+-
+-    else:
+-      self.WriteFailureAndRaise('No command line for %s found (test type %s).'
+-                                % (target, test_type), output_path=None)
+-
+-    cmdline += gn_isolate_map[target_name].get('args', [])
+-
+-    return cmdline, extra_files
+-
+   def ToAbsPath(self, build_path, *comps):
+     return self.PathJoin(self.chromium_src_dir,
+                          self.ToSrcRelPath(build_path),
+@@ -1167,12 +1147,18 @@ class MetaBuildWrapper(object):
+     return cmd, env
+ 
+   def RunGNAnalyze(self, vals):
+-    # analyze runs before 'gn gen' now, so we need to run gn gen
++    # Analyze runs before 'gn gen' now, so we need to run gn gen
+     # in order to ensure that we have a build directory.
+-    ret = self.RunGNGen(vals)
++    ret = self.RunGNGen(vals, compute_grit_inputs_for_analyze=True)
+     if ret:
+       return ret
+ 
++    build_path = self.args.path[0]
++    input_path = self.args.input_path[0]
++    gn_input_path = input_path + '.gn'
++    output_path = self.args.output_path[0]
++    gn_output_path = output_path + '.gn'
++
+     inp = self.ReadInputJSON(['files', 'test_targets',
+                               'additional_compile_targets'])
+     if self.args.verbose:
+@@ -1181,26 +1167,6 @@ class MetaBuildWrapper(object):
+       self.PrintJSON(inp)
+       self.Print()
+ 
+-    # TODO(crbug.com/555273) - currently GN treats targets and
+-    # additional_compile_targets identically since we can't tell the
+-    # difference between a target that is a group in GN and one that isn't.
+-    # We should eventually fix this and treat the two types differently.
+-    targets = (set(inp['test_targets']) |
+-               set(inp['additional_compile_targets']))
+-
+-    output_path = self.args.output_path[0]
+-
+-    # Bail out early if a GN file was modified, since 'gn refs' won't know
+-    # what to do about it. Also, bail out early if 'all' was asked for,
+-    # since we can't deal with it yet.
+-    if (any(f.endswith('.gn') or f.endswith('.gni') for f in inp['files']) or
+-        'all' in targets):
+-      self.WriteJSON({
+-            'status': 'Found dependency (all)',
+-            'compile_targets': sorted(targets),
+-            'test_targets': sorted(targets & set(inp['test_targets'])),
+-          }, output_path)
+-      return 0
+ 
+     # This shouldn't normally happen, but could due to unusual race conditions,
+     # like a try job that gets scheduled before a patch lands but runs after
+@@ -1214,68 +1180,103 @@ class MetaBuildWrapper(object):
+           }, output_path)
+       return 0
+ 
+-    ret = 0
+-    response_file = self.TempFile()
+-    response_file.write('\n'.join(inp['files']) + '\n')
+-    response_file.close()
++    gn_inp = {}
++    gn_inp['files'] = ['//' + f for f in inp['files'] if not f.startswith('//')]
++
++    isolate_map = self.ReadIsolateMap()
++    err, gn_inp['additional_compile_targets'] = self.MapTargetsToLabels(
++        isolate_map, inp['additional_compile_targets'])
++    if err:
++      raise MBErr(err)
++
++    err, gn_inp['test_targets'] = self.MapTargetsToLabels(
++        isolate_map, inp['test_targets'])
++    if err:
++      raise MBErr(err)
++    labels_to_targets = {}
++    for i, label in enumerate(gn_inp['test_targets']):
++      labels_to_targets[label] = inp['test_targets'][i]
+ 
+-    matching_targets = set()
+     try:
+-      cmd = self.GNCmd('refs',
+-                       self.args.path[0],
+-                       '@%s' % response_file.name,
+-                       '--all',
+-                       '--as=output')
+-      ret, out, _ = self.Run(cmd, force_verbose=False)
+-      if ret and not 'The input matches no targets' in out:
+-        self.WriteFailureAndRaise('gn refs returned %d: %s' % (ret, out),
+-                                  output_path)
+-      build_dir = self.ToSrcRelPath(self.args.path[0]) + self.sep
+-      for output in out.splitlines():
+-        build_output = output.replace(build_dir, '')
+-        if build_output in targets:
+-          matching_targets.add(build_output)
+-
+-      cmd = self.GNCmd('refs',
+-                       self.args.path[0],
+-                       '@%s' % response_file.name,
+-                       '--all')
+-      ret, out, _ = self.Run(cmd, force_verbose=False)
+-      if ret and not 'The input matches no targets' in out:
+-        self.WriteFailureAndRaise('gn refs returned %d: %s' % (ret, out),
+-                                  output_path)
+-      for label in out.splitlines():
+-        build_target = label[2:]
+-        # We want to accept 'chrome/android:chrome_public_apk' and
+-        # just 'chrome_public_apk'. This may result in too many targets
+-        # getting built, but we can adjust that later if need be.
+-        for input_target in targets:
+-          if (input_target == build_target or
+-              build_target.endswith(':' + input_target)):
+-            matching_targets.add(input_target)
+-    finally:
+-      self.RemoveFile(response_file.name)
++      self.WriteJSON(gn_inp, gn_input_path)
++      cmd = self.GNCmd('analyze', build_path, gn_input_path, gn_output_path)
++      ret, _, _ = self.Run(cmd, force_verbose=True)
++      if ret:
++        return ret
+ 
+-    if matching_targets:
+-      self.WriteJSON({
+-            'status': 'Found dependency',
+-            'compile_targets': sorted(matching_targets),
+-            'test_targets': sorted(matching_targets &
+-                                   set(inp['test_targets'])),
+-          }, output_path)
+-    else:
+-      self.WriteJSON({
+-          'status': 'No dependency',
+-          'compile_targets': [],
+-          'test_targets': [],
+-      }, output_path)
++      gn_outp_str = self.ReadFile(gn_output_path)
++      try:
++        gn_outp = json.loads(gn_outp_str)
++      except Exception as e:
++        self.Print("Failed to parse the JSON string GN returned: %s\n%s"
++                   % (repr(gn_outp_str), str(e)))
++        raise
+ 
+-    if self.args.verbose:
+-      outp = json.loads(self.ReadFile(output_path))
+-      self.Print()
+-      self.Print('analyze output:')
+-      self.PrintJSON(outp)
+-      self.Print()
++      outp = {}
++      if 'status' in gn_outp:
++        outp['status'] = gn_outp['status']
++      if 'error' in gn_outp:
++        outp['error'] = gn_outp['error']
++      if 'invalid_targets' in gn_outp:
++        outp['invalid_targets'] = gn_outp['invalid_targets']
++      if 'compile_targets' in gn_outp:
++        all_input_compile_targets = sorted(
++            set(inp['test_targets'] + inp['additional_compile_targets']))
++
++        # If we're building 'all', we can throw away the rest of the targets
++        # since they're redundant.
++        if 'all' in gn_outp['compile_targets']:
++          outp['compile_targets'] = ['all']
++        else:
++          outp['compile_targets'] = gn_outp['compile_targets']
++
++        # crbug.com/736215: When GN returns targets back, for targets in
++        # the default toolchain, GN will have generated a phony ninja
++        # target matching the label, and so we can safely (and easily)
++        # transform any GN label into the matching ninja target. For
++        # targets in other toolchains, though, GN doesn't generate the
++        # phony targets, and we don't know how to turn the labels into
++        # compile targets. In this case, we also conservatively give up
++        # and build everything. Probably the right thing to do here is
++        # to have GN return the compile targets directly.
++        if any("(" in target for target in outp['compile_targets']):
++          self.Print('WARNING: targets with non-default toolchains were '
++                     'found, building everything instead.')
++          outp['compile_targets'] = all_input_compile_targets
++        else:
++          outp['compile_targets'] = [
++              label.replace('//', '') for label in outp['compile_targets']]
++
++        # Windows has a maximum command line length of 8k; even Linux
++        # maxes out at 128k; if analyze returns a *really long* list of
++        # targets, we just give up and conservatively build everything instead.
++        # Probably the right thing here is for ninja to support response
++        # files as input on the command line
++        # (see https://github.com/ninja-build/ninja/issues/1355).
++        if len(' '.join(outp['compile_targets'])) > 7*1024:
++          self.Print('WARNING: Too many compile targets were affected.')
++          self.Print('WARNING: Building everything instead to avoid '
++                     'command-line length issues.')
++          outp['compile_targets'] = all_input_compile_targets
++
++
++      if 'test_targets' in gn_outp:
++        outp['test_targets'] = [
++          labels_to_targets[label] for label in gn_outp['test_targets']]
++
++      if self.args.verbose:
++        self.Print()
++        self.Print('analyze output:')
++        self.PrintJSON(outp)
++        self.Print()
++
++      self.WriteJSON(outp, output_path)
++
++    finally:
++      if self.Exists(gn_input_path):
++        self.RemoveFile(gn_input_path)
++      if self.Exists(gn_output_path):
++        self.RemoveFile(gn_output_path)
+ 
+     return 0
+ 
+@@ -1358,9 +1359,6 @@ class MetaBuildWrapper(object):
+   def PrintJSON(self, obj):
+     self.Print(json.dumps(obj, indent=2, sort_keys=True))
+ 
+-  def GNTargetName(self, target):
+-    return target
+-
+   def Build(self, target):
+     build_dir = self.ToSrcRelPath(self.args.path[0])
+     ninja_cmd = ['ninja', '-C', build_dir]
+diff --git a/tools/mb/mb_unittest.py b/tools/mb/mb_unittest.py
+index ac58c0284f..15763750da 100755
+--- a/tools/mb/mb_unittest.py
++++ b/tools/mb/mb_unittest.py
+@@ -23,12 +23,15 @@ class FakeMBW(mb.MetaBuildWrapper):
+     if win32:
+       self.chromium_src_dir = 'c:\\fake_src'
+       self.default_config = 'c:\\fake_src\\tools\\mb\\mb_config.pyl'
++      self.default_isolate_map = ('c:\\fake_src\\testing\\buildbot\\'
++                                  'gn_isolate_map.pyl')
+       self.platform = 'win32'
+       self.executable = 'c:\\python\\python.exe'
+       self.sep = '\\'
+     else:
+       self.chromium_src_dir = '/fake_src'
+       self.default_config = '/fake_src/tools/mb/mb_config.pyl'
++      self.default_isolate_map = '/fake_src/testing/buildbot/gn_isolate_map.pyl'
+       self.executable = '/usr/bin/python'
+       self.platform = 'linux2'
+       self.sep = '/'
+@@ -115,10 +118,14 @@ TEST_CONFIG = """\
+       'fake_gn_debug_builder': 'gn_debug_goma',
+       'fake_gyp_builder': 'gyp_debug',
+       'fake_gn_args_bot': '//build/args/bots/fake_master/fake_gn_args_bot.gn',
+-      'fake_multi_phase': ['gn_phase_1', 'gn_phase_2'],
++      'fake_multi_phase': { 'phase_1': 'gn_phase_1', 'phase_2': 'gn_phase_2'},
++      'fake_args_file': 'args_file_goma',
++      'fake_args_file_twice': 'args_file_twice',
+     },
+   },
+   'configs': {
++    'args_file_goma': ['args_file', 'goma'],
++    'args_file_twice': ['args_file', 'args_file'],
+     'gyp_rel_bot': ['gyp', 'rel', 'goma'],
+     'gn_debug_goma': ['gn', 'debug', 'goma'],
+     'gyp_debug': ['gyp', 'debug', 'fake_feature1'],
+@@ -141,6 +148,9 @@ TEST_CONFIG = """\
+       'gn_args': 'use_goma=true',
+       'gyp_defines': 'goma=1',
+     },
++    'args_file': {
++      'args_file': '//build/args/fake.gn',
++    },
+     'phase_1': {
+       'gn_args': 'phase=1',
+       'gyp_args': 'phase=1',
+@@ -159,35 +169,6 @@ TEST_CONFIG = """\
+ }
+ """
+ 
+-
+-TEST_BAD_CONFIG = """\
+-{
+-  'configs': {
+-    'gn_rel_bot_1': ['gn', 'rel', 'chrome_with_codecs'],
+-    'gn_rel_bot_2': ['gn', 'rel', 'bad_nested_config'],
+-  },
+-  'masters': {
+-    'chromium': {
+-      'a': 'gn_rel_bot_1',
+-      'b': 'gn_rel_bot_2',
+-    },
+-  },
+-  'mixins': {
+-    'gn': {'type': 'gn'},
+-    'chrome_with_codecs': {
+-      'gn_args': 'proprietary_codecs=true',
+-    },
+-    'bad_nested_config': {
+-      'mixins': ['chrome_with_codecs'],
+-    },
+-    'rel': {
+-      'gn_args': 'is_debug=false',
+-    },
+-  },
+-}
+-"""
+-
+-
+ GYP_HACKS_CONFIG = """\
+ {
+   'masters': {
+@@ -211,11 +192,42 @@ GYP_HACKS_CONFIG = """\
+ }
+ """
+ 
++TRYSERVER_CONFIG = """\
++{
++  'masters': {
++    'not_a_tryserver': {
++      'fake_builder': 'fake_config',
++    },
++    'tryserver.chromium.linux': {
++      'try_builder': 'fake_config',
++    },
++    'tryserver.chromium.mac': {
++      'try_builder2': 'fake_config',
++    },
++  },
++  'luci_tryservers': {
++    'luci_tryserver1': ['luci_builder1'],
++    'luci_tryserver2': ['luci_builder2'],
++  },
++  'configs': {},
++  'mixins': {},
++}
++"""
++
+ 
+ class UnitTest(unittest.TestCase):
+   def fake_mbw(self, files=None, win32=False):
+     mbw = FakeMBW(win32=win32)
+     mbw.files.setdefault(mbw.default_config, TEST_CONFIG)
++    mbw.files.setdefault(
++      mbw.ToAbsPath('//testing/buildbot/gn_isolate_map.pyl'),
++      '''{
++        "foo_unittests": {
++          "label": "//foo:foo_unittests",
++          "type": "console_test_launcher",
++          "args": [],
++        },
++      }''')
+     mbw.files.setdefault(
+         mbw.ToAbsPath('//build/args/bots/fake_master/fake_gn_args_bot.gn'),
+         'is_debug = false\n')
+@@ -268,78 +280,104 @@ class UnitTest(unittest.TestCase):
+                      ['/fake_src/out/Debug', '/fake_src/out/Debug'])
+     self.assertEqual(mbw.files['/fake_src/out/Debug/mb_type'], 'gyp')
+ 
+-  def test_gn_analyze(self):
+-    files = {'/tmp/in.json': """{\
++  def test_analyze(self):
++    files = {'/tmp/in.json': '''{\
+                "files": ["foo/foo_unittest.cc"],
+-               "test_targets": ["foo_unittests", "bar_unittests"],
+-               "additional_compile_targets": []
+-             }"""}
++               "test_targets": ["foo_unittests"],
++               "additional_compile_targets": ["all"]
++             }''',
++             '/tmp/out.json.gn': '''{\
++               "status": "Found dependency",
++               "compile_targets": ["//foo:foo_unittests"],
++               "test_targets": ["//foo:foo_unittests"]
++             }'''}
+ 
+     mbw = self.fake_mbw(files)
+-    mbw.Call = lambda cmd, env=None, buffer_output=True: (
+-        0, 'out/Default/foo_unittests\n', '')
++    mbw.Call = lambda cmd, env=None, buffer_output=True: (0, '', '')
+ 
+     self.check(['analyze', '-c', 'gn_debug_goma', '//out/Default',
+                 '/tmp/in.json', '/tmp/out.json'], mbw=mbw, ret=0)
+     out = json.loads(mbw.files['/tmp/out.json'])
+     self.assertEqual(out, {
+       'status': 'Found dependency',
+-      'compile_targets': ['foo_unittests'],
++      'compile_targets': ['foo:foo_unittests'],
+       'test_targets': ['foo_unittests']
+     })
+ 
+-  def test_gn_analyze_fails(self):
+-    files = {'/tmp/in.json': """{\
++  def test_analyze_optimizes_compile_for_all(self):
++    files = {'/tmp/in.json': '''{\
+                "files": ["foo/foo_unittest.cc"],
+-               "test_targets": ["foo_unittests", "bar_unittests"],
+-               "additional_compile_targets": []
+-             }"""}
++               "test_targets": ["foo_unittests"],
++               "additional_compile_targets": ["all"]
++             }''',
++             '/tmp/out.json.gn': '''{\
++               "status": "Found dependency",
++               "compile_targets": ["//foo:foo_unittests", "all"],
++               "test_targets": ["//foo:foo_unittests"]
++             }'''}
+ 
+     mbw = self.fake_mbw(files)
+-    mbw.Call = lambda cmd, env=None, buffer_output=True: (1, '', '')
++    mbw.Call = lambda cmd, env=None, buffer_output=True: (0, '', '')
+ 
+     self.check(['analyze', '-c', 'gn_debug_goma', '//out/Default',
+-                '/tmp/in.json', '/tmp/out.json'], mbw=mbw, ret=1)
++                '/tmp/in.json', '/tmp/out.json'], mbw=mbw, ret=0)
++    out = json.loads(mbw.files['/tmp/out.json'])
++
++    # check that 'foo_unittests' is not in the compile_targets
++    self.assertEqual(['all'], out['compile_targets'])
+ 
+-  def test_gn_analyze_all(self):
+-    files = {'/tmp/in.json': """{\
++  def test_analyze_handles_other_toolchains(self):
++    files = {'/tmp/in.json': '''{\
+                "files": ["foo/foo_unittest.cc"],
+-               "test_targets": ["bar_unittests"],
++               "test_targets": ["foo_unittests"],
+                "additional_compile_targets": ["all"]
+-             }"""}
++             }''',
++             '/tmp/out.json.gn': '''{\
++               "status": "Found dependency",
++               "compile_targets": ["//foo:foo_unittests",
++                                   "//foo:foo_unittests(bar)"],
++               "test_targets": ["//foo:foo_unittests"]
++             }'''}
++
+     mbw = self.fake_mbw(files)
+-    mbw.Call = lambda cmd, env=None, buffer_output=True: (
+-        0, 'out/Default/foo_unittests\n', '')
++    mbw.Call = lambda cmd, env=None, buffer_output=True: (0, '', '')
++
+     self.check(['analyze', '-c', 'gn_debug_goma', '//out/Default',
+                 '/tmp/in.json', '/tmp/out.json'], mbw=mbw, ret=0)
+     out = json.loads(mbw.files['/tmp/out.json'])
+-    self.assertEqual(out, {
+-      'status': 'Found dependency (all)',
+-      'compile_targets': ['all', 'bar_unittests'],
+-      'test_targets': ['bar_unittests'],
+-    })
+ 
+-  def test_gn_analyze_missing_file(self):
+-    files = {'/tmp/in.json': """{\
++    # crbug.com/736215: If GN returns a label containing a toolchain,
++    # MB (and Ninja) don't know how to handle it; to work around this,
++    # we give up and just build everything we were asked to build. The
++    # output compile_targets should include all of the input test_targets and
++    # additional_compile_targets.
++    self.assertEqual(['all', 'foo_unittests'], out['compile_targets'])
++
++  def test_analyze_handles_way_too_many_results(self):
++    too_many_files = ', '.join(['"//foo:foo%d"' % i for i in xrange(4 * 1024)])
++    files = {'/tmp/in.json': '''{\
+                "files": ["foo/foo_unittest.cc"],
+-               "test_targets": ["bar_unittests"],
+-               "additional_compile_targets": []
+-             }"""}
++               "test_targets": ["foo_unittests"],
++               "additional_compile_targets": ["all"]
++             }''',
++             '/tmp/out.json.gn': '''{\
++               "status": "Found dependency",
++               "compile_targets": [''' + too_many_files + '''],
++               "test_targets": ["//foo:foo_unittests"]
++             }'''}
++
+     mbw = self.fake_mbw(files)
+-    mbw.cmds = [
+-        (0, '', ''),
+-        (1, 'The input matches no targets, configs, or files\n', ''),
+-        (1, 'The input matches no targets, configs, or files\n', ''),
+-    ]
++    mbw.Call = lambda cmd, env=None, buffer_output=True: (0, '', '')
+ 
+     self.check(['analyze', '-c', 'gn_debug_goma', '//out/Default',
+                 '/tmp/in.json', '/tmp/out.json'], mbw=mbw, ret=0)
+     out = json.loads(mbw.files['/tmp/out.json'])
+-    self.assertEqual(out, {
+-      'status': 'No dependency',
+-      'compile_targets': [],
+-      'test_targets': [],
+-    })
++
++    # If GN returns so many compile targets that we might have command-line
++    # issues, we should give up and just build everything we were asked to
++    # build. The output compile_targets should include all of the input
++    # test_targets and additional_compile_targets.
++    self.assertEqual(['all', 'foo_unittests'], out['compile_targets'])
+ 
+   def test_gn_gen(self):
+     mbw = self.fake_mbw()
+@@ -373,12 +411,27 @@ class UnitTest(unittest.TestCase):
+         mbw.files['/fake_src/out/Debug/args.gn'],
+         'import("//build/args/bots/fake_master/fake_gn_args_bot.gn")\n')
+ 
++  def test_gn_gen_args_file_mixins(self):
++    mbw = self.fake_mbw()
++    self.check(['gen', '-m', 'fake_master', '-b', 'fake_args_file',
++                '//out/Debug'], mbw=mbw, ret=0)
++
++    self.assertEqual(
++        mbw.files['/fake_src/out/Debug/args.gn'],
++        ('import("//build/args/fake.gn")\n'
++         'use_goma = true\n'))
++
++    mbw = self.fake_mbw()
++    self.check(['gen', '-m', 'fake_master', '-b', 'fake_args_file_twice',
++                '//out/Debug'], mbw=mbw, ret=1)
+ 
+   def test_gn_gen_fails(self):
+     mbw = self.fake_mbw()
+     mbw.Call = lambda cmd, env=None, buffer_output=True: (1, '', '')
+     self.check(['gen', '-c', 'gn_debug_goma', '//out/Default'], mbw=mbw, ret=1)
+ 
++  # TODO(machenbach): Comment back in after swarming file parameter is used.
++  """
+   def test_gn_gen_swarming(self):
+     files = {
+       '/tmp/swarming_targets': 'base_unittests\n',
+@@ -403,6 +456,34 @@ class UnitTest(unittest.TestCase):
+     self.assertIn('/fake_src/out/Default/base_unittests.isolated.gen.json',
+                   mbw.files)
+ 
++  def test_gn_gen_swarming_script(self):
++    files = {
++      '/tmp/swarming_targets': 'cc_perftests\n',
++      '/fake_src/testing/buildbot/gn_isolate_map.pyl': (
++          "{'cc_perftests': {"
++          "  'label': '//cc:cc_perftests',"
++          "  'type': 'script',"
++          "  'script': '/fake_src/out/Default/test_script.py',"
++          "  'args': [],"
++          "}}\n"
++      ),
++      'c:\\fake_src\out\Default\cc_perftests.exe.runtime_deps': (
++          "cc_perftests\n"
++      ),
++    }
++    mbw = self.fake_mbw(files=files, win32=True)
++    self.check(['gen',
++                '-c', 'gn_debug_goma',
++                '--swarming-targets-file', '/tmp/swarming_targets',
++                '--isolate-map-file',
++                '/fake_src/testing/buildbot/gn_isolate_map.pyl',
++                '//out/Default'], mbw=mbw, ret=0)
++    self.assertIn('c:\\fake_src\\out\\Default\\cc_perftests.isolate',
++                  mbw.files)
++    self.assertIn('c:\\fake_src\\out\\Default\\cc_perftests.isolated.gen.json',
++                  mbw.files)
++  """  # pylint: disable=pointless-string-statement
++
+   def test_gn_isolate(self):
+     files = {
+       '/fake_src/out/Default/toolchain.ninja': "",
+@@ -509,27 +590,23 @@ class UnitTest(unittest.TestCase):
+ 
+     # Check that passing a --phase to a single-phase builder fails.
+     mbw = self.check(['lookup', '-m', 'fake_master', '-b', 'fake_gn_builder',
+-                      '--phase', '1'],
+-                     ret=1)
++                      '--phase', 'phase_1'], ret=1)
+     self.assertIn('Must not specify a build --phase', mbw.out)
+ 
+-    # Check different ranges; 0 and 3 are out of bounds, 1 and 2 should work.
++    # Check that passing a wrong phase key to a multi-phase builder fails.
+     mbw = self.check(['lookup', '-m', 'fake_master', '-b', 'fake_multi_phase',
+-                      '--phase', '0'], ret=1)
+-    self.assertIn('Phase 0 out of bounds', mbw.out)
++                      '--phase', 'wrong_phase'], ret=1)
++    self.assertIn('Phase wrong_phase doesn\'t exist', mbw.out)
+ 
++    # Check that passing a correct phase key to a multi-phase builder passes.
+     mbw = self.check(['lookup', '-m', 'fake_master', '-b', 'fake_multi_phase',
+-                      '--phase', '1'], ret=0)
++                      '--phase', 'phase_1'], ret=0)
+     self.assertIn('phase = 1', mbw.out)
+ 
+     mbw = self.check(['lookup', '-m', 'fake_master', '-b', 'fake_multi_phase',
+-                      '--phase', '2'], ret=0)
++                      '--phase', 'phase_2'], ret=0)
+     self.assertIn('phase = 2', mbw.out)
+ 
+-    mbw = self.check(['lookup', '-m', 'fake_master', '-b', 'fake_multi_phase',
+-                      '--phase', '3'], ret=1)
+-    self.assertIn('Phase 3 out of bounds', mbw.out)
+-
+   def test_validate(self):
+     mbw = self.fake_mbw()
+     self.check(['validate'], mbw=mbw, ret=0)
+@@ -544,28 +621,21 @@ class UnitTest(unittest.TestCase):
+                     "LLVM_FORCE_HEAD_REVISION=1\n"
+                     "python build/gyp_chromium -G output_dir=_path_\n"))
+ 
+-
+-if __name__ == '__main__':
+-  unittest.main()
+-
+-  def test_validate(self):
+-    mbw = self.fake_mbw()
+-    self.check(['validate'], mbw=mbw, ret=0)
+-
+-  def test_bad_validate(self):
+-    mbw = self.fake_mbw()
+-    mbw.files[mbw.default_config] = TEST_BAD_CONFIG
+-    self.check(['validate'], mbw=mbw, ret=1)
+-
+-  def test_gyp_env_hacks(self):
++  def test_buildbucket(self):
+     mbw = self.fake_mbw()
+-    mbw.files[mbw.default_config] = GYP_HACKS_CONFIG
+-    self.check(['lookup', '-c', 'fake_config'], mbw=mbw,
++    mbw.files[mbw.default_config] = TRYSERVER_CONFIG
++    self.check(['gerrit-buildbucket-config'], mbw=mbw,
+                ret=0,
+-               out=("GYP_DEFINES='foo=bar baz=1'\n"
+-                    "GYP_LINK_CONCURRENCY=1\n"
+-                    "LLVM_FORCE_HEAD_REVISION=1\n"
+-                    "python build/gyp_chromium -G output_dir=_path_\n"))
++               out=('# This file was generated using '
++                    '"tools/mb/mb.py gerrit-buildbucket-config".\n'
++                    '[bucket "luci.luci_tryserver1"]\n'
++                    '\tbuilder = luci_builder1\n'
++                    '[bucket "luci.luci_tryserver2"]\n'
++                    '\tbuilder = luci_builder2\n'
++                    '[bucket "master.tryserver.chromium.linux"]\n'
++                    '\tbuilder = try_builder\n'
++                    '[bucket "master.tryserver.chromium.mac"]\n'
++                    '\tbuilder = try_builder2\n'))
+ 
+ 
+ if __name__ == '__main__':
