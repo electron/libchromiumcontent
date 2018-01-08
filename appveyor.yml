@@ -17,7 +17,7 @@ build_script:
     if(($env:APPVEYOR_PULL_REQUEST_HEAD_REPO_NAME -split "/")[0] -eq ($env:APPVEYOR_REPO_NAME -split "/")[0]) {
       Write-warning "Skipping PR build for branch"; Exit-AppveyorBuild
     } else {
-      script\cibuild.ps1 -skipUpload
+      script\cibuild.ps1
       if ($? -ne 'True') {
         throw "Build failed with exit code $?"
       } else {
