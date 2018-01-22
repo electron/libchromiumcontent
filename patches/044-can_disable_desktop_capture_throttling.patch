@@ -1,5 +1,5 @@
 diff --git a/content/browser/media/capture/desktop_capture_device.cc b/content/browser/media/capture/desktop_capture_device.cc
-index 5c82401e1459..48713731e3ee 100644
+index 78a05f952ae5..cb3b2e8f3a4a 100644
 --- a/content/browser/media/capture/desktop_capture_device.cc
 +++ b/content/browser/media/capture/desktop_capture_device.cc
 @@ -10,6 +10,7 @@
@@ -7,10 +7,10 @@ index 5c82401e1459..48713731e3ee 100644
  
  #include "base/bind.h"
 +#include "base/command_line.h"
+ #include "base/feature_list.h"
  #include "base/location.h"
  #include "base/logging.h"
- #include "base/macros.h"
-@@ -50,7 +51,7 @@ namespace {
+@@ -43,7 +44,7 @@ namespace {
  // capturing. This means that on systems where screen scraping is slow we may
  // need to capture at frame rate lower than requested. This is necessary to keep
  // UI responsive.
@@ -19,8 +19,8 @@ index 5c82401e1459..48713731e3ee 100644
  
  webrtc::DesktopRect ComputeLetterboxRect(
      const webrtc::DesktopSize& max_size,
-@@ -77,6 +78,25 @@ std::unique_ptr<service_manager::Connector> GetServiceConnector() {
-   return connector->Clone();
+@@ -60,6 +61,25 @@ bool IsFrameUnpackedOrInverted(webrtc::DesktopFrame* frame) {
+       frame->size().width() * webrtc::DesktopFrame::kBytesPerPixel;
  }
  
 +int GetMaximumCpuConsumptionPercentage() {
@@ -44,8 +44,8 @@ index 5c82401e1459..48713731e3ee 100644
 +
  }  // namespace
  
- class DesktopCaptureDevice::Core : public webrtc::DesktopCapturer::Callback {
-@@ -123,6 +143,9 @@ class DesktopCaptureDevice::Core : public webrtc::DesktopCapturer::Callback {
+ #if defined(OS_WIN)
+@@ -109,6 +129,9 @@ class DesktopCaptureDevice::Core : public webrtc::DesktopCapturer::Callback {
    // Requested video capture frame rate.
    float requested_frame_rate_;
  
@@ -55,7 +55,7 @@ index 5c82401e1459..48713731e3ee 100644
    // Size of frame most recently captured from the source.
    webrtc::DesktopSize previous_frame_size_;
  
-@@ -137,6 +160,9 @@ class DesktopCaptureDevice::Core : public webrtc::DesktopCapturer::Callback {
+@@ -123,6 +146,9 @@ class DesktopCaptureDevice::Core : public webrtc::DesktopCapturer::Callback {
    // Timer used to capture the frame.
    base::OneShotTimer capture_timer_;
  
@@ -65,15 +65,15 @@ index 5c82401e1459..48713731e3ee 100644
    // True when waiting for |desktop_capturer_| to capture current frame.
    bool capture_in_progress_;
  
-@@ -167,6 +193,7 @@ DesktopCaptureDevice::Core::Core(
+@@ -151,6 +177,7 @@ DesktopCaptureDevice::Core::Core(
      DesktopMediaID::Type type)
      : task_runner_(task_runner),
        desktop_capturer_(std::move(capturer)),
 +      max_cpu_consumption_percentage_(GetMaximumCpuConsumptionPercentage()),
        capture_in_progress_(false),
        first_capture_returned_(false),
-       capturer_type_(type),
-@@ -192,6 +219,11 @@ void DesktopCaptureDevice::Core::AllocateAndStart(
+       capturer_type_(type) {}
+@@ -175,6 +202,11 @@ void DesktopCaptureDevice::Core::AllocateAndStart(
  
    client_ = std::move(client);
    requested_frame_rate_ = params.requested_format.frame_rate;
@@ -85,7 +85,7 @@ index 5c82401e1459..48713731e3ee 100644
    resolution_chooser_.reset(new media::CaptureResolutionChooser(
        params.requested_format.frame_size,
        params.resolution_change_policy));
-@@ -358,10 +390,9 @@ void DesktopCaptureDevice::Core::CaptureFrameAndScheduleNext() {
+@@ -340,10 +372,9 @@ void DesktopCaptureDevice::Core::CaptureFrameAndScheduleNext() {
    base::TimeDelta last_capture_duration = base::TimeTicks::Now() - started_time;
  
    // Limit frame-rate to reduce CPU consumption.
