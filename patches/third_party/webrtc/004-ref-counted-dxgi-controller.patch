@@ -1,0 +1,254 @@
+diff --git a/modules/desktop_capture/screen_capturer_win.cc b/modules/desktop_capture/screen_capturer_win.cc
+index d8aecb15c..9e74aabca 100644
+--- a/modules/desktop_capture/screen_capturer_win.cc
++++ b/modules/desktop_capture/screen_capturer_win.cc
+@@ -24,10 +24,9 @@ namespace webrtc {
+ 
+ namespace {
+ 
+-std::unique_ptr<DesktopCapturer> CreateScreenCapturerWinDirectx(
+-    const DesktopCaptureOptions& options) {
++std::unique_ptr<DesktopCapturer> CreateScreenCapturerWinDirectx() {
+   std::unique_ptr<DesktopCapturer> capturer(
+-      new ScreenCapturerWinDirectx(options));
++      new ScreenCapturerWinDirectx());
+   capturer.reset(new BlankDetectorDesktopCapturerWrapper(
+       std::move(capturer), RgbaColor(0, 0, 0, 0)));
+   return capturer;
+@@ -39,10 +38,14 @@ std::unique_ptr<DesktopCapturer> CreateScreenCapturerWinDirectx(
+ std::unique_ptr<DesktopCapturer> DesktopCapturer::CreateRawScreenCapturer(
+     const DesktopCaptureOptions& options) {
+   std::unique_ptr<DesktopCapturer> capturer(new ScreenCapturerWinGdi(options));
+-  if (options.allow_directx_capturer() &&
+-      ScreenCapturerWinDirectx::IsSupported()) {
+-    capturer.reset(new FallbackDesktopCapturerWrapper(
+-        CreateScreenCapturerWinDirectx(options), std::move(capturer)));
++  if (options.allow_directx_capturer()) {
++    // |dxgi_duplicator_controller| should be alive in this scope to ensure it
++    // won't unload DxgiDuplicatorController.
++    auto dxgi_duplicator_controller = DxgiDuplicatorController::Instance();
++    if (ScreenCapturerWinDirectx::IsSupported()) {
++      capturer.reset(new FallbackDesktopCapturerWrapper(
++          CreateScreenCapturerWinDirectx(), std::move(capturer)));
++    }
+   }
+ 
+   if (options.allow_use_magnification_api()) {
+diff --git a/modules/desktop_capture/win/dxgi_duplicator_controller.cc b/modules/desktop_capture/win/dxgi_duplicator_controller.cc
+index 576267bbf..63ac6b587 100644
+--- a/modules/desktop_capture/win/dxgi_duplicator_controller.cc
++++ b/modules/desktop_capture/win/dxgi_duplicator_controller.cc
+@@ -16,6 +16,7 @@
+ #include <string>
+ 
+ #include "webrtc/base/checks.h"
++#include "webrtc/base/logging.h"
+ #include "webrtc/base/timeutils.h"
+ #include "webrtc/modules/desktop_capture/desktop_capture_types.h"
+ #include "webrtc/modules/desktop_capture/win/dxgi_frame.h"
+@@ -25,18 +26,30 @@
+ namespace webrtc {
+ 
+ // static
+-DxgiDuplicatorController* DxgiDuplicatorController::Instance() {
++rtc::scoped_refptr<DxgiDuplicatorController>
++DxgiDuplicatorController::Instance() {
+   // The static instance won't be deleted to ensure it can be used by other
+   // threads even during program exiting.
+   static DxgiDuplicatorController* instance = new DxgiDuplicatorController();
+-  return instance;
++  return rtc::scoped_refptr<DxgiDuplicatorController>(instance);
+ }
+ 
+-DxgiDuplicatorController::DxgiDuplicatorController() = default;
++DxgiDuplicatorController::DxgiDuplicatorController()
++    : refcount_(0) {}
+ 
+-DxgiDuplicatorController::~DxgiDuplicatorController() {
+-  rtc::CritScope lock(&lock_);
+-  Deinitialize();
++void DxgiDuplicatorController::AddRef() {
++  int refcount = (++refcount_);
++  RTC_DCHECK(refcount > 0);
++}
++
++void DxgiDuplicatorController::Release() {
++  int refcount = (--refcount_);
++  RTC_DCHECK(refcount >= 0);
++  if (refcount == 0) {
++    LOG(LS_WARNING) << "Count of references reaches zero, "
++                       "DxgiDuplicatorController will be unloaded.";
++    Unload();
++  }
+ }
+ 
+ bool DxgiDuplicatorController::IsSupported() {
+@@ -129,6 +142,11 @@ DxgiDuplicatorController::DoDuplicate(DxgiFrame* frame, int monitor_id) {
+   return Result::DUPLICATION_FAILED;
+ }
+ 
++void DxgiDuplicatorController::Unload() {
++  rtc::CritScope lock(&lock_);
++  Deinitialize();
++}
++
+ void DxgiDuplicatorController::Unregister(const Context* const context) {
+   rtc::CritScope lock(&lock_);
+   if (ContextExpired(context)) {
+diff --git a/modules/desktop_capture/win/dxgi_duplicator_controller.h b/modules/desktop_capture/win/dxgi_duplicator_controller.h
+index c9838ad7a..308b2f3a7 100644
+--- a/modules/desktop_capture/win/dxgi_duplicator_controller.h
++++ b/modules/desktop_capture/win/dxgi_duplicator_controller.h
+@@ -13,10 +13,11 @@
+ 
+ #include <D3DCommon.h>
+ 
+-#include <memory>
++#include <atomic>
+ #include <vector>
+ 
+ #include "webrtc/base/criticalsection.h"
++#include "webrtc/base/scoped_ref_ptr.h"
+ #include "webrtc/modules/desktop_capture/desktop_geometry.h"
+ #include "webrtc/modules/desktop_capture/resolution_change_detector.h"
+ #include "webrtc/modules/desktop_capture/shared_desktop_frame.h"
+@@ -66,12 +67,7 @@ class DxgiDuplicatorController {
+   };
+ 
+   // Returns the singleton instance of DxgiDuplicatorController.
+-  static DxgiDuplicatorController* Instance();
+-
+-  // Destructs current instance. We need to make sure COM components and their
+-  // containers are destructed in correct order. This function calls
+-  // Deinitialize() to do the real work.
+-  ~DxgiDuplicatorController();
++  static rtc::scoped_refptr<DxgiDuplicatorController> Instance();
+ 
+   // All the following public functions implicitly call Initialize() function.
+ 
+@@ -107,16 +103,32 @@ class DxgiDuplicatorController {
+   // destructing.
+   friend DxgiFrameContext::~DxgiFrameContext();
+ 
++  // scoped_refptr<DxgiDuplicatorController> accesses private AddRef() and
++  // Release() functions.
++  friend class rtc::scoped_refptr<DxgiDuplicatorController>;
++
+   // A private constructor to ensure consumers to use
+   // DxgiDuplicatorController::Instance().
+   DxgiDuplicatorController();
+ 
++  // Not implemented: The singleton DxgiDuplicatorController instance should not
++  // be deleted.
++  ~DxgiDuplicatorController();
++
++  // RefCountedInterface implementations.
++  void AddRef();
++  void Release();
++
+   // Does the real duplication work. Setting |monitor_id| < 0 to capture entire
+   // screen. This function calls Initialize(). And if the duplication failed,
+   // this function calls Deinitialize() to ensure the Dxgi components can be
+   // reinitialized next time.
+   Result DoDuplicate(DxgiFrame* frame, int monitor_id);
+ 
++  // Unload all the DXGI components and releases the resources. This function
++  // wraps Deinitialize() with |lock_|.
++  void Unload();
++
+   // Unregisters Context from this instance and all DxgiAdapterDuplicator(s)
+   // it owns.
+   void Unregister(const Context* const context);
+@@ -185,6 +197,9 @@ class DxgiDuplicatorController {
+   // DxgiAdapterDuplicator and DxgiOutputDuplicator instances are initialized.
+   void TranslateRect();
+ 
++  // The count of references which are now "living".
++  std::atomic_int refcount_;
++
+   // This lock must be locked whenever accessing any of the following objects.
+   rtc::CriticalSection lock_;
+ 
+diff --git a/modules/desktop_capture/win/screen_capturer_win_directx.cc b/modules/desktop_capture/win/screen_capturer_win_directx.cc
+index 9630265c6..331379b8a 100644
+--- a/modules/desktop_capture/win/screen_capturer_win_directx.cc
++++ b/modules/desktop_capture/win/screen_capturer_win_directx.cc
+@@ -36,11 +36,10 @@ bool ScreenCapturerWinDirectx::RetrieveD3dInfo(D3dInfo* info) {
+   return DxgiDuplicatorController::Instance()->RetrieveD3dInfo(info);
+ }
+ 
+-ScreenCapturerWinDirectx::ScreenCapturerWinDirectx(
+-    const DesktopCaptureOptions& options)
+-    : callback_(nullptr) {}
++ScreenCapturerWinDirectx::ScreenCapturerWinDirectx()
++    : controller_(DxgiDuplicatorController::Instance()) {}
+ 
+-ScreenCapturerWinDirectx::~ScreenCapturerWinDirectx() {}
++ScreenCapturerWinDirectx::~ScreenCapturerWinDirectx() = default;
+ 
+ void ScreenCapturerWinDirectx::Start(Callback* callback) {
+   RTC_DCHECK(!callback_);
+@@ -67,10 +66,9 @@ void ScreenCapturerWinDirectx::CaptureFrame() {
+ 
+   DxgiDuplicatorController::Result result;
+   if (current_screen_id_ == kFullDesktopScreenId) {
+-    result = DxgiDuplicatorController::Instance()->Duplicate(
+-        frames_.current_frame());
++    result = controller_->Duplicate(frames_.current_frame());
+   } else {
+-    result = DxgiDuplicatorController::Instance()->DuplicateMonitor(
++    result = controller_->DuplicateMonitor(
+         frames_.current_frame(), current_screen_id_);
+   }
+ 
+@@ -106,7 +104,7 @@ void ScreenCapturerWinDirectx::CaptureFrame() {
+ }
+ 
+ bool ScreenCapturerWinDirectx::GetSourceList(SourceList* sources) {
+-  int screen_count = DxgiDuplicatorController::Instance()->ScreenCount();
++  int screen_count = controller_->ScreenCount();
+   for (int i = 0; i < screen_count; i++) {
+     sources->push_back({i});
+   }
+@@ -123,7 +121,7 @@ bool ScreenCapturerWinDirectx::SelectSource(SourceId id) {
+     return true;
+   }
+ 
+-  int screen_count = DxgiDuplicatorController::Instance()->ScreenCount();
++  int screen_count = controller_->ScreenCount();
+   if (id >= 0 && id < screen_count) {
+     current_screen_id_ = id;
+     return true;
+diff --git a/modules/desktop_capture/win/screen_capturer_win_directx.h b/modules/desktop_capture/win/screen_capturer_win_directx.h
+index 59f457c5b..67f177e2c 100644
+--- a/modules/desktop_capture/win/screen_capturer_win_directx.h
++++ b/modules/desktop_capture/win/screen_capturer_win_directx.h
+@@ -16,6 +16,7 @@
+ #include <memory>
+ #include <vector>
+ 
++#include "webrtc/base/scoped_ref_ptr.h"
+ #include "webrtc/modules/desktop_capture/desktop_capturer.h"
+ #include "webrtc/modules/desktop_capture/desktop_capture_options.h"
+ #include "webrtc/modules/desktop_capture/desktop_region.h"
+@@ -43,10 +44,11 @@ class ScreenCapturerWinDirectx : public DesktopCapturer {
+   // consumers should not cache the result returned by this function.
+   static bool RetrieveD3dInfo(D3dInfo* info);
+ 
+-  explicit ScreenCapturerWinDirectx(const DesktopCaptureOptions& options);
++  explicit ScreenCapturerWinDirectx();
+ 
+   ~ScreenCapturerWinDirectx() override;
+ 
++  // DesktopCapturer implementation.
+   void Start(Callback* callback) override;
+   void SetSharedMemoryFactory(
+       std::unique_ptr<SharedMemoryFactory> shared_memory_factory) override;
+@@ -55,6 +57,7 @@ class ScreenCapturerWinDirectx : public DesktopCapturer {
+   bool SelectSource(SourceId id) override;
+ 
+  private:
++  const rtc::scoped_refptr<DxgiDuplicatorController> controller_;
+   ScreenCaptureFrameQueue<DxgiFrame> frames_;
+   std::unique_ptr<SharedMemoryFactory> shared_memory_factory_;
+   Callback* callback_ = nullptr;
