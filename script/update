@@ -22,10 +22,6 @@ CHROMIUMCONTENT_DESTINATION_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
 COMPONENTS = ['static_library', 'shared_library', 'ffmpeg']
 DEPOT_TOOLS = os.path.join(VENDOR_DIR, 'depot_tools')
 
-NINJA = os.path.join(DEPOT_TOOLS, 'ninja')
-if sys.platform == 'win32':
-  NINJA = '{0}.exe'.format(NINJA)
-
 # URL to the mips64el sysroot image.
 MIPS64EL_SYSROOT = 'https://github.com/electron/debian-sysroot-image-creator/releases/download/v0.5.0/debian_jessie_mips64-sysroot.tar.bz2'
 # URL to the mips64el toolchain.
