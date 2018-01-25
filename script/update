@@ -11,6 +11,7 @@ import platform
 
 from lib.config import get_output_dir
 import lib.filesystem as filesystem
+import lib.util as util
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -205,7 +206,7 @@ def ensure_gclient_config(git_cache):
 def gclient_sync(version, force, git_cache, nohooks):
   # Remove untracked files in src.
   if os.path.exists(os.path.join(SRC_DIR, '.git')):
-    with scoped_cwd(SRC_DIR):
+    with util.scoped_cwd(SRC_DIR):
       subprocess.check_call(['git', 'clean', '-df'])
 
   ensure_gclient_config(git_cache)
@@ -337,16 +338,6 @@ def git_clean_recursive(path):
     if '.git' in dirs:
       subprocess.call(['git', 'clean', '-xdf'], cwd=root)
       dirs.remove('.git')
-
-
-@contextlib.contextmanager
-def scoped_cwd(path):
-  cwd = os.getcwd()
-  os.chdir(path)
-  try:
-    yield
-  finally:
-    os.chdir(cwd)
 
 
 def download(url, filename):

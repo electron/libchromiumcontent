@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import argparse
-import contextlib
 import fnmatch
 import glob
 import os
@@ -14,6 +13,7 @@ import platform
 
 from lib.config import get_output_dir
 import lib.filesystem as filesystem
+import lib.util as util
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -746,7 +746,7 @@ def create_zip(create_debug_archive, component):
 
 def make_zip(src, dirs, files, target):
   filesystem.safe_unlink(target)
-  with scoped_cwd(src):
+  with util.scoped_cwd(src):
     zip_file = zipfile.ZipFile(target, 'w', zipfile.ZIP_DEFLATED,
                                allowZip64=True)
     for dirname in dirs:
@@ -761,16 +761,6 @@ def make_zip(src, dirs, files, target):
 def is_newer(destination, source):
   return os.path.exists(destination) and \
     os.path.getmtime(destination) > os.path.getmtime(source)
-
-
-@contextlib.contextmanager
-def scoped_cwd(path):
-  cwd = os.getcwd()
-  os.chdir(path)
-  try:
-    yield
-  finally:
-    os.chdir(cwd)
 
 
 if __name__ == '__main__':
