@@ -2,7 +2,6 @@
 
 import argparse
 import contextlib
-import errno
 import os
 import shutil
 import subprocess
@@ -11,6 +10,7 @@ import urllib2
 import platform
 
 from lib.config import get_output_dir
+import lib.filesystem as filesystem
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -139,7 +139,7 @@ def install_sysroot(target_arch):
     tar_name = 'debian_jessie_mips64-sysroot.tar.bz2'
     download(MIPS64EL_SYSROOT, tar_name)
     subprocess.call(['tar', '-jxf', tar_name, '-C', destination])
-    rm_f(tar_name)
+    filesystem.rm_f(tar_name)
 
 
 def install_aarch64_bintools():
@@ -153,7 +153,7 @@ def install_aarch64_bintools():
   env = os.environ.copy()
   env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
   subprocess.call(['dpkg', '-x', deb_name, destination])
-  rm_f(deb_name)
+  filesystem.rm_f(deb_name)
 
 
 def update_toolchain_json():
@@ -164,16 +164,12 @@ def update_toolchain_json():
 
 
 def copy_chromiumcontent_files():
-  try:
-    os.makedirs(CHROMIUMCONTENT_DESTINATION_DIR)
-  except OSError as e:
-    if e.errno != errno.EEXIST:
-      raise
+  filesystem.mkdir_p(CHROMIUMCONTENT_DESTINATION_DIR)
   for dirpath, dirnames, filenames in os.walk(CHROMIUMCONTENT_SOURCE_DIR):
     for dirname in dirnames:
       source = os.path.join(dirpath, dirname)
       relative = os.path.relpath(source, start=CHROMIUMCONTENT_SOURCE_DIR)
-      mkdir_p(os.path.join(CHROMIUMCONTENT_DESTINATION_DIR, relative))
+      filesystem.mkdir_p(os.path.join(CHROMIUMCONTENT_DESTINATION_DIR, relative))
     for filename in filenames:
       source = os.path.join(dirpath, filename)
       relative = os.path.relpath(source, start=CHROMIUMCONTENT_SOURCE_DIR)
@@ -260,7 +256,7 @@ def setup_mips64el_toolchain(target_arch):
       tar_name = MIPS64EL_GCC + '.tar.gz'
       download(MIPS64EL_GCC_URL, tar_name)
       subprocess.check_call(['tar', '-xf', tar_name, '-C', VENDOR_DIR])
-      rm_f(tar_name)
+      filesystem.rm_f(tar_name)
 
   # Gernerate ffmpeg build config files for mips64el.
   env = os.environ.copy()
@@ -341,30 +337,6 @@ def git_clean_recursive(path):
     if '.git' in dirs:
       subprocess.call(['git', 'clean', '-xdf'], cwd=root)
       dirs.remove('.git')
-
-
-def rm_f(path):
-  try:
-    os.remove(path)
-  except OSError as e:
-    if e.errno != errno.ENOENT:
-      raise
-
-
-def rm_rf(path):
-  try:
-    shutil.rmtree(path)
-  except OSError as e:
-    if e.errno != errno.ENOENT:
-      raise
-
-
-def mkdir_p(path):
-  try:
-    os.makedirs(path)
-  except OSError as e:
-    if e.errno != errno.EEXIST:
-      raise
 
 
 @contextlib.contextmanager
