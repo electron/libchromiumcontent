@@ -49,7 +49,7 @@ solutions = [
 def main():
   args = parse_args()
 
-  if sys.platform == 'win32' and not args.skip_depot_tools_update:
+  if sys.platform == 'win32' and args.update_depot_tools:
     update_depot_tools()
 
   if args.clean and os.path.isdir(SRC_DIR):
@@ -62,13 +62,14 @@ def main():
   # to 0.
   # More information: https://stackoverflow.com/a/9935126
   git_cache = args.git_cache or os.getenv('LIBCHROMIUMCONTENT_GIT_CACHE', '')
+
   target_arch = args.target_arch
   nohooks = target_arch == 'mips64el' and IS_MIPS64EL_HOST
-  if not args.skip_gclient:
-    if (args.source_only):
-      return gclient_sync(chromium_version(), args.clean, git_cache, nohooks)
-    else:
-      gclient_sync(chromium_version(), args.clean, git_cache, nohooks)
+
+  if args.run_gclient:
+    gclient_sync(chromium_version(), args.clean, git_cache, nohooks)
+    if args.source_only:
+      return
 
   if target_arch == 'mips64el' and IS_MIPS64EL_HOST:
     os.system('sh script/mips64el/runhooks-mips64el')
@@ -81,7 +82,7 @@ def main():
   if target_arch == 'arm64':
     install_aarch64_bintools()
 
-  return (apply_patches(args.skip_patches, target_arch) or
+  return ((apply_patches(target_arch) if args.apply_patches else 0) or
           copy_chromiumcontent_files() or
           update_clang() or
           setup_mips64el_toolchain(target_arch) or
@@ -94,17 +95,18 @@ def parse_args():
   parser.add_argument('--defines', default='',
                       help='The definitions passed to gyp')
   parser.add_argument('--git-cache', default='',
-                      help='Global git object cache for chromium+ deps')
+                      help='Global git object cache for Chromium+ deps')
   parser.add_argument('--clean', action='store_true',
                       help='Cleans the working directory for full rebuild')
-  parser.add_argument('--skip_patches', action='store_true',
+  parser.add_argument('--skip_patches', dest='apply_patches', action='store_false',
                       help='Skips applying patches, easier to build locally')
-  parser.add_argument('--skip_gclient', action='store_true',
+  parser.add_argument('--skip_gclient', dest='run_gclient', action='store_false',
                       help='Skips syncing repo, easier to build locally')
-  parser.add_argument('--skip_depot_tools_update', action='store_true',
-                      help='Skips update depot tools on windows, easier to build locally')
+  parser.add_argument('--skip_depot_tools_update', dest='update_depot_tools', action='store_false',
+                      help='Skips update depot tools on Windows, easier to build locally')
   parser.add_argument('--source_only', action='store_true',
-                      help='Only sync the chromium source code')
+                      help='Only sync the Chromium source code')
+  parser.set_defaults(apply_patches=True, run_gclient=True, update_depot_tools=True)
   return parser.parse_args()
 
 
@@ -224,11 +226,10 @@ def gclient_sync(version, force, git_cache, nohooks):
   subprocess.check_call(args, env=env)
 
 
-def apply_patches(skip_patches, target_arch):
-  if not skip_patches:
-    return subprocess.call([sys.executable,
-                            os.path.join(SOURCE_ROOT, 'script', 'apply-patches'),
-                            target_arch])
+def apply_patches(target_arch):
+  script_path = os.path.join(SOURCE_ROOT, 'script', 'apply-patches')
+  script_arguments = [target_arch]
+  return subprocess.call([sys.executable, script_path] + script_arguments)
 
 
 def update_clang():
