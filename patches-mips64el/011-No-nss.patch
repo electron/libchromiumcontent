@@ -1,0 +1,51 @@
+diff --git a/build/config/crypto.gni b/build/config/crypto.gni
+index 0196e873..cedd75b 100644
+--- a/build/config/crypto.gni
++++ b/build/config/crypto.gni
+@@ -16,8 +16,8 @@
+ # verification. On NaCl, verification isn't supported. On other targets, this
+ # flag also enables OpenSSL for certificate verification, but this configuration
+ # is unsupported.
+-use_openssl_certs = is_android || is_nacl
++use_openssl_certs = true
+ 
+ # True if NSS is used for certificate handling. It is possible to use OpenSSL
+ # for the crypto library, but NSS for the platform certificate library.
+-use_nss_certs = is_linux
++use_nss_certs = false
+diff --git a/content/browser/loader/resource_loader.cc b/content/browser/loader/resource_loader.cc
+index d2a1bb1..9b0b31c 100644
+--- a/content/browser/loader/resource_loader.cc
++++ b/content/browser/loader/resource_loader.cc
+@@ -476,9 +476,13 @@ void ResourceLoader::ContinueWithCertificate(net::X509Certificate* cert) {
+     request_->ContinueWithCertificate(nullptr, nullptr);
+     return;
+   }
++#if defined(USE_OPENSSL_CERTS)
++  request_->ContinueWithCertificate(cert, nullptr);
++#else
+   scoped_refptr<net::SSLPrivateKey> private_key =
+       net::FetchClientCertPrivateKey(cert);
+   request_->ContinueWithCertificate(cert, private_key.get());
++#endif
+ }
+ 
+ void ResourceLoader::CancelCertificateSelection() {
+diff --git a/remoting/host/token_validator_base.cc b/remoting/host/token_validator_base.cc
+index 42cafe1..eef7b5e 100644
+--- a/remoting/host/token_validator_base.cc
++++ b/remoting/host/token_validator_base.cc
+@@ -227,9 +227,13 @@ void TokenValidatorBase::OnCertificatesSelected(
+       !IsCertificateValid(issuer, now, *best_match_position)) {
+     ContinueWithCertificate(nullptr, nullptr);
+   } else {
++#if defined(USE_OPENSSL_CERTS)
++    ContinueWithCertificate(best_match_position->get(), nullptr);
++#else
+     ContinueWithCertificate(
+         best_match_position->get(),
+         net::FetchClientCertPrivateKey(best_match_position->get()).get());
++#endif
+   }
+ }
+ 

@@ -41,7 +41,8 @@ def main():
   os.chdir(SOURCE_ROOT)
 
   for component in COMPONENTS:
-    if args.component == 'all' or args.component == component:
+    if args.component == 'all' or args.component == component \
+        or (args.include_ffmpeg and component == 'ffmpeg'):
       if component == 'shared_library' and args.no_shared_library:
         continue
       elif component == 'static_library' and args.no_static_library:
@@ -65,6 +66,8 @@ def parse_args():
                       help='Do not build static library version')
   parser.add_argument('-R', '--no_shared_library', action='store_true',
                       help='Do not build shared library version')
+  parser.add_argument('-F', '--include_ffmpeg', action='store_true',
+                      help='Include ffmpeg in component build')
   return parser.parse_args()
 
 
