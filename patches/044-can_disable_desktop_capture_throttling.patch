@@ -1,0 +1,130 @@
+diff --git a/content/browser/media/capture/desktop_capture_device.cc b/content/browser/media/capture/desktop_capture_device.cc
+index 78a05f952ae5..cb3b2e8f3a4a 100644
+--- a/content/browser/media/capture/desktop_capture_device.cc
++++ b/content/browser/media/capture/desktop_capture_device.cc
+@@ -10,6 +10,7 @@
+ #include <utility>
+ 
+ #include "base/bind.h"
++#include "base/command_line.h"
+ #include "base/feature_list.h"
+ #include "base/location.h"
+ #include "base/logging.h"
+@@ -43,7 +44,7 @@ namespace {
+ // capturing. This means that on systems where screen scraping is slow we may
+ // need to capture at frame rate lower than requested. This is necessary to keep
+ // UI responsive.
+-const int kMaximumCpuConsumptionPercentage = 50;
++const int kDefaultMaximumCpuConsumptionPercentage = 50;
+ 
+ webrtc::DesktopRect ComputeLetterboxRect(
+     const webrtc::DesktopSize& max_size,
+@@ -60,6 +61,25 @@ bool IsFrameUnpackedOrInverted(webrtc::DesktopFrame* frame) {
+       frame->size().width() * webrtc::DesktopFrame::kBytesPerPixel;
+ }
+ 
++int GetMaximumCpuConsumptionPercentage() {
++  int max_cpu_consumption_percentage = kDefaultMaximumCpuConsumptionPercentage;
++
++  std::string string_value =
++      base::CommandLine::ForCurrentProcess()->GetSwitchValueASCII(
++          switches::kWebRtcMaxCpuConsumptionPercentage);
++  int tmp_percentage = 0;
++  if (base::StringToInt(string_value, &tmp_percentage)) {
++    // If the max cpu percentage provided by the user is outside [1, 100] then
++    // |max_cpu_consumption_percentage_| is left to the default value. Same if
++    // no value is provided by the user, i.e. |string_value| will be empty and
++    // base::StringToInt will set |tmp_percentage| to 0.
++    if (tmp_percentage > 0 && tmp_percentage <= 100)
++      max_cpu_consumption_percentage = tmp_percentage;
++  }
++
++  return max_cpu_consumption_percentage;
++}
++
+ }  // namespace
+ 
+ #if defined(OS_WIN)
+@@ -109,6 +129,9 @@ class DesktopCaptureDevice::Core : public webrtc::DesktopCapturer::Callback {
+   // Requested video capture frame rate.
+   float requested_frame_rate_;
+ 
++  // Inverse of the requested frame rate.
++  base::TimeDelta requested_frame_duration_;
++
+   // Size of frame most recently captured from the source.
+   webrtc::DesktopSize previous_frame_size_;
+ 
+@@ -123,6 +146,9 @@ class DesktopCaptureDevice::Core : public webrtc::DesktopCapturer::Callback {
+   // Timer used to capture the frame.
+   base::OneShotTimer capture_timer_;
+ 
++  // See above description of kDefaultMaximumCpuConsumptionPercentage.
++  int max_cpu_consumption_percentage_;
++
+   // True when waiting for |desktop_capturer_| to capture current frame.
+   bool capture_in_progress_;
+ 
+@@ -151,6 +177,7 @@ DesktopCaptureDevice::Core::Core(
+     DesktopMediaID::Type type)
+     : task_runner_(task_runner),
+       desktop_capturer_(std::move(capturer)),
++      max_cpu_consumption_percentage_(GetMaximumCpuConsumptionPercentage()),
+       capture_in_progress_(false),
+       first_capture_returned_(false),
+       capturer_type_(type) {}
+@@ -175,6 +202,11 @@ void DesktopCaptureDevice::Core::AllocateAndStart(
+ 
+   client_ = std::move(client);
+   requested_frame_rate_ = params.requested_format.frame_rate;
++  requested_frame_duration_ =
++      base::TimeDelta::FromMicroseconds(static_cast<int64_t>(
++          static_cast<double>(base::Time::kMicrosecondsPerSecond) /
++              requested_frame_rate_ +
++          0.5 /* round to nearest int */));
+   resolution_chooser_.reset(new media::CaptureResolutionChooser(
+       params.requested_format.frame_size,
+       params.resolution_change_policy));
+@@ -340,10 +372,9 @@ void DesktopCaptureDevice::Core::CaptureFrameAndScheduleNext() {
+   base::TimeDelta last_capture_duration = base::TimeTicks::Now() - started_time;
+ 
+   // Limit frame-rate to reduce CPU consumption.
+-  base::TimeDelta capture_period = std::max(
+-      (last_capture_duration * 100) / kMaximumCpuConsumptionPercentage,
+-      base::TimeDelta::FromMicroseconds(static_cast<int64_t>(
+-          1000000.0 / requested_frame_rate_ + 0.5 /* round to nearest int */)));
++  base::TimeDelta capture_period =
++      std::max((last_capture_duration * 100) / max_cpu_consumption_percentage_,
++               requested_frame_duration_);
+ 
+   // Schedule a task for the next frame.
+   capture_timer_.Start(FROM_HERE, capture_period - last_capture_duration,
+diff --git a/content/public/common/content_switches.cc b/content/public/common/content_switches.cc
+index d7101f4527aa..7768eb5a7e45 100644
+--- a/content/public/common/content_switches.cc
++++ b/content/public/common/content_switches.cc
+@@ -937,6 +937,12 @@ const char kEnforceWebRtcIPPermissionCheck[] =
+ // handling policy is specified in Preferences.
+ const char kForceWebRtcIPHandlingPolicy[] = "force-webrtc-ip-handling-policy";
+ 
++// Configure the maximum CPU time percentage of a single core that can be
++// consumed for desktop capturing. Default is 50. Set 100 to disable the
++// throttling of the capture.
++const char kWebRtcMaxCpuConsumptionPercentage[] =
++    "webrtc-max-cpu-consumption-percentage";
++
+ // Renderer process parameter for WebRTC Stun probe trial to determine the
+ // interval. Please see SetupStunProbeTrial in
+ // chrome_browser_field_trials_desktop.cc for more detail.
+diff --git a/content/public/common/content_switches.h b/content/public/common/content_switches.h
+index 0227769ce0dc..0c79d7eee767 100644
+--- a/content/public/common/content_switches.h
++++ b/content/public/common/content_switches.h
+@@ -263,6 +263,7 @@ CONTENT_EXPORT extern const char kEnableWebRtcSrtpAesGcm[];
+ CONTENT_EXPORT extern const char kEnableWebRtcStunOrigin[];
+ CONTENT_EXPORT extern const char kEnforceWebRtcIPPermissionCheck[];
+ CONTENT_EXPORT extern const char kForceWebRtcIPHandlingPolicy[];
++extern const char kWebRtcMaxCpuConsumptionPercentage[];
+ CONTENT_EXPORT extern const char kWebRtcStunProbeTrialParameter[];
+ extern const char kWebRtcMaxCaptureFramerate[];
+ #endif
