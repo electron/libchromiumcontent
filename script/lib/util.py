@@ -2,7 +2,9 @@
 
 from __future__ import print_function
 
+import contextlib
 import itertools
+import os
 import subprocess
 import sys
 
@@ -69,3 +71,13 @@ def get_vs_env(vs_version, arch):
   """
   vsvarsall = "C:\\Program Files (x86)\\Microsoft Visual Studio {0}\\VC\\vcvarsall.bat".format(vs_version)
   return get_environment_from_batch_command([vsvarsall, arch])
+
+
+@contextlib.contextmanager
+def scoped_cwd(path):
+  cwd = os.getcwd()
+  os.chdir(path)
+  try:
+    yield
+  finally:
+    os.chdir(cwd)
