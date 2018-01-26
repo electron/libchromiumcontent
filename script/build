@@ -51,12 +51,15 @@ def main():
 
   os.chdir(SOURCE_ROOT)
 
-  # Build everything if a components list is non provided.
-  components_to_build = args.component if args.component is not None else COMPONENTS
+  # Build everything by default.
+  components_to_build = COMPONENTS
+
   if args.debug:
     components_to_build = ['shared_library', 'ffmpeg']
-  if args.release:
+  elif args.release:
     components_to_build = ['static_library', 'ffmpeg']
+  elif args.component is not None:
+    components_to_build = args.component
 
   for component in components_to_build:
     out_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
@@ -71,14 +74,18 @@ def main():
 
 def parse_args():
   parser = argparse.ArgumentParser(description='Build libchromiumcontent')
+
   parser.add_argument('-t', '--target_arch', default='x64',
                       choices=['arm', 'arm64', 'ia32', 'mips64el', 'x64'])
-  parser.add_argument('-c', '--component', nargs='+', default=None,
-                      choices=['ffmpeg', 'shared_library', 'static_library'])
-  parser.add_argument('-D', '--debug', action='store_true',
-                      help='Build debug configuration')
-  parser.add_argument('-R', '--release', action='store_true',
-                      help='Build release configuration')
+
+  what_to_build_group = parser.add_mutually_exclusive_group()
+  what_to_build_group.add_argument('-c', '--component', nargs='+', default=None,
+                                   choices=COMPONENTS)
+  what_to_build_group.add_argument('-D', '--debug', action='store_true',
+                                   help='Build debug configuration')
+  what_to_build_group.add_argument('-R', '--release', action='store_true',
+                                   help='Build release configuration')
+
   return parser.parse_args()
 
 
