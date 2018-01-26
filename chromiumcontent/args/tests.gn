@@ -1,0 +1,12 @@
+root_extra_deps = [ "//chromiumcontent:chromiumcontent_tests" ]
+is_debug = false
+is_electron_build = true
+is_component_build = true
+dcheck_always_on = true
+symbol_level = 1
+enable_nacl = false
+
+# Jumbo build should improve compilation times.
+# https://chromium.googlesource.com/chromium/src/+/master/docs/jumbo.md
+use_jumbo_build = true
+
