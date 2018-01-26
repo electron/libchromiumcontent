@@ -53,11 +53,10 @@ def main():
 
   # Build everything if a components list is non provided.
   components_to_build = args.component if args.component is not None else COMPONENTS
-
-  if 'static_library' in components_to_build and args.no_static_library:
-    components_to_build.remove('static_library')
-  if 'shared_library' in components_to_build and args.no_shared_library:
-    components_to_build.remove('shared_library')
+  if args.debug:
+    components_to_build = ['shared_library', 'ffmpeg']
+  if args.release:
+    components_to_build = ['static_library', 'ffmpeg']
 
   for component in components_to_build:
     out_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
@@ -75,10 +74,10 @@ def parse_args():
   parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
   parser.add_argument('-c', '--component', nargs='+', default=None,
                       help='static_library, shared_library, ffmpeg')
-  parser.add_argument('-D', '--no_static_library', action='store_true',
-                      help='Do not build static library version')
-  parser.add_argument('-R', '--no_shared_library', action='store_true',
-                      help='Do not build shared library version')
+  parser.add_argument('-D', '--debug', action='store_true',
+                      help='Build debug configuration')
+  parser.add_argument('-R', '--release', action='store_true',
+                      help='Build release configuration')
   return parser.parse_args()
 
 
