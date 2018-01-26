@@ -77,7 +77,7 @@ def run_ci(args, skip_upload, component=None):
   component_args = []
   if component is not None:
     component_args = ['-c', component]
-    build_args += component_args + ['-F']
+    build_args += component_args + ['ffmpeg']
   if sys.platform in ['win32', 'cygwin']:
     target_arch = args[1]
     # Set build env for VS.
