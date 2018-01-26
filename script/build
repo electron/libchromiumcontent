@@ -71,9 +71,10 @@ def main():
 
 def parse_args():
   parser = argparse.ArgumentParser(description='Build libchromiumcontent')
-  parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
+  parser.add_argument('-t', '--target_arch', default='x64',
+                      choices=['arm', 'arm64', 'ia32', 'mips64el', 'x64'])
   parser.add_argument('-c', '--component', nargs='+', default=None,
-                      help='static_library, shared_library, ffmpeg')
+                      choices=['ffmpeg', 'shared_library', 'static_library'])
   parser.add_argument('-D', '--debug', action='store_true',
                       help='Build debug configuration')
   parser.add_argument('-R', '--release', action='store_true',
