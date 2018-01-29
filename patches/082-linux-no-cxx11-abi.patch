@@ -1,0 +1,14 @@
+diff --git a/build/config/BUILD.gn b/build/config/BUILD.gn
+index 3febe8383b9f..7df1e250a33b 100644
+--- a/build/config/BUILD.gn
++++ b/build/config/BUILD.gn
+@@ -153,6 +153,9 @@ config("feature_flags") {
+   # ==============================================
+   #
+   # See the comment at the top.
++
++  # Electron: Keep backward compatibility with old libstdc++.
++  defines += [ "_GLIBCXX_USE_CXX11_ABI=0" ]
+ }
+ 
+ # Debug/release ----------------------------------------------------------------
