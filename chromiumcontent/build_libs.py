@@ -24,6 +24,7 @@ with open(args.out, 'w') as out:
         additional_libchromiumcontent = [
             "../win_clang_x64/obj/third_party/libyuv",
         ]
+
     gen_list(
         out,
         "obj_libchromiumcontent",
@@ -95,6 +96,14 @@ with open(args.out, 'w') as out:
             "ui",
             "url",
         ] + additional_libchromiumcontent)
+
+    gen_list(
+        out,
+        "obj_libcxx",
+        [
+            "buildtools/third_party/libc++",
+            "buildtools/third_party/libc++abi",
+        ])
 
     gen_list(
         out,
