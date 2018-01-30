@@ -14,8 +14,10 @@ ffmpeg_branding = "Chrome"
 # scenario
 is_cfi = false
 
-# Always use the system provided standard library
-use_custom_libcxx = false
+# Use the system provided standard library on platforms other than Linux.
+if (target_os != "linux") {
+  use_custom_libcxx = false
+}
 
 # Jumbo build should improve compilation times.
 # https://chromium.googlesource.com/chromium/src/+/master/docs/jumbo.md
