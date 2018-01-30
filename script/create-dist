@@ -246,6 +246,8 @@ SYMBOLS = {
 INCLUDE_DIRS = [
   'base',
   'build',
+  'buildtools/third_party/libc++',
+  'buildtools/third_party/libc++abi',
   'cc',
   'chrome/browser/ui/libgtkui',
   'components/cdm',
