@@ -246,8 +246,6 @@ SYMBOLS = {
 INCLUDE_DIRS = [
   'base',
   'build',
-  'buildtools/third_party/libc++',
-  'buildtools/third_party/libc++abi',
   'cc',
   'chrome/browser/ui/libgtkui',
   'components/cdm',
@@ -338,7 +336,9 @@ OTHER_HEADERS = [
 OTHER_SOURCES = [
 ]
 OTHER_DIRS = [
-  os.path.join('ui', 'resources', 'cursors'),
+  'ui/resources/cursors',
+  'buildtools/third_party/libc++/trunk/include',
+  'buildtools/third_party/libc++abi/trunk/include',
 ]
 
 
