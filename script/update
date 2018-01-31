@@ -43,7 +43,7 @@ solutions = [
     "managed": False,
     "name": "src",
     "deps_file": ".DEPS.git",
-    "custom_deps": {{}},
+    "custom_deps" : {{ 'src/third_party/webrtc': 'https://github.com/agouaillard/perc-webrtc.git', }},
   }},
 ]
 {cache_dir_line}
