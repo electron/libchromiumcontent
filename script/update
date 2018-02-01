@@ -43,7 +43,11 @@ solutions = [
     "managed": False,
     "name": "src",
     "deps_file": ".DEPS.git",
-    "custom_deps" : {{ 'src/third_party/webrtc': 'https://github.com/agouaillard/perc-webrtc.git', }},
+    "custom_deps" : 
+    {{
+       'src/third_party/webrtc':   'https://github.com/agouaillard/perc-webrtc.git',
+       'src/third_party/crashpad':   'https://github.com/murillo128/crashpad.git',
+    }},
   }},
 ]
 {cache_dir_line}
