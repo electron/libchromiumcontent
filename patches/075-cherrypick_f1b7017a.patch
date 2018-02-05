@@ -1,0 +1,92 @@
+diff --git a/net/spdy/chromium/spdy_session.cc b/net/spdy/chromium/spdy_session.cc
+index 665cc54e7fa0..e8271d9c1428 100644
+--- a/net/spdy/chromium/spdy_session.cc
++++ b/net/spdy/chromium/spdy_session.cc
+@@ -3204,7 +3204,7 @@ void SpdySession::DecreaseRecvWindowSize(int32_t delta_window_size) {
+ }
+ 
+ void SpdySession::QueueSendStalledStream(const SpdyStream& stream) {
+-  DCHECK(stream.send_stalled_by_flow_control());
++  DCHECK(stream.send_stalled_by_flow_control() || IsSendStalled());
+   RequestPriority priority = stream.priority();
+   CHECK_GE(priority, MINIMUM_PRIORITY);
+   CHECK_LE(priority, MAXIMUM_PRIORITY);
+@@ -3217,6 +3217,8 @@ void SpdySession::ResumeSendStalledStreams() {
+   // have to worry about streams being closed, as well as ourselves
+   // being closed.
+ 
++  std::deque<SpdyStream*> streams_to_requeue;
++
+   while (!IsSendStalled()) {
+     size_t old_size = 0;
+ #if DCHECK_IS_ON()
+@@ -3230,13 +3232,20 @@ void SpdySession::ResumeSendStalledStreams() {
+     // The stream may actually still be send-stalled after this (due
+     // to its own send window) but that's okay -- it'll then be
+     // resumed once its send window increases.
+-    if (it != active_streams_.end())
+-      it->second->PossiblyResumeIfSendStalled();
++    if (it != active_streams_.end()) {
++      if (it->second->PossiblyResumeIfSendStalled() == SpdyStream::Requeue)
++        streams_to_requeue.push_back(it->second);
++    }
+ 
+     // The size should decrease unless we got send-stalled again.
+     if (!IsSendStalled())
+       DCHECK_LT(GetTotalSize(stream_send_unstall_queue_), old_size);
+   }
++  while (!streams_to_requeue.empty()) {
++    SpdyStream* stream = streams_to_requeue.front();
++    streams_to_requeue.pop_front();
++    QueueSendStalledStream(*stream);
++  }
+ }
+ 
+ SpdyStreamId SpdySession::PopStreamToPossiblyResume() {
+diff --git a/net/spdy/chromium/spdy_stream.cc b/net/spdy/chromium/spdy_stream.cc
+index 742004a77425..74744da294ad 100644
+--- a/net/spdy/chromium/spdy_stream.cc
++++ b/net/spdy/chromium/spdy_stream.cc
+@@ -734,17 +734,17 @@ NextProto SpdyStream::GetNegotiatedProtocol() const {
+   return session_->GetNegotiatedProtocol();
+ }
+ 
+-void SpdyStream::PossiblyResumeIfSendStalled() {
+-  if (IsLocallyClosed()) {
+-    return;
+-  }
+-  if (send_stalled_by_flow_control_ && !session_->IsSendStalled() &&
+-      send_window_size_ > 0) {
+-    net_log_.AddEvent(NetLogEventType::HTTP2_STREAM_FLOW_CONTROL_UNSTALLED,
+-                      NetLog::IntCallback("stream_id", stream_id_));
+-    send_stalled_by_flow_control_ = false;
+-    QueueNextDataFrame();
+-  }
++SpdyStream::ShouldRequeueStream SpdyStream::PossiblyResumeIfSendStalled() {
++  if (IsLocallyClosed() || !send_stalled_by_flow_control_)
++    return DoNotRequeue;
++  if (session_->IsSendStalled() || send_window_size_ <= 0) {
++    return Requeue;
++  }
++  net_log_.AddEvent(NetLogEventType::HTTP2_STREAM_FLOW_CONTROL_UNSTALLED,
++                    NetLog::IntCallback("stream_id", stream_id_));
++  send_stalled_by_flow_control_ = false;
++  QueueNextDataFrame();
++  return DoNotRequeue;
+ }
+ 
+ bool SpdyStream::IsClosed() const {
+diff --git a/net/spdy/chromium/spdy_stream.h b/net/spdy/chromium/spdy_stream.h
+index 4dcb024714c5..4803aa9a1e33 100644
+--- a/net/spdy/chromium/spdy_stream.h
++++ b/net/spdy/chromium/spdy_stream.h
+@@ -336,7 +336,8 @@ class NET_EXPORT_PRIVATE SpdyStream {
+   // set |send_stalled_by_flow_control_| to false and unstall the data
+   // sending. Called by the session or by the stream itself. Must be
+   // called only when the stream is still open.
+-  void PossiblyResumeIfSendStalled();
++  enum ShouldRequeueStream { Requeue, DoNotRequeue };
++  ShouldRequeueStream PossiblyResumeIfSendStalled();
+ 
+   // Returns whether or not this stream is closed. Note that the only
+   // time a stream is closed and not deleted is in its delegate's

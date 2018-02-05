@@ -1,0 +1,16 @@
+diff --git a/content/browser/renderer_host/render_widget_host_impl.cc b/content/browser/renderer_host/render_widget_host_impl.cc
+index 0a22d86b302c..3af869c3af99 100644
+--- a/content/browser/renderer_host/render_widget_host_impl.cc
++++ b/content/browser/renderer_host/render_widget_host_impl.cc
+@@ -875,6 +878,11 @@ bool RenderWidgetHostImpl::CanPauseForPendingResizeOrRepaints() {
+   if (is_hidden())
+     return false;
+ 
++  // Do not pause if there is already a pending operation with the
++  // backing store.
++  if (in_get_backing_store_)
++    return false;
++
+   // Do not pause if there is not a paint or resize already coming.
+   if (!repaint_ack_pending_ && !resize_ack_pending_)
+     return false;

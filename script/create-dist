@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
 import argparse
-import contextlib
-import errno
 import fnmatch
 import glob
 import os
@@ -14,6 +12,8 @@ import zipfile
 import platform
 
 from lib.config import get_output_dir
+import lib.filesystem as filesystem
+import lib.util as util
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -377,7 +377,7 @@ def main():
   if args.create_debug_archive:
     check_create_debug_archive(args.target_arch)
 
-  rm_rf(DIST_DIR)
+  filesystem.rm_rf(DIST_DIR)
   os.makedirs(MAIN_DIR)
 
   with Ninja(open(os.path.join(MAIN_DIR, 'build.ninja'), 'wb')) as ninja:
@@ -392,7 +392,7 @@ def main():
                      args.target_arch)
 
   if not args.no_zip:
-    create_zip(args.create_debug_archive)
+    create_zip(args.create_debug_archive, args.component)
 
 
 def generate_ninja(args, ninja):
@@ -560,7 +560,7 @@ def strip_binaries(create_debug_archive, keep_debug_symbols, component,
         run_strip(target_arch, library, create_debug_archive)
       # move .debug files into a separate directory
       debug_dir = os.path.join(os.path.dirname(target_dir), '.debug')
-      mkdir_p(debug_dir)
+      filesystem.mkdir_p(debug_dir)
       for debug_file in glob.glob(os.path.join(target_dir, '*.debug')):
         shutil.move(debug_file, debug_dir)
 
@@ -729,22 +729,24 @@ def generate_licenses(ninja):
       entry_template], variables=data)
 
 
-def create_zip(create_debug_archive):
-  print 'Zipping shared_library builds...'
-  p = os.path.join(SOURCE_ROOT, 'libchromiumcontent.zip')
-  make_zip(MAIN_DIR, ['src', 'ffmpeg', 'shared_library'], ['LICENSES.chromium.html'], p)
+def create_zip(create_debug_archive, component):
+  if component == 'all' or component == 'shared_library':
+    print 'Zipping shared_library builds...'
+    p = os.path.join(SOURCE_ROOT, 'libchromiumcontent.zip')
+    make_zip(MAIN_DIR, ['src', 'ffmpeg', 'shared_library'], ['LICENSES.chromium.html'], p)
   if create_debug_archive:
     print 'Zipping shared library debug files...'
     p = os.path.join(SOURCE_ROOT, 'libchromiumcontent-dbg.zip')
     make_zip(MAIN_DIR, ['.debug'], [], p)
-  print 'Zipping static_library builds...'
-  p = os.path.join(SOURCE_ROOT, 'libchromiumcontent-static.zip')
-  make_zip(MAIN_DIR, ['static_library'], [], p)
+  if component == 'all' or component == 'static_library':
+    print 'Zipping static_library builds...'
+    p = os.path.join(SOURCE_ROOT, 'libchromiumcontent-static.zip')
+    make_zip(MAIN_DIR, ['static_library'], [], p)
 
 
 def make_zip(src, dirs, files, target):
-  safe_unlink(target)
-  with scoped_cwd(src):
+  filesystem.safe_unlink(target)
+  with util.scoped_cwd(src):
     zip_file = zipfile.ZipFile(target, 'w', zipfile.ZIP_DEFLATED,
                                allowZip64=True)
     for dirname in dirs:
@@ -756,43 +758,9 @@ def make_zip(src, dirs, files, target):
     zip_file.close();
 
 
-def mkdir_p(path):
-  try:
-    os.makedirs(path)
-  except OSError as e:
-    if e.errno != errno.EEXIST:
-      raise
-
-
-def rm_rf(path):
-  try:
-    shutil.rmtree(path)
-  except OSError as e:
-    if e.errno != errno.ENOENT:
-      raise
-
-
-def safe_unlink(path):
-  try:
-    os.unlink(path)
-  except OSError as e:
-    if e.errno != errno.ENOENT:
-      raise
-
-
 def is_newer(destination, source):
   return os.path.exists(destination) and \
     os.path.getmtime(destination) > os.path.getmtime(source)
-
-
-@contextlib.contextmanager
-def scoped_cwd(path):
-  cwd = os.getcwd()
-  os.chdir(path)
-  try:
-    yield
-  finally:
-    os.chdir(cwd)
 
 
 if __name__ == '__main__':

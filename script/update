@@ -2,7 +2,6 @@
 
 import argparse
 import contextlib
-import errno
 import os
 import shutil
 import subprocess
@@ -11,6 +10,9 @@ import urllib2
 import platform
 
 from lib.config import get_output_dir
+import lib.filesystem as filesystem
+import lib.gn as gn
+import lib.util as util
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -20,10 +22,6 @@ CHROMIUMCONTENT_SOURCE_DIR = os.path.join(SOURCE_ROOT, 'chromiumcontent')
 CHROMIUMCONTENT_DESTINATION_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
 COMPONENTS = ['static_library', 'shared_library', 'ffmpeg']
 DEPOT_TOOLS = os.path.join(VENDOR_DIR, 'depot_tools')
-
-NINJA = os.path.join(DEPOT_TOOLS, 'ninja')
-if sys.platform == 'win32':
-  NINJA = '{0}.exe'.format(NINJA)
 
 # URL to the mips64el sysroot image.
 MIPS64EL_SYSROOT = 'https://github.com/electron/debian-sysroot-image-creator/releases/download/v0.5.0/debian_jessie_mips64-sysroot.tar.bz2'
@@ -43,11 +41,19 @@ solutions = [
     "managed": False,
     "name": "src",
     "deps_file": ".DEPS.git",
+    solutions = [
+  {{
+    "url": "https://chromium.googlesource.com/chromium/src.git",
+    "managed": False,
+    "name": "src",
+    "deps_file": ".DEPS.git",
     "custom_deps" : 
     {{
        'src/third_party/webrtc':   'https://github.com/agouaillard/perc-webrtc.git',
        'src/third_party/crashpad':   'https://github.com/murillo128/crashpad.git',
     }},
+  }},
+]
   }},
 ]
 {cache_dir_line}
@@ -56,7 +62,7 @@ solutions = [
 def main():
   args = parse_args()
 
-  if sys.platform == 'win32' and not args.skip_depot_tools_update:
+  if sys.platform == 'win32' and args.update_depot_tools:
     update_depot_tools()
 
   if args.clean and os.path.isdir(SRC_DIR):
@@ -69,13 +75,14 @@ def main():
   # to 0.
   # More information: https://stackoverflow.com/a/9935126
   git_cache = args.git_cache or os.getenv('LIBCHROMIUMCONTENT_GIT_CACHE', '')
+
   target_arch = args.target_arch
   nohooks = target_arch == 'mips64el' and IS_MIPS64EL_HOST
-  if not args.skip_gclient:
-    if (args.source_only):
-      return gclient_sync(chromium_version(), args.clean, git_cache, nohooks)
-    else:
-      gclient_sync(chromium_version(), args.clean, git_cache, nohooks)
+
+  if args.run_gclient:
+    gclient_sync(chromium_version(), args.clean, git_cache, nohooks)
+    if args.source_only:
+      return
 
   if target_arch == 'mips64el' and IS_MIPS64EL_HOST:
     os.system('sh script/mips64el/runhooks-mips64el')
@@ -88,30 +95,29 @@ def main():
   if target_arch == 'arm64':
     install_aarch64_bintools()
 
-  return (apply_patches(args.skip_patches, target_arch) or
+  return ((apply_patches(target_arch) if args.apply_patches else 0) or
           copy_chromiumcontent_files() or
           update_clang() or
           setup_mips64el_toolchain(target_arch) or
-          run_gn(target_arch, args.defines))
+          run_gn(target_arch))
 
 
 def parse_args():
   parser = argparse.ArgumentParser(description='Update build configuration')
   parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
-  parser.add_argument('--defines', default='',
-                      help='The definitions passed to gyp')
   parser.add_argument('--git-cache', default='',
-                      help='Global git object cache for chromium+ deps')
+                      help='Global git object cache for Chromium+ deps')
   parser.add_argument('--clean', action='store_true',
                       help='Cleans the working directory for full rebuild')
-  parser.add_argument('--skip_patches', action='store_true',
+  parser.add_argument('--skip_patches', dest='apply_patches', action='store_false',
                       help='Skips applying patches, easier to build locally')
-  parser.add_argument('--skip_gclient', action='store_true',
+  parser.add_argument('--skip_gclient', dest='run_gclient', action='store_false',
                       help='Skips syncing repo, easier to build locally')
-  parser.add_argument('--skip_depot_tools_update', action='store_true',
-                      help='Skips update depot tools on windows, easier to build locally')
+  parser.add_argument('--skip_depot_tools_update', dest='update_depot_tools', action='store_false',
+                      help='Skips update depot tools on Windows, easier to build locally')
   parser.add_argument('--source_only', action='store_true',
-                      help='Only sync the chromium source code')
+                      help='Only sync the Chromium source code')
+  parser.set_defaults(apply_patches=True, run_gclient=True, update_depot_tools=True)
   return parser.parse_args()
 
 
@@ -143,7 +149,7 @@ def install_sysroot(target_arch):
     tar_name = 'debian_jessie_mips64-sysroot.tar.bz2'
     download(MIPS64EL_SYSROOT, tar_name)
     subprocess.call(['tar', '-jxf', tar_name, '-C', destination])
-    rm_f(tar_name)
+    filesystem.rm_f(tar_name)
 
 
 def install_aarch64_bintools():
@@ -157,7 +163,7 @@ def install_aarch64_bintools():
   env = os.environ.copy()
   env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
   subprocess.call(['dpkg', '-x', deb_name, destination])
-  rm_f(deb_name)
+  filesystem.rm_f(deb_name)
 
 
 def update_toolchain_json():
@@ -168,16 +174,12 @@ def update_toolchain_json():
 
 
 def copy_chromiumcontent_files():
-  try:
-    os.makedirs(CHROMIUMCONTENT_DESTINATION_DIR)
-  except OSError as e:
-    if e.errno != errno.EEXIST:
-      raise
+  filesystem.mkdir_p(CHROMIUMCONTENT_DESTINATION_DIR)
   for dirpath, dirnames, filenames in os.walk(CHROMIUMCONTENT_SOURCE_DIR):
     for dirname in dirnames:
       source = os.path.join(dirpath, dirname)
       relative = os.path.relpath(source, start=CHROMIUMCONTENT_SOURCE_DIR)
-      mkdir_p(os.path.join(CHROMIUMCONTENT_DESTINATION_DIR, relative))
+      filesystem.mkdir_p(os.path.join(CHROMIUMCONTENT_DESTINATION_DIR, relative))
     for filename in filenames:
       source = os.path.join(dirpath, filename)
       relative = os.path.relpath(source, start=CHROMIUMCONTENT_SOURCE_DIR)
@@ -213,7 +215,7 @@ def ensure_gclient_config(git_cache):
 def gclient_sync(version, force, git_cache, nohooks):
   # Remove untracked files in src.
   if os.path.exists(os.path.join(SRC_DIR, '.git')):
-    with scoped_cwd(SRC_DIR):
+    with util.scoped_cwd(SRC_DIR):
       subprocess.check_call(['git', 'clean', '-df'])
 
   ensure_gclient_config(git_cache)
@@ -235,11 +237,10 @@ def gclient_sync(version, force, git_cache, nohooks):
   subprocess.check_call(args, env=env)
 
 
-def apply_patches(skip_patches, target_arch):
-  if not skip_patches:
-    return subprocess.call([sys.executable,
-                            os.path.join(SOURCE_ROOT, 'script', 'apply-patches'),
-                            target_arch])
+def apply_patches(target_arch):
+  script_path = os.path.join(SOURCE_ROOT, 'script', 'apply-patches')
+  script_arguments = [target_arch]
+  return subprocess.call([sys.executable, script_path] + script_arguments)
 
 
 def update_clang():
@@ -264,7 +265,7 @@ def setup_mips64el_toolchain(target_arch):
       tar_name = MIPS64EL_GCC + '.tar.gz'
       download(MIPS64EL_GCC_URL, tar_name)
       subprocess.check_call(['tar', '-xf', tar_name, '-C', VENDOR_DIR])
-      rm_f(tar_name)
+      filesystem.rm_f(tar_name)
 
   # Gernerate ffmpeg build config files for mips64el.
   env = os.environ.copy()
@@ -293,14 +294,7 @@ def setup_mips64el_toolchain(target_arch):
     subprocess.check_call([bootstrap, '-s'], cwd=SRC_DIR, env=env)
 
 
-def run_gn(target_arch, defines):
-  if sys.platform in ['win32', 'cygwin']:
-    gn = os.path.join(SRC_DIR, 'buildtools', 'win', 'gn.exe')
-  elif sys.platform == 'linux2':
-    gn = os.path.join(SRC_DIR, 'buildtools', 'linux64', 'gn')
-  elif sys.platform == 'darwin':
-    gn = os.path.join(SRC_DIR, 'buildtools', 'mac', 'gn')
-
+def run_gn(target_arch):
   env = os.environ.copy()
   if sys.platform in ['win32', 'cygwin']:
     env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
@@ -318,21 +312,20 @@ def run_gn(target_arch, defines):
     target_cpu = target_arch
 
   for component in COMPONENTS:
+    # Create output dir.
     output_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
-    if not os.path.isdir(output_dir): os.makedirs(output_dir)
+    if not os.path.isdir(output_dir):
+      os.makedirs(output_dir)
 
-    with open(os.path.join(output_dir, 'args.gn'), 'w') as f:
-      f.writelines([
-        'target_os = "{}"\n'.format(target_os),
-        'target_cpu = "{}"\n'.format(target_cpu),
-        '#' * 80 + '\n',
-        ])
-      with open(os.path.join(CHROMIUMCONTENT_SOURCE_DIR, 'args',
-                             component + '.gn')) as argsfile:
-        f.write(argsfile.read())
+    # Create a GN build configuration file.
+    args_file_path = os.path.join(CHROMIUMCONTENT_SOURCE_DIR, 'args', component + '.gn')
+    with open(args_file_path) as f:
+      gn.create_args(output_dir, f.read(),
+          target_os=target_os,
+          target_cpu=target_cpu)
 
-    subprocess.call([gn, 'gen', os.path.relpath(output_dir, SRC_DIR)],
-                    cwd=SRC_DIR, env=env)
+    # Generate Ninja build files.
+    gn.generate(output_dir, chromium_root_dir=SRC_DIR, env=env)
 
 
 def is_newer(destination, source):
@@ -345,40 +338,6 @@ def git_clean_recursive(path):
     if '.git' in dirs:
       subprocess.call(['git', 'clean', '-xdf'], cwd=root)
       dirs.remove('.git')
-
-
-def rm_f(path):
-  try:
-    os.remove(path)
-  except OSError as e:
-    if e.errno != errno.ENOENT:
-      raise
-
-
-def rm_rf(path):
-  try:
-    shutil.rmtree(path)
-  except OSError as e:
-    if e.errno != errno.ENOENT:
-      raise
-
-
-def mkdir_p(path):
-  try:
-    os.makedirs(path)
-  except OSError as e:
-    if e.errno != errno.EEXIST:
-      raise
-
-
-@contextlib.contextmanager
-def scoped_cwd(path):
-  cwd = os.getcwd()
-  os.chdir(path)
-  try:
-    yield
-  finally:
-    os.chdir(cwd)
 
 
 def download(url, filename):

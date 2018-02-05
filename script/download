@@ -4,12 +4,13 @@ import argparse
 import contextlib
 import errno
 import os
-import shutil
 import subprocess
 import sys
 import tempfile
 import urllib2
 import zipfile
+
+import lib.filesystem as filesystem
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -118,7 +119,7 @@ def download_if_needed(destination, base_url, commit, filename, force):
     return
 
   if force:
-    rm_rf(destination)
+    filesystem.rm_rf(destination)
   elif os.path.exists(destination):
     raise ProgramError('Error: {0} already exists. Pass --force if you '
                        'want to overwrite it.'.format(destination))
@@ -167,13 +168,6 @@ def generate_filenames_gypi(target_file, libcc_source_path,
   subprocess.check_call([sys.executable, generate] + [target_file,
                          libcc_source_path, libcc_shared_library_path,
                          libcc_static_library_path])
-
-def rm_rf(path):
-  try:
-    shutil.rmtree(path)
-  except OSError as e:
-    if e.errno != errno.ENOENT:
-      raise
 
 
 if __name__ == '__main__':

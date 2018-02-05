@@ -30,21 +30,28 @@ index 197b64b49fd6..2e94b03c4f44 100644
    // Called by |frame| to notify that it has received an update on focused
    // element. |bounds_in_root_view| is the rectangle containing the element that
 diff --git a/content/browser/frame_host/render_frame_host_impl.cc b/content/browser/frame_host/render_frame_host_impl.cc
-index 585a523bff87..2fa10398813d 100644
+index 82ab04e1019d..209dbd15d894 100644
 --- a/content/browser/frame_host/render_frame_host_impl.cc
 +++ b/content/browser/frame_host/render_frame_host_impl.cc
-@@ -2961,8 +2961,22 @@ bool RenderFrameHostImpl::UpdatePendingWebUI(const GURL& dest_url,
+@@ -17,6 +17,7 @@
+ #include "base/metrics/user_metrics.h"
+ #include "base/process/kill.h"
+ #include "base/time/time.h"
++#include "base/unguessable_token.h"
+ #include "build/build_config.h"
+ #include "content/browser/accessibility/browser_accessibility_manager.h"
+ #include "content/browser/accessibility/browser_accessibility_state_impl.h"
+@@ -3418,8 +3464,23 @@ bool RenderFrameHostImpl::UpdatePendingWebUI(const GURL& dest_url,
        DCHECK(web_ui_);
        should_reuse_web_ui_ = true;
      } else {
--      // Otherwise create a new pending WebUI.
--      pending_web_ui_ = delegate_->CreateWebUIForRenderFrameHost(dest_url);
 +      // Give the frame a name if it does not already have one.
 +      // The reason is web ui code base the frame look up on the frame name.
 +      std::string frame_name = GetFrameName();
 +      if (frame_name.empty() && !frame_tree_node_->IsMainFrame()) {
 +        frame_name = base::StringPrintf("frame_%i", frame_tree_node_->frame_tree_node_id());
-+        frame_tree_node_->SetFrameName(frame_name, "");
++        frame_tree_node_->SetFrameName(
++            frame_name, frame_name + base::UnguessableToken::Create().ToString());
 +      }
 +
 +      // If the web ui is in subframes, the parent frame bindings does not have the web ui binding,
@@ -53,7 +60,8 @@ index 585a523bff87..2fa10398813d 100644
 +        entry_bindings = NavigationEntryImpl::kInvalidBindings;
 +      }
 +
-+      // Otherwise create a new pending WebUI.
+       // Otherwise create a new pending WebUI.
+-      pending_web_ui_ = delegate_->CreateWebUIForRenderFrameHost(dest_url);
 +      pending_web_ui_ = delegate_->CreateWebUIForRenderFrameHost(dest_url, frame_name);
        DCHECK(pending_web_ui_);
        pending_web_ui_type_ = new_web_ui_type;

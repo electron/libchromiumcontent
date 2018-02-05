@@ -1,0 +1,145 @@
+diff --git a/content/browser/renderer_host/input/render_widget_host_latency_tracker.cc b/content/browser/renderer_host/input/render_widget_host_latency_tracker.cc
+index f7fb38a43419..c28c5f4c02a0 100644
+--- a/content/browser/renderer_host/input/render_widget_host_latency_tracker.cc
++++ b/content/browser/renderer_host/input/render_widget_host_latency_tracker.cc
+@@ -197,18 +197,25 @@ void RenderWidgetHostLatencyTracker::ComputeInputLatencyHistograms(
+   if (latency.FindLatency(ui::INPUT_EVENT_LATENCY_UI_COMPONENT, 0,
+                           &ui_component)) {
+     DCHECK_EQ(ui_component.event_count, 1u);
++    CONFIRM_EVENT_TIMES_EXIST(ui_component, rwh_component);
+     base::TimeDelta ui_delta =
+         rwh_component.last_event_time - ui_component.first_event_time;
+ 
+     if (latency.source_event_type() == ui::SourceEventType::WHEEL) {
+-      UMA_HISTOGRAM_CUSTOM_COUNTS("Event.Latency.Browser.WheelUI",
+-                                  ui_delta.InMicroseconds(), 1, 20000, 100);
++      UMA_HISTOGRAM_CUSTOM_COUNTS(
++          "Event.Latency.Browser.WheelUI",
++          std::max(static_cast<int64_t>(0), ui_delta.InMicroseconds()), 1,
++          20000, 100);
+     } else if (latency.source_event_type() == ui::SourceEventType::TOUCH) {
+-      UMA_HISTOGRAM_CUSTOM_COUNTS("Event.Latency.Browser.TouchUI",
+-                                  ui_delta.InMicroseconds(), 1, 20000, 100);
++      UMA_HISTOGRAM_CUSTOM_COUNTS(
++          "Event.Latency.Browser.TouchUI",
++          std::max(static_cast<int64_t>(0), ui_delta.InMicroseconds()), 1,
++          20000, 100);
+     } else if (latency.source_event_type() == ui::SourceEventType::KEY_PRESS) {
+-      UMA_HISTOGRAM_CUSTOM_COUNTS("Event.Latency.Browser.KeyPressUI",
+-                                  ui_delta.InMicroseconds(), 1, 20000, 50);
++      UMA_HISTOGRAM_CUSTOM_COUNTS(
++          "Event.Latency.Browser.KeyPressUI",
++          std::max(static_cast<int64_t>(0), ui_delta.InMicroseconds()), 1,
++          20000, 50);
+     } else {
+       // We should only report these histograms for wheel, touch and keyboard.
+       NOTREACHED();
+@@ -391,7 +398,7 @@ void RenderWidgetHostLatencyTracker::ReportRapporScrollLatency(
+     const std::string& name,
+     const LatencyInfo::LatencyComponent& start_component,
+     const LatencyInfo::LatencyComponent& end_component) {
+-  CONFIRM_VALID_TIMING(start_component, end_component)
++  CONFIRM_EVENT_TIMES_EXIST(start_component, end_component)
+   rappor::RapporService* rappor_service =
+       GetContentClient()->browser()->GetRapporService();
+   if (rappor_service && render_widget_host_delegate_) {
+@@ -400,8 +407,9 @@ void RenderWidgetHostLatencyTracker::ReportRapporScrollLatency(
+     render_widget_host_delegate_->AddDomainInfoToRapporSample(sample.get());
+     sample->SetUInt64Field(
+         "Latency",
+-        (end_component.last_event_time - start_component.first_event_time)
+-            .InMicroseconds(),
++        std::max(static_cast<int64_t>(0), (end_component.last_event_time -
++                                           start_component.first_event_time)
++                                              .InMicroseconds()),
+         rappor::NO_NOISE);
+     rappor_service->RecordSample(name, std::move(sample));
+   }
+@@ -422,7 +430,7 @@ void RenderWidgetHostLatencyTracker::ReportUkmScrollLatency(
+     const std::string& metric_name,
+     const LatencyInfo::LatencyComponent& start_component,
+     const LatencyInfo::LatencyComponent& end_component) {
+-  CONFIRM_VALID_TIMING(start_component, end_component)
++  CONFIRM_EVENT_TIMES_EXIST(start_component, end_component)
+ 
+   // Only report a subset of this metric as the volume is too high.
+   if (event_name == "Event.ScrollUpdate.Touch") {
+@@ -440,8 +448,10 @@ void RenderWidgetHostLatencyTracker::ReportUkmScrollLatency(
+ 
+   std::unique_ptr<ukm::UkmEntryBuilder> builder =
+       ukm_recorder->GetEntryBuilder(ukm_source_id, event_name.c_str());
+-  builder->AddMetric(metric_name.c_str(), (end_component.last_event_time -
++  builder->AddMetric(
++      metric_name.c_str(),
++      std::max(static_cast<int64_t>(0), (end_component.last_event_time -
+                                            start_component.first_event_time)
+-                                              .InMicroseconds());
++                                              .InMicroseconds()));
+ }
+ }  // namespace content
+diff --git a/ui/latency/latency_histogram_macros.h b/ui/latency/latency_histogram_macros.h
+index 77e3eeef70ba..4de045219dbc 100644
+--- a/ui/latency/latency_histogram_macros.h
++++ b/ui/latency/latency_histogram_macros.h
+@@ -8,38 +8,47 @@
+ #include "base/metrics/histogram_functions.h"
+ 
+ // Check valid timing for start and end latency components.
+-#define CONFIRM_VALID_TIMING(start, end)     \
+-  DCHECK(!start.first_event_time.is_null()); \
+-  DCHECK(!end.last_event_time.is_null());    \
+-  DCHECK_GE(end.last_event_time, start.first_event_time);
++#define CONFIRM_EVENT_TIMES_EXIST(start, end) \
++  DCHECK(!start.first_event_time.is_null());  \
++  DCHECK(!end.last_event_time.is_null());
+ 
+ // Event latency that is mostly under 1 second. We should only use 100 buckets
+ // when needed.
+ #define UMA_HISTOGRAM_INPUT_LATENCY_HIGH_RESOLUTION_MICROSECONDS(name, start, \
+                                                                  end)         \
+-  CONFIRM_VALID_TIMING(start, end)                                            \
++  CONFIRM_EVENT_TIMES_EXIST(start, end)                                       \
+   base::UmaHistogramCustomCounts(                                             \
+-      name, (end.last_event_time - start.first_event_time).InMicroseconds(),  \
++      name,                                                                   \
++      std::max(                                                               \
++          static_cast<int64_t>(0),                                            \
++          (end.last_event_time - start.first_event_time).InMicroseconds()),   \
+       1, 1000000, 100);
+ 
+-#define UMA_HISTOGRAM_INPUT_LATENCY_MILLISECONDS(name, start, end)           \
+-  CONFIRM_VALID_TIMING(start, end)                                           \
+-  base::UmaHistogramCustomCounts(                                            \
+-      name, (end.last_event_time - start.first_event_time).InMilliseconds(), \
++#define UMA_HISTOGRAM_INPUT_LATENCY_MILLISECONDS(name, start, end)          \
++  CONFIRM_EVENT_TIMES_EXIST(start, end)                                     \
++  base::UmaHistogramCustomCounts(                                           \
++      name,                                                                 \
++      std::max(                                                             \
++          static_cast<int64_t>(0),                                          \
++          (end.last_event_time - start.first_event_time).InMilliseconds()), \
+       1, 1000, 50);
+ 
+ // Long touch/wheel scroll latency component that is mostly under 200ms.
+ #define UMA_HISTOGRAM_SCROLL_LATENCY_LONG_2(name, start, end)                 \
+-  CONFIRM_VALID_TIMING(start, end)                                            \
++  CONFIRM_EVENT_TIMES_EXIST(start, end)                                       \
+   base::Histogram::FactoryGet(name, 1000, 200000, 50,                         \
+                               base::HistogramBase::kUmaTargetedHistogramFlag) \
+-      ->Add((end.last_event_time - start.first_event_time).InMicroseconds());
++      ->Add(std::max(                                                         \
++          static_cast<int64_t>(0),                                            \
++          (end.last_event_time - start.first_event_time).InMicroseconds()));
+ 
+ // Short touch/wheel scroll latency component that is mostly under 50ms.
+ #define UMA_HISTOGRAM_SCROLL_LATENCY_SHORT_2(name, start, end)                \
+-  CONFIRM_VALID_TIMING(start, end)                                            \
++  CONFIRM_EVENT_TIMES_EXIST(start, end)                                       \
+   base::Histogram::FactoryGet(name, 1, 50000, 50,                             \
+                               base::HistogramBase::kUmaTargetedHistogramFlag) \
+-      ->Add((end.last_event_time - start.first_event_time).InMicroseconds());
++      ->Add(std::max(                                                         \
++          static_cast<int64_t>(0),                                            \
++          (end.last_event_time - start.first_event_time).InMicroseconds()));
+ 
+ #endif  // UI_LATENCY_LATENCY_HISTOGRAM_MACROS_H_
