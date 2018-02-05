@@ -26,7 +26,7 @@ SRC_DIR = os.path.join(SOURCE_ROOT, 'src')
 sys.path.insert(0, os.path.join(SRC_DIR, 'tools', 'gyp', 'pylib', 'gyp'))
 import ninja_syntax
 
-# Almost everything goes into the main tar file...
+# Almost everything goes into the main archive
 MAIN_DIR = os.path.join(DIST_DIR, 'main')
 DIST_SRC_DIR = os.path.join(MAIN_DIR, 'src')
 
@@ -392,7 +392,7 @@ def main():
                      args.target_arch)
 
   if not args.no_zip:
-    create_tar(args.create_debug_archive, args.component)
+    create_archive(args.create_debug_archive, args.component)
 
 
 def generate_ninja(args, ninja):
@@ -729,22 +729,22 @@ def generate_licenses(ninja):
       entry_template], variables=data)
 
 
-def create_tar(create_debug_archive, component):
+def create_archive(create_debug_archive, component):
   if component == 'all' or component == 'shared_library':
     print 'Packing shared_library builds...'
     p = os.path.join(SOURCE_ROOT, 'libchromiumcontent.tar.bz2')
-    make_tar(MAIN_DIR, ['src', 'ffmpeg', 'shared_library'], ['LICENSES.chromium.html'], p)
+    make_archive(MAIN_DIR, ['src', 'ffmpeg', 'shared_library'], ['LICENSES.chromium.html'], p)
   if create_debug_archive:
     print 'Packing shared library debug files...'
     p = os.path.join(SOURCE_ROOT, 'libchromiumcontent-dbg.tar.bz2')
-    make_tar(MAIN_DIR, ['.debug'], [], p)
+    make_archive(MAIN_DIR, ['.debug'], [], p)
   if component == 'all' or component == 'static_library':
     print 'Packing static_library builds...'
     p = os.path.join(SOURCE_ROOT, 'libchromiumcontent-static.tar.bz2')
-    make_tar(MAIN_DIR, ['static_library'], [], p)
+    make_archive(MAIN_DIR, ['static_library'], [], p)
 
 
-def make_tar(src, dirs, files, target):
+def make_archive(src, dirs, files, target):
   filesystem.safe_unlink(target)
   with util.scoped_cwd(src):
     tar_file = tarfile.open(target, 'w:bz2')
