@@ -4,7 +4,9 @@ set -e
 set -o pipefail
 
 rm -rf dist
+rm -rf libchromiumcontent.tar.bz2
 rm -rf libchromiumcontent.zip
+rm -rf libchromiumcontent-static.tar.bz2
 rm -rf libchromiumcontent-static.zip
 
 docker build \

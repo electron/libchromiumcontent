@@ -46,7 +46,7 @@ def upload(target_arch):
 
   s3put(bucket, access_key, secret_key, SOURCE_ROOT,
         'libchromiumcontent/{0}/{1}/{2}'.format(platform, target_arch, commit),
-        glob.glob('libchromiumcontent*.zip'))
+        glob.glob('libchromiumcontent*.tar.bz2'))
 
 
 def s3_config():

@@ -8,7 +8,7 @@ import re
 import shutil
 import subprocess
 import sys
-import zipfile
+import tarfile
 import platform
 
 from lib.config import get_output_dir
@@ -26,7 +26,7 @@ SRC_DIR = os.path.join(SOURCE_ROOT, 'src')
 sys.path.insert(0, os.path.join(SRC_DIR, 'tools', 'gyp', 'pylib', 'gyp'))
 import ninja_syntax
 
-# Almost everything goes into the main zip file...
+# Almost everything goes into the main archive
 MAIN_DIR = os.path.join(DIST_DIR, 'main')
 DIST_SRC_DIR = os.path.join(MAIN_DIR, 'src')
 
@@ -392,7 +392,7 @@ def main():
                      args.target_arch)
 
   if not args.no_zip:
-    create_zip(args.create_debug_archive, args.component)
+    create_archive(args.create_debug_archive, args.component)
 
 
 def generate_ninja(args, ninja):
@@ -434,7 +434,7 @@ def parse_args():
   parser.add_argument('-c', '--component', default='all',
                       help='static_library or shared_library or all')
   parser.add_argument('--no_zip', action='store_true',
-                      help='Do not create zip distribution')
+                      help='Do not create distribution archive')
   return parser.parse_args()
 
 
@@ -729,33 +729,32 @@ def generate_licenses(ninja):
       entry_template], variables=data)
 
 
-def create_zip(create_debug_archive, component):
+def create_archive(create_debug_archive, component):
   if component == 'all' or component == 'shared_library':
-    print 'Zipping shared_library builds...'
-    p = os.path.join(SOURCE_ROOT, 'libchromiumcontent.zip')
-    make_zip(MAIN_DIR, ['src', 'ffmpeg', 'shared_library'], ['LICENSES.chromium.html'], p)
+    print 'Packing shared_library builds...'
+    p = os.path.join(SOURCE_ROOT, 'libchromiumcontent.tar.bz2')
+    make_archive(MAIN_DIR, ['src', 'ffmpeg', 'shared_library'], ['LICENSES.chromium.html'], p)
   if create_debug_archive:
-    print 'Zipping shared library debug files...'
-    p = os.path.join(SOURCE_ROOT, 'libchromiumcontent-dbg.zip')
-    make_zip(MAIN_DIR, ['.debug'], [], p)
+    print 'Packing shared library debug files...'
+    p = os.path.join(SOURCE_ROOT, 'libchromiumcontent-dbg.tar.bz2')
+    make_archive(MAIN_DIR, ['.debug'], [], p)
   if component == 'all' or component == 'static_library':
-    print 'Zipping static_library builds...'
-    p = os.path.join(SOURCE_ROOT, 'libchromiumcontent-static.zip')
-    make_zip(MAIN_DIR, ['static_library'], [], p)
+    print 'Packing static_library builds...'
+    p = os.path.join(SOURCE_ROOT, 'libchromiumcontent-static.tar.bz2')
+    make_archive(MAIN_DIR, ['static_library'], [], p)
 
 
-def make_zip(src, dirs, files, target):
+def make_archive(src, dirs, files, target):
   filesystem.safe_unlink(target)
   with util.scoped_cwd(src):
-    zip_file = zipfile.ZipFile(target, 'w', zipfile.ZIP_DEFLATED,
-                               allowZip64=True)
+    tar_file = tarfile.open(target, 'w:bz2')
     for dirname in dirs:
       for root, _, filenames in os.walk(dirname):
         for f in filenames:
-          zip_file.write(os.path.join(root, f))
+          tar_file.add(os.path.join(root, f))
     for f in files:
-      zip_file.write(f)
-    zip_file.close();
+      tar_file.add(f)
+    tar_file.close();
 
 
 def is_newer(destination, source):

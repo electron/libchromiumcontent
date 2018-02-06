@@ -8,7 +8,7 @@ import subprocess
 import sys
 import tempfile
 import urllib2
-import zipfile
+import tarfile
 
 import lib.filesystem as filesystem
 
@@ -22,8 +22,8 @@ PLATFORM_KEY = {
   'win32': 'win',
 }[sys.platform]
 
-SHARED_LIBRARY_FILENAME = 'libchromiumcontent.zip'
-STATIC_LIBRARY_FILENAME = 'libchromiumcontent-static.zip'
+SHARED_LIBRARY_FILENAME = 'libchromiumcontent.tar.bz2'
+STATIC_LIBRARY_FILENAME = 'libchromiumcontent-static.tar.bz2'
 
 
 class ProgramError(Exception):
@@ -137,13 +137,6 @@ def download(destination, base_url, commit, filename):
   download_and_extract(destination, url)
 
 
-def download_static_libraries(destination, base_url, commit):
-  sys.stderr.write('Downloading static_library build of libchromiumcontent...')
-  sys.stderr.flush()
-  url = '{0}/{1}/libchromiumcontent-static.zip'.format(base_url, commit)
-  download_and_extract(destination, url)
-
-
 def download_and_extract(destination, url):
   print url
   with tempfile.TemporaryFile() as t:
@@ -157,7 +150,7 @@ def download_and_extract(destination, url):
         t.write(chunk)
     sys.stderr.write('\nExtracting...\n')
     sys.stderr.flush()
-    with zipfile.ZipFile(t) as z:
+    with tarfile.open(t, 'r:bz2') as z:
       z.extractall(destination)
 
 
