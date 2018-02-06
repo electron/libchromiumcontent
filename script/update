@@ -63,7 +63,7 @@ def main():
   nohooks = target_arch == 'arm64' and IS_ARM64_HOST or target_arch == 'arm' and IS_ARMV7_HOST
 
   if args.run_gclient:
-    gclient_sync(chromium_version(), args.clean, git_cache, nohooks)
+    gclient_sync(chromium_version(), args.clean, git_cache, nohooks, args.ignore_git_cache_locks)
     if args.source_only:
       return
 
@@ -86,6 +86,8 @@ def parse_args():
   parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
   parser.add_argument('--git-cache', default='',
                       help='Global git object cache for Chromium+ deps')
+  parser.add_argument('--ignore_git_cache_locks', action='store_true',
+                      help='Ignore git cache locks')
   parser.add_argument('--clean', action='store_true',
                       help='Cleans the working directory for full rebuild')
   parser.add_argument('--skip_patches', dest='apply_patches', action='store_false',
@@ -195,7 +197,7 @@ def ensure_gclient_config(git_cache):
       ))
 
 
-def gclient_sync(version, force, git_cache, nohooks):
+def gclient_sync(version, force, git_cache, nohooks, ignore_locks):
   # Remove untracked files in src.
   if os.path.exists(os.path.join(SRC_DIR, '.git')):
     with util.scoped_cwd(SRC_DIR):
@@ -212,6 +214,8 @@ def gclient_sync(version, force, git_cache, nohooks):
           '--with_branch_heads', '--reset', '--delete_unversioned_trees']
   if git_cache:
     args += ['--lock_timeout=15']
+    if ignore_locks:
+        args += ['--ignore_locks']
   if force:
     args += ['--force']
   if nohooks:
