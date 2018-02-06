@@ -150,7 +150,7 @@ def download_and_extract(destination, url):
         t.write(chunk)
     sys.stderr.write('\nExtracting...\n')
     sys.stderr.flush()
-    with tarfile.open(t, 'r:bz2') as z:
+    with tarfile.open(fileobj=t, mode='r:bz2') as z:
       z.extractall(destination)
 
 
