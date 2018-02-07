@@ -24,8 +24,11 @@ pipeline {
                 }
                 withCredentials([string(credentialsId: 'libccbucket', variable: 'LIBCC_BUCKET')]) {
                   withAWS(credentials:'libccs3',region:'us-east-1') {
-                    s3Upload(includePathPattern:'libchromiumcontent.*', bucket:"${LIBCC_BUCKET}", path:"libchromiumcontent/osx/${env.TARGET_ARCH}/${GIT_COMMIT}/", acl:'PublicRead')
+                    s3Upload(file:'libchromiumcontent.tar.bz2', bucket:"${LIBCC_BUCKET}", path:"libchromiumcontent/osx/${env.TARGET_ARCH}/${GIT_COMMIT}/libchromiumcontent.tar.bz2", acl:'PublicRead')
                   }
+                }
+                fileOperations {
+                  fileRenameOperation('libchromiumcontent.tar.bz2', 'libchromiumcontent-osx.tar.bz2')
                 }
               }
             }
@@ -57,8 +60,11 @@ pipeline {
                 }
                 withCredentials([string(credentialsId: 'libccbucket', variable: 'LIBCC_BUCKET')]) {
                   withAWS(credentials:'libccs3',region:'us-east-1') {
-                    s3Upload(includePathPattern:'libchromiumcontent-static.*', bucket:"${LIBCC_BUCKET}", path:"libchromiumcontent/osx/${env.TARGET_ARCH}/${GIT_COMMIT}/", acl:'PublicRead')
+                    s3Upload(file:'libchromiumcontent-static.tar.bz2', bucket:"${LIBCC_BUCKET}", path:"libchromiumcontent/osx/${env.TARGET_ARCH}/${GIT_COMMIT}/libchromiumcontent-static.tar.bz2", acl:'PublicRead')
                   }
+                }
+                fileOperations {
+                  fileRenameOperation('libchromiumcontent-static.tar.bz2', 'libchromiumcontent-osx-static.tar.bz2')
                 }
               }
             }
@@ -91,8 +97,11 @@ pipeline {
               }
               withCredentials([string(credentialsId: 'libccbucket', variable: 'LIBCC_BUCKET')]) {
                 withAWS(credentials:'libccs3',region:'us-east-1') {
-                  s3Upload(includePathPattern:'libchromiumcontent.*', bucket:"${LIBCC_BUCKET}", path:"libchromiumcontent/mas/${env.TARGET_ARCH}/${GIT_COMMIT}/", acl:'PublicRead')
+                  s3Upload(file:'libchromiumcontent.tar.bz2', bucket:"${LIBCC_BUCKET}", path:"libchromiumcontent/mas/${env.TARGET_ARCH}/${GIT_COMMIT}/libchromiumcontent.tar.bz2", acl:'PublicRead')
                 }
+              }
+              fileOperations {
+                fileRenameOperation('libchromiumcontent.tar.bz2', 'libchromiumcontent-mas.tar.bz2')
               }
             }
           }
@@ -125,8 +134,11 @@ pipeline {
               }
               withCredentials([string(credentialsId: 'libccbucket', variable: 'LIBCC_BUCKET')]) {
                 withAWS(credentials:'libccs3',region:'us-east-1') {
-                  s3Upload(includePathPattern:'libchromiumcontent-static.*', bucket:"${LIBCC_BUCKET}", path:"libchromiumcontent/mas/${env.TARGET_ARCH}/${GIT_COMMIT}/", acl:'PublicRead')
+                  s3Upload(file:'libchromiumcontent-static.tar.bz2', bucket:"${LIBCC_BUCKET}", path:"libchromiumcontent/mas/${env.TARGET_ARCH}/${GIT_COMMIT}/libchromiumcontent-static.tar.bz2", acl:'PublicRead')
                 }
+              }
+              fileOperations {
+                fileRenameOperation('libchromiumcontent-static.tar.bz2', 'libchromiumcontent-mas-static.tar.bz2')
               }
             }
           }
