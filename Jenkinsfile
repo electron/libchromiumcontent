@@ -24,14 +24,15 @@ pipeline {
                 }
                 withCredentials([string(credentialsId: 'libccbucket', variable: 'LIBCC_BUCKET')]) {
                   withAWS(credentials:'libccs3',region:'us-east-1') {
-                    s3Upload(includePathPattern:'libchromiumcontent.*', bucket:"${LIBCC_BUCKET}", path:"libchromiumcontent/osx/${env.TARGET_ARCH}/${GIT_COMMIT}/", acl:'PublicRead')
+                    s3Upload(file:'libchromiumcontent.tar.bz2', bucket:"${LIBCC_BUCKET}", path:"libchromiumcontent/osx/${env.TARGET_ARCH}/${GIT_COMMIT}/libchromiumcontent.tar.bz2", acl:'PublicRead')
                   }
                 }
+                fileOperations([fileRenameOperation(destination: 'libchromiumcontent-osx.tar.bz2', source: 'libchromiumcontent.tar.bz2')])
               }
             }
             post {
               always {
-                archive 'libchromiumcontent.*'
+                archive 'libchromiumcontent-osx.tar.bz2'
                 cleanWs()
               }
             }
@@ -57,14 +58,15 @@ pipeline {
                 }
                 withCredentials([string(credentialsId: 'libccbucket', variable: 'LIBCC_BUCKET')]) {
                   withAWS(credentials:'libccs3',region:'us-east-1') {
-                    s3Upload(includePathPattern:'libchromiumcontent-static.*', bucket:"${LIBCC_BUCKET}", path:"libchromiumcontent/osx/${env.TARGET_ARCH}/${GIT_COMMIT}/", acl:'PublicRead')
+                    s3Upload(file:'libchromiumcontent-static.tar.bz2', bucket:"${LIBCC_BUCKET}", path:"libchromiumcontent/osx/${env.TARGET_ARCH}/${GIT_COMMIT}/libchromiumcontent-static.tar.bz2", acl:'PublicRead')
                   }
                 }
+                fileOperations([fileRenameOperation(destination: 'libchromiumcontent-static-osx.tar.bz2', source: 'libchromiumcontent-static.tar.bz2')])
               }
             }
             post {
               always {
-                archive 'libchromiumcontent-static.*'
+                archive 'libchromiumcontent-static-osx.tar.bz2'
                 cleanWs()
               }
             }
@@ -91,14 +93,15 @@ pipeline {
               }
               withCredentials([string(credentialsId: 'libccbucket', variable: 'LIBCC_BUCKET')]) {
                 withAWS(credentials:'libccs3',region:'us-east-1') {
-                  s3Upload(includePathPattern:'libchromiumcontent.*', bucket:"${LIBCC_BUCKET}", path:"libchromiumcontent/mas/${env.TARGET_ARCH}/${GIT_COMMIT}/", acl:'PublicRead')
+                  s3Upload(file:'libchromiumcontent.tar.bz2', bucket:"${LIBCC_BUCKET}", path:"libchromiumcontent/mas/${env.TARGET_ARCH}/${GIT_COMMIT}/libchromiumcontent.tar.bz2", acl:'PublicRead')
                 }
               }
+              fileOperations([fileRenameOperation(destination: 'libchromiumcontent-mas.tar.bz2', source: 'libchromiumcontent.tar.bz2')])
             }
           }
           post {
             always {
-              archive 'libchromiumcontent.*'
+              archive 'libchromiumcontent-mas.tar.bz2'
               cleanWs()
             }
           }
@@ -125,14 +128,15 @@ pipeline {
               }
               withCredentials([string(credentialsId: 'libccbucket', variable: 'LIBCC_BUCKET')]) {
                 withAWS(credentials:'libccs3',region:'us-east-1') {
-                  s3Upload(includePathPattern:'libchromiumcontent-static.*', bucket:"${LIBCC_BUCKET}", path:"libchromiumcontent/mas/${env.TARGET_ARCH}/${GIT_COMMIT}/", acl:'PublicRead')
+                  s3Upload(file:'libchromiumcontent-static.tar.bz2', bucket:"${LIBCC_BUCKET}", path:"libchromiumcontent/mas/${env.TARGET_ARCH}/${GIT_COMMIT}/libchromiumcontent-static.tar.bz2", acl:'PublicRead')
                 }
               }
+              fileOperations([fileRenameOperation(destination: 'libchromiumcontent-mas-static.tar.bz2', source: 'libchromiumcontent-static.tar.bz2')])
             }
           }
           post {
             always {
-              archive 'libchromiumcontent-static.*'
+              archive 'libchromiumcontent-mas-static.tar.bz2'
               cleanWs()
             }
           }
