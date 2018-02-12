@@ -248,14 +248,6 @@ def setup_mips64el_toolchain(target_arch):
   subprocess.check_call(['chromium/scripts/copy_config.sh'], cwd=ffmpeg_dir)
   subprocess.check_call(['chromium/scripts/generate_gn.py'], cwd=ffmpeg_dir)
 
-  # Build gn with the patch to support mips64el.
-  gn = os.path.join(SRC_DIR, 'out', 'Release', 'gn')
-  if not os.path.exists(gn):
-    env['PATH'] = os.pathsep.join([DEPOT_TOOLS, env['PATH']])
-    bootstrap = os.path.join(SRC_DIR, 'tools', 'gn', 'bootstrap', 'bootstrap.py')
-    subprocess.check_call([bootstrap, '-s'], cwd=SRC_DIR, env=env)
-
-
 def run_gn(target_arch):
   env = os.environ.copy()
   if sys.platform in ['win32', 'cygwin']:
