@@ -29,24 +29,6 @@ if (target_cpu == "arm64") {
 
 # Configuration for mips64el
 if (target_cpu == "mips64el") {
-  clang_use_chrome_plugins = false
-  enable_hangout_services_extension = true
-  enable_nacl_nonsfi = false
-  fatal_linker_warnings = false
-  fieldtrial_testing_like_official_build = true
   is_clang = false
-  link_pulseaudio = true
-  linux_use_bundled_binutils = false
-  remove_webcore_debug_symbols = true
-  treat_warnings_as_errors = false
   use_allocator = "none"
-  use_cups = true
-  use_gconf = false
-  use_gnome_keyring = false
-  use_gold = false
-  use_kerberos = true
-  use_pulseaudio = true
-  if (target_cpu == host_cpu) {
-    use_sysroot = false
-  }
 }
