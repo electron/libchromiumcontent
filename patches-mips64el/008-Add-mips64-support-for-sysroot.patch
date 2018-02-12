@@ -1,25 +1,22 @@
-From a5d62b0f77143912453e1b60b5e3414570fb739f Mon Sep 17 00:00:00 2001
-From: Wang Qing <wangqing-hf@loongson.cn>
-Date: Sat, 30 Sep 2017 09:38:26 +0800
-Subject: [PATCH] Add mips64 support for sysroot.
-
----
- build/config/sysroot.gni | 2 ++
- 1 file changed, 2 insertions(+)
-
 diff --git a/build/config/sysroot.gni b/build/config/sysroot.gni
-index aa43c2c..b7ac48c 100644
+index f26a55f..a3003c8 100644
 --- a/build/config/sysroot.gni
 +++ b/build/config/sysroot.gni
-@@ -47,6 +47,8 @@ if (current_os == target_os && current_cpu == target_cpu &&
-     sysroot = "$target_sysroot_dir/debian_jessie_i386-sysroot"
+@@ -17,7 +17,7 @@ declare_args() {
+ 
+   use_sysroot =
+       current_cpu == "x86" || current_cpu == "x64" || current_cpu == "arm" ||
+-      current_cpu == "arm64" || current_cpu == "mipsel"
++      current_cpu == "arm64" || current_cpu == "mipsel" || current_cpu == "mips64el"
+ }
+ 
+ if (current_os == target_os && current_cpu == target_cpu &&
+@@ -49,6 +49,8 @@ if (current_os == target_os && current_cpu == target_cpu &&
+     sysroot = "$target_sysroot_dir/debian_stretch_i386-sysroot"
    } else if (current_cpu == "mipsel") {
-     sysroot = "$target_sysroot_dir/debian_jessie_mips-sysroot"
+     sysroot = "$target_sysroot_dir/debian_stretch_mips-sysroot"
 +  } else if (current_cpu == "mips64el") {
 +    sysroot = "$target_sysroot_dir/debian_jessie_mips64-sysroot"
    } else if (current_cpu == "arm") {
-     sysroot = "$target_sysroot_dir/debian_jessie_arm-sysroot"
+     sysroot = "$target_sysroot_dir/debian_stretch_arm-sysroot"
    } else if (current_cpu == "arm64") {
--- 
-2.7.4
-
