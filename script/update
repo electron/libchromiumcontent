@@ -14,7 +14,7 @@ import lib.gn as gn
 import lib.util as util
 
 from lib.config import MIPS64EL_GCC, MIPS64EL_GCC_URL, MIPS64EL_SYSROOT, \
-                       IS_MIPS64EL_HOST, set_mips64el_env, get_output_dir
+                       set_mips64el_env, get_output_dir
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -59,15 +59,11 @@ def main():
   git_cache = args.git_cache or os.getenv('LIBCHROMIUMCONTENT_GIT_CACHE', '')
 
   target_arch = args.target_arch
-  nohooks = target_arch == 'mips64el' and IS_MIPS64EL_HOST
 
   if args.run_gclient:
-    gclient_sync(chromium_version(), args.clean, git_cache, nohooks)
+    gclient_sync(chromium_version(), args.clean, git_cache)
     if args.source_only:
       return
-
-  if target_arch == 'mips64el' and IS_MIPS64EL_HOST:
-    os.system('sh script/mips64el/runhooks-mips64el')
 
   if sys.platform in ['win32', 'cygwin']:
     update_toolchain_json()
@@ -197,7 +193,7 @@ def ensure_gclient_config(git_cache):
       ))
 
 
-def gclient_sync(version, force, git_cache, nohooks):
+def gclient_sync(version, force, git_cache):
   # Remove untracked files in src.
   if os.path.exists(os.path.join(SRC_DIR, '.git')):
     with util.scoped_cwd(SRC_DIR):
@@ -216,8 +212,6 @@ def gclient_sync(version, force, git_cache, nohooks):
     args += ['--lock_timeout=15']
   if force:
     args += ['--force']
-  if nohooks:
-    args += ['--nohooks']
   subprocess.check_call(args, env=env)
 
 
@@ -239,21 +233,16 @@ def setup_mips64el_toolchain(target_arch):
   if target_arch != 'mips64el':
     return
 
-  if IS_MIPS64EL_HOST:
-    # A hack to use the mips64el version of ninja.
-    subprocess.call(['script/mips64el/ninja-mips64el'])
-  else:
-    # Download mips64el toolchains.
-    if not os.path.exists(os.path.join(VENDOR_DIR, MIPS64EL_GCC)):
-      tar_name = MIPS64EL_GCC + '.tar.gz'
-      download(MIPS64EL_GCC_URL, tar_name)
-      subprocess.check_call(['tar', '-xf', tar_name, '-C', VENDOR_DIR])
-      filesystem.rm_f(tar_name)
+  # Download mips64el toolchains.
+  if not os.path.exists(os.path.join(VENDOR_DIR, MIPS64EL_GCC)):
+    tar_name = MIPS64EL_GCC + '.tar.gz'
+    download(MIPS64EL_GCC_URL, tar_name)
+    subprocess.check_call(['tar', '-xf', tar_name, '-C', VENDOR_DIR])
+    filesystem.rm_f(tar_name)
 
   # Gernerate ffmpeg build config files for mips64el.
   env = os.environ.copy()
-  if not IS_MIPS64EL_HOST:
-    set_mips64el_env(env)
+  set_mips64el_env(env)
   ffmpeg_dir = os.path.join(SRC_DIR, 'third_party', 'ffmpeg')
   subprocess.check_call(['chromium/scripts/build_ffmpeg.py', 'linux', 'mips64el'], cwd=ffmpeg_dir, env=env)
   subprocess.check_call(['chromium/scripts/copy_config.sh'], cwd=ffmpeg_dir)

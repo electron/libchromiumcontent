@@ -6,8 +6,7 @@ import subprocess
 import sys
 import platform
 
-from lib.config import MIPS64EL_GCC, IS_MIPS64EL_HOST, set_mips64el_env, \
-                       get_output_dir
+from lib.config import MIPS64EL_GCC, set_mips64el_env, get_output_dir
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -17,8 +16,6 @@ COMPONENTS = ['static_library', 'shared_library', 'ffmpeg']
 NINJA = os.path.join(VENDOR_DIR, 'depot_tools', 'ninja')
 if sys.platform == 'win32':
   NINJA = '{0}.exe'.format(NINJA)
-elif IS_MIPS64EL_HOST:
-  NINJA = os.path.join(VENDOR_DIR, 'depot_tools', 'ninja-build')
 
 
 def main():
@@ -34,7 +31,7 @@ def main():
     binutils_dir = os.path.join(VENDOR_DIR, 'binutils-aarch64')
     env['LD_LIBRARY_PATH'] = binutils_dir + '/usr/x86_64-linux-gnu/aarch64-linux-gnu/lib'
     env['PATH'] = os.pathsep.join([binutils_dir + '/usr/bin', env['PATH']])
-  elif target_arch == 'mips64el' and not IS_MIPS64EL_HOST:
+  elif target_arch == 'mips64el':
     set_mips64el_env(env)
 
   os.chdir(SOURCE_ROOT)
