@@ -47,20 +47,3 @@ index f25a789..2d984f8 100644
    spec.provides["catalog:catalog"].insert("catalog::mojom::Catalog");
    spec.provides["control"].insert("catalog::mojom::CatalogControl");
    InterfaceProviderSpecMap specs;
-diff --git a/mash/quick_launch/manifest.json b/mash/quick_launch/manifest.json
-index 8dfbf4a..ac63cbe 100644
---- a/mash/quick_launch/manifest.json
-+++ b/mash/quick_launch/manifest.json
-@@ -7,7 +7,10 @@
-      "provides": { "mash:launchable": [ "mash::mojom::Launchable" ] },
-      "requires": {
-        "*": [ "app", "mash:launchable" ],
--        "catalog": [ "catalog:catalog" ]
-+        "catalog": [
-+          "catalog:catalog",
-+          "directory"
-+        ]
-      }
-    }
-  }
-  
