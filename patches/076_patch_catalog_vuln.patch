@@ -11,6 +11,19 @@ index 4fd82fd..4b31651 100644
          "control": [ "catalog::mojom::CatalogControl" ]
        },
        "requires": {
+ diff --git a/services/ui/manifest.json b/services/ui/manifest.json
+ index 3e7df92..dfd2c55 100644
+ --- a/services/ui/manifest.json
+ +++ b/services/ui/manifest.json
+ @@ -76,7 +76,7 @@
+       },
+       "requires": {
+         "*": [ "app" ],
+ -        "catalog": [ "app" ],
+ +        "catalog": [ "directory" ],
+         "service_manager": [ "service_manager:all_users" ],
+         "ui": [ "ozone" ],
+         "viz": [ "viz_host" ]
 diff --git a/services/service_manager/service_manager.cc b/services/service_manager/service_manager.cc
 index f25a789..2d984f8 100644
 --- a/services/service_manager/service_manager.cc
