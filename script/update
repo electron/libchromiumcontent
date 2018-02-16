@@ -237,7 +237,9 @@ def update_clang():
                                  env['PATH']])
   env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
   update = os.path.join(SRC_DIR, 'tools', 'clang', 'scripts', 'update.py')
-  return subprocess.call([sys.executable, update, '--if-needed'], env=env)
+  download_gold = os.path.join(SRC_DIR, 'build', 'download_gold_plugin.py')
+  return (subprocess.call([sys.executable, update, '--if-needed'], env=env) or
+          subprocess.call([sys.executable, download_gold], env=env))
 
 
 def setup_mips64el_toolchain(target_arch):
