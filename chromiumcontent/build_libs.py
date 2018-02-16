@@ -253,7 +253,6 @@ with open(args.out, 'w') as out:
         "obj_webkit",
         [
             "third_party/WebKit/public",
-            "third_party/WebKit/Source/core",
             "third_party/WebKit/Source/platform/heap",
             "third_party/WebKit/Source/platform/blink_common",
             "third_party/WebKit/Source/platform/loader",
@@ -269,6 +268,13 @@ with open(args.out, 'w') as out:
         "obj_webkitbindings",
         [
             "third_party/WebKit/Source/bindings",
+        ])
+
+    gen_list(
+        out,
+        "obj_webkitcore",
+        [
+            "third_party/WebKit/Source/core",
         ])
 
     gen_list(
