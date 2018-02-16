@@ -1,0 +1,28 @@
+Fix touchpad lagging issue. port from crrev.com/c/867070
+---
+
+diff --git a/gpu/ipc/in_process_command_buffer.cc b/gpu/ipc/in_process_command_buffer.cc
+index f5ac52f17443..414a7f647028 100644
+--- a/gpu/ipc/in_process_command_buffer.cc
++++ b/gpu/ipc/in_process_command_buffer.cc
+@@ -1026,6 +1026,8 @@ void InProcessCommandBuffer::DidCreateAcceleratedSurfaceChildWindow(
+     SurfaceHandle parent_window,
+     SurfaceHandle child_window) {
+   ::SetParent(child_window, parent_window);
++  ::SetWindowPos(child_window, HWND_BOTTOM, 0, 0, 0, 0,
++                 SWP_NOMOVE | SWP_NOSIZE);
+ }
+ #endif
+ 
+diff --git a/ui/gfx/win/rendering_window_manager.cc b/ui/gfx/win/rendering_window_manager.cc
+index a0528ecf9ab7..72ef021bedbe 100644
+--- a/ui/gfx/win/rendering_window_manager.cc
++++ b/ui/gfx/win/rendering_window_manager.cc
+@@ -49,6 +49,7 @@ void RenderingWindowManager::DoSetParentOnChild(HWND parent) {
+   }
+ 
+   ::SetParent(child, parent);
++  ::SetWindowPos(child, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+ }
+ 
+ void RenderingWindowManager::UnregisterParent(HWND parent) {
