@@ -31,6 +31,24 @@ index d055e70..c76ca27 100644
  ]
  if (is_win) {
    default_compiler_configs += [
+diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
+index 3b77c055108b..10dab62c2878 100644
+--- a/build/config/compiler/BUILD.gn
++++ b/build/config/compiler/BUILD.gn
+@@ -485,11 +485,11 @@ config("compiler") {
+       # For Full LTO, it provides a measurable runtime speedup of Chrome.
+       cflags += [
+         "-flto",
+-        "-fwhole-program-vtables",
++        # "-fwhole-program-vtables",
+       ]
+       ldflags += [
+         "-flto",
+-        "-fwhole-program-vtables",
++        # "-fwhole-program-vtables",
+       ]
+ 
+       # Apply a lower LTO optimization level as the default is too slow.
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
 index 5e1f7fcc4d83..15723e6b7184 100644
 --- a/build/config/win/BUILD.gn

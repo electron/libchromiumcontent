@@ -1,7 +1,7 @@
 root_extra_deps = [ "//chromiumcontent:chromiumcontent" ]
 is_electron_build = true
 is_component_build = false
-is_debug = false
+is_official_build = true
 symbol_level = 2
 enable_nacl = false
 enable_widevine = true
@@ -9,3 +9,8 @@ proprietary_codecs = true
 is_component_ffmpeg = true
 ffmpeg_branding = "Chrome"
 v8_promise_internal_field_count = 1  # https://github.com/nodejs/node/pull/13242
+
+# CFI is disabled for the time being, as Electron is not a monolithic binary
+# with at least one shared library component (Node) and CFI is tricky in that
+# scenario
+is_cfi = false
