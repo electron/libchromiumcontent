@@ -297,12 +297,18 @@ with open(args.out, 'w') as out:
         "obj_v8",
         [
             "v8/src/inspector",
-            "v8/v8_base",
             "v8/v8_external_snapshot",
             "v8/v8_libbase",
             "v8/v8_libplatform",
             "v8/v8_libsampler",
             "third_party/icu",
+        ])
+
+    gen_list(
+        out,
+        "obj_v8base",
+        [
+            "v8/v8_base",
         ])
 
 open(args.stamp, 'w')

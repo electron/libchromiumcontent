@@ -1,3 +1,5 @@
+import("//build/split_static_library.gni")
+
 group("targets") {
   deps = []
 
@@ -224,6 +226,7 @@ if (is_electron_build && !is_component_build) {
       ":webkitmodules",
       ":webrtc",
       ":v8",
+      ":v8base",
     ]
   }
 
@@ -331,11 +334,15 @@ if (is_electron_build && !is_component_build) {
     }
   }
 
-  static_library("webkitcore") {
+  split_static_library("webkitcore") {
     complete_static_lib = true
+    split_count = 1
     sources = []
     if (defined(obj_webkitcore)) {
       sources += obj_webkitcore
+      if (is_win) {
+        split_count = 9
+      }
     }
   }
 
@@ -360,6 +367,18 @@ if (is_electron_build && !is_component_build) {
     sources = []
     if (defined(obj_v8)) {
       sources += obj_v8
+    }
+  }
+
+  split_static_library("v8base") {
+    complete_static_lib = true
+    split_count = 1
+    sources = []
+    if (defined(obj_v8base)) {
+      sources += obj_v8base
+      if (is_win) {
+        split_count = 2
+      }
     }
   }
 
