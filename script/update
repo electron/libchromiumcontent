@@ -276,12 +276,9 @@ def setup_mips64el_toolchain(target_arch):
 
 
 def run_gn(target_arch, defines):
+  gn = os.path.join(VENDOR_DIR, 'depot_tools', 'gn')
   if sys.platform in ['win32', 'cygwin']:
-    gn = os.path.join(SRC_DIR, 'buildtools', 'win', 'gn.exe')
-  elif sys.platform == 'linux2':
-    gn = os.path.join(SRC_DIR, 'buildtools', 'linux64', 'gn')
-  elif sys.platform == 'darwin':
-    gn = os.path.join(SRC_DIR, 'buildtools', 'mac', 'gn')
+    gn += '.bat'
 
   env = os.environ.copy()
   if sys.platform in ['win32', 'cygwin']:
