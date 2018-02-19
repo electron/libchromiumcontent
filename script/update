@@ -313,7 +313,7 @@ def run_gn(target_arch):
           target_cpu=target_cpu)
 
     # Generate Ninja build files.
-    gn.generate(output_dir, chromium_root_dir=SRC_DIR, env=env)
+    gn.generate(output_dir, chromium_root_dir=SRC_DIR, depot_tools_dir=DEPOT_TOOLS, env=env)
 
 
 def is_newer(destination, source):
