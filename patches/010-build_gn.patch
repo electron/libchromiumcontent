@@ -11,7 +11,7 @@ index 8cdb06161f5c..285461d3381d 100644
  
  # This "allocator" meta-target will forward to the default allocator according
 diff --git a/build/config/BUILDCONFIG.gn b/build/config/BUILDCONFIG.gn
-index d055e70..c76ca27 100644
+index d055e705627c..a52003f1b5e1 100644
 --- a/build/config/BUILDCONFIG.gn
 +++ b/build/config/BUILDCONFIG.gn
 @@ -123,6 +123,8 @@ if (current_os == "") {
@@ -27,7 +27,7 @@ index d055e70..c76ca27 100644
    "//build/config/compiler:no_rtti",
    "//build/config/compiler:runtime_library",
    "//build/config/sanitizers:default_sanitizer_flags",
-+  "//chromiumcontent:mas_build",
++  "//chromiumcontent/config:mas_build",
  ]
  if (is_win) {
    default_compiler_configs += [
@@ -63,14 +63,14 @@ index 5e1f7fcc4d83..15723e6b7184 100644
      # exceptions or will give errors about things not matching, so keep
      # exceptions on.
 diff --git a/third_party/WebKit/Source/platform/BUILD.gn b/third_party/WebKit/Source/platform/BUILD.gn
-index 15bf689..9cdc19d 100644
+index 6c86a6454256..2bc8c31396af 100644
 --- a/third_party/WebKit/Source/platform/BUILD.gn
 +++ b/third_party/WebKit/Source/platform/BUILD.gn
-@@ -160,6 +160,7 @@ action("character_data") {
+@@ -160,6 +160,7 @@ action("instrumentation_probes") {
  }
  
  executable("character_data_generator") {
-+  configs += [ "//chromiumcontent:build_time_executable" ]
++  configs += [ "//chromiumcontent/config:build_time_executable" ]
    sources = [
      "text/CharacterPropertyDataGenerator.cpp",
      "text/CharacterPropertyDataGenerator.h",

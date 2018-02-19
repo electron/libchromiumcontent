@@ -1,8 +1,8 @@
 diff --git a/BUILD.gn b/BUILD.gn
-index 8895103..69f8bf5 100644
+index 80ff7340b1..630a591294 100644
 --- a/BUILD.gn
 +++ b/BUILD.gn
-@@ -158,25 +158,41 @@ config("internal_config") {
+@@ -161,25 +161,41 @@ config("internal_config") {
    if (is_component_build) {
      defines = [ "BUILDING_V8_SHARED" ]
    }
@@ -46,7 +46,7 @@ index 8895103..69f8bf5 100644
      defines = [ "USING_V8_BASE_SHARED" ]
    }
    libs = []
-@@ -193,7 +209,7 @@ config("libsampler_config") {
+@@ -196,7 +212,7 @@ config("libsampler_config") {
  # This config should only be applied to code using V8 and not any V8 code
  # itself.
  config("external_config") {
@@ -55,7 +55,7 @@ index 8895103..69f8bf5 100644
      defines = [ "USING_V8_SHARED" ]
    }
    include_dirs = [
-@@ -2444,7 +2460,7 @@ v8_component("v8_libbase") {
+@@ -2451,7 +2467,7 @@ v8_component("v8_libbase") {
  
    defines = []
  
@@ -64,7 +64,7 @@ index 8895103..69f8bf5 100644
      defines = [ "BUILDING_V8_BASE_SHARED" ]
    }
  
-@@ -2537,7 +2553,7 @@ v8_component("v8_libplatform") {
+@@ -2544,7 +2560,7 @@ v8_component("v8_libplatform") {
  
    configs = [ ":internal_config_base" ]
  
@@ -73,16 +73,16 @@ index 8895103..69f8bf5 100644
      defines = [ "BUILDING_V8_PLATFORM_SHARED" ]
    }
  
-@@ -2601,6 +2617,8 @@ if (current_toolchain == v8_snapshot_toolchain) {
+@@ -2608,6 +2624,8 @@ if (current_toolchain == v8_snapshot_toolchain) {
  
      configs = [ ":internal_config" ]
  
-+    configs += [ "//chromiumcontent:build_time_executable" ]
++    configs += [ "//chromiumcontent/config:build_time_executable" ]
 +
      deps = [
        ":v8_base",
        ":v8_builtins_setup",
-@@ -2680,7 +2700,7 @@ group("v8_fuzzers") {
+@@ -2687,7 +2705,7 @@ group("v8_fuzzers") {
    ]
  }
  
