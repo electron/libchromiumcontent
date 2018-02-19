@@ -185,8 +185,10 @@ if (is_electron_build && !is_component_build) {
   # ninja. Because "objects.gni" is a GN input file, it will cause it
   # to re-generate the targets and produce the static libraries we want.
 
+  is_second_pass = (getenv("CHROMIUMCONTENT_2ND_PASS") != "")
+
   # Make sure the .gni file exists, otherwise it cannot be imported
-  if (getenv("CHROMIUMCONTENT_2ND_PASS") == "") {
+  if (!is_second_pass) {
     write_file("$target_out_dir/objects.gni", "")
   }
 
@@ -208,172 +210,123 @@ if (is_electron_build && !is_component_build) {
   # produce a .lib file bigger than 4 GB, LLVM has a limit on the number of
   # object files on the command line. So we produce multiple libraries.
   group("libs") {
-    deps = [
-      ":libchromiumcontent",
-      ":base",
-      ":cc",
-      ":components",
-      ":ppapi",
-      ":media",
-      ":net",
-      ":services",
-      ":skia",
-      ":angle",
-      ":pdfium",
-      ":webkit",
-      ":webkitcore",
-      ":webkitbindings",
-      ":webkitmodules",
-      ":webrtc",
-      ":v8",
-      ":v8base",
-    ]
-  }
-
-  static_library("libchromiumcontent") {
-    complete_static_lib = true
-    sources = []
-    if (defined(obj_libchromiumcontent)) {
-      sources += obj_libchromiumcontent
+    if (is_second_pass) {
+      deps = [
+        ":libchromiumcontent",
+        ":base",
+        ":cc",
+        ":components",
+        ":ppapi",
+        ":media",
+        ":net",
+        ":services",
+        ":skia",
+        ":angle",
+        ":pdfium",
+        ":webkit",
+        ":webkitcore",
+        ":webkitbindings",
+        ":webkitmodules",
+        ":webrtc",
+        ":v8",
+        ":v8base",
+      ]
     }
   }
 
-  static_library("base") {
-    complete_static_lib = true
-    sources = []
-    if (defined(obj_base)) {
-      sources += obj_base
+  if (is_second_pass) {
+    static_library("libchromiumcontent") {
+      complete_static_lib = true
+      sources = obj_libchromiumcontent
     }
-  }
 
-  static_library("cc") {
-    complete_static_lib = true
-    sources = []
-    if (defined(obj_cc)) {
-      sources += obj_cc
+    static_library("base") {
+      complete_static_lib = true
+      sources = obj_base
     }
-  }
 
-  static_library("components") {
-    complete_static_lib = true
-    sources = []
-    if (defined(obj_components)) {
-      sources += obj_components
+    static_library("cc") {
+      complete_static_lib = true
+      sources = obj_cc
     }
-  }
 
-  static_library("ppapi") {
-    complete_static_lib = true
-    sources = []
-    if (defined(obj_ppapi)) {
-      sources += obj_ppapi
+    static_library("components") {
+      complete_static_lib = true
+      sources = obj_components
     }
-  }
 
-  static_library("media") {
-    complete_static_lib = true
-    sources = []
-    if (defined(obj_media)) {
-      sources += obj_media
+    static_library("ppapi") {
+      complete_static_lib = true
+      sources = obj_ppapi
     }
-  }
 
-  static_library("net") {
-    complete_static_lib = true
-    sources = []
-    if (defined(obj_net)) {
-      sources += obj_net
+    static_library("media") {
+      complete_static_lib = true
+      sources = obj_media
     }
-  }
 
-  static_library("services") {
-    complete_static_lib = true
-    sources = []
-    if (defined(obj_services)) {
-      sources += obj_services
+    static_library("net") {
+      complete_static_lib = true
+      sources = obj_net
     }
-  }
 
-  static_library("skia") {
-    complete_static_lib = true
-    sources = []
-    if (defined(obj_skia)) {
-      sources += obj_skia
+    static_library("services") {
+      complete_static_lib = true
+      sources = obj_services
     }
-  }
 
-  static_library("angle") {
-    complete_static_lib = true
-    sources = []
-    if (defined(obj_angle)) {
-      sources += obj_angle
+    static_library("skia") {
+      complete_static_lib = true
+      sources = obj_skia
     }
-  }
 
-  static_library("pdfium") {
-    complete_static_lib = true
-    sources = []
-    if (defined(obj_pdfium)) {
-      sources += obj_pdfium
+    static_library("angle") {
+      complete_static_lib = true
+      sources = obj_angle
     }
-  }
 
-  static_library("webkit") {
-    complete_static_lib = true
-    sources = []
-    if (defined(obj_webkit)) {
-      sources += obj_webkit
+    static_library("pdfium") {
+      complete_static_lib = true
+      sources = obj_pdfium
     }
-  }
 
-  static_library("webkitcore") {
-    complete_static_lib = true
-    sources = []
-    if (defined(obj_webkitcore)) {
-      sources += obj_webkitcore
+    static_library("webkit") {
+      complete_static_lib = true
+      sources = obj_webkit
     }
-  }
 
-  static_library("webkitbindings") {
-    complete_static_lib = true
-    sources = []
-    if (defined(obj_webkitbindings)) {
-      sources += obj_webkitbindings
+    static_library("webkitbindings") {
+      complete_static_lib = true
+      sources = obj_webkitbindings
     }
-  }
 
-  static_library("webkitmodules") {
-    complete_static_lib = true
-    sources = []
-    if (defined(obj_webkitmodules)) {
-      sources += obj_webkitmodules
+    static_library("webkitcore") {
+      complete_static_lib = true
+      sources = obj_webkitcore
     }
-  }
 
-  static_library("webrtc") {
-    complete_static_lib = true
-    sources = []
-    if (defined(obj_webrtc)) {
-      sources += obj_webrtc
+    static_library("webkitmodules") {
+      complete_static_lib = true
+      sources = obj_webkitmodules
     }
-  }
 
-  static_library("v8") {
-    complete_static_lib = true
-    sources = []
-    if (defined(obj_v8)) {
-      sources += obj_v8
+    static_library("webrtc") {
+      complete_static_lib = true
+      sources = obj_webrtc
     }
-  }
 
-  split_static_library("v8base") {
-    complete_static_lib = true
-    split_count = 1
-    sources = []
-    if (defined(obj_v8base)) {
-      sources += obj_v8base
+    static_library("v8") {
+      complete_static_lib = true
+      sources = obj_v8
+    }
+
+    split_static_library("v8base") {
+      complete_static_lib = true
+      sources = obj_v8base
       if (is_win) {
         split_count = 2
+      } else {
+        split_count = 1
       }
     }
   }
@@ -384,28 +337,4 @@ if (is_electron_build && !is_component_build) {
     deps = [ ":targets" ]
   }
 
-}
-
-# There are some executable targets whose products are ran during build.
-# This config is applied to those targets because we need to give them some
-# special treatment.
-config("build_time_executable") {
-  configs = []
-
-  # The executables which have this config applied are dependent on ICU,
-  # which is always a shared library in an Electron build. However, in the
-  # non-component build, Linux executables don't have rpath set to search for
-  # libraries in the executable's directory, so ICU cannot be found. So let's
-  # make sure rpath is set here.
-  # See '//build/config/gcc/BUILD.gn' for details on the rpath setting.
-  if (is_electron_build && is_linux && !is_component_build) {
-    configs += [ "//build/config/gcc:rpath_for_built_shared_libraries" ]
-  }
-}
-
-# For MAS build, we force defining "MAS_BUILD".
-config("mas_build") {
-  if (getenv("MAS_BUILD") != "") {
-    defines = [ "MAS_BUILD" ]
-  }
 }
