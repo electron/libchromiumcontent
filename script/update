@@ -185,9 +185,8 @@ def update_depot_tools():
   # Remove trailing slash from TEMP
   # https://bugs.chromium.org/p/chromium/issues/detail?id=340243
   env['TEMP'] = env['TEMP'].rstrip('\\')
-  env['PATH'] = os.pathsep.join([os.path.join(VENDOR_DIR, 'depot_tools'),
-                                 env['PATH']])
-  update_path = os.path.join(VENDOR_DIR, 'depot_tools', 'update_depot_tools.bat')
+  env['PATH'] = os.pathsep.join([DEPOT_TOOLS, env['PATH']])
+  update_path = os.path.join(DEPOT_TOOLS, 'update_depot_tools.bat')
   subprocess.check_call([update_path], env=env)
 
 
@@ -210,9 +209,8 @@ def gclient_sync(version, force, git_cache, nohooks):
   env = os.environ.copy()
   if sys.platform in ['win32', 'cygwin']:
     env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
-  env['PATH'] = os.pathsep.join([os.path.join(VENDOR_DIR, 'depot_tools'),
-                                 env['PATH']])
-  gclient = os.path.join(VENDOR_DIR, 'depot_tools', 'gclient.py')
+  env['PATH'] = os.pathsep.join([DEPOT_TOOLS, env['PATH']])
+  gclient = os.path.join(DEPOT_TOOLS, 'gclient.py')
   args = [sys.executable, gclient, 'sync', '--jobs', '16',
           '--revision', 'src@{0}'.format(version), '--with_tags',
           '--with_branch_heads', '--reset', '--delete_unversioned_trees']
@@ -233,8 +231,7 @@ def apply_patches(target_arch):
 
 def update_clang():
   env = os.environ.copy()
-  env['PATH'] = os.pathsep.join([os.path.join(VENDOR_DIR, 'depot_tools'),
-                                 env['PATH']])
+  env['PATH'] = os.pathsep.join([DEPOT_TOOLS, env['PATH']])
   env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
   update = os.path.join(SRC_DIR, 'tools', 'clang', 'scripts', 'update.py')
   return subprocess.call([sys.executable, update, '--if-needed'], env=env)
@@ -276,8 +273,7 @@ def setup_mips64el_toolchain(target_arch):
   # Build gn with the patch to support mips64el.
   gn = os.path.join(SRC_DIR, 'out', 'Release', 'gn')
   if not os.path.exists(gn):
-    env['PATH'] = os.pathsep.join([os.path.join(VENDOR_DIR, 'depot_tools'),
-                                   env['PATH']])
+    env['PATH'] = os.pathsep.join([DEPOT_TOOLS, env['PATH']])
     bootstrap = os.path.join(SRC_DIR, 'tools', 'gn', 'bootstrap', 'bootstrap.py')
     subprocess.check_call([bootstrap, '-s'], cwd=SRC_DIR, env=env)
 
