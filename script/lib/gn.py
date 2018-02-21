@@ -3,21 +3,12 @@ import subprocess
 import sys
 
 
-def __get_executable_path(chromium_root_dir):
-  platform = sys.platform
-  relative_path = None
+def __get_executable_path(depot_tools_dir):
+  gn_path = os.path.join(depot_tools_dir, 'gn')
+  if sys.platform in ['win32', 'cygwin']:
+    gn_path += '.bat'
 
-  if platform in ['win32', 'cygwin']:
-    relative_path = ['buildtools', 'win', 'gn.exe']
-  elif platform == 'linux2':
-    relative_path = ['buildtools', 'linux64', 'gn']
-  elif platform == 'darwin':
-    relative_path = ['buildtools', 'mac', 'gn']
-
-  assert relative_path is not None, "Platform '{}' is not supported".format(platform)
-
-  absolute_path = os.path.join(chromium_root_dir, *relative_path)
-  return absolute_path
+  return gn_path
 
 
 def create_args(out_dir, raw_config, **kwargs):
@@ -29,8 +20,8 @@ def create_args(out_dir, raw_config, **kwargs):
     f.write(raw_config)
 
 
-def generate(out_dir, chromium_root_dir, env):
-  executable = __get_executable_path(chromium_root_dir)
+def generate(out_dir, chromium_root_dir, depot_tools_dir, env):
+  executable = __get_executable_path(depot_tools_dir)
   out_dir_relative_path = os.path.relpath(out_dir, chromium_root_dir)
   subprocess.check_call([executable, 'gen', out_dir_relative_path],
                         cwd=chromium_root_dir, env=env)
