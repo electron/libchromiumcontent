@@ -253,7 +253,6 @@ with open(args.out, 'w') as out:
         "obj_webkit",
         [
             "third_party/WebKit/public",
-            "third_party/WebKit/Source/core",
             "third_party/WebKit/Source/platform/heap",
             "third_party/WebKit/Source/platform/blink_common",
             "third_party/WebKit/Source/platform/loader",
@@ -269,6 +268,13 @@ with open(args.out, 'w') as out:
         "obj_webkitbindings",
         [
             "third_party/WebKit/Source/bindings",
+        ])
+
+    gen_list(
+        out,
+        "obj_webkitcore",
+        [
+            "third_party/WebKit/Source/core",
         ])
 
     gen_list(
@@ -291,12 +297,18 @@ with open(args.out, 'w') as out:
         "obj_v8",
         [
             "v8/src/inspector",
-            "v8/v8_base",
             "v8/v8_external_snapshot",
             "v8/v8_libbase",
             "v8/v8_libplatform",
             "v8/v8_libsampler",
             "third_party/icu",
+        ])
+
+    gen_list(
+        out,
+        "obj_v8base",
+        [
+            "v8/v8_base",
         ])
 
 open(args.stamp, 'w')
