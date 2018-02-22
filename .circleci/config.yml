@@ -24,6 +24,7 @@ jobs:
       - run:
           name: Create distribution
           command: script/create-dist -t $TARGET_ARCH -c $COMPONENT
+          no_output_timeout: 20m
       - run:
           name: Upload to S3
           command: |
@@ -59,6 +60,7 @@ jobs:
       - run:
           name: Create distribution
           command: script/create-dist -t $TARGET_ARCH -c $COMPONENT
+          no_output_timeout: 20m
       - run:
           name: Upload to S3
           command: |
@@ -94,6 +96,7 @@ jobs:
       - run:
           name: Create distribution
           command: script/create-dist -t $TARGET_ARCH -c $COMPONENT
+          no_output_timeout: 20m
       - run:
           name: Upload to S3
           command: |
@@ -129,6 +132,7 @@ jobs:
       - run:
           name: Create distribution
           command: script/create-dist -t $TARGET_ARCH -c $COMPONENT
+          no_output_timeout: 20m
       - run:
           name: Upload to S3
           command: |
@@ -164,6 +168,7 @@ jobs:
       - run:
           name: Create distribution
           command: script/create-dist -t $TARGET_ARCH -c $COMPONENT
+          no_output_timeout: 20m
       - run:
           name: Upload to S3
           command: |
@@ -199,6 +204,7 @@ jobs:
       - run:
           name: Create distribution
           command: script/create-dist -t $TARGET_ARCH -c $COMPONENT
+          no_output_timeout: 20m
       - run:
           name: Upload to S3
           command: |
@@ -234,6 +240,7 @@ jobs:
       - run:
           name: Create distribution
           command: script/create-dist -t $TARGET_ARCH -c $COMPONENT
+          no_output_timeout: 20m
       - run:
           name: Upload to S3
           command: |
@@ -269,6 +276,7 @@ jobs:
       - run:
           name: Create distribution
           command: script/create-dist -t $TARGET_ARCH -c $COMPONENT
+          no_output_timeout: 20m
       - run:
           name: Upload to S3
           command: |
@@ -304,6 +312,7 @@ jobs:
       - run:
           name: Create distribution
           command: script/create-dist -t $TARGET_ARCH -c $COMPONENT
+          no_output_timeout: 20m
       - run:
           name: Upload to S3
           command: |
@@ -339,6 +348,7 @@ jobs:
       - run:
           name: Create distribution
           command: script/create-dist -t $TARGET_ARCH -c $COMPONENT
+          no_output_timeout: 20m
       - run:
           name: Upload to S3
           command: |
