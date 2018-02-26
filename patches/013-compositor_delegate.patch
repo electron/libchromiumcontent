@@ -16,16 +16,16 @@ index 50a66bb..73a9515 100644
    if (command_line->HasSwitch(switches::kHeadless))
      return base::WrapUnique(new cc::SoftwareOutputDevice);
 diff --git a/ui/compositor/compositor.h b/ui/compositor/compositor.h
-index 92696ad..7da8159 100644
+index a3bc8cafc574..6cca225c2ba2 100644
 --- a/ui/compositor/compositor.h
 +++ b/ui/compositor/compositor.h
-@@ -18,6 +18,7 @@
- #include "base/time/time.h"
+@@ -19,6 +19,7 @@
  #include "build/build_config.h"
- #include "cc/output/begin_frame_args.h"
-+#include "cc/output/software_output_device.h"
  #include "cc/trees/layer_tree_host_client.h"
  #include "cc/trees/layer_tree_host_single_thread_client.h"
++#include "cc/output/software_output_device.h"
+ #include "components/viz/common/frame_sinks/begin_frame_args.h"
+ #include "components/viz/common/surfaces/local_surface_id.h"
  #include "components/viz/common/surfaces/surface_sequence.h"
 @@ -168,6 +169,15 @@ class COMPOSITOR_EXPORT CompositorLock
    virtual void RemoveObserver(ContextFactoryObserver* observer) = 0;

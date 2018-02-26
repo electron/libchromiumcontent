@@ -1,9 +1,8 @@
-b4ad15be5fc33a6f716d96a654c160ecf533cc88
 diff --git a/include/v8.h b/include/v8.h
-index 6bf0e1d7bf..931dd9a628 100644
+index deedb13dee..2a2ca02700 100644
 --- a/include/v8.h
 +++ b/include/v8.h
-@@ -7169,6 +7169,8 @@ class V8_EXPORT Isolate {
+@@ -7230,6 +7230,8 @@ class V8_EXPORT Isolate {
  
    typedef void (*GCCallback)(Isolate* isolate, GCType type,
                               GCCallbackFlags flags);
@@ -12,7 +11,7 @@ index 6bf0e1d7bf..931dd9a628 100644
  
    /**
     * Enables the host application to receive a notification before a
-@@ -7179,6 +7181,8 @@ class V8_EXPORT Isolate {
+@@ -7240,6 +7242,8 @@ class V8_EXPORT Isolate {
     * not possible to register the same callback function two times with
     * different GCType filters.
     */
@@ -21,7 +20,7 @@ index 6bf0e1d7bf..931dd9a628 100644
    void AddGCPrologueCallback(GCCallback callback,
                               GCType gc_type_filter = kGCTypeAll);
  
-@@ -7186,6 +7190,7 @@ class V8_EXPORT Isolate {
+@@ -7247,6 +7251,7 @@ class V8_EXPORT Isolate {
     * This function removes callback which was installed by
     * AddGCPrologueCallback function.
     */
@@ -29,7 +28,7 @@ index 6bf0e1d7bf..931dd9a628 100644
    void RemoveGCPrologueCallback(GCCallback callback);
  
    /**
-@@ -7202,6 +7207,8 @@ class V8_EXPORT Isolate {
+@@ -7263,6 +7268,8 @@ class V8_EXPORT Isolate {
     * not possible to register the same callback function two times with
     * different GCType filters.
     */
@@ -38,7 +37,7 @@ index 6bf0e1d7bf..931dd9a628 100644
    void AddGCEpilogueCallback(GCCallback callback,
                               GCType gc_type_filter = kGCTypeAll);
  
-@@ -7209,6 +7216,8 @@ class V8_EXPORT Isolate {
+@@ -7270,6 +7277,8 @@ class V8_EXPORT Isolate {
     * This function removes callback which was installed by
     * AddGCEpilogueCallback function.
     */
@@ -48,10 +47,10 @@ index 6bf0e1d7bf..931dd9a628 100644
  
    typedef size_t (*GetExternallyAllocatedMemoryInBytesCallback)();
 diff --git a/src/api.cc b/src/api.cc
-index 4792a3e7ac..2220e41b6c 100644
+index 4b6cb1e727..8c1fe898ed 100644
 --- a/src/api.cc
 +++ b/src/api.cc
-@@ -8338,41 +8338,70 @@ v8::Local<Value> Isolate::ThrowException(v8::Local<v8::Value> value) {
+@@ -8378,41 +8378,70 @@ v8::Local<Value> Isolate::ThrowException(v8::Local<v8::Value> value) {
    return v8::Undefined(reinterpret_cast<v8::Isolate*>(isolate));
  }
  
@@ -141,10 +140,10 @@ index 4792a3e7ac..2220e41b6c 100644
  
  void Isolate::SetEmbedderHeapTracer(EmbedderHeapTracer* tracer) {
 diff --git a/src/heap/heap.cc b/src/heap/heap.cc
-index c391683844..b168c3104c 100644
+index 6a2128d1fb..2e6cfab292 100644
 --- a/src/heap/heap.cc
 +++ b/src/heap/heap.cc
-@@ -57,15 +57,16 @@
+@@ -58,15 +58,16 @@
  namespace v8 {
  namespace internal {
  
@@ -166,7 +165,7 @@ index c391683844..b168c3104c 100644
    return *this;
  }
  
-@@ -1513,35 +1514,21 @@ bool Heap::PerformGarbageCollection(
+@@ -1592,35 +1593,21 @@ bool Heap::PerformGarbageCollection(
  void Heap::CallGCPrologueCallbacks(GCType gc_type, GCCallbackFlags flags) {
    RuntimeCallTimerScope runtime_timer(isolate(),
                                        &RuntimeCallStats::GCPrologueCallback);
@@ -209,7 +208,7 @@ index c391683844..b168c3104c 100644
      }
    }
  }
-@@ -5963,21 +5950,21 @@ void Heap::TearDown() {
+@@ -6182,21 +6169,21 @@ void Heap::TearDown() {
    memory_allocator_ = nullptr;
  }
  
@@ -239,7 +238,7 @@ index c391683844..b168c3104c 100644
        gc_prologue_callbacks_[i] = gc_prologue_callbacks_.back();
        gc_prologue_callbacks_.pop_back();
        return;
-@@ -5986,21 +5973,21 @@ void Heap::RemoveGCPrologueCallback(v8::Isolate::GCCallback callback) {
+@@ -6205,21 +6192,21 @@ void Heap::RemoveGCPrologueCallback(v8::Isolate::GCCallback callback) {
    UNREACHABLE();
  }
  
@@ -270,10 +269,10 @@ index c391683844..b168c3104c 100644
        gc_epilogue_callbacks_.pop_back();
        return;
 diff --git a/src/heap/heap.h b/src/heap/heap.h
-index 44ef96b064..2ea58d886b 100644
+index e83e646de5..ab48e72651 100644
 --- a/src/heap/heap.h
 +++ b/src/heap/heap.h
-@@ -1414,13 +1414,15 @@ class Heap {
+@@ -1427,13 +1427,15 @@ class Heap {
    // Prologue/epilogue callback methods.========================================
    // ===========================================================================
  
@@ -295,7 +294,7 @@ index 44ef96b064..2ea58d886b 100644
  
    void CallGCPrologueCallbacks(GCType gc_type, GCCallbackFlags flags);
    void CallGCEpilogueCallbacks(GCType gc_type, GCCallbackFlags flags);
-@@ -1580,17 +1582,17 @@ class Heap {
+@@ -1604,17 +1606,17 @@ class Heap {
      RootListIndex index;
    };
  
@@ -320,10 +319,10 @@ index 44ef96b064..2ea58d886b 100644
 +    void* data;
    };
  
-   typedef String* (*ExternalStringTableUpdaterCallback)(Heap* heap,
-@@ -2254,8 +2256,8 @@ class Heap {
- 
-   Object* encountered_transition_arrays_;
+   static const int kInitialStringTableSize = 2048;
+@@ -2294,8 +2296,8 @@ class Heap {
+   // contains Smi(0) while marking is not active.
+   Object* encountered_weak_collections_;
  
 -  std::vector<GCCallbackPair> gc_epilogue_callbacks_;
 -  std::vector<GCCallbackPair> gc_prologue_callbacks_;
@@ -333,10 +332,10 @@ index 44ef96b064..2ea58d886b 100644
    GetExternallyAllocatedMemoryInBytesCallback external_memory_callback_;
  
 diff --git a/test/cctest/test-api.cc b/test/cctest/test-api.cc
-index aa4cba5a60..06ce7c565e 100644
+index 575f64dd49..6cdb629160 100644
 --- a/test/cctest/test-api.cc
 +++ b/test/cctest/test-api.cc
-@@ -19592,6 +19592,19 @@ void EpilogueCallbackSecond(v8::Isolate* isolate,
+@@ -19652,6 +19652,19 @@ void EpilogueCallbackSecond(v8::Isolate* isolate,
    ++epilogue_call_count_second;
  }
  
@@ -356,7 +355,7 @@ index aa4cba5a60..06ce7c565e 100644
  
  void PrologueCallbackAlloc(v8::Isolate* isolate,
                             v8::GCType,
-@@ -19666,6 +19679,52 @@ TEST(GCCallbacksOld) {
+@@ -19726,6 +19739,52 @@ TEST(GCCallbacksOld) {
    CHECK_EQ(2, epilogue_call_count_second);
  }
  

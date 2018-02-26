@@ -1,8 +1,8 @@
 diff --git a/src/heap/heap.cc b/src/heap/heap.cc
-index 04de6ea6b6..62a5856f34 100644
+index 61e15efd53..e6762df913 100644
 --- a/src/heap/heap.cc
 +++ b/src/heap/heap.cc
-@@ -1718,7 +1718,7 @@ void Heap::Scavenge() {
+@@ -1887,7 +1887,7 @@ void Heap::Scavenge() {
  
    if (mark_compact_collector()->sweeper().sweeping_in_progress() &&
        memory_allocator_->unmapper()->NumberOfDelayedChunks() >

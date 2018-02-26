@@ -22,8 +22,9 @@ with open(args.out, 'w') as out:
     additional_libchromiumcontent = []
     if sys.platform in ['win32', 'cygwin'] and args.target_cpu == "x64":
         additional_libchromiumcontent = [
-            "../clang_x64/obj/third_party/libyuv",
+            "../win_clang_x64/obj/third_party/libyuv",
         ]
+
     gen_list(
         out,
         "obj_libchromiumcontent",
@@ -51,6 +52,7 @@ with open(args.out, 'w') as out:
             "third_party/brotli/common",
             "third_party/brotli/dec",
             "third_party/ced/ced",
+            "third_party/crc32c",  # for "third_party/leveldatabase"
             "third_party/decklink",
             "third_party/expat",
             "third_party/flac",
@@ -94,6 +96,14 @@ with open(args.out, 'w') as out:
             "ui",
             "url",
         ] + additional_libchromiumcontent)
+
+    gen_list(
+        out,
+        "obj_libcxx",
+        [
+            "buildtools/third_party/libc++",
+            "buildtools/third_party/libc++abi",
+        ])
 
     gen_list(
         out,
@@ -141,6 +151,7 @@ with open(args.out, 'w') as out:
             "components/mus/gpu",
             "components/mus/input_devices",
             "components/mus/public",
+            "components/network_session_configurator/browser",
             "components/network_session_configurator/common",
             "components/os_crypt",
             "components/payments",
@@ -204,6 +215,7 @@ with open(args.out, 'w') as out:
             "services/device",
             "services/file",
             "services/metrics/public",
+            "services/network/public",
             "services/resource_coordinator",
             "services/service_manager/background",
             "services/service_manager/embedder",
@@ -223,7 +235,8 @@ with open(args.out, 'w') as out:
             "services/ui/gpu",
             "services/user",
             "services/video_capture",
-            "services/viz/hit_test/public/interfaces",
+            "services/viz/privileged/interfaces",
+            "services/viz/public/interfaces",
         ])
 
     gen_list(
@@ -263,13 +276,16 @@ with open(args.out, 'w') as out:
         out,
         "obj_webkit",
         [
+            "third_party/WebKit/common",
             "third_party/WebKit/public",
             "third_party/WebKit/Source/controller",
             "third_party/WebKit/Source/platform/heap",
             "third_party/WebKit/Source/platform/blink_common",
+            "third_party/WebKit/Source/platform/instrumentation",
             "third_party/WebKit/Source/platform/loader",
             "third_party/WebKit/Source/platform/mojo",
             "third_party/WebKit/Source/platform/platform",
+            "third_party/WebKit/Source/platform/scheduler",
             "third_party/WebKit/Source/platform/wtf",
             "third_party/WebKit/Source/web",
         ])

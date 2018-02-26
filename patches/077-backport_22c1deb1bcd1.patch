@@ -1,0 +1,113 @@
+22c1deb1bcd167edb53c7986aab6d6f8f262a892
+diff --git a/build/linux/sysroot_scripts/sysroot-creator.sh b/build/linux/sysroot_scripts/sysroot-creator.sh
+index 0f3ee70b9506..d041578aa088 100644
+--- a/build/linux/sysroot_scripts/sysroot-creator.sh
++++ b/build/linux/sysroot_scripts/sysroot-creator.sh
+@@ -420,6 +420,59 @@ CleanupJailSymlinks() {
+   cd "$SAVEDPWD"
+ }
+ 
++
++VerifyLibraryDepsCommon() {
++  local arch=$1
++  local os=$2
++  local find_dirs=(
++    "${INSTALL_ROOT}/lib/${arch}-${os}/"
++    "${INSTALL_ROOT}/usr/lib/${arch}-${os}/"
++  )
++  local needed_libs="$(
++    find ${find_dirs[*]} -name "*\.so*" -type f -exec file {} \; | \
++      grep ': ELF' | sed 's/^\(.*\): .*$/\1/' | xargs readelf -d | \
++      grep NEEDED | sort | uniq | sed 's/^.*Shared library: \[\(.*\)\]$/\1/g')"
++  local all_libs="$(find ${find_dirs[*]} -printf '%f\n')"
++  local missing_libs="$(grep -vFxf <(echo "${all_libs}") \
++    <(echo "${needed_libs}"))"
++  if [ ! -z "${missing_libs}" ]; then
++    echo "Missing libraries:"
++    echo "${missing_libs}"
++    exit 1
++  fi
++}
++
++
++VerifyLibraryDepsAmd64() {
++  VerifyLibraryDepsCommon x86_64 linux-gnu
++}
++
++
++VerifyLibraryDepsI386() {
++  VerifyLibraryDepsCommon i386 linux-gnu
++}
++
++
++VerifyLibraryDepsARM() {
++  VerifyLibraryDepsCommon arm linux-gnueabihf
++}
++
++
++VerifyLibraryDepsARM64() {
++  VerifyLibraryDepsCommon aarch64 linux-gnu
++}
++
++
++VerifyLibraryDepsMips() {
++  VerifyLibraryDepsCommon mipsel linux-gnu
++}
++
++
++VerifyLibraryDepsMips64el() {
++  VerifyLibraryDepsCommon mips64el linux-gnuabi64
++}
++
++
+ #@
+ #@ BuildSysrootAmd64
+ #@
+@@ -437,6 +490,7 @@ BuildSysrootAmd64() {
+   InstallIntoSysroot ${files_and_sha256sums}
+   CleanupJailSymlinks
+   HacksAndPatchesAmd64
++  VerifyLibraryDepsAmd64
+   CreateTarBall
+ }
+ 
+@@ -457,6 +511,7 @@ BuildSysrootI386() {
+   InstallIntoSysroot ${files_and_sha256sums}
+   CleanupJailSymlinks
+   HacksAndPatchesI386
++  VerifyLibraryDepsI386
+   CreateTarBall
+ }
+ 
+@@ -477,6 +532,7 @@ BuildSysrootARM() {
+   InstallIntoSysroot ${files_and_sha256sums}
+   CleanupJailSymlinks
+   HacksAndPatchesARM
++  VerifyLibraryDepsARM
+   CreateTarBall
+ }
+ 
+@@ -497,6 +553,7 @@ BuildSysrootARM64() {
+   InstallIntoSysroot ${files_and_sha256sums}
+   CleanupJailSymlinks
+   HacksAndPatchesARM64
++  VerifyLibraryDepsARM64
+   CreateTarBall
+ }
+ 
+@@ -518,6 +575,7 @@ BuildSysrootMips() {
+   InstallIntoSysroot ${files_and_sha256sums}
+   CleanupJailSymlinks
+   HacksAndPatchesMips
++  VerifyLibraryDepsMips
+   CreateTarBall
+ }
+ 
+@@ -539,6 +597,7 @@ BuildSysrootMips64el() {
+   InstallIntoSysroot ${files_and_sha256sums}
+   CleanupJailSymlinks
+   HacksAndPatchesMips64el
++  VerifyLibraryDepsMips64el
+   CreateTarBall
+ }
+ 

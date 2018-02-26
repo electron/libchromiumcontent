@@ -9,13 +9,13 @@ index 43bf3b4f60..d0bb9b47fe 100644
 +
 +  virtual void maxAsyncCallStackDepthChanged(int depth) {}
  };
-
+ 
  class V8_EXPORT V8Inspector {
 diff --git a/src/inspector/v8-debugger.cc b/src/inspector/v8-debugger.cc
-index 03bf57cf7d..7356cb48d2 100644
+index acd778b2b6..bc5437c6d4 100644
 --- a/src/inspector/v8-debugger.cc
 +++ b/src/inspector/v8-debugger.cc
-@@ -965,6 +965,8 @@ void V8Debugger::setAsyncCallStackDepth(V8DebuggerAgentImpl* agent, int depth) {
+@@ -726,6 +726,8 @@ void V8Debugger::setAsyncCallStackDepth(V8DebuggerAgentImpl* agent, int depth) {
    if (m_maxAsyncCallStackDepth == maxAsyncCallStackDepth) return;
    // TODO(dgozman): ideally, this should be per context group.
    m_maxAsyncCallStackDepth = maxAsyncCallStackDepth;
@@ -23,42 +23,9 @@ index 03bf57cf7d..7356cb48d2 100644
 +      m_maxAsyncCallStackDepth);
    if (!maxAsyncCallStackDepth) allAsyncTasksCanceled();
  }
-
-diff --git a/test/inspector/debugger/max-async-call-stack-depth-changed-expected.txt b/test/inspector/debugger/max-async-call-stack-depth-changed-expected.txt
-new file mode 100644
-index 0000000000..0f94b592e0
---- /dev/null
-+++ b/test/inspector/debugger/max-async-call-stack-depth-changed-expected.txt
-@@ -0,0 +1,5 @@
-+Tests for max async call stack depth changed.
-+maxAsyncCallStackDepthChanged: 8
-+maxAsyncCallStackDepthChanged: 0
-+maxAsyncCallStackDepthChanged: 8
-+maxAsyncCallStackDepthChanged: 0
-diff --git a/test/inspector/debugger/max-async-call-stack-depth-changed.js b/test/inspector/debugger/max-async-call-stack-depth-changed.js
-new file mode 100644
-index 0000000000..2d58539810
---- /dev/null
-+++ b/test/inspector/debugger/max-async-call-stack-depth-changed.js
-@@ -0,0 +1,16 @@
-+// Copyright 2017 the V8 project authors. All rights reserved.
-+// Use of this source code is governed by a BSD-style license that can be
-+// found in the LICENSE file.
-+
-+let {session, contextGroup, Protocol} =
-+    InspectorTest.start('Tests for max async call stack depth changed.');
-+
-+(async function test(){
-+  utils.setLogMaxAsyncCallStackDepthChanged(true);
-+  await Protocol.Debugger.enable();
-+  await Protocol.Debugger.setAsyncCallStackDepth({maxDepth: 8});
-+  await Protocol.Debugger.setAsyncCallStackDepth({maxDepth: 0});
-+  await Protocol.Debugger.setAsyncCallStackDepth({maxDepth: 8});
-+  await Protocol.Debugger.disable();
-+  InspectorTest.completeTest();
-+})();
+ 
 diff --git a/test/inspector/inspector-test.cc b/test/inspector/inspector-test.cc
-index 767168b297..4c133cee1f 100644
+index dcaf5823ef..de89271fbf 100644
 --- a/test/inspector/inspector-test.cc
 +++ b/test/inspector/inspector-test.cc
 @@ -299,6 +299,10 @@ class UtilsExtension : public IsolateData::SetupGlobalTask {
@@ -72,10 +39,10 @@ index 767168b297..4c133cee1f 100644
      utils->Set(ToV8String(isolate, "createContextGroup"),
                 v8::FunctionTemplate::New(isolate,
                                           &UtilsExtension::CreateContextGroup));
-@@ -485,6 +489,17 @@ class UtilsExtension : public IsolateData::SetupGlobalTask {
+@@ -486,6 +490,17 @@ class UtilsExtension : public IsolateData::SetupGlobalTask {
          args[0].As<v8::Boolean>()->Value());
    }
-
+ 
 +  static void SetLogMaxAsyncCallStackDepthChanged(
 +      const v8::FunctionCallbackInfo<v8::Value>& args) {
 +    if (args.Length() != 1 || !args[0]->IsBoolean()) {
@@ -91,13 +58,13 @@ index 767168b297..4c133cee1f 100644
        const v8::FunctionCallbackInfo<v8::Value>& args) {
      if (args.Length() != 0) {
 diff --git a/test/inspector/isolate-data.cc b/test/inspector/isolate-data.cc
-index bd97a927e8..2e9a64f66d 100644
+index 82a5cc0483..4c1d81670f 100644
 --- a/test/inspector/isolate-data.cc
 +++ b/test/inspector/isolate-data.cc
-@@ -355,6 +355,10 @@ void IsolateData::SetLogConsoleApiMessageCalls(bool log) {
+@@ -370,6 +370,10 @@ void IsolateData::SetLogConsoleApiMessageCalls(bool log) {
    log_console_api_message_calls_ = log;
  }
-
+ 
 +void IsolateData::SetLogMaxAsyncCallStackDepthChanged(bool log) {
 +  log_max_async_call_stack_depth_changed_ = log;
 +}
@@ -105,7 +72,7 @@ index bd97a927e8..2e9a64f66d 100644
  v8::MaybeLocal<v8::Value> IsolateData::memoryInfo(v8::Isolate* isolate,
                                                    v8::Local<v8::Context>) {
    if (memory_info_.IsEmpty()) return v8::MaybeLocal<v8::Value>();
-@@ -381,3 +385,8 @@ void IsolateData::consoleAPIMessage(int contextGroupId,
+@@ -396,3 +400,8 @@ void IsolateData::consoleAPIMessage(int contextGroupId,
    Print(isolate_, stack->toString()->string());
    fprintf(stdout, "\n");
  }
@@ -115,7 +82,7 @@ index bd97a927e8..2e9a64f66d 100644
 +  fprintf(stdout, "maxAsyncCallStackDepthChanged: %d\n", depth);
 +}
 diff --git a/test/inspector/isolate-data.h b/test/inspector/isolate-data.h
-index c96a8d1bbd..af2bf0ef1e 100644
+index b8f3b9e76c..455b44b49b 100644
 --- a/test/inspector/isolate-data.h
 +++ b/test/inspector/isolate-data.h
 @@ -64,6 +64,7 @@ class IsolateData : public v8_inspector::V8InspectorClient {
@@ -126,19 +93,19 @@ index c96a8d1bbd..af2bf0ef1e 100644
    void SetMaxAsyncTaskStacksForTest(int limit);
    void DumpAsyncTaskStacksStateForTest();
    void FireContextCreated(v8::Local<v8::Context> context, int context_group_id);
-@@ -105,6 +106,7 @@ class IsolateData : public v8_inspector::V8InspectorClient {
-                          const v8_inspector::StringView& url,
+@@ -106,6 +107,7 @@ class IsolateData : public v8_inspector::V8InspectorClient {
                           unsigned lineNumber, unsigned columnNumber,
                           v8_inspector::V8StackTrace*) override;
+   bool isInspectableHeapObject(v8::Local<v8::Object>) override;
 +  void maxAsyncCallStackDepthChanged(int depth) override;
-
+ 
    TaskRunner* task_runner_;
    SetupGlobalTasks setup_global_tasks_;
-@@ -122,6 +124,7 @@ class IsolateData : public v8_inspector::V8InspectorClient {
+@@ -123,6 +125,7 @@ class IsolateData : public v8_inspector::V8InspectorClient {
    bool current_time_set_ = false;
    double current_time_ = 0.0;
    bool log_console_api_message_calls_ = false;
 +  bool log_max_async_call_stack_depth_changed_ = false;
-
+   v8::Global<v8::Private> not_inspectable_private_;
+ 
    DISALLOW_COPY_AND_ASSIGN(IsolateData);
- };

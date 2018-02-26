@@ -1,3 +1,4 @@
+import("//build/config/c++/c++.gni")
 import("//build/split_static_library.gni")
 
 group("targets") {
@@ -231,6 +232,9 @@ if (is_electron_build && !is_component_build) {
         ":v8",
         ":v8base",
       ]
+      if (use_custom_libcxx) {
+        deps += [ ":libc++" ]
+      }
     }
   }
 
@@ -327,6 +331,16 @@ if (is_electron_build && !is_component_build) {
         split_count = 2
       } else {
         split_count = 1
+      }
+    }
+
+    if (use_custom_libcxx) {
+      static_library("libc++") {
+        complete_static_lib = true
+        sources = []
+        if (defined(obj_libcxx)) {
+          sources += obj_libcxx
+        }
       }
     }
   }

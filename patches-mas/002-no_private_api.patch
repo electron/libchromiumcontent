@@ -49,9 +49,9 @@ index 89fe4d98eb76..f0dfa3a056ee 100644
  
  // Returns an autoreleased copy of the AXNodeData's attribute.
  NSString* NSStringForStringAttribute(
-@@ -555,7 +557,9 @@ NSString* const NSAccessibilityRequiredAttribute = @"AXRequired";
-       {NSAccessibilityDropEffectsAttribute, @"dropEffects"},
+@@ -574,7 +574,9 @@ NSString* const NSAccessibilityRequiredAttributeChrome = @"AXRequired";
        {NSAccessibilityDOMIdentifierAttribute, @"domIdentifier"},
+       {NSAccessibilityEditableAncestorAttribute, @"editableAncestor"},
        {NSAccessibilityEnabledAttribute, @"enabled"},
 +#ifndef MAS_BUILD
        {NSAccessibilityEndTextMarkerAttribute, @"endTextMarker"},
@@ -125,19 +125,21 @@ index 89fe4d98eb76..f0dfa3a056ee 100644
  
  // Returns a subrole based upon the role.
  - (NSString*) subrole {
-@@ -2024,10 +2038,12 @@ NSString* const NSAccessibilityRequiredAttribute = @"AXRequired";
-   NSString* value = base::SysUTF16ToNSString(browserAccessibility_->GetValue());
+@@ -2112,12 +2112,14 @@ NSString* const NSAccessibilityRequiredAttributeChrome = @"AXRequired";
    NSMutableAttributedString* attributedValue =
        [[[NSMutableAttributedString alloc] initWithString:value] autorelease];
+ 
 +#ifndef MAS_BUILD
-   std::vector<const BrowserAccessibility*> textOnlyObjects =
-       BrowserAccessibilityManager::FindTextOnlyObjectsInRange(
-           *browserAccessibility_, *browserAccessibility_);
-   AddMisspelledTextAttributes(textOnlyObjects, attributedValue);
+   if (!browserAccessibility_->IsTextOnlyObject()) {
+     std::vector<const BrowserAccessibility*> textOnlyObjects =
+         BrowserAccessibilityManager::FindTextOnlyObjectsInRange(
+             *browserAccessibility_, *browserAccessibility_);
+     AddMisspelledTextAttributes(textOnlyObjects, attributedValue);
+   }
 +#endif
+ 
    return [attributedValue attributedSubstringFromRange:range];
  }
- 
 @@ -2147,6 +2163,7 @@ NSString* const NSAccessibilityRequiredAttribute = @"AXRequired";
      return nil;
    }
@@ -200,10 +202,10 @@ index c6b659b777bc..fe03cb11f7d3 100644
    }
  
 diff --git a/content/renderer/renderer_main_platform_delegate_mac.mm b/content/renderer/renderer_main_platform_delegate_mac.mm
-index 2c219956f05a..9fee8277e081 100644
+index 3d828fc09d39..57660c320371 100644
 --- a/content/renderer/renderer_main_platform_delegate_mac.mm
 +++ b/content/renderer/renderer_main_platform_delegate_mac.mm
-@@ -21,11 +21,13 @@
+@@ -21,6 +21,7 @@
  #include "content/public/common/content_switches.h"
  #include "sandbox/mac/seatbelt.h"
  
@@ -211,13 +213,15 @@ index 2c219956f05a..9fee8277e081 100644
  extern "C" {
  void CGSSetDenyWindowServerConnections(bool);
  void CGSShutdownServerConnections();
- OSStatus SetApplicationIsDaemon(Boolean isDaemon);
+@@ -29,6 +30,7 @@ void _LSSetApplicationLaunchServicesServerConnectionStatus(
+     uint64_t flags,
+     bool (^connection_allowed)(CFDictionaryRef));
  };
 +#endif
  
  namespace content {
  
-@@ -306,6 +308,7 @@ void Sandbox::SandboxWarmup(int sandbox_type) {
+@@ -37,6 +39,7 @@ namespace {
  // This disconnects from the window server, and then indicates that Chrome
  // should continue execution without access to launchservicesd.
  void DisconnectWindowServer() {
@@ -225,10 +229,10 @@ index 2c219956f05a..9fee8277e081 100644
    // Now disconnect from WindowServer, after all objects have been warmed up.
    // Shutting down the connection requires connecting to WindowServer,
    // so do this before actually engaging the sandbox. This may cause two log
-@@ -318,6 +321,7 @@ void Sandbox::SandboxWarmup(int sandbox_type) {
-   // launchservicesd to get an ASN. By setting this flag, HIServices skips
-   // that.
+@@ -50,6 +53,7 @@ void DisconnectWindowServer() {
    SetApplicationIsDaemon(true);
+   // Tell LaunchServices to continue without a connection to the daemon.
+   _LSSetApplicationLaunchServicesServerConnectionStatus(0, nullptr);
 +#endif
  }
  

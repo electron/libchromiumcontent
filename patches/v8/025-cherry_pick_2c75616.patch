@@ -1,8 +1,8 @@
 diff --git a/src/heap/heap.cc b/src/heap/heap.cc
-index 65526f748c..04de6ea6b6 100644
+index 2e6cfab292..61e15efd53 100644
 --- a/src/heap/heap.cc
 +++ b/src/heap/heap.cc
-@@ -1716,6 +1716,12 @@ void Heap::Scavenge() {
+@@ -1885,6 +1885,12 @@ void Heap::Scavenge() {
    IncrementalMarking::PauseBlackAllocationScope pause_black_allocation(
        incremental_marking());
  
@@ -16,10 +16,10 @@ index 65526f748c..04de6ea6b6 100644
  
    SetGCState(SCAVENGE);
 diff --git a/src/heap/spaces.h b/src/heap/spaces.h
-index 2ae089b401..c9be48bb3a 100644
+index d5dc5b1115..230a127809 100644
 --- a/src/heap/spaces.h
 +++ b/src/heap/spaces.h
-@@ -1226,6 +1226,11 @@ class V8_EXPORT_PRIVATE MemoryAllocator {
+@@ -1199,6 +1199,11 @@ class V8_EXPORT_PRIVATE MemoryAllocator {
  
      bool has_delayed_chunks() { return delayed_regular_chunks_.size() > 0; }
  
