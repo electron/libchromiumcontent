@@ -1,0 +1,28 @@
+Include mime type in served extension files
+
+Modules enforce strict mime type requirements, but files served through
+extension protocols don't specify a mime type. Include it in the
+response headers. This enables modules for chrome extensions.
+---
+
+diff --git a/extensions/browser/extension_protocols.cc b/extensions/browser/extension_protocols.cc
+index 10cc848..9a3e73a 100644
+--- a/extensions/browser/extension_protocols.cc
++++ b/extensions/browser/extension_protocols.cc
+@@ -199,6 +199,16 @@
+   }
+
+   void GetResponseInfo(net::HttpResponseInfo* info) override {
++    // Set the mime type for the request. We do this here (rather than when we
++    // build the rest of the headers) because the mime type is retrieved only
++    // after URLRequestFileJob::Start() is called. Using an accurate mime type
++    // is necessary at least for modules, which enforce strict mime type
++    // requirements.
++    std::string mime_type;
++    bool found_mime_type = GetMimeType(&mime_type);
++    if (found_mime_type)
++      response_info_.headers->AddHeader("Content-Type: " + mime_type);
++
+     *info = response_info_;
+   }
+
