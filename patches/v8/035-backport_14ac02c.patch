@@ -70,14 +70,13 @@ index f4a9e24c7d..440afd87a2 100644
    base::Mutex mutex_;
  
 diff --git a/test/cctest/test-cpu-profiler.cc b/test/cctest/test-cpu-profiler.cc
-index 689305f30e..f22a42a977 100644
+index 0a297d9f0c..7930606d37 100644
 --- a/test/cctest/test-cpu-profiler.cc
 +++ b/test/cctest/test-cpu-profiler.cc
-@@ -2191,3 +2191,31 @@ TEST(TracingCpuProfiler) {
- 
+@@ -2185,6 +2185,34 @@ TEST(TracingCpuProfiler) {
    i::V8::SetPlatformForTesting(old_platform);
  }
-+
+ 
 +TEST(CodeEntriesMemoryLeak) {
 +  v8::HandleScope scope(CcTest::isolate());
 +  v8::Local<v8::Context> env = CcTest::NewContext(PROFILER_EXTENSION);
@@ -105,3 +104,7 @@ index 689305f30e..f22a42a977 100644
 +
 +  CHECK_GE(10000ul, profiler_listener->entries_count_for_test());
 +}
++
+ TEST(Issue763073) {
+   class AllowNativesSyntax {
+    public:
