@@ -1,15 +1,15 @@
 diff --git a/modules/desktop_capture/screen_capturer_mac.mm b/modules/desktop_capture/screen_capturer_mac.mm
-index 9481f2a29..baf22f267 100644
+index bd116dd6c0..bfe4080ecc 100644
 --- a/modules/desktop_capture/screen_capturer_mac.mm
 +++ b/modules/desktop_capture/screen_capturer_mac.mm
-@@ -37,6 +37,7 @@
- #include "webrtc/rtc_base/logging.h"
- #include "webrtc/rtc_base/macutils.h"
- #include "webrtc/rtc_base/timeutils.h"
-+#include "webrtc/system_wrappers/include/rw_lock_wrapper.h"
- 
- // Once Chrome no longer supports OSX 10.8, everything within this
- // preprocessor block can be removed. https://crbug.com/579255
+@@ -35,6 +35,7 @@
+ #include "rtc_base/logging.h"
+ #include "rtc_base/macutils.h"
+ #include "rtc_base/timeutils.h"
++#include "system_wrappers/include/rw_lock_wrapper.h"
+
+ namespace webrtc {
+
 @@ -70,20 +71,33 @@
  // destroy itself once it's done.
  class DisplayStreamManager {
@@ -88,14 +88,14 @@ index 9481f2a29..baf22f267 100644
  
   private:
    struct DisplayStreamWrapper {
-@@ -128,6 +151,7 @@ void PrepareForSelfDestruction() {
+@@ -128,6 +151,7 @@ class DisplayStreamManager {
    std::map<int, DisplayStreamWrapper> display_stream_wrappers_;
    int unique_id_generator_ = 0;
    bool ready_for_self_destruction_ = false;
 +  std::unique_ptr<RWLockWrapper> rw_lock_;
  };
- 
- // Definitions used to dynamic-link to deprecated OS 10.6 functions.
+
+ // Standard Mac displays have 72dpi, but we report 96dpi for
 @@ -950,9 +974,6 @@ void ScreenRefresh(CGRectCount count,
              return;
            }
