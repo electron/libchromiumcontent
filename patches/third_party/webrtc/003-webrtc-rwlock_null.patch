@@ -1,18 +1,18 @@
 diff --git a/system_wrappers/source/rw_lock.cc b/system_wrappers/source/rw_lock.cc
-index ff53e8d7a..8c1156b65 100644
+index c38c44ad75..5ed1912d3f 100644
 --- a/system_wrappers/source/rw_lock.cc
 +++ b/system_wrappers/source/rw_lock.cc
 @@ -9,8 +9,10 @@
   */
  
- #include "webrtc/system_wrappers/include/rw_lock_wrapper.h"
-+#include "webrtc/system_wrappers/include/sleep.h"
+ #include "system_wrappers/include/rw_lock_wrapper.h"
++#include "system_wrappers/include/sleep.h"
  
  #include <assert.h>
 +#include <stdlib.h>
  
  #if defined(_WIN32)
- #include "webrtc/system_wrappers/source/rw_lock_win.h"
+ #include "system_wrappers/source/rw_lock_win.h"
 @@ -21,11 +23,19 @@
  namespace webrtc {
  
