@@ -28,20 +28,24 @@ index de3f35f124aa..a52003f1b5e1 100644
      _component_mode = invoker.static_component_type
    } else if (is_android || !defined(invoker.sources)) {
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index b5d6d8fdb443..5b2e5ce93ca0 100644
+index 7888e2f8589d..b95cef9596d4 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -520,8 +520,11 @@ config("compiler") {
-       }
+@@ -553,10 +553,13 @@ config("compiler") {
+       ldflags += [ "-Wl,--lto-O0" ]
      }
  
 -    cflags += [ "-fwhole-program-vtables" ]
--    ldflags += [ "-fwhole-program-vtables" ]
+-    if (!is_win) {
+-      ldflags += [ "-fwhole-program-vtables" ]
+-    }
 +    # -fwhole-program-vtables doesn't work well in Electron right now, as it's
 +    # not a single binary and the optimizations break interfaces used across
 +    # binary boundaries.
 +    # cflags += [ "-fwhole-program-vtables" ]
-+    # ldflags += [ "-fwhole-program-vtables" ]
++    # if (!is_win) {
++    #  ldflags += [ "-fwhole-program-vtables" ]
++    #}
  
      # Work-around for http://openradar.appspot.com/20356002
      if (is_mac) {
