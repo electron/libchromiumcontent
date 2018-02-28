@@ -32,5 +32,8 @@ if (target_cpu == "mips64el") {
   is_clang = false
   use_allocator = "none"
   mips_arch_variant = "loongson3"
+  # Use custom sysroot image.
+  use_sysroot = true
+  target_sysroot = "//build/linux/debian_jessie_mips64-sysroot"
   system_libdir = "lib64"
 }
