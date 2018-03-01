@@ -1,0 +1,788 @@
+diff --git a/include/v8.h b/include/v8.h
+index 918f5d86de..46fd3d50e0 100644
+--- a/include/v8.h
++++ b/include/v8.h
+@@ -104,6 +104,7 @@ class String;
+ class StringObject;
+ class Symbol;
+ class SymbolObject;
++class PrimitiveArray;
+ class Private;
+ class Uint32;
+ class Utils;
+@@ -978,6 +979,48 @@ class V8_EXPORT Data {
+   Data();
+ };
+ 
++/**
++ * This is an unfinished experimental feature, and is only exposed
++ * here for internal testing purposes. DO NOT USE.
++ *
++ * A container type that holds relevant metadata for module loading.
++ *
++ * This is passed back to the embedder as part of
++ * HostImportDynamicallyCallback for module loading.
++ */
++class V8_EXPORT ScriptOrModule {
++ public:
++  /**
++   * The name that was passed by the embedder as ResourceName to the
++   * ScriptOrigin. This can be either a v8::String or v8::Undefined.
++   */
++  Local<Value> GetResourceName();
++
++  /**
++   * The options that were passed by the embedder as HostDefinedOptions to
++   * the ScriptOrigin.
++   */
++  Local<PrimitiveArray> GetHostDefinedOptions();
++};
++
++/**
++ * This is an unfinished experimental feature, and is only exposed
++ * here for internal testing purposes. DO NOT USE.
++ *
++ * An array to hold Primitive values. This is used by the embedder to
++ * pass host defined options to the ScriptOptions during compilation.
++ *
++ * This is passed back to the embedder as part of
++ * HostImportDynamicallyCallback for module loading.
++ *
++ */
++class V8_EXPORT PrimitiveArray {
++ public:
++  static Local<PrimitiveArray> New(Isolate* isolate, int length);
++  int Length() const;
++  void Set(int index, Local<Primitive> item);
++  Local<Primitive> Get(int index);
++};
+ 
+ /**
+  * The optional attributes of ScriptOrigin.
+@@ -1027,13 +1070,17 @@ class ScriptOrigin {
+       Local<Value> source_map_url = Local<Value>(),
+       Local<Boolean> resource_is_opaque = Local<Boolean>(),
+       Local<Boolean> is_wasm = Local<Boolean>(),
+-      Local<Boolean> is_module = Local<Boolean>());
++      Local<Boolean> is_module = Local<Boolean>() /*,
++      // Backed out for ABI compatibility with V8 6.2
++      Local<PrimitiveArray> host_defined_options = Local<PrimitiveArray>() */);
+ 
+   V8_INLINE Local<Value> ResourceName() const;
+   V8_INLINE Local<Integer> ResourceLineOffset() const;
+   V8_INLINE Local<Integer> ResourceColumnOffset() const;
+   V8_INLINE Local<Integer> ScriptID() const;
+   V8_INLINE Local<Value> SourceMapUrl() const;
++  // Backed out for ABI compatibility with V8 6.2
++  // V8_INLINE Local<PrimitiveArray> HostDefinedOptions() const;
+   V8_INLINE ScriptOriginOptions Options() const { return options_; }
+ 
+  private:
+@@ -1043,6 +1090,8 @@ class ScriptOrigin {
+   ScriptOriginOptions options_;
+   Local<Integer> script_id_;
+   Local<Value> source_map_url_;
++  // Backed out for ABI compatibility with V8 6.2
++  // Local<PrimitiveArray> host_defined_options_;
+ };
+ 
+ /**
+@@ -1289,6 +1338,7 @@ class V8_EXPORT ScriptCompiler {
+     Local<Integer> resource_column_offset;
+     ScriptOriginOptions resource_options;
+     Local<Value> source_map_url;
++    // Local<PrimitiveArray> host_defined_options;
+ 
+     // Cached data from previous compilation (if a kConsume*Cache flag is
+     // set), or hold newly generated cache data (kProduce*Cache flags) are
+@@ -6209,8 +6259,8 @@ typedef void (*DeprecatedCallCompletedCallback)();
+  * embedder to load a module. This is used as part of the dynamic
+  * import syntax.
+  *
+- * The referrer is the name of the file which calls the dynamic
+- * import. The referrer can be used to resolve the module location.
++ * The referrer contains metadata about the script/module that calls
++ * import.
+  *
+  * The specifier is the name of the module that should be imported.
+  *
+@@ -6225,7 +6275,8 @@ typedef void (*DeprecatedCallCompletedCallback)();
+  * that exception by returning an empty MaybeLocal.
+  */
+ typedef MaybeLocal<Promise> (*HostImportModuleDynamicallyCallback)(
+-    Local<Context> context, Local<String> referrer, Local<String> specifier);
++    Local<Context> context, Local<ScriptOrModule> referrer,
++    Local<String> specifier);
+ 
+ /**
+  * PromiseHook with type kInit is called when a new promise is
+@@ -9548,7 +9599,9 @@ ScriptOrigin::ScriptOrigin(Local<Value> resource_name,
+                            Local<Integer> script_id,
+                            Local<Value> source_map_url,
+                            Local<Boolean> resource_is_opaque,
+-                           Local<Boolean> is_wasm, Local<Boolean> is_module)
++                           Local<Boolean> is_wasm, Local<Boolean> is_module /*,
++                           // Backed out for ABI compatibility with V8 6.2
++                           Local<PrimitiveArray> host_defined_options */)
+     : resource_name_(resource_name),
+       resource_line_offset_(resource_line_offset),
+       resource_column_offset_(resource_column_offset),
+@@ -9558,10 +9611,16 @@ ScriptOrigin::ScriptOrigin(Local<Value> resource_name,
+                !is_wasm.IsEmpty() && is_wasm->IsTrue(),
+                !is_module.IsEmpty() && is_module->IsTrue()),
+       script_id_(script_id),
+-      source_map_url_(source_map_url) {}
++      source_map_url_(source_map_url) /*,
++      // Backed out for ABI compatibility with V8 6.2
++      host_defined_options_(host_defined_options) */ {}
+ 
+ Local<Value> ScriptOrigin::ResourceName() const { return resource_name_; }
+ 
++// Backed out for ABI compatibility with V8 6.2
++// Local<PrimitiveArray> ScriptOrigin::HostDefinedOptions() const {
++//   return host_defined_options_;
++// }
+ 
+ Local<Integer> ScriptOrigin::ResourceLineOffset() const {
+   return resource_line_offset_;
+@@ -9578,7 +9637,6 @@ Local<Integer> ScriptOrigin::ScriptID() const { return script_id_; }
+ 
+ Local<Value> ScriptOrigin::SourceMapUrl() const { return source_map_url_; }
+ 
+-
+ ScriptCompiler::Source::Source(Local<String> string, const ScriptOrigin& origin,
+                                CachedData* data)
+     : source_string(string),
+@@ -9587,9 +9645,10 @@ ScriptCompiler::Source::Source(Local<String> string, const ScriptOrigin& origin,
+       resource_column_offset(origin.ResourceColumnOffset()),
+       resource_options(origin.Options()),
+       source_map_url(origin.SourceMapUrl()),
++      // Backed out for ABI compatibility with V8 6.2
++      // host_defined_options(origin.HostDefinedOptions()),
+       cached_data(data) {}
+ 
+-
+ ScriptCompiler::Source::Source(Local<String> string,
+                                CachedData* data)
+     : source_string(string), cached_data(data) {}
+diff --git a/src/api.cc b/src/api.cc
+index e5ece56783..147ef1f755 100644
+--- a/src/api.cc
++++ b/src/api.cc
+@@ -278,6 +278,9 @@ static ScriptOrigin GetScriptOriginForScript(i::Isolate* isolate,
+                                              i::Handle<i::Script> script) {
+   i::Handle<i::Object> scriptName(script->GetNameOrSourceURL(), isolate);
+   i::Handle<i::Object> source_map_url(script->source_mapping_url(), isolate);
++  // Backed out for ABI compatibility with V8 6.2
++  // i::Handle<i::FixedArray> host_defined_options(script->host_defined_options(),
++  //                                               isolate);
+   v8::Isolate* v8_isolate =
+       reinterpret_cast<v8::Isolate*>(script->GetIsolate());
+   ScriptOriginOptions options(script->origin_options());
+@@ -290,7 +293,9 @@ static ScriptOrigin GetScriptOriginForScript(i::Isolate* isolate,
+       Utils::ToLocal(source_map_url),
+       v8::Boolean::New(v8_isolate, options.IsOpaque()),
+       v8::Boolean::New(v8_isolate, script->type() == i::Script::TYPE_WASM),
+-      v8::Boolean::New(v8_isolate, options.IsModule()));
++      v8::Boolean::New(v8_isolate, options.IsModule()) /*,
++      // Backed out for ABI compatibility with V8 6.2
++      Utils::ToLocal(host_defined_options) */);
+   return origin;
+ }
+ 
+@@ -2082,6 +2087,23 @@ Local<Value> Script::Run() {
+   RETURN_TO_LOCAL_UNCHECKED(Run(context), Value);
+ }
+ 
++Local<Value> ScriptOrModule::GetResourceName() {
++  i::Handle<i::Script> obj = Utils::OpenHandle(this);
++  i::Isolate* isolate = obj->GetIsolate();
++  ENTER_V8_NO_SCRIPT_NO_EXCEPTION(isolate);
++  i::Handle<i::Object> val(obj->name(), isolate);
++  return ToApiHandle<Value>(val);
++}
++
++Local<PrimitiveArray> ScriptOrModule::GetHostDefinedOptions() {
++  i::Handle<i::Script> obj = Utils::OpenHandle(this);
++  i::Isolate* isolate = obj->GetIsolate();
++  ENTER_V8_NO_SCRIPT_NO_EXCEPTION(isolate);
++  // Backed out for ABI compatibility with V8 6.2
++  // i::Handle<i::FixedArray> val(obj->host_defined_options(), isolate);
++  // return ToApiHandle<PrimitiveArray>(val);
++  return Local<PrimitiveArray>();
++}
+ 
+ Local<UnboundScript> Script::GetUnboundScript() {
+   i::Handle<i::Object> obj = Utils::OpenHandle(this);
+@@ -2089,6 +2111,46 @@ Local<UnboundScript> Script::GetUnboundScript() {
+       i::Handle<i::SharedFunctionInfo>(i::JSFunction::cast(*obj)->shared()));
+ }
+ 
++// static
++Local<PrimitiveArray> PrimitiveArray::New(Isolate* v8_isolate, int length) {
++  i::Isolate* isolate = reinterpret_cast<i::Isolate*>(v8_isolate);
++  ENTER_V8_NO_SCRIPT_NO_EXCEPTION(isolate);
++  Utils::ApiCheck(length >= 0, "v8::PrimitiveArray::New",
++                  "length must be equal or greater than zero");
++  i::Handle<i::FixedArray> array = isolate->factory()->NewFixedArray(length);
++  return ToApiHandle<PrimitiveArray>(array);
++}
++
++int PrimitiveArray::Length() const {
++  i::Handle<i::FixedArray> array = Utils::OpenHandle(this);
++  i::Isolate* isolate = array->GetIsolate();
++  ENTER_V8_NO_SCRIPT_NO_EXCEPTION(isolate);
++  return array->length();
++}
++
++void PrimitiveArray::Set(int index, Local<Primitive> item) {
++  i::Handle<i::FixedArray> array = Utils::OpenHandle(this);
++  i::Isolate* isolate = array->GetIsolate();
++  ENTER_V8_NO_SCRIPT_NO_EXCEPTION(isolate);
++  Utils::ApiCheck(index >= 0 && index < array->length(),
++                  "v8::PrimitiveArray::Set",
++                  "index must be greater than or equal to 0 and less than the "
++                  "array length");
++  i::Handle<i::Object> i_item = Utils::OpenHandle(*item);
++  array->set(index, *i_item);
++}
++
++Local<Primitive> PrimitiveArray::Get(int index) {
++  i::Handle<i::FixedArray> array = Utils::OpenHandle(this);
++  i::Isolate* isolate = array->GetIsolate();
++  ENTER_V8_NO_SCRIPT_NO_EXCEPTION(isolate);
++  Utils::ApiCheck(index >= 0 && index < array->length(),
++                  "v8::PrimitiveArray::Get",
++                  "index must be greater than or equal to 0 and less than the "
++                  "array length");
++  i::Handle<i::Object> i_item(array->get(index), isolate);
++  return ToApiHandle<Primitive>(i_item);
++}
+ 
+ Module::Status Module::GetStatus() const {
+   i::Handle<i::Module> self = Utils::OpenHandle(this);
+@@ -2225,11 +2287,18 @@ MaybeLocal<UnboundScript> ScriptCompiler::CompileUnboundInternal(
+     TRACE_EVENT0(TRACE_DISABLED_BY_DEFAULT("v8.compile"), "V8.CompileScript");
+     i::Handle<i::Object> name_obj;
+     i::Handle<i::Object> source_map_url;
++    // Backed out for ABI compatibility with V8 6.2
++    // i::Handle<i::FixedArray> host_defined_options =
++    //     isolate->factory()->empty_fixed_array();
+     int line_offset = 0;
+     int column_offset = 0;
+     if (!source->resource_name.IsEmpty()) {
+       name_obj = Utils::OpenHandle(*(source->resource_name));
+     }
++    // Backed out for ABI compatibility with V8 6.2
++    // if (!source->host_defined_options.IsEmpty()) {
++    //   host_defined_options = Utils::OpenHandle(*(source->host_defined_options));
++    // }
+     if (!source->resource_line_offset.IsEmpty()) {
+       line_offset = static_cast<int>(source->resource_line_offset->Value());
+     }
+@@ -2243,7 +2312,7 @@ MaybeLocal<UnboundScript> ScriptCompiler::CompileUnboundInternal(
+     result = i::Compiler::GetSharedFunctionInfoForScript(
+         str, name_obj, line_offset, column_offset, source->resource_options,
+         source_map_url, isolate->native_context(), NULL, &script_data, options,
+-        i::NOT_NATIVES_CODE);
++        i::NOT_NATIVES_CODE /*, host_defined_options */);
+     has_pending_exception = result.is_null();
+     if (has_pending_exception && script_data != NULL) {
+       // This case won't happen during normal operation; we have compiled
+@@ -2508,6 +2577,10 @@ MaybeLocal<Script> ScriptCompiler::Compile(Local<Context> context,
+   if (!origin.ResourceName().IsEmpty()) {
+     script->set_name(*Utils::OpenHandle(*(origin.ResourceName())));
+   }
++  // if (!origin.HostDefinedOptions().IsEmpty()) {
++  //   script->set_host_defined_options(
++  //       *Utils::OpenHandle(*(origin.HostDefinedOptions())));
++  // }
+   if (!origin.ResourceLineOffset().IsEmpty()) {
+     script->set_line_offset(
+         static_cast<int>(origin.ResourceLineOffset()->Value()));
+@@ -9834,7 +9907,9 @@ MaybeLocal<UnboundScript> debug::CompileInspectorScript(Isolate* v8_isolate,
+         i::Handle<i::Object>(), isolate->native_context(), NULL, &script_data,
+         ScriptCompiler::kNoCompileOptions,
+         i::FLAG_expose_inspector_scripts ? i::NOT_NATIVES_CODE
+-                                         : i::INSPECTOR_CODE);
++                                         : i::INSPECTOR_CODE /*,
++        // Backed out for ABI compatibility with V8 6.2
++        i::Handle<i::FixedArray>() */);
+     has_pending_exception = result.is_null();
+     RETURN_ON_FAILED_EXECUTION(UnboundScript);
+   }
+diff --git a/src/api.h b/src/api.h
+index e856a4408c..33ce26eec4 100644
+--- a/src/api.h
++++ b/src/api.h
+@@ -111,7 +111,10 @@ class RegisteredExtension {
+   V(NativeWeakMap, JSWeakMap)                  \
+   V(debug::GeneratorObject, JSGeneratorObject) \
+   V(debug::Script, Script)                     \
+-  V(Promise, JSPromise)
++  V(Promise, JSPromise)                        \
++  V(Primitive, Object)                         \
++  V(PrimitiveArray, FixedArray)                \
++  V(ScriptOrModule, Script)
+ 
+ class Utils {
+  public:
+@@ -209,6 +212,12 @@ class Utils {
+       v8::internal::Handle<v8::internal::JSWeakMap> obj);
+   static inline Local<Function> CallableToLocal(
+       v8::internal::Handle<v8::internal::JSReceiver> obj);
++  static inline Local<Primitive> ToLocalPrimitive(
++      v8::internal::Handle<v8::internal::Object> obj);
++  static inline Local<PrimitiveArray> ToLocal(
++      v8::internal::Handle<v8::internal::FixedArray> obj);
++  static inline Local<ScriptOrModule> ScriptOrModuleToLocal(
++      v8::internal::Handle<v8::internal::Script> obj);
+ 
+ #define DECLARE_OPEN_HANDLE(From, To) \
+   static inline v8::internal::Handle<v8::internal::To> \
+@@ -325,6 +334,9 @@ MAKE_TO_LOCAL(Uint32ToLocal, Object, Uint32)
+ MAKE_TO_LOCAL(ExternalToLocal, JSObject, External)
+ MAKE_TO_LOCAL(NativeWeakMapToLocal, JSWeakMap, NativeWeakMap)
+ MAKE_TO_LOCAL(CallableToLocal, JSReceiver, Function)
++MAKE_TO_LOCAL(ToLocalPrimitive, Object, Primitive)
++MAKE_TO_LOCAL(ToLocal, FixedArray, PrimitiveArray)
++MAKE_TO_LOCAL(ScriptOrModuleToLocal, Script, ScriptOrModule)
+ 
+ #undef MAKE_TO_LOCAL_TYPED_ARRAY
+ #undef MAKE_TO_LOCAL
+diff --git a/src/bootstrapper.cc b/src/bootstrapper.cc
+index 41045f8583..dc21196268 100644
+--- a/src/bootstrapper.cc
++++ b/src/bootstrapper.cc
+@@ -3540,6 +3540,8 @@ bool Bootstrapper::CompileNative(Isolate* isolate, Vector<const char> name,
+       Compiler::GetSharedFunctionInfoForScript(
+           source, script_name, 0, 0, ScriptOriginOptions(), Handle<Object>(),
+           context, NULL, NULL, ScriptCompiler::kNoCompileOptions, natives_flag);
++          // Backed out for ABI compatibility with V8 6.2
++          // Handle<FixedArray>());
+   if (function_info.is_null()) return false;
+ 
+   DCHECK(context->IsNativeContext());
+@@ -3602,6 +3604,8 @@ bool Genesis::CompileExtension(Isolate* isolate, v8::Extension* extension) {
+     function_info = Compiler::GetSharedFunctionInfoForScript(
+         source, script_name, 0, 0, ScriptOriginOptions(), Handle<Object>(),
+         context, extension, NULL, ScriptCompiler::kNoCompileOptions,
++        // Backed out for ABI compatibility with V8 6.2
++        // EXTENSION_CODE, Handle<FixedArray>());
+         EXTENSION_CODE);
+     if (function_info.is_null()) return false;
+     cache->Add(name, function_info);
+diff --git a/src/compiler.cc b/src/compiler.cc
+index 0f0bfd36cb..c6d96a73fb 100644
+--- a/src/compiler.cc
++++ b/src/compiler.cc
+@@ -1192,6 +1192,9 @@ Handle<SharedFunctionInfo> Compiler::GetSharedFunctionInfoForScript(
+     int column_offset, ScriptOriginOptions resource_options,
+     Handle<Object> source_map_url, Handle<Context> context,
+     v8::Extension* extension, ScriptData** cached_data,
++    // Backed out for ABI compatibility with V8 6.2
++    // ScriptCompiler::CompileOptions compile_options, NativesFlag natives,
++    // Handle<FixedArray> host_defined_options) {
+     ScriptCompiler::CompileOptions compile_options, NativesFlag natives) {
+   Isolate* isolate = source->GetIsolate();
+   if (compile_options == ScriptCompiler::kNoCompileOptions) {
+@@ -1288,6 +1291,10 @@ Handle<SharedFunctionInfo> Compiler::GetSharedFunctionInfoForScript(
+     if (!source_map_url.is_null()) {
+       script->set_source_mapping_url(*source_map_url);
+     }
++    // Backed out for ABI compatibility with V8 6.2
++    // if (!host_defined_options.is_null()) {
++    //   script->set_host_defined_options(*host_defined_options);
++    // }
+ 
+     // Compile the function and add it to the cache.
+     ParseInfo parse_info(script);
+diff --git a/src/compiler.h b/src/compiler.h
+index 3277658017..a4fbc7e096 100644
+--- a/src/compiler.h
++++ b/src/compiler.h
+@@ -114,6 +114,8 @@ class V8_EXPORT_PRIVATE Compiler : public AllStatic {
+       v8::Extension* extension, ScriptData** cached_data,
+       ScriptCompiler::CompileOptions compile_options,
+       NativesFlag is_natives_code);
++      // Backed out for ABI compatibility with V8 6.2
++      // NativesFlag is_natives_code, Handle<FixedArray> host_defined_options);
+ 
+   // Create a shared function info object for a Script that has already been
+   // parsed while the script was being loaded from a streamed source.
+diff --git a/src/d8.cc b/src/d8.cc
+index d833fdd658..564472a06c 100644
+--- a/src/d8.cc
++++ b/src/d8.cc
+@@ -793,15 +793,17 @@ struct DynamicImportData {
+ }  // namespace
+ 
+ MaybeLocal<Promise> Shell::HostImportModuleDynamically(
+-    Local<Context> context, Local<String> referrer, Local<String> specifier) {
++    Local<Context> context, Local<ScriptOrModule> referrer,
++    Local<String> specifier) {
+   Isolate* isolate = context->GetIsolate();
+ 
+   MaybeLocal<Promise::Resolver> maybe_resolver =
+       Promise::Resolver::New(context);
+   Local<Promise::Resolver> resolver;
+   if (maybe_resolver.ToLocal(&resolver)) {
+-    DynamicImportData* data =
+-        new DynamicImportData(isolate, referrer, specifier, resolver);
++    DynamicImportData* data = new DynamicImportData(
++        isolate, Local<String>::Cast(referrer->GetResourceName()), specifier,
++        resolver);
+     isolate->EnqueueMicrotask(Shell::DoHostImportModuleDynamically, data);
+     return resolver->GetPromise();
+   }
+diff --git a/src/d8.h b/src/d8.h
+index d8a85ac82b..c0922bc595 100644
+--- a/src/d8.h
++++ b/src/d8.h
+@@ -447,7 +447,8 @@ class Shell : public i::AllStatic {
+   static void MakeDirectory(const v8::FunctionCallbackInfo<v8::Value>& args);
+   static void RemoveDirectory(const v8::FunctionCallbackInfo<v8::Value>& args);
+   static MaybeLocal<Promise> HostImportModuleDynamically(
+-      Local<Context> context, Local<String> referrer, Local<String> specifier);
++      Local<Context> context, Local<ScriptOrModule> referrer,
++      Local<String> specifier);
+ 
+   // Data is of type DynamicImportData*. We use void* here to be able
+   // to conform with MicrotaskCallback interface and enqueue this
+diff --git a/src/factory.cc b/src/factory.cc
+index d292f50960..786a7876b7 100644
+--- a/src/factory.cc
++++ b/src/factory.cc
+@@ -1146,7 +1146,8 @@ Handle<Script> Factory::NewScript(Handle<String> source) {
+   script->set_eval_from_position(0);
+   script->set_shared_function_infos(*empty_fixed_array(), SKIP_WRITE_BARRIER);
+   script->set_flags(0);
+-
++  // Backed out for ABI compatibility with V8 6.2
++  // script->set_host_defined_options(*empty_fixed_array());
+   heap->set_script_list(*WeakFixedArray::Add(script_list(), script));
+   return script;
+ }
+diff --git a/src/isolate.cc b/src/isolate.cc
+index c8f0fd0c78..64c082b429 100644
+--- a/src/isolate.cc
++++ b/src/isolate.cc
+@@ -3333,7 +3333,7 @@ MaybeHandle<JSPromise> NewRejectedPromise(Isolate* isolate,
+ }  // namespace
+ 
+ MaybeHandle<JSPromise> Isolate::RunHostImportModuleDynamicallyCallback(
+-    Handle<String> source_url, Handle<Object> specifier) {
++    Handle<Script> referrer, Handle<Object> specifier) {
+   v8::Local<v8::Context> api_context = v8::Utils::ToLocal(native_context());
+ 
+   if (host_import_module_dynamically_callback_ == nullptr) {
+@@ -3356,7 +3356,7 @@ MaybeHandle<JSPromise> Isolate::RunHostImportModuleDynamicallyCallback(
+   ASSIGN_RETURN_ON_SCHEDULED_EXCEPTION_VALUE(
+       this, promise,
+       host_import_module_dynamically_callback_(
+-          api_context, v8::Utils::ToLocal(source_url),
++          api_context, v8::Utils::ScriptOrModuleToLocal(referrer),
+           v8::Utils::ToLocal(specifier_str)),
+       MaybeHandle<JSPromise>());
+   return v8::Utils::OpenHandle(*promise);
+diff --git a/src/isolate.h b/src/isolate.h
+index 96bf44bbda..aeb6685f61 100644
+--- a/src/isolate.h
++++ b/src/isolate.h
+@@ -1245,7 +1245,7 @@ class Isolate {
+   void SetHostImportModuleDynamicallyCallback(
+       HostImportModuleDynamicallyCallback callback);
+   MaybeHandle<JSPromise> RunHostImportModuleDynamicallyCallback(
+-      Handle<String> referrer, Handle<Object> specifier);
++      Handle<Script> referrer, Handle<Object> specifier);
+ 
+   void SetRAILMode(RAILMode rail_mode);
+ 
+diff --git a/src/objects/script-inl.h b/src/objects/script-inl.h
+index 7a639080c7..b22ca2b948 100644
+--- a/src/objects/script-inl.h
++++ b/src/objects/script-inl.h
+@@ -34,6 +34,8 @@ ACCESSORS(Script, shared_function_infos, FixedArray, kSharedFunctionInfosOffset)
+ SMI_ACCESSORS(Script, flags, kFlagsOffset)
+ ACCESSORS(Script, source_url, Object, kSourceUrlOffset)
+ ACCESSORS(Script, source_mapping_url, Object, kSourceMappingUrlOffset)
++// Backed out for ABI compatibility with V8 6.2
++// ACCESSORS(Script, host_defined_options, FixedArray, kHostDefinedOptionsOffset)
+ ACCESSORS_CHECKED(Script, wasm_compiled_module, Object, kEvalFromSharedOffset,
+                   this->type() == TYPE_WASM)
+ 
+diff --git a/src/objects/script.h b/src/objects/script.h
+index fc9385d609..2f6e76a1be 100644
+--- a/src/objects/script.h
++++ b/src/objects/script.h
+@@ -88,6 +88,10 @@ class Script : public Struct {
+   // This must only be called if the type of this script is TYPE_WASM.
+   DECL_ACCESSORS(wasm_compiled_module, Object)
+ 
++  // Backed out for ABI compatibility with V8 6.2
++  // // [host_defined_options]: Options defined by the embedder.
++  // DECL_ACCESSORS(host_defined_options, FixedArray)
++
+   // [compilation_type]: how the the script was compiled. Encoded in the
+   // 'flags' field.
+   inline CompilationType compilation_type();
+@@ -195,6 +199,10 @@ class Script : public Struct {
+   static const int kFlagsOffset = kSharedFunctionInfosOffset + kPointerSize;
+   static const int kSourceUrlOffset = kFlagsOffset + kPointerSize;
+   static const int kSourceMappingUrlOffset = kSourceUrlOffset + kPointerSize;
++  // Backed out for ABI compatibility with V8 6.2
++  // static const int kHostDefinedOptionsOffset =
++  //     kSourceMappingUrlOffset + kPointerSize;
++  // static const int kSize = kHostDefinedOptionsOffset + kPointerSize;
+   static const int kSize = kSourceMappingUrlOffset + kPointerSize;
+ 
+  private:
+diff --git a/src/runtime/runtime-module.cc b/src/runtime/runtime-module.cc
+index 7391efc72d..6d83443ea8 100644
+--- a/src/runtime/runtime-module.cc
++++ b/src/runtime/runtime-module.cc
+@@ -26,12 +26,9 @@ RUNTIME_FUNCTION(Runtime_DynamicImportCall) {
+         isolate);
+   }
+ 
+-  // TODO(gsathya): Check if script name is a string before casting
+-  // and return undefined if not.
+-  Handle<String> source_url(String::cast(script->name()));
+   RETURN_RESULT_OR_FAILURE(
+       isolate,
+-      isolate->RunHostImportModuleDynamicallyCallback(source_url, specifier));
++      isolate->RunHostImportModuleDynamicallyCallback(script, specifier));
+ }
+ 
+ RUNTIME_FUNCTION(Runtime_GetModuleNamespace) {
+diff --git a/test/cctest/compiler/test-linkage.cc b/test/cctest/compiler/test-linkage.cc
+index cdca5223cb..d9161742da 100644
+--- a/test/cctest/compiler/test-linkage.cc
++++ b/test/cctest/compiler/test-linkage.cc
+@@ -36,6 +36,9 @@ static Handle<JSFunction> Compile(const char* source) {
+   Handle<SharedFunctionInfo> shared = Compiler::GetSharedFunctionInfoForScript(
+       source_code, Handle<String>(), 0, 0, v8::ScriptOriginOptions(),
+       Handle<Object>(), Handle<Context>(isolate->native_context()), NULL, NULL,
++      // Backed out for ABI compatibility with V8 6.2
++      // v8::ScriptCompiler::kNoCompileOptions, NOT_NATIVES_CODE,
++      // Handle<FixedArray>());
+       v8::ScriptCompiler::kNoCompileOptions, NOT_NATIVES_CODE);
+   return isolate->factory()->NewFunctionFromSharedFunctionInfo(
+       shared, isolate->native_context());
+diff --git a/test/cctest/test-api.cc b/test/cctest/test-api.cc
+index 5fce13bdfa..4e3f22a3b3 100644
+--- a/test/cctest/test-api.cc
++++ b/test/cctest/test-api.cc
+@@ -19109,11 +19109,21 @@ TEST(Regress528) {
+ THREADED_TEST(ScriptOrigin) {
+   LocalContext env;
+   v8::HandleScope scope(env->GetIsolate());
++  // Backed out for ABI compatibility with V8 6.2
++  // v8::Isolate* isolate = env->GetIsolate();
++  // v8::HandleScope scope(isolate);
++  // Local<v8::PrimitiveArray> array(v8::PrimitiveArray::New(isolate, 1));
++  // Local<v8::Symbol> symbol(v8::Symbol::New(isolate));
++  // array->Set(0, symbol);
++
+   v8::ScriptOrigin origin = v8::ScriptOrigin(
+       v8_str("test"), v8::Integer::New(env->GetIsolate(), 1),
+       v8::Integer::New(env->GetIsolate(), 1), v8::True(env->GetIsolate()),
+       v8::Local<v8::Integer>(), v8_str("http://sourceMapUrl"),
+-      v8::True(env->GetIsolate()));
++      v8::True(env->GetIsolate()), v8::False(env->GetIsolate()),
++      // Backed out for ABI compatibility with V8 6.2
++      // v8::False(env->GetIsolate()), array);
++      v8::False(env->GetIsolate()));
+   v8::Local<v8::String> script = v8_str("function f() {}\n\nfunction g() {}");
+   v8::Script::Compile(env.local(), script, &origin)
+       .ToLocalChecked()
+@@ -19134,6 +19144,8 @@ THREADED_TEST(ScriptOrigin) {
+   CHECK(script_origin_f.Options().IsSharedCrossOrigin());
+   CHECK(script_origin_f.Options().IsOpaque());
+   printf("is name = %d\n", script_origin_f.SourceMapUrl()->IsUndefined());
++  // Backed out for ABI compatibility with V8 6.2
++  // CHECK(script_origin_f.HostDefinedOptions()->Get(0)->IsSymbol());
+ 
+   CHECK_EQ(0, strcmp("http://sourceMapUrl",
+                      *v8::String::Utf8Value(env->GetIsolate(),
+@@ -19151,6 +19163,8 @@ THREADED_TEST(ScriptOrigin) {
+   CHECK_EQ(0, strcmp("http://sourceMapUrl",
+                      *v8::String::Utf8Value(env->GetIsolate(),
+                                             script_origin_g.SourceMapUrl())));
++  // Backed out for ABI compatibility with V8 6.2
++  // CHECK(script_origin_g.HostDefinedOptions()->Get(0)->IsSymbol());
+ }
+ 
+ 
+@@ -27068,10 +27082,14 @@ TEST(CorrectEnteredContext) {
+ }
+ 
+ v8::MaybeLocal<v8::Promise> HostImportModuleDynamicallyCallbackResolve(
+-    Local<Context> context, Local<String> referrer, Local<String> specifier) {
++    Local<Context> context, Local<v8::ScriptOrModule> referrer,
++    Local<String> specifier) {
+   CHECK(!referrer.IsEmpty());
+-  String::Utf8Value referrer_utf8(context->GetIsolate(), referrer);
++  String::Utf8Value referrer_utf8(
++      context->GetIsolate(), Local<String>::Cast(referrer->GetResourceName()));
+   CHECK_EQ(0, strcmp("www.google.com", *referrer_utf8));
++  // Backed out for ABI compatibility with V8 6.2
++  // CHECK(referrer->GetHostDefinedOptions()->Get(0)->IsSymbol());
+ 
+   CHECK(!specifier.IsEmpty());
+   String::Utf8Value specifier_utf8(context->GetIsolate(), specifier);
+@@ -27096,9 +27114,18 @@ TEST(DynamicImport) {
+   i::Handle<i::String> url(v8::Utils::OpenHandle(*v8_str("www.google.com")));
+   i::Handle<i::Object> specifier(v8::Utils::OpenHandle(*v8_str("index.js")));
+   i::Handle<i::String> result(v8::Utils::OpenHandle(*v8_str("hello world")));
++  i::Handle<i::String> source(v8::Utils::OpenHandle(*v8_str("foo")));
+   i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(isolate);
++  // Backed out for ABI compatibility with V8 6.2
++  // i::Handle<i::FixedArray> options = i_isolate->factory()->NewFixedArray(1);
++  // i::Handle<i::Symbol> symbol = i_isolate->factory()->NewSymbol();
++  // options->set(0, *symbol);
++  i::Handle<i::Script> referrer = i_isolate->factory()->NewScript(source);
++  referrer->set_name(*url);
++  // Backed out for ABI compatibility with V8 6.2
++  // referrer->set_host_defined_options(*options);
+   i::MaybeHandle<i::JSPromise> maybe_promise =
+-      i_isolate->RunHostImportModuleDynamicallyCallback(url, specifier);
++      i_isolate->RunHostImportModuleDynamicallyCallback(referrer, specifier);
+   i::Handle<i::JSPromise> promise = maybe_promise.ToHandleChecked();
+   isolate->RunMicrotasks();
+   CHECK(result->Equals(i::String::cast(promise->result())));
+@@ -27119,3 +27146,50 @@ TEST(GlobalTemplateWithDoubleProperty) {
+   CHECK(result->IsNumber());
+   CheckDoubleEquals(3.14, result->NumberValue(context).ToChecked());
+ }
++
++TEST(PrimitiveArray) {
++  v8::Isolate* isolate = CcTest::isolate();
++  v8::HandleScope scope(isolate);
++  LocalContext env;
++
++  int length = 5;
++  Local<v8::PrimitiveArray> array(v8::PrimitiveArray::New(isolate, 5));
++  CHECK_EQ(length, array->Length());
++
++  for (int i = 0; i < length; i++) {
++    Local<v8::Primitive> item = array->Get(i);
++    CHECK(item->IsUndefined());
++  }
++
++  Local<v8::Symbol> symbol(v8::Symbol::New(isolate));
++  array->Set(0, symbol);
++  CHECK(array->Get(0)->IsSymbol());
++
++  Local<v8::String> string =
++      v8::String::NewFromUtf8(isolate, "test", v8::NewStringType::kInternalized)
++          .ToLocalChecked();
++  array->Set(1, string);
++  CHECK(array->Get(0)->IsSymbol());
++  CHECK(array->Get(1)->IsString());
++
++  Local<v8::Number> num = v8::Number::New(env->GetIsolate(), 3.1415926);
++  array->Set(2, num);
++  CHECK(array->Get(0)->IsSymbol());
++  CHECK(array->Get(1)->IsString());
++  CHECK(array->Get(2)->IsNumber());
++
++  v8::Local<v8::Boolean> f = v8::False(isolate);
++  array->Set(3, f);
++  CHECK(array->Get(0)->IsSymbol());
++  CHECK(array->Get(1)->IsString());
++  CHECK(array->Get(2)->IsNumber());
++  CHECK(array->Get(3)->IsBoolean());
++
++  v8::Local<v8::Primitive> n = v8::Null(isolate);
++  array->Set(4, n);
++  CHECK(array->Get(0)->IsSymbol());
++  CHECK(array->Get(1)->IsString());
++  CHECK(array->Get(2)->IsNumber());
++  CHECK(array->Get(3)->IsBoolean());
++  CHECK(array->Get(4)->IsNull());
++}
+diff --git a/test/cctest/test-compiler.cc b/test/cctest/test-compiler.cc
+index c6940834bc..e2909c725e 100644
+--- a/test/cctest/test-compiler.cc
++++ b/test/cctest/test-compiler.cc
+@@ -66,6 +66,9 @@ static Handle<JSFunction> Compile(const char* source) {
+   Handle<SharedFunctionInfo> shared = Compiler::GetSharedFunctionInfoForScript(
+       source_code, Handle<String>(), 0, 0, v8::ScriptOriginOptions(),
+       Handle<Object>(), Handle<Context>(isolate->native_context()), NULL, NULL,
++      // Backed out for ABI compatibility with V8 6.2
++      // v8::ScriptCompiler::kNoCompileOptions, NOT_NATIVES_CODE,
++      // Handle<FixedArray>());
+       v8::ScriptCompiler::kNoCompileOptions, NOT_NATIVES_CODE);
+   return isolate->factory()->NewFunctionFromSharedFunctionInfo(
+       shared, isolate->native_context());
+diff --git a/test/cctest/test-serialize.cc b/test/cctest/test-serialize.cc
+index 7c83f9ad49..61eb4617f2 100644
+--- a/test/cctest/test-serialize.cc
++++ b/test/cctest/test-serialize.cc
+@@ -1145,6 +1145,8 @@ static Handle<SharedFunctionInfo> CompileScript(
+   return Compiler::GetSharedFunctionInfoForScript(
+       source, name, 0, 0, v8::ScriptOriginOptions(), Handle<Object>(),
+       Handle<Context>(isolate->native_context()), NULL, cached_data, options,
++      // Backed out for ABI compatibility with V8 6.2
++      // NOT_NATIVES_CODE, Handle<FixedArray>());
+       NOT_NATIVES_CODE);
+ }
+ 
+@@ -1994,6 +1996,9 @@ TEST(Regress503552) {
+   Handle<SharedFunctionInfo> shared = Compiler::GetSharedFunctionInfoForScript(
+       source, Handle<String>(), 0, 0, v8::ScriptOriginOptions(),
+       Handle<Object>(), Handle<Context>(isolate->native_context()), NULL,
++      // Backed out for ABI compatibility with V8 6.2
++      // &script_data, v8::ScriptCompiler::kProduceCodeCache, NOT_NATIVES_CODE,
++      // Handle<FixedArray>());
+       &script_data, v8::ScriptCompiler::kProduceCodeCache, NOT_NATIVES_CODE);
+   delete script_data;
+ 
+diff --git a/tools/v8heapconst.py b/tools/v8heapconst.py
+index 3fb29d84da..54997ab3ff 100644
+--- a/tools/v8heapconst.py
++++ b/tools/v8heapconst.py
+@@ -297,24 +297,24 @@ KNOWN_OBJECTS = {
+   ("OLD_SPACE", 0x026a9): "EmptyFixedUint32Array",
+   ("OLD_SPACE", 0x026c9): "EmptyFixedInt32Array",
+   ("OLD_SPACE", 0x026e9): "EmptyFixedFloat32Array",
+-  ("OLD_SPACE", 0x02709): "EmptyFixedFloat64Array",
+-  ("OLD_SPACE", 0x02729): "EmptyFixedUint8ClampedArray",
+-  ("OLD_SPACE", 0x02749): "EmptyScript",
+-  ("OLD_SPACE", 0x027c9): "UndefinedCell",
+-  ("OLD_SPACE", 0x027d9): "EmptySloppyArgumentsElements",
+-  ("OLD_SPACE", 0x027f9): "EmptySlowElementDictionary",
+-  ("OLD_SPACE", 0x02841): "EmptyPropertyCell",
+-  ("OLD_SPACE", 0x02869): "EmptyWeakCell",
+-  ("OLD_SPACE", 0x02879): "ArrayProtector",
+-  ("OLD_SPACE", 0x028a1): "IsConcatSpreadableProtector",
+-  ("OLD_SPACE", 0x028b1): "SpeciesProtector",
+-  ("OLD_SPACE", 0x028d9): "StringLengthProtector",
+-  ("OLD_SPACE", 0x028e9): "FastArrayIterationProtector",
+-  ("OLD_SPACE", 0x028f9): "ArrayIteratorProtector",
+-  ("OLD_SPACE", 0x02921): "ArrayBufferNeuteringProtector",
+-  ("OLD_SPACE", 0x02949): "InfinityValue",
+-  ("OLD_SPACE", 0x02959): "MinusZeroValue",
+-  ("OLD_SPACE", 0x02969): "MinusInfinityValue",
++  ("OLD_SPACE", 0x02719): "EmptyFixedFloat64Array",
++  ("OLD_SPACE", 0x02739): "EmptyFixedUint8ClampedArray",
++  ("OLD_SPACE", 0x02759): "EmptyScript",
++  ("OLD_SPACE", 0x027e1): "UndefinedCell",
++  ("OLD_SPACE", 0x027f1): "EmptySloppyArgumentsElements",
++  ("OLD_SPACE", 0x02811): "EmptySlowElementDictionary",
++  ("OLD_SPACE", 0x02859): "EmptyPropertyCell",
++  ("OLD_SPACE", 0x02881): "EmptyWeakCell",
++  ("OLD_SPACE", 0x02891): "ArrayProtector",
++  ("OLD_SPACE", 0x028b9): "IsConcatSpreadableProtector",
++  ("OLD_SPACE", 0x028c9): "SpeciesProtector",
++  ("OLD_SPACE", 0x028f1): "StringLengthProtector",
++  ("OLD_SPACE", 0x02901): "FastArrayIterationProtector",
++  ("OLD_SPACE", 0x02911): "ArrayIteratorProtector",
++  ("OLD_SPACE", 0x02939): "ArrayBufferNeuteringProtector",
++  ("OLD_SPACE", 0x02961): "InfinityValue",
++  ("OLD_SPACE", 0x02971): "MinusZeroValue",
++  ("OLD_SPACE", 0x02981): "MinusInfinityValue",
+ }
+ 
+ # List of known V8 Frame Markers.
