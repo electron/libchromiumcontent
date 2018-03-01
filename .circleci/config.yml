@@ -378,7 +378,3 @@ workflows:
     jobs:
       - libchromiumcontent-linux-arm64-shared
       - libchromiumcontent-linux-arm64-static
-  build-mips64el:
-    jobs:
-      - libchromiumcontent-linux-mips64el-shared
-      - libchromiumcontent-linux-mips64el-static
