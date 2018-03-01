@@ -9,10 +9,12 @@ import sys
 import urllib2
 import platform
 
-from lib.config import get_output_dir
 import lib.filesystem as filesystem
 import lib.gn as gn
 import lib.util as util
+
+from lib.config import MIPS64EL_GCC, MIPS64EL_GCC_URL, MIPS64EL_SYSROOT, \
+                       set_mips64el_env, get_output_dir
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -22,14 +24,6 @@ CHROMIUMCONTENT_SOURCE_DIR = os.path.join(SOURCE_ROOT, 'chromiumcontent')
 CHROMIUMCONTENT_DESTINATION_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
 COMPONENTS = ['static_library', 'shared_library', 'ffmpeg']
 DEPOT_TOOLS = os.path.join(VENDOR_DIR, 'depot_tools')
-
-# URL to the mips64el sysroot image.
-MIPS64EL_SYSROOT = 'https://github.com/electron/debian-sysroot-image-creator/releases/download/v0.5.0/debian_jessie_mips64-sysroot.tar.bz2'
-# URL to the mips64el toolchain.
-MIPS64EL_GCC = 'gcc-4.8.3-d197-n64-loongson'
-MIPS64EL_GCC_URL = 'http://ftp.loongnix.org/toolchain/gcc/release/' + MIPS64EL_GCC + '.tar.gz'
-# Whether the host system is a mips64el machine.
-IS_MIPS64EL_HOST = platform.uname()[5] == 'mips64'
 
 DEBIAN_MIRROR = 'http://ftp.jp.debian.org/debian/pool/main/'
 BINTOOLS_NAME = 'c/cross-binutils/binutils-aarch64-linux-gnu_2.25-5_amd64.deb'
@@ -65,15 +59,11 @@ def main():
   git_cache = args.git_cache or os.getenv('LIBCHROMIUMCONTENT_GIT_CACHE', '')
 
   target_arch = args.target_arch
-  nohooks = target_arch == 'mips64el' and IS_MIPS64EL_HOST
 
   if args.run_gclient:
-    gclient_sync(chromium_version(), args.clean, git_cache, nohooks)
+    gclient_sync(chromium_version(), args.clean, git_cache)
     if args.source_only:
       return
-
-  if target_arch == 'mips64el' and IS_MIPS64EL_HOST:
-    os.system('sh script/mips64el/runhooks-mips64el')
 
   if sys.platform in ['win32', 'cygwin']:
     update_toolchain_json()
@@ -203,7 +193,7 @@ def ensure_gclient_config(git_cache):
       ))
 
 
-def gclient_sync(version, force, git_cache, nohooks):
+def gclient_sync(version, force, git_cache):
   # Remove untracked files in src.
   if os.path.exists(os.path.join(SRC_DIR, '.git')):
     with util.scoped_cwd(SRC_DIR):
@@ -222,8 +212,6 @@ def gclient_sync(version, force, git_cache, nohooks):
     args += ['--lock_timeout=15']
   if force:
     args += ['--force']
-  if nohooks:
-    args += ['--nohooks']
   subprocess.check_call(args, env=env)
 
 
@@ -245,42 +233,20 @@ def setup_mips64el_toolchain(target_arch):
   if target_arch != 'mips64el':
     return
 
-  if IS_MIPS64EL_HOST:
-    # A hack to use the mips64el version of ninja.
-    subprocess.call(['script/mips64el/ninja-mips64el'])
-  else:
-    # Download mips64el toolchains.
-    if not os.path.exists(os.path.join(VENDOR_DIR, MIPS64EL_GCC)):
-      tar_name = MIPS64EL_GCC + '.tar.gz'
-      download(MIPS64EL_GCC_URL, tar_name)
-      subprocess.check_call(['tar', '-xf', tar_name, '-C', VENDOR_DIR])
-      filesystem.rm_f(tar_name)
+  # Download mips64el toolchains.
+  if not os.path.exists(os.path.join(VENDOR_DIR, MIPS64EL_GCC)):
+    tar_name = MIPS64EL_GCC + '.tar.gz'
+    download(MIPS64EL_GCC_URL, tar_name)
+    subprocess.check_call(['tar', '-xf', tar_name, '-C', VENDOR_DIR])
+    filesystem.rm_f(tar_name)
 
   # Gernerate ffmpeg build config files for mips64el.
   env = os.environ.copy()
-  if not IS_MIPS64EL_HOST:
-    gcc_dir = os.path.join(VENDOR_DIR, MIPS64EL_GCC)
-    ldlib_dirs = [
-      gcc_dir + '/usr/x86_64-unknown-linux-gnu/mips64el-redhat-linux/lib',
-      gcc_dir + '/usr/lib64',
-      gcc_dir + '/usr/mips64el-redhat-linux/lib64',
-      gcc_dir + '/usr/mips64el-redhat-linux/sysroot/lib64',
-      gcc_dir + '/usr/mips64el-redhat-linux/sysroot/usr/lib64',
-    ]
-    env['LD_LIBRARY_PATH'] = os.pathsep.join(ldlib_dirs)
-    env['PATH'] = os.pathsep.join([gcc_dir + '/usr/bin', env['PATH']])
+  set_mips64el_env(env)
   ffmpeg_dir = os.path.join(SRC_DIR, 'third_party', 'ffmpeg')
   subprocess.check_call(['chromium/scripts/build_ffmpeg.py', 'linux', 'mips64el'], cwd=ffmpeg_dir, env=env)
   subprocess.check_call(['chromium/scripts/copy_config.sh'], cwd=ffmpeg_dir)
   subprocess.check_call(['chromium/scripts/generate_gn.py'], cwd=ffmpeg_dir)
-
-  # Build gn with the patch to support mips64el.
-  gn = os.path.join(SRC_DIR, 'out', 'Release', 'gn')
-  if not os.path.exists(gn):
-    env['PATH'] = os.pathsep.join([DEPOT_TOOLS, env['PATH']])
-    bootstrap = os.path.join(SRC_DIR, 'tools', 'gn', 'bootstrap', 'bootstrap.py')
-    subprocess.check_call([bootstrap, '-s'], cwd=SRC_DIR, env=env)
-
 
 def run_gn(target_arch):
   env = os.environ.copy()

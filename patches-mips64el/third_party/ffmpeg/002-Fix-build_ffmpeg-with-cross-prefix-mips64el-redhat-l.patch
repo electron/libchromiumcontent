@@ -16,7 +16,7 @@ index 0dbd9eb..79b5af2 100755
            configure_flags['Common'].extend([
              '--enable-cross-compile',
 -            '--cross-prefix=mips64el-linux-gnuabi64-',
-+            '--cross-prefix=mips64el-redhat-linux-',
++            '--cross-prefix=mips64el-loongson-linux-',
              '--target-os=linux',
              '--arch=mips',
              '--extra-cflags=-mips64r2',
