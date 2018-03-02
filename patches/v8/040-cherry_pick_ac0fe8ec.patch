@@ -1,0 +1,284 @@
+diff --git a/src/builtins/arm/builtins-arm.cc b/src/builtins/arm/builtins-arm.cc
+index 0af87f2c8a..7ca98251a9 100644
+--- a/src/builtins/arm/builtins-arm.cc
++++ b/src/builtins/arm/builtins-arm.cc
+@@ -1073,22 +1073,15 @@ static void MaybeTailCallOptimizedCodeSlot(MacroAssembler* masm,
+         Runtime::kCompileOptimized_Concurrent);
+ 
+     {
+-      // Otherwise, the marker is InOptimizationQueue.
++      // Otherwise, the marker is InOptimizationQueue, so fall through hoping
++      // that an interrupt will eventually update the slot with optimized code.
+       if (FLAG_debug_code) {
+         __ cmp(
+             optimized_code_entry,
+             Operand(Smi::FromEnum(OptimizationMarker::kInOptimizationQueue)));
+         __ Assert(eq, kExpectedOptimizationSentinel);
+       }
+-      // Checking whether the queued function is ready for install is
+-      // optional, since we come across interrupts and stack checks elsewhere.
+-      // However, not checking may delay installing ready functions, and
+-      // always checking would be quite expensive.  A good compromise is to
+-      // first check against stack limit as a cue for an interrupt signal.
+-      __ LoadRoot(scratch2, Heap::kStackLimitRootIndex);
+-      __ cmp(sp, Operand(scratch2));
+-      __ b(hs, &fallthrough);
+-      GenerateTailCallToReturnedCode(masm, Runtime::kTryInstallOptimizedCode);
++      __ jmp(&fallthrough);
+     }
+   }
+ 
+diff --git a/src/builtins/arm64/builtins-arm64.cc b/src/builtins/arm64/builtins-arm64.cc
+index 03a4995f75..ca8da67b85 100644
+--- a/src/builtins/arm64/builtins-arm64.cc
++++ b/src/builtins/arm64/builtins-arm64.cc
+@@ -1084,22 +1084,15 @@ static void MaybeTailCallOptimizedCodeSlot(MacroAssembler* masm,
+         Runtime::kCompileOptimized_Concurrent);
+ 
+     {
+-      // Otherwise, the marker is InOptimizationQueue.
++      // Otherwise, the marker is InOptimizationQueue, so fall through hoping
++      // that an interrupt will eventually update the slot with optimized code.
+       if (FLAG_debug_code) {
+         __ Cmp(
+             optimized_code_entry,
+             Operand(Smi::FromEnum(OptimizationMarker::kInOptimizationQueue)));
+         __ Assert(eq, kExpectedOptimizationSentinel);
+       }
+-
+-      // Checking whether the queued function is ready for install is optional,
+-      // since we come across interrupts and stack checks elsewhere.  However,
+-      // not checking may delay installing ready functions, and always checking
+-      // would be quite expensive.  A good compromise is to first check against
+-      // stack limit as a cue for an interrupt signal.
+-      __ CompareRoot(masm->StackPointer(), Heap::kStackLimitRootIndex);
+-      __ B(hs, &fallthrough);
+-      GenerateTailCallToReturnedCode(masm, Runtime::kTryInstallOptimizedCode);
++      __ B(&fallthrough);
+     }
+   }
+ 
+diff --git a/src/builtins/ia32/builtins-ia32.cc b/src/builtins/ia32/builtins-ia32.cc
+index 03db488b7e..9d3178dc89 100644
+--- a/src/builtins/ia32/builtins-ia32.cc
++++ b/src/builtins/ia32/builtins-ia32.cc
+@@ -715,24 +715,15 @@ static void MaybeTailCallOptimizedCodeSlot(MacroAssembler* masm,
+         Runtime::kCompileOptimized_Concurrent);
+ 
+     {
+-      // Otherwise, the marker is InOptimizationQueue.
++      // Otherwise, the marker is InOptimizationQueue, so fall through hoping
++      // that an interrupt will eventually update the slot with optimized code.
+       if (FLAG_debug_code) {
+         __ cmp(
+             optimized_code_entry,
+             Immediate(Smi::FromEnum(OptimizationMarker::kInOptimizationQueue)));
+         __ Assert(equal, kExpectedOptimizationSentinel);
+       }
+-
+-      // Checking whether the queued function is ready for install is optional,
+-      // since we come across interrupts and stack checks elsewhere.  However,
+-      // not checking may delay installing ready functions, and always checking
+-      // would be quite expensive.  A good compromise is to first check against
+-      // stack limit as a cue for an interrupt signal.
+-      ExternalReference stack_limit =
+-          ExternalReference::address_of_stack_limit(masm->isolate());
+-      __ cmp(esp, Operand::StaticVariable(stack_limit));
+-      __ j(above_equal, &fallthrough);
+-      GenerateTailCallToReturnedCode(masm, Runtime::kTryInstallOptimizedCode);
++      __ jmp(&fallthrough);
+     }
+   }
+ 
+diff --git a/src/builtins/mips/builtins-mips.cc b/src/builtins/mips/builtins-mips.cc
+index b280c161d6..af214cb4b9 100644
+--- a/src/builtins/mips/builtins-mips.cc
++++ b/src/builtins/mips/builtins-mips.cc
+@@ -1052,21 +1052,14 @@ static void MaybeTailCallOptimizedCodeSlot(MacroAssembler* masm,
+         Runtime::kCompileOptimized_Concurrent);
+ 
+     {
+-      // Otherwise, the marker is InOptimizationQueue.
++      // Otherwise, the marker is InOptimizationQueue, so fall through hoping
++      // that an interrupt will eventually update the slot with optimized code.
+       if (FLAG_debug_code) {
+         __ Assert(
+             eq, kExpectedOptimizationSentinel, optimized_code_entry,
+             Operand(Smi::FromEnum(OptimizationMarker::kInOptimizationQueue)));
+       }
+-
+-      // Checking whether the queued function is ready for install is optional,
+-      // since we come across interrupts and stack checks elsewhere. However,
+-      // not checking may delay installing ready functions, and always checking
+-      // would be quite expensive.  A good compromise is to first check against
+-      // stack limit as a cue for an interrupt signal.
+-      __ LoadRoot(at, Heap::kStackLimitRootIndex);
+-      __ Branch(&fallthrough, hs, sp, Operand(at));
+-      GenerateTailCallToReturnedCode(masm, Runtime::kTryInstallOptimizedCode);
++      __ jmp(&fallthrough);
+     }
+   }
+ 
+diff --git a/src/builtins/mips64/builtins-mips64.cc b/src/builtins/mips64/builtins-mips64.cc
+index b65a796785..fd014cc902 100644
+--- a/src/builtins/mips64/builtins-mips64.cc
++++ b/src/builtins/mips64/builtins-mips64.cc
+@@ -1054,21 +1054,14 @@ static void MaybeTailCallOptimizedCodeSlot(MacroAssembler* masm,
+         Runtime::kCompileOptimized_Concurrent);
+ 
+     {
+-      // Otherwise, the marker is InOptimizationQueue.
++      // Otherwise, the marker is InOptimizationQueue, so fall through hoping
++      // that an interrupt will eventually update the slot with optimized code.
+       if (FLAG_debug_code) {
+         __ Assert(
+             eq, kExpectedOptimizationSentinel, optimized_code_entry,
+             Operand(Smi::FromEnum(OptimizationMarker::kInOptimizationQueue)));
+       }
+-
+-      // Checking whether the queued function is ready for install is optional,
+-      // since we come across interrupts and stack checks elsewhere. However,
+-      // not checking may delay installing ready functions, and always checking
+-      // would be quite expensive.  A good compromise is to first check against
+-      // stack limit as a cue for an interrupt signal.
+-      __ LoadRoot(t0, Heap::kStackLimitRootIndex);
+-      __ Branch(&fallthrough, hs, sp, Operand(t0));
+-      GenerateTailCallToReturnedCode(masm, Runtime::kTryInstallOptimizedCode);
++      __ jmp(&fallthrough);
+     }
+   }
+ 
+diff --git a/src/builtins/ppc/builtins-ppc.cc b/src/builtins/ppc/builtins-ppc.cc
+index 646f7f62bc..8a5ec14b42 100644
+--- a/src/builtins/ppc/builtins-ppc.cc
++++ b/src/builtins/ppc/builtins-ppc.cc
+@@ -1081,23 +1081,15 @@ static void MaybeTailCallOptimizedCodeSlot(MacroAssembler* masm,
+         Runtime::kCompileOptimized_Concurrent);
+ 
+     {
+-      // Otherwise, the marker is InOptimizationQueue.
++      // Otherwise, the marker is InOptimizationQueue, so fall through hoping
++      // that an interrupt will eventually update the slot with optimized code.
+       if (FLAG_debug_code) {
+         __ CmpSmiLiteral(
+             optimized_code_entry,
+             Smi::FromEnum(OptimizationMarker::kInOptimizationQueue), r0);
+         __ Assert(eq, kExpectedOptimizationSentinel);
+       }
+-
+-      // Checking whether the queued function is ready for install is optional,
+-      // since we come across interrupts and stack checks elsewhere.  However,
+-      // not checking may delay installing ready functions, and always checking
+-      // would be quite expensive.  A good compromise is to first check against
+-      // stack limit as a cue for an interrupt signal.
+-      __ LoadRoot(ip, Heap::kStackLimitRootIndex);
+-      __ cmpl(sp, ip);
+-      __ bge(&fallthrough);
+-      GenerateTailCallToReturnedCode(masm, Runtime::kTryInstallOptimizedCode);
++      __ b(&fallthrough);
+     }
+   }
+ 
+diff --git a/src/builtins/s390/builtins-s390.cc b/src/builtins/s390/builtins-s390.cc
+index c965805fc7..c9800fa287 100644
+--- a/src/builtins/s390/builtins-s390.cc
++++ b/src/builtins/s390/builtins-s390.cc
+@@ -1081,22 +1081,15 @@ static void MaybeTailCallOptimizedCodeSlot(MacroAssembler* masm,
+         Runtime::kCompileOptimized_Concurrent);
+ 
+     {
+-      // Otherwise, the marker is InOptimizationQueue.
++      // Otherwise, the marker is InOptimizationQueue, so fall through hoping
++      // that an interrupt will eventually update the slot with optimized code.
+       if (FLAG_debug_code) {
+         __ CmpSmiLiteral(
+             optimized_code_entry,
+             Smi::FromEnum(OptimizationMarker::kInOptimizationQueue), r0);
+         __ Assert(eq, kExpectedOptimizationSentinel);
+       }
+-
+-      // Checking whether the queued function is ready for install is optional,
+-      // since we come across interrupts and stack checks elsewhere.  However,
+-      // not checking may delay installing ready functions, and always checking
+-      // would be quite expensive.  A good compromise is to first check against
+-      // stack limit as a cue for an interrupt signal.
+-      __ CmpLogicalP(sp, RootMemOperand(Heap::kStackLimitRootIndex));
+-      __ bge(&fallthrough, Label::kNear);
+-      GenerateTailCallToReturnedCode(masm, Runtime::kTryInstallOptimizedCode);
++      __ b(&fallthrough, Label::kNear);
+     }
+   }
+ 
+diff --git a/src/builtins/x64/builtins-x64.cc b/src/builtins/x64/builtins-x64.cc
+index 981bb65fd1..047c128106 100644
+--- a/src/builtins/x64/builtins-x64.cc
++++ b/src/builtins/x64/builtins-x64.cc
+@@ -798,21 +798,14 @@ static void MaybeTailCallOptimizedCodeSlot(MacroAssembler* masm,
+         Runtime::kCompileOptimized_Concurrent);
+ 
+     {
+-      // Otherwise, the marker is InOptimizationQueue.
++      // Otherwise, the marker is InOptimizationQueue, so fall through hoping
++      // that an interrupt will eventually update the slot with optimized code.
+       if (FLAG_debug_code) {
+         __ SmiCompare(optimized_code_entry,
+                       Smi::FromEnum(OptimizationMarker::kInOptimizationQueue));
+         __ Assert(equal, kExpectedOptimizationSentinel);
+       }
+-
+-      // Checking whether the queued function is ready for install is optional,
+-      // since we come across interrupts and stack checks elsewhere.  However,
+-      // not checking may delay installing ready functions, and always checking
+-      // would be quite expensive.  A good compromise is to first check against
+-      // stack limit as a cue for an interrupt signal.
+-      __ CompareRoot(rsp, Heap::kStackLimitRootIndex);
+-      __ j(above_equal, &fallthrough);
+-      GenerateTailCallToReturnedCode(masm, Runtime::kTryInstallOptimizedCode);
++      __ jmp(&fallthrough);
+     }
+   }
+ 
+diff --git a/src/runtime/runtime-compiler.cc b/src/runtime/runtime-compiler.cc
+index 4b57593227..fd2df5afe3 100644
+--- a/src/runtime/runtime-compiler.cc
++++ b/src/runtime/runtime-compiler.cc
+@@ -340,27 +340,6 @@ RUNTIME_FUNCTION(Runtime_CompileForOnStackReplacement) {
+   return NULL;
+ }
+ 
+-
+-RUNTIME_FUNCTION(Runtime_TryInstallOptimizedCode) {
+-  HandleScope scope(isolate);
+-  DCHECK_EQ(1, args.length());
+-  CONVERT_ARG_HANDLE_CHECKED(JSFunction, function, 0);
+-
+-  // First check if this is a real stack overflow.
+-  StackLimitCheck check(isolate);
+-  if (check.JsHasOverflowed(kStackSpaceRequiredForCompilation * KB)) {
+-    return isolate->StackOverflow();
+-  }
+-
+-  // Only try to install optimized functions if the interrupt was InstallCode.
+-  if (isolate->stack_guard()->CheckAndClearInstallCode()) {
+-    isolate->optimizing_compile_dispatcher()->InstallOptimizedFunctions();
+-  }
+-
+-  return (function->IsOptimized()) ? function->code()
+-                                   : function->shared()->code();
+-}
+-
+ static Object* CompileGlobalEval(Isolate* isolate, Handle<String> source,
+                                  Handle<SharedFunctionInfo> outer_info,
+                                  LanguageMode language_mode,
+diff --git a/src/runtime/runtime.h b/src/runtime/runtime.h
+index a78966f226..018bf6aa00 100644
+--- a/src/runtime/runtime.h
++++ b/src/runtime/runtime.h
+@@ -115,7 +115,6 @@ namespace internal {
+   F(NotifyStubFailure, 0, 1)              \
+   F(NotifyDeoptimized, 1, 1)              \
+   F(CompileForOnStackReplacement, 1, 1)   \
+-  F(TryInstallOptimizedCode, 1, 1)        \
+   F(ResolvePossiblyDirectEval, 6, 1)      \
+   F(InstantiateAsmJs, 4, 1)
+ 
