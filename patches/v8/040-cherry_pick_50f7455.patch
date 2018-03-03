@@ -1,0 +1,124 @@
+diff --git a/src/api.cc b/src/api.cc
+index 147ef1f755..83b4c4c447 100644
+--- a/src/api.cc
++++ b/src/api.cc
+@@ -10092,6 +10092,25 @@ void debug::QueryObjects(v8::Local<v8::Context> v8_context,
+                                          predicate, objects);
+ }
+
++void debug::GlobalLexicalScopeNames(
++    v8::Local<v8::Context> v8_context,
++    v8::PersistentValueVector<v8::String>* names) {
++  i::Handle<i::Context> context = Utils::OpenHandle(*v8_context);
++  i::Handle<i::ScriptContextTable> table(
++      context->global_object()->native_context()->script_context_table());
++  for (int i = 0; i < table->used(); i++) {
++    i::Handle<i::Context> context = i::ScriptContextTable::GetContext(table, i);
++    DCHECK(context->IsScriptContext());
++    i::Handle<i::ScopeInfo> scope_info(context->scope_info());
++    int local_count = scope_info->ContextLocalCount();
++    for (int j = 0; j < local_count; ++j) {
++      i::String* name = scope_info->ContextLocalName(j);
++      if (i::ScopeInfo::VariableIsSynthetic(name)) continue;
++      names->Append(Utils::ToLocal(handle(name)));
++    }
++  }
++}
++
+ Local<String> CpuProfileNode::GetFunctionName() const {
+   const i::ProfileNode* node = reinterpret_cast<const i::ProfileNode*>(this);
+   i::Isolate* isolate = node->isolate();
+diff --git a/src/debug/debug-interface.h b/src/debug/debug-interface.h
+index 78001524b2..887208ad72 100644
+--- a/src/debug/debug-interface.h
++++ b/src/debug/debug-interface.h
+@@ -401,6 +401,9 @@ void QueryObjects(v8::Local<v8::Context> context,
+                   QueryObjectPredicate* predicate,
+                   v8::PersistentValueVector<v8::Object>* objects);
+
++void GlobalLexicalScopeNames(v8::Local<v8::Context> context,
++                             v8::PersistentValueVector<v8::String>* names);
++
+ }  // namespace debug
+ }  // namespace v8
+
+diff --git a/src/inspector/js_protocol.json b/src/inspector/js_protocol.json
+index 439de72c10..0be9bd2bcc 100644
+--- a/src/inspector/js_protocol.json
++++ b/src/inspector/js_protocol.json
+@@ -353,6 +353,17 @@
+                     { "name": "objects", "$ref": "RemoteObject", "description": "Array with objects." }
+                 ],
+                 "experimental": true
++            },
++            {
++                "name": "globalLexicalScopeNames",
++                "parameters": [
++                    { "name": "executionContextId", "$ref": "ExecutionContextId", "optional": true, "description": "Specifies in which execution context to lookup global scope variables." }
++                ],
++                "returns": [
++                    { "name": "names", "type": "array", "items": { "type": "string" } }
++                ],
++                "description": "Returns all let, const and class variables from global scope.",
++                "experimental": true
+             }
+         ],
+         "events": [
+diff --git a/src/inspector/v8-runtime-agent-impl.cc b/src/inspector/v8-runtime-agent-impl.cc
+index bdae0ef7a1..e9159451f7 100644
+--- a/src/inspector/v8-runtime-agent-impl.cc
++++ b/src/inspector/v8-runtime-agent-impl.cc
+@@ -537,6 +537,27 @@ Response V8RuntimeAgentImpl::queryObjects(
+       resultArray, scope.objectGroupName(), false, false, objects);
+ }
+
++Response V8RuntimeAgentImpl::globalLexicalScopeNames(
++    Maybe<int> executionContextId,
++    std::unique_ptr<protocol::Array<String16>>* outNames) {
++  int contextId = 0;
++  Response response = ensureContext(m_inspector, m_session->contextGroupId(),
++                                    std::move(executionContextId), &contextId);
++  if (!response.isSuccess()) return response;
++
++  InjectedScript::ContextScope scope(m_session, contextId);
++  response = scope.initialize();
++  if (!response.isSuccess()) return response;
++
++  v8::PersistentValueVector<v8::String> names(m_inspector->isolate());
++  v8::debug::GlobalLexicalScopeNames(scope.context(), &names);
++  *outNames = protocol::Array<String16>::create();
++  for (size_t i = 0; i < names.Size(); ++i) {
++    (*outNames)->addItem(toProtocolString(names.Get(i)));
++  }
++  return Response::OK();
++}
++
+ void V8RuntimeAgentImpl::restore() {
+   if (!m_state->booleanProperty(V8RuntimeAgentImplState::runtimeEnabled, false))
+     return;
+diff --git a/src/inspector/v8-runtime-agent-impl.h b/src/inspector/v8-runtime-agent-impl.h
+index 6f3b98cf44..5f2be2b8ab 100644
+--- a/src/inspector/v8-runtime-agent-impl.h
++++ b/src/inspector/v8-runtime-agent-impl.h
+@@ -100,6 +100,9 @@ class V8RuntimeAgentImpl : public protocol::Runtime::Backend {
+   Response queryObjects(
+       const String16& prototypeObjectId,
+       std::unique_ptr<protocol::Runtime::RemoteObject>* objects) override;
++  Response globalLexicalScopeNames(
++      Maybe<int> executionContextId,
++      std::unique_ptr<protocol::Array<String16>>* outNames) override;
+
+   void reset();
+   void reportExecutionContextCreated(InspectedContext*);
+diff --git a/test/inspector/runtime/runtime-restore.js b/test/inspector/runtime/runtime-restore.js
+index 09e44677e5..77fa823e7e 100644
+--- a/test/inspector/runtime/runtime-restore.js
++++ b/test/inspector/runtime/runtime-restore.js
+@@ -1,6 +1,6 @@
+ // Copyright 2017 the V8 project authors. All rights reserved.
+ // Use of this source code is governed by a BSD-style license that can be
+-// found in the LICENSE file.v8
++// found in the LICENSE file.
+
+ let {session, contextGroup, Protocol} = InspectorTest.start('Checks that Runtime agent correctly restore its state.');
+
