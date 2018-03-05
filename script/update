@@ -14,7 +14,8 @@ import lib.gn as gn
 import lib.util as util
 
 from lib.config import MIPS64EL_GCC, MIPS64EL_GCC_URL, MIPS64EL_SYSROOT, \
-                       set_mips64el_env, get_output_dir
+                       set_mips64el_env, get_output_dir, \
+                       IS_ARM64_HOST, IS_ARMV7_HOST
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -59,9 +60,10 @@ def main():
   git_cache = args.git_cache or os.getenv('LIBCHROMIUMCONTENT_GIT_CACHE', '')
 
   target_arch = args.target_arch
+  nohooks = target_arch == 'arm64' and IS_ARM64_HOST or target_arch == 'arm' and IS_ARMV7_HOST
 
   if args.run_gclient:
-    gclient_sync(chromium_version(), args.clean, git_cache)
+    gclient_sync(chromium_version(), args.clean, git_cache, nohooks)
     if args.source_only:
       return
 
@@ -193,7 +195,7 @@ def ensure_gclient_config(git_cache):
       ))
 
 
-def gclient_sync(version, force, git_cache):
+def gclient_sync(version, force, git_cache, nohooks):
   # Remove untracked files in src.
   if os.path.exists(os.path.join(SRC_DIR, '.git')):
     with util.scoped_cwd(SRC_DIR):
@@ -212,6 +214,8 @@ def gclient_sync(version, force, git_cache):
     args += ['--lock_timeout=15']
   if force:
     args += ['--force']
+  if nohooks:
+    args += ['--nohooks']
   subprocess.check_call(args, env=env)
 
 
