@@ -16,18 +16,20 @@ SRC_DIR = os.path.join(SOURCE_ROOT, SRC)
 
 
 def main():
-  error = apply_patches_for_dir(PATCHES_DIR)
-  if not error:
-    if os.environ.has_key('MAS_BUILD'):
-      error = apply_patches_for_dir(PATCHES_MAS_DIR)
-    elif sys.argv[1] == 'mips64el':
-      error = apply_patches_for_dir(PATCHES_MIPS64EL_DIR)
-    if not error:
-      return
+  folders = [PATCHES_DIR]
+  if os.environ.has_key('MAS_BUILD'):
+    folders.append(PATCHES_MAS_DIR)
+  if sys.argv[1] == 'mips64el':
+    folders.append(PATCHES_MIPS64EL_DIR)
 
-  sys.stderr.write(error + '\n')
-  sys.stderr.flush()
-  return 1
+  for folder in folders:
+    error = apply_patches_for_dir(folder)
+    if error:
+      sys.stderr.write(error + '\n')
+      sys.stderr.flush()
+      return 1
+
+  return 0
 
 
 def apply_patches_for_dir(directory):
@@ -37,7 +39,8 @@ def apply_patches_for_dir(directory):
 
     (success, failed_patches) = apply_patches_from_directory(repo, root)
     if not success:
-      return '{0} failed to apply'.format(os.path.basename(failed_patches[0]))
+      patch_path = failed_patches[0].get_file_path()
+      return '{0} failed to apply'.format(os.path.basename(patch_path))
 
 
 if __name__ == '__main__':
