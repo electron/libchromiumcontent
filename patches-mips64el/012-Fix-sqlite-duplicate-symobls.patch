@@ -1,0 +1,550 @@
+diff --git a/third_party/sqlite/BUILD.gn b/third_party/sqlite/BUILD.gn
+index 4acbd3a32118..253707867403 100644
+--- a/third_party/sqlite/BUILD.gn
++++ b/third_party/sqlite/BUILD.gn
+@@ -97,6 +97,19 @@ if (!use_system_sqlite) {
+       # syntax working but execution failing.  Review:
+       #   src/src/parse.py
+       #   src/tool/mkkeywordhash.c
++
++      # Chromium does not use sqlite3_{enable_}load_extension().
++      # Asides from giving us fairly minor code savings, this option disables code
++      # that breaks our method for renaming SQLite's exported symbols. Last,
++      # there's a tiny security benefit to knowing that WebSQL can't possibly
++      # reach extension loading code.
++      "SQLITE_OMIT_LOAD_EXTENSION",
++
++      # The generated sqlite3.c does not include sqlite3.h, so we cannot easily
++      # inject the renaming macros in amalgamation/export_renames.h. However,
++      # if the macro below is defined, sqlite3.c will #include "config.h", which
++      # can be used to inject the macros.
++      "_HAVE_SQLITE_CONFIG_H",
+     ]
+     if (is_component_build) {
+       if (is_win) {
+@@ -124,12 +137,6 @@ if (!use_system_sqlite) {
+       ]
+     }
+ 
+-    # Pull in config.h on Linux.  This allows use of preprocessor macros which
+-    # are not available to the build config.
+-    if (is_linux) {
+-      defines += [ "_HAVE_SQLITE_CONFIG_H" ]
+-    }
+-
+     if (using_sanitizer) {
+       # Limit max length of data blobs and queries for fuzzing builds by 128 MB.
+       defines += [
+@@ -139,7 +146,10 @@ if (!use_system_sqlite) {
+       ]
+     }
+ 
+-    include_dirs = [ "amalgamation" ]
++    include_dirs = [
++      ".",  # sqlite3.h here must override the one in amalgamation/.
++      "amalgamation",
++    ]
+ 
+     configs -= [ "//build/config/compiler:chromium_code" ]
+     configs += [
+@@ -189,11 +199,14 @@ if (!use_system_sqlite) {
+ 
+   if (is_linux) {
+     executable("sqlite_shell") {
+-      # So shell.c can find the correct sqlite3.h.
+-      include_dirs = [ "amalgamation" ]
++      include_dirs = [
++        # shell.c contains an '#include "sqlite3.h", which we want to be
++        # resolved to //third_party/sqlite/shell.h.
++        ".",
++      ]
+ 
+       sources = [
+-        "src/src/shell.c",
++        "amalgamation/shell/shell.c",
+         "src/src/shell_icu_linux.c",
+ 
+         # Include a dummy c++ file to force linking of libstdc++.
+diff --git a/third_party/sqlite/amalgamation/config.h b/third_party/sqlite/amalgamation/config.h
+index 58941b459782..c097c0a41b84 100644
+--- a/third_party/sqlite/amalgamation/config.h
++++ b/third_party/sqlite/amalgamation/config.h
+@@ -1,32 +1,33 @@
+-/* On Windows and OSX, SQLite uses preprocessor macros to configure itself.  On
+- * Linux, it expects config.h from autoconf.  autoconf generates config.h by
+- * compiling a series of probe programs, and Chromium's build system has no
+- * "configure" phase to put such generation in.  This file is a workaround for
+- * this issue.
+- */
+-/* TODO(shess): Expand this to OSX and Windows? */
+-/* TODO(shess): Consider config_linux.h, config_mac.h, config_win.h? */
+-
+-/* NOTE(shess): This file is included by sqlite3.c, be very careful about adding
+- * #include lines.
+- */
+-/* TODO(shess): Consider using build/build_config.h for OS_ macros. */
+-/* TODO(shess): build_config.h uses unistd.h, perhaps for portability reasons,
+- * but AFAICT there are no current portability concerns here.  limits.h is
+- * another alternative.
+- */
++// Copyright 2018 The Chromium Authors. All rights reserved.
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++#ifndef THIRD_PARTY_SQLITE_AMALGAMATION_CONFIG_H_
++#define THIRD_PARTY_SQLITE_AMALGAMATION_CONFIG_H_
++// This file is included by sqlite3.c fairly early.
++// We prefix chrome_ to SQLite's exported symbols, so that we don't clash with
++// other SQLite libraries loaded by the system libraries. This only matters when
++// using the component build, where our SQLite's symbols are visible to the
++// dynamic library loader.
++#include "third_party/sqlite/amalgamation/rename_exports.h"
++// Linux-specific configuration fixups.
++#if defined(__linux__)
++// features.h, included below, indirectly includes sys/mman.h. The latter header
++// only defines mremap if _GNU_SOURCE is defined. Depending on the order of the
++// files in the amalgamation, removing the define below may result in a build
++// error on Linux.
++#if defined(__GNUC__) && !defined(_GNU_SOURCE)
++#define _GNU_SOURCE
++#endif
+ #include <features.h>
+-
+-/* SQLite wants to track malloc sizes.  On OSX it uses malloc_size(), on
+- * Windows _msize(), elsewhere it handles it manually by enlarging the malloc
+- * and injecting a field.  Enable malloc_usable_size() for Linux.
+- *
+- * malloc_usable_size() is not exported by the Android NDK.  It is not
+- * implemented by uclibc.
+- */
+-#if defined(__linux__) && !defined(__UCLIBC__)
++// SQLite wants to track malloc sizes. On OSX it uses malloc_size(), on Windows
++// _msize(), elsewhere it handles it manually by enlarging the malloc and
++// injecting a field. Enable malloc_usable_size() for Linux.
++//
++// malloc_usable_size() is not exported by the Android NDK. It is not
++// implemented by uclibc.
++#if !defined(__UCLIBC__) && !defined(__ANDROID__)
+ #define HAVE_MALLOC_H 1
+ #define HAVE_MALLOC_USABLE_SIZE 1
+ #endif
+-
+-/* TODO(shess): Eat other config options from gn and gyp? */
++#endif  // defined(__linux__)
++#endif  // THIRD_PARTY_SQLITE_AMALGAMATION_CONFIG_H_
+diff --git a/third_party/sqlite/amalgamation/rename_exports.h b/third_party/sqlite/amalgamation/rename_exports.h
+new file mode 100644
+index 000000000000..dabb9e1d9286
+--- /dev/null
++++ b/third_party/sqlite/amalgamation/rename_exports.h
+@@ -0,0 +1,349 @@
++// Copyright 2018 The Chromium Authors. All rights reserved.
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++// This file is generated by extract_sqlite_api.py.
++#ifndef THIRD_PARTY_SQLITE_AMALGAMATION_RENAME_EXPORTS_H_
++#define THIRD_PARTY_SQLITE_AMALGAMATION_RENAME_EXPORTS_H_
++#define sqlite3_activate_cerod chrome_sqlite3_activate_cerod  // Lines 5424-5426
++#define sqlite3_activate_see chrome_sqlite3_activate_see      // Lines 5414-5416
++#define sqlite3_aggregate_context chrome_sqlite3_aggregate_context  // Line 4961
++#define sqlite3_aggregate_count chrome_sqlite3_aggregate_count      // Line 4766
++#define sqlite3_auto_extension chrome_sqlite3_auto_extension        // Line 6055
++#define sqlite3_backup_finish chrome_sqlite3_backup_finish          // Line 7840
++#define sqlite3_backup_init chrome_sqlite3_backup_init  // Lines 7833-7838
++#define sqlite3_backup_pagecount chrome_sqlite3_backup_pagecount  // Line 7842
++#define sqlite3_backup_remaining chrome_sqlite3_backup_remaining  // Line 7841
++#define sqlite3_backup_step chrome_sqlite3_backup_step            // Line 7839
++#define sqlite3_bind_blob chrome_sqlite3_bind_blob                // Line 3979
++#define sqlite3_bind_blob64 chrome_sqlite3_bind_blob64  // Lines 3980-3981
++#define sqlite3_bind_double chrome_sqlite3_bind_double  // Line 3982
++#define sqlite3_bind_int chrome_sqlite3_bind_int        // Line 3983
++#define sqlite3_bind_int64 chrome_sqlite3_bind_int64    // Line 3984
++#define sqlite3_bind_null chrome_sqlite3_bind_null      // Line 3985
++#define sqlite3_bind_parameter_count \
++  chrome_sqlite3_bind_parameter_count  // Line 4014
++#define sqlite3_bind_parameter_index \
++  chrome_sqlite3_bind_parameter_index  // Line 4060
++#define sqlite3_bind_parameter_name \
++  chrome_sqlite3_bind_parameter_name                        // Line 4042
++#define sqlite3_bind_pointer chrome_sqlite3_bind_pointer    // Line 3991
++#define sqlite3_bind_text chrome_sqlite3_bind_text          // Line 3986
++#define sqlite3_bind_text16 chrome_sqlite3_bind_text16      // Line 3987
++#define sqlite3_bind_text64 chrome_sqlite3_bind_text64      // Lines 3988-3989
++#define sqlite3_bind_value chrome_sqlite3_bind_value        // Line 3990
++#define sqlite3_bind_zeroblob chrome_sqlite3_bind_zeroblob  // Line 3992
++#define sqlite3_bind_zeroblob64 chrome_sqlite3_bind_zeroblob64  // Line 3993
++#define sqlite3_blob_bytes chrome_sqlite3_blob_bytes            // Line 6596
++#define sqlite3_blob_close chrome_sqlite3_blob_close            // Line 6580
++#define sqlite3_blob_open chrome_sqlite3_blob_open        // Lines 6524-6532
++#define sqlite3_blob_read chrome_sqlite3_blob_read        // Line 6625
++#define sqlite3_blob_reopen chrome_sqlite3_blob_reopen    // Line 6557
++#define sqlite3_blob_write chrome_sqlite3_blob_write      // Line 6667
++#define sqlite3_busy_handler chrome_sqlite3_busy_handler  // Line 2386
++#define sqlite3_busy_timeout chrome_sqlite3_busy_timeout  // Line 2409
++#define sqlite3_cancel_auto_extension \
++  chrome_sqlite3_cancel_auto_extension                        // Line 6067
++#define sqlite3_changes chrome_sqlite3_changes                // Line 2228
++#define sqlite3_clear_bindings chrome_sqlite3_clear_bindings  // Line 4070
++#define sqlite3_close chrome_sqlite3_close                    // Line 331
++#define sqlite3_close_v2 chrome_sqlite3_close_v2              // Line 332
++#define sqlite3_collation_needed \
++  chrome_sqlite3_collation_needed  // Lines 5363-5367
++#define sqlite3_collation_needed16 \
++  chrome_sqlite3_collation_needed16                           // Lines 5368-5372
++#define sqlite3_column_blob chrome_sqlite3_column_blob        // Line 4536
++#define sqlite3_column_bytes chrome_sqlite3_column_bytes      // Line 4543
++#define sqlite3_column_bytes16 chrome_sqlite3_column_bytes16  // Line 4544
++#define sqlite3_column_count chrome_sqlite3_column_count      // Line 4086
++#define sqlite3_column_database_name \
++  chrome_sqlite3_column_database_name  // Line 4164
++#define sqlite3_column_database_name16 \
++  chrome_sqlite3_column_database_name16                             // Line 4165
++#define sqlite3_column_decltype chrome_sqlite3_column_decltype      // Line 4201
++#define sqlite3_column_decltype16 chrome_sqlite3_column_decltype16  // Line 4202
++#define sqlite3_column_double chrome_sqlite3_column_double          // Line 4537
++#define sqlite3_column_int chrome_sqlite3_column_int                // Line 4538
++#define sqlite3_column_int64 chrome_sqlite3_column_int64            // Line 4539
++#define sqlite3_column_name chrome_sqlite3_column_name              // Line 4115
++#define sqlite3_column_name16 chrome_sqlite3_column_name16          // Line 4116
++#define sqlite3_column_origin_name \
++  chrome_sqlite3_column_origin_name  // Line 4168
++#define sqlite3_column_origin_name16 \
++  chrome_sqlite3_column_origin_name16                               // Line 4169
++#define sqlite3_column_table_name chrome_sqlite3_column_table_name  // Line 4166
++#define sqlite3_column_table_name16 \
++  chrome_sqlite3_column_table_name16                                // Line 4167
++#define sqlite3_column_text chrome_sqlite3_column_text              // Line 4540
++#define sqlite3_column_text16 chrome_sqlite3_column_text16          // Line 4541
++#define sqlite3_column_type chrome_sqlite3_column_type              // Line 4545
++#define sqlite3_column_value chrome_sqlite3_column_value            // Line 4542
++#define sqlite3_commit_hook chrome_sqlite3_commit_hook              // Line 5670
++#define sqlite3_compileoption_get chrome_sqlite3_compileoption_get  // Line 191
++#define sqlite3_compileoption_used \
++  chrome_sqlite3_compileoption_used                                 // Line 190
++#define sqlite3_complete chrome_sqlite3_complete                    // Line 2324
++#define sqlite3_complete16 chrome_sqlite3_complete16                // Line 2325
++#define sqlite3_config chrome_sqlite3_config                        // Line 1507
++#define sqlite3_context_db_handle chrome_sqlite3_context_db_handle  // Line 4988
++#define sqlite3_create_collation \
++  chrome_sqlite3_create_collation  // Lines 5313-5319
++#define sqlite3_create_collation16 \
++  chrome_sqlite3_create_collation16  // Lines 5328-5334
++#define sqlite3_create_collation_v2 \
++  chrome_sqlite3_create_collation_v2  // Lines 5320-5327
++#define sqlite3_create_function \
++  chrome_sqlite3_create_function  // Lines 4700-4709
++#define sqlite3_create_function16 \
++  chrome_sqlite3_create_function16  // Lines 4710-4719
++#define sqlite3_create_function_v2 \
++  chrome_sqlite3_create_function_v2                         // Lines 4720-4730
++#define sqlite3_create_module chrome_sqlite3_create_module  // Lines 6327-6332
++#define sqlite3_create_module_v2 \
++  chrome_sqlite3_create_module_v2                             // Lines 6333-6339
++#define sqlite3_data_count chrome_sqlite3_data_count          // Line 4307
++#define sqlite3_data_directory chrome_sqlite3_data_directory  // Line 5541
++#define sqlite3_db_cacheflush chrome_sqlite3_db_cacheflush    // Line 8524
++#define sqlite3_db_config chrome_sqlite3_db_config            // Line 1526
++#define sqlite3_db_filename chrome_sqlite3_db_filename        // Line 5595
++#define sqlite3_db_handle chrome_sqlite3_db_handle            // Line 5578
++#define sqlite3_db_mutex chrome_sqlite3_db_mutex              // Line 6971
++#define sqlite3_db_readonly chrome_sqlite3_db_readonly        // Line 5605
++#define sqlite3_db_release_memory chrome_sqlite3_db_release_memory  // Line 5793
++#define sqlite3_db_status chrome_sqlite3_db_status                  // Line 7200
++#define sqlite3_declare_vtab chrome_sqlite3_declare_vtab            // Line 6396
++#define sqlite3_enable_load_extension \
++  chrome_sqlite3_enable_load_extension  // Line 6017
++#define sqlite3_enable_shared_cache \
++  chrome_sqlite3_enable_shared_cache                      // Line 5763
++#define sqlite3_errcode chrome_sqlite3_errcode            // Line 3403
++#define sqlite3_errmsg chrome_sqlite3_errmsg              // Line 3405
++#define sqlite3_errmsg16 chrome_sqlite3_errmsg16          // Line 3406
++#define sqlite3_errstr chrome_sqlite3_errstr              // Line 3407
++#define sqlite3_exec chrome_sqlite3_exec                  // Lines 403-409
++#define sqlite3_expanded_sql chrome_sqlite3_expanded_sql  // Line 3748
++#define sqlite3_expired chrome_sqlite3_expired            // Line 4767
++#define sqlite3_extended_errcode chrome_sqlite3_extended_errcode  // Line 3404
++#define sqlite3_extended_result_codes \
++  chrome_sqlite3_extended_result_codes                        // Line 2103
++#define sqlite3_file_control chrome_sqlite3_file_control      // Line 7006
++#define sqlite3_finalize chrome_sqlite3_finalize              // Line 4573
++#define sqlite3_free chrome_sqlite3_free                      // Line 2695
++#define sqlite3_free_table chrome_sqlite3_free_table          // Line 2492
++#define sqlite3_get_autocommit chrome_sqlite3_get_autocommit  // Line 5565
++#define sqlite3_get_auxdata chrome_sqlite3_get_auxdata        // Line 5047
++#define sqlite3_get_table chrome_sqlite3_get_table            // Lines 2484-2491
++#define sqlite3_global_recover chrome_sqlite3_global_recover  // Line 4769
++#define sqlite3_initialize chrome_sqlite3_initialize          // Line 1471
++#define sqlite3_interrupt chrome_sqlite3_interrupt            // Line 2289
++#define sqlite3_key chrome_sqlite3_key                        // Lines 5382-5385
++#define sqlite3_key_v2 chrome_sqlite3_key_v2                  // Lines 5386-5390
++#define sqlite3_last_insert_rowid chrome_sqlite3_last_insert_rowid  // Line 2165
++#define sqlite3_libversion chrome_sqlite3_libversion                // Line 163
++#define sqlite3_libversion_number chrome_sqlite3_libversion_number  // Line 165
++#define sqlite3_limit chrome_sqlite3_limit                          // Line 3475
++#define sqlite3_load_extension chrome_sqlite3_load_extension  // Lines 5985-5990
++#define sqlite3_log chrome_sqlite3_log                        // Line 8061
++#define sqlite3_malloc chrome_sqlite3_malloc                  // Line 2691
++#define sqlite3_malloc64 chrome_sqlite3_malloc64              // Line 2692
++#define sqlite3_memory_alarm chrome_sqlite3_memory_alarm      // Lines 4771-4772
++#define sqlite3_memory_highwater chrome_sqlite3_memory_highwater  // Line 2722
++#define sqlite3_memory_used chrome_sqlite3_memory_used            // Line 2721
++#define sqlite3_mprintf chrome_sqlite3_mprintf                    // Line 2598
++#define sqlite3_msize chrome_sqlite3_msize                        // Line 2696
++#define sqlite3_mutex_alloc chrome_sqlite3_mutex_alloc            // Line 6816
++#define sqlite3_mutex_enter chrome_sqlite3_mutex_enter            // Line 6818
++#define sqlite3_mutex_free chrome_sqlite3_mutex_free              // Line 6817
++#define sqlite3_mutex_held chrome_sqlite3_mutex_held              // Line 6930
++#define sqlite3_mutex_leave chrome_sqlite3_mutex_leave            // Line 6820
++#define sqlite3_mutex_notheld chrome_sqlite3_mutex_notheld        // Line 6931
++#define sqlite3_mutex_try chrome_sqlite3_mutex_try                // Line 6819
++#define sqlite3_next_stmt chrome_sqlite3_next_stmt                // Line 5621
++#define sqlite3_open chrome_sqlite3_open        // Lines 3303-3306
++#define sqlite3_open16 chrome_sqlite3_open16    // Lines 3307-3310
++#define sqlite3_open_v2 chrome_sqlite3_open_v2  // Lines 3311-3316
++#define sqlite3_os_end chrome_sqlite3_os_end    // Line 1474
++#define sqlite3_os_init chrome_sqlite3_os_init  // Line 1473
++#define sqlite3_overload_function chrome_sqlite3_overload_function  // Line 6415
++#define sqlite3_prepare chrome_sqlite3_prepare            // Lines 3670-3676
++#define sqlite3_prepare16 chrome_sqlite3_prepare16        // Lines 3692-3698
++#define sqlite3_prepare16_v2 chrome_sqlite3_prepare16_v2  // Lines 3699-3705
++#define sqlite3_prepare16_v3 chrome_sqlite3_prepare16_v3  // Lines 3706-3713
++#define sqlite3_prepare_v2 chrome_sqlite3_prepare_v2      // Lines 3677-3683
++#define sqlite3_prepare_v3 chrome_sqlite3_prepare_v3      // Lines 3684-3691
++#define sqlite3_preupdate_count chrome_sqlite3_preupdate_count  // Line 8623
++#define sqlite3_preupdate_depth chrome_sqlite3_preupdate_depth  // Line 8624
++#define sqlite3_preupdate_hook chrome_sqlite3_preupdate_hook  // Lines 8609-8621
++#define sqlite3_preupdate_new chrome_sqlite3_preupdate_new    // Line 8625
++#define sqlite3_preupdate_old chrome_sqlite3_preupdate_old    // Line 8622
++#define sqlite3_profile chrome_sqlite3_profile                // Lines 2946-2947
++#define sqlite3_progress_handler chrome_sqlite3_progress_handler  // Line 3074
++#define sqlite3_randomness chrome_sqlite3_randomness              // Line 2745
++#define sqlite3_realloc chrome_sqlite3_realloc                    // Line 2693
++#define sqlite3_realloc64 chrome_sqlite3_realloc64                // Line 2694
++#define sqlite3_rekey chrome_sqlite3_rekey                    // Lines 5400-5403
++#define sqlite3_rekey_v2 chrome_sqlite3_rekey_v2              // Lines 5404-5408
++#define sqlite3_release_memory chrome_sqlite3_release_memory  // Line 5779
++#define sqlite3_reset chrome_sqlite3_reset                    // Line 4600
++#define sqlite3_reset_auto_extension \
++  chrome_sqlite3_reset_auto_extension                         // Line 6075
++#define sqlite3_result_blob chrome_sqlite3_result_blob        // Line 5195
++#define sqlite3_result_blob64 chrome_sqlite3_result_blob64    // Lines 5196-5197
++#define sqlite3_result_double chrome_sqlite3_result_double    // Line 5198
++#define sqlite3_result_error chrome_sqlite3_result_error      // Line 5199
++#define sqlite3_result_error16 chrome_sqlite3_result_error16  // Line 5200
++#define sqlite3_result_error_code chrome_sqlite3_result_error_code  // Line 5203
++#define sqlite3_result_error_nomem \
++  chrome_sqlite3_result_error_nomem  // Line 5202
++#define sqlite3_result_error_toobig \
++  chrome_sqlite3_result_error_toobig                            // Line 5201
++#define sqlite3_result_int chrome_sqlite3_result_int            // Line 5204
++#define sqlite3_result_int64 chrome_sqlite3_result_int64        // Line 5205
++#define sqlite3_result_null chrome_sqlite3_result_null          // Line 5206
++#define sqlite3_result_pointer chrome_sqlite3_result_pointer    // Line 5214
++#define sqlite3_result_subtype chrome_sqlite3_result_subtype    // Line 5231
++#define sqlite3_result_text chrome_sqlite3_result_text          // Line 5207
++#define sqlite3_result_text16 chrome_sqlite3_result_text16      // Line 5210
++#define sqlite3_result_text16be chrome_sqlite3_result_text16be  // Line 5212
++#define sqlite3_result_text16le chrome_sqlite3_result_text16le  // Line 5211
++#define sqlite3_result_text64 chrome_sqlite3_result_text64  // Lines 5208-5209
++#define sqlite3_result_value chrome_sqlite3_result_value    // Line 5213
++#define sqlite3_result_zeroblob chrome_sqlite3_result_zeroblob      // Line 5215
++#define sqlite3_result_zeroblob64 chrome_sqlite3_result_zeroblob64  // Line 5216
++#define sqlite3_rollback_hook chrome_sqlite3_rollback_hook          // Line 5671
++#define sqlite3_rtree_geometry_callback \
++  chrome_sqlite3_rtree_geometry_callback  // Lines 8872-8877
++#define sqlite3_rtree_query_callback \
++  chrome_sqlite3_rtree_query_callback                         // Lines 8898-8904
++#define sqlite3_set_authorizer chrome_sqlite3_set_authorizer  // Lines 2836-2840
++#define sqlite3_set_auxdata chrome_sqlite3_set_auxdata        // Line 5048
++#define sqlite3_set_last_insert_rowid \
++  chrome_sqlite3_set_last_insert_rowid                      // Line 2175
++#define sqlite3_shutdown chrome_sqlite3_shutdown            // Line 1472
++#define sqlite3_sleep chrome_sqlite3_sleep                  // Line 5446
++#define sqlite3_snapshot_cmp chrome_sqlite3_snapshot_cmp    // Lines 8792-8795
++#define sqlite3_snapshot_free chrome_sqlite3_snapshot_free  // Line 8768
++#define sqlite3_snapshot_get chrome_sqlite3_snapshot_get    // Lines 8713-8717
++#define sqlite3_snapshot_open chrome_sqlite3_snapshot_open  // Lines 8751-8755
++#define sqlite3_snapshot_recover chrome_sqlite3_snapshot_recover    // Line 8817
++#define sqlite3_snprintf chrome_sqlite3_snprintf                    // Line 2600
++#define sqlite3_soft_heap_limit chrome_sqlite3_soft_heap_limit      // Line 5857
++#define sqlite3_soft_heap_limit64 chrome_sqlite3_soft_heap_limit64  // Line 5846
++#define sqlite3_sourceid chrome_sqlite3_sourceid                    // Line 164
++#define sqlite3_sql chrome_sqlite3_sql                              // Line 3747
++#define sqlite3_status chrome_sqlite3_status                        // Line 7090
++#define sqlite3_status64 chrome_sqlite3_status64            // Lines 7091-7096
++#define sqlite3_step chrome_sqlite3_step                    // Line 4286
++#define sqlite3_stmt_busy chrome_sqlite3_stmt_busy          // Line 3805
++#define sqlite3_stmt_readonly chrome_sqlite3_stmt_readonly  // Line 3784
++#define sqlite3_stmt_scanstatus \
++  chrome_sqlite3_stmt_scanstatus  // Lines 8476-8481
++#define sqlite3_stmt_scanstatus_reset \
++  chrome_sqlite3_stmt_scanstatus_reset                    // Line 8492
++#define sqlite3_stmt_status chrome_sqlite3_stmt_status    // Line 7343
++#define sqlite3_strglob chrome_sqlite3_strglob            // Line 7992
++#define sqlite3_stricmp chrome_sqlite3_stricmp            // Line 7974
++#define sqlite3_strlike chrome_sqlite3_strlike            // Line 8038
++#define sqlite3_strnicmp chrome_sqlite3_strnicmp          // Line 7975
++#define sqlite3_system_errno chrome_sqlite3_system_errno  // Line 8638
++#define sqlite3_table_column_metadata \
++  chrome_sqlite3_table_column_metadata                        // Lines 5929-5939
++#define sqlite3_temp_directory chrome_sqlite3_temp_directory  // Line 5504
++#define sqlite3_test_control chrome_sqlite3_test_control      // Line 7025
++#define sqlite3_thread_cleanup chrome_sqlite3_thread_cleanup  // Line 4770
++#define sqlite3_threadsafe chrome_sqlite3_threadsafe          // Line 230
++#define sqlite3_total_changes chrome_sqlite3_total_changes    // Line 2252
++#define sqlite3_trace chrome_sqlite3_trace                    // Lines 2944-2945
++#define sqlite3_trace_v2 chrome_sqlite3_trace_v2              // Lines 3035-3040
++#define sqlite3_transfer_bindings chrome_sqlite3_transfer_bindings  // Line 4768
++#define sqlite3_unlock_notify chrome_sqlite3_unlock_notify    // Lines 7959-7963
++#define sqlite3_update_hook chrome_sqlite3_update_hook        // Lines 5722-5726
++#define sqlite3_uri_boolean chrome_sqlite3_uri_boolean        // Line 3358
++#define sqlite3_uri_int64 chrome_sqlite3_uri_int64            // Line 3359
++#define sqlite3_uri_parameter chrome_sqlite3_uri_parameter    // Line 3357
++#define sqlite3_user_data chrome_sqlite3_user_data            // Line 4976
++#define sqlite3_value_blob chrome_sqlite3_value_blob          // Line 4874
++#define sqlite3_value_bytes chrome_sqlite3_value_bytes        // Line 4883
++#define sqlite3_value_bytes16 chrome_sqlite3_value_bytes16    // Line 4884
++#define sqlite3_value_double chrome_sqlite3_value_double      // Line 4875
++#define sqlite3_value_dup chrome_sqlite3_value_dup            // Line 4915
++#define sqlite3_value_free chrome_sqlite3_value_free          // Line 4916
++#define sqlite3_value_int chrome_sqlite3_value_int            // Line 4876
++#define sqlite3_value_int64 chrome_sqlite3_value_int64        // Line 4877
++#define sqlite3_value_nochange chrome_sqlite3_value_nochange  // Line 4887
++#define sqlite3_value_numeric_type \
++  chrome_sqlite3_value_numeric_type                               // Line 4886
++#define sqlite3_value_pointer chrome_sqlite3_value_pointer        // Line 4878
++#define sqlite3_value_subtype chrome_sqlite3_value_subtype        // Line 4899
++#define sqlite3_value_text chrome_sqlite3_value_text              // Line 4879
++#define sqlite3_value_text16 chrome_sqlite3_value_text16          // Line 4880
++#define sqlite3_value_text16be chrome_sqlite3_value_text16be      // Line 4882
++#define sqlite3_value_text16le chrome_sqlite3_value_text16le      // Line 4881
++#define sqlite3_value_type chrome_sqlite3_value_type              // Line 4885
++#define sqlite3_version chrome_sqlite3_version                    // Line 162
++#define sqlite3_vfs_find chrome_sqlite3_vfs_find                  // Line 6698
++#define sqlite3_vfs_register chrome_sqlite3_vfs_register          // Line 6699
++#define sqlite3_vfs_unregister chrome_sqlite3_vfs_unregister      // Line 6700
++#define sqlite3_vmprintf chrome_sqlite3_vmprintf                  // Line 2599
++#define sqlite3_vsnprintf chrome_sqlite3_vsnprintf                // Line 2601
++#define sqlite3_vtab_collation chrome_sqlite3_vtab_collation      // Line 8371
++#define sqlite3_vtab_config chrome_sqlite3_vtab_config            // Line 8284
++#define sqlite3_vtab_nochange chrome_sqlite3_vtab_nochange        // Line 8356
++#define sqlite3_vtab_on_conflict chrome_sqlite3_vtab_on_conflict  // Line 8337
++#define sqlite3_wal_autocheckpoint \
++  chrome_sqlite3_wal_autocheckpoint                           // Line 8132
++#define sqlite3_wal_checkpoint chrome_sqlite3_wal_checkpoint  // Line 8154
++#define sqlite3_wal_checkpoint_v2 \
++  chrome_sqlite3_wal_checkpoint_v2                            // Lines 8248-8254
++#define sqlite3_wal_hook chrome_sqlite3_wal_hook              // Lines 8097-8101
++#define sqlite3changegroup_add chrome_sqlite3changegroup_add  // Line 9826
++#define sqlite3changegroup_add_strm \
++  chrome_sqlite3changegroup_add_strm  // Lines 10250-10253
++#define sqlite3changegroup_delete chrome_sqlite3changegroup_delete  // Line 9861
++#define sqlite3changegroup_new chrome_sqlite3changegroup_new        // Line 9749
++#define sqlite3changegroup_output \
++  chrome_sqlite3changegroup_output  // Lines 9852-9856
++#define sqlite3changegroup_output_strm \
++  chrome_sqlite3changegroup_output_strm  // Lines 10254-10257
++#define sqlite3changeset_apply \
++  chrome_sqlite3changeset_apply  // Lines 10005-10019
++#define sqlite3changeset_apply_strm \
++  chrome_sqlite3changeset_apply_strm  // Lines 10206-10220
++#define sqlite3changeset_concat \
++  chrome_sqlite3changeset_concat  // Lines 9699-9706
++#define sqlite3changeset_concat_strm \
++  chrome_sqlite3changeset_concat_strm  // Lines 10221-10228
++#define sqlite3changeset_conflict \
++  chrome_sqlite3changeset_conflict  // Lines 9591-9595
++#define sqlite3changeset_finalize chrome_sqlite3changeset_finalize  // Line 9640
++#define sqlite3changeset_fk_conflicts \
++  chrome_sqlite3changeset_fk_conflicts  // Lines 9607-9610
++#define sqlite3changeset_invert \
++  chrome_sqlite3changeset_invert  // Lines 9670-9673
++#define sqlite3changeset_invert_strm \
++  chrome_sqlite3changeset_invert_strm                       // Lines 10229-10234
++#define sqlite3changeset_new chrome_sqlite3changeset_new    // Lines 9564-9568
++#define sqlite3changeset_next chrome_sqlite3changeset_next  // Line 9440
++#define sqlite3changeset_old chrome_sqlite3changeset_old    // Lines 9531-9535
++#define sqlite3changeset_op chrome_sqlite3changeset_op      // Lines 9468-9474
++#define sqlite3changeset_pk chrome_sqlite3changeset_pk      // Lines 9501-9505
++#define sqlite3changeset_start chrome_sqlite3changeset_start  // Lines 9411-9415
++#define sqlite3changeset_start_strm \
++  chrome_sqlite3changeset_start_strm                        // Lines 10235-10239
++#define sqlite3session_attach chrome_sqlite3session_attach  // Lines 9130-9133
++#define sqlite3session_changeset \
++  chrome_sqlite3session_changeset  // Lines 9257-9261
++#define sqlite3session_changeset_strm \
++  chrome_sqlite3session_changeset_strm                      // Lines 10240-10244
++#define sqlite3session_create chrome_sqlite3session_create  // Lines 9004-9008
++#define sqlite3session_delete chrome_sqlite3session_delete  // Line 9022
++#define sqlite3session_diff chrome_sqlite3session_diff      // Lines 9319-9324
++#define sqlite3session_enable chrome_sqlite3session_enable  // Line 9042
++#define sqlite3session_indirect chrome_sqlite3session_indirect  // Line 9071
++#define sqlite3session_isempty chrome_sqlite3session_isempty    // Line 9376
++#define sqlite3session_patchset \
++  chrome_sqlite3session_patchset  // Lines 9355-9359
++#define sqlite3session_patchset_strm \
++  chrome_sqlite3session_patchset_strm  // Lines 10245-10249
++#define sqlite3session_table_filter \
++  chrome_sqlite3session_table_filter  // Lines 9144-9151
++#endif  // THIRD_PARTY_SQLITE_AMALGAMATION_RENAME_EXPORTS_H_
+diff --git a/third_party/sqlite/amalgamation/sqlite3.c b/third_party/sqlite/amalgamation/sqlite3.c
+index f0075cfb3188..4bc55899a5d7 100644
+--- a/third_party/sqlite/amalgamation/sqlite3.c
++++ b/third_party/sqlite/amalgamation/sqlite3.c
+@@ -1,3 +1,11 @@
++/*
++** Include the configuration header output by 'configure' if we're using the
++** autoconf-based build
++*/
++#ifdef _HAVE_SQLITE_CONFIG_H
++#include "config.h"
++#endif
++
+ /******************************************************************************
+ ** This file is an amalgamation of many separate C source files from SQLite
+ ** version 3.17.0.  By combining all the individual C code files into this
+@@ -10774,14 +10782,6 @@ struct fts5_api {
+ /************** End of sqlite3.h *********************************************/
+ /************** Continuing where we left off in sqliteInt.h ******************/
+ 
+-/*
+-** Include the configuration header output by 'configure' if we're using the
+-** autoconf-based build
+-*/
+-#ifdef _HAVE_SQLITE_CONFIG_H
+-#include "config.h"
+-#endif
+-
+ /************** Include sqliteLimit.h in the middle of sqliteInt.h ***********/
+ /************** Begin file sqliteLimit.h *************************************/
+ /*
+diff --git a/third_party/sqlite/sqlite3.h b/third_party/sqlite/sqlite3.h
+index 27094db29182..4b519ac39d7b 100644
+--- a/third_party/sqlite/sqlite3.h
++++ b/third_party/sqlite/sqlite3.h
+@@ -1,18 +1,18 @@
+ // Copyright (c) 2010 The Chromium Authors. All rights reserved.
+ // Use of this source code is governed by a BSD-style license that can be
+ // found in the LICENSE file.
+-
+ #ifndef THIRD_PARTY_SQLITE_SQLITE3_H_
+ #define THIRD_PARTY_SQLITE_SQLITE3_H_
+-#pragma once
+-
+-// This is a shim header to include the right sqlite3 header.
+-// Use this instead of referencing the sqlite3 header directly.
+-
++// This is a shim header to include the right sqlite3 headers.
++// Use this instead of referencing sqlite3 headers directly.
+ #if defined(USE_SYSTEM_SQLITE)
+ #include <sqlite3.h>
+ #else
++// We prefix chrome_ to SQLite's exported symbols, so that we don't clash with
++// other SQLite libraries loaded by the system libraries. This only matters when
++// using the component build, where our SQLite's symbols are visible to the
++// dynamic library loader.
++#include "third_party/sqlite/amalgamation/rename_exports.h"
+ #include "third_party/sqlite/amalgamation/sqlite3.h"
+-#endif
+-
++#endif  // defined(USE_SYSTEM_SQLITE)
+ #endif  // THIRD_PARTY_SQLITE_SQLITE3_H_
