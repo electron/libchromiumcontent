@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 import os
 import subprocess
 import sys
@@ -16,10 +17,12 @@ SRC_DIR = os.path.join(SOURCE_ROOT, SRC)
 
 
 def main():
+  args = parse_args()
+
   folders = [PATCHES_DIR]
   if os.environ.has_key('MAS_BUILD'):
     folders.append(PATCHES_MAS_DIR)
-  if sys.argv[1] == 'mips64el':
+  if args.target_arch == 'mips64el':
     folders.append(PATCHES_MIPS64EL_DIR)
 
   for folder in folders:
@@ -41,6 +44,15 @@ def apply_patches_for_dir(directory):
     if not success:
       patch_path = failed_patches[0].get_file_path()
       return '{0} failed to apply'.format(os.path.basename(patch_path))
+
+
+def parse_args():
+  parser = argparse.ArgumentParser(description='Apply all required patches.')
+
+  parser.add_argument('-t', '--target-arch',
+                      help='Target architecture')
+
+  return parser.parse_args()
 
 
 if __name__ == '__main__':

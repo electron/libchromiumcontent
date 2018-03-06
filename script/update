@@ -217,7 +217,7 @@ def gclient_sync(version, force, git_cache):
 
 def apply_patches(target_arch):
   script_path = os.path.join(SOURCE_ROOT, 'script', 'apply-patches')
-  script_arguments = [target_arch]
+  script_arguments = ['--target-arch', target_arch]
   return subprocess.call([sys.executable, script_path] + script_arguments)
 
 
