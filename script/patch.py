@@ -2,7 +2,7 @@
 """
 Usage: patch -h
 
-Use this script to selectively apply and revert patches.
+Use this script to selectively apply and reverse patches.
 It is mostly useful to fix patches during upgrades to a new Chromium version.
 """
 
@@ -11,7 +11,7 @@ import os
 import subprocess
 import sys
 
-from lib.git import apply as git_apply
+from lib.patches import Patch, PatchesList
 
 
 def main():
@@ -24,37 +24,29 @@ def main():
   reverse = args.reverse
 
   if directory:
-    (all_patches_applied, failed_patches) = apply_patches_from_directory(repo, directory, force, reverse)
+    (success, failed_patches) = apply_patches_from_directory(repo, directory, force, reverse)
   else:
-    (all_patches_applied, failed_patches) = apply_patches(repo, patches, force, reverse)
+    (success, failed_patches) = apply_patches(repo, patches, force, reverse)
 
-  if all_patches_applied:
+  if success:
     print 'Done: All patches applied.'
   else:
-    print 'Error: {0} patch(es) failed:\n{1}'.format(len(failed_patches), '\n'.join(failed_patches))
+    failed_patches_paths = [p.get_file_path() for p in failed_patches]
+    print 'Error: {0} patch(es) failed:\n{1}'.format(len(failed_patches), '\n'.join(failed_patches_paths))
 
-  return all_patches_applied
+  return 0 if success else 1
 
 
-def apply_patches(repo, patches_paths, force=False, reverse=False):
-  all_patches_applied = True
-  failed_patches = []
-
-  for patch_path in patches_paths:
-    applied_successfully = git_apply(repo, patch_path, reverse=reverse)
-
-    if not applied_successfully:
-      all_patches_applied = False
-      failed_patches.append(patch_path)
-
-    should_stop_now = not applied_successfully and not force
-    if should_stop_now:
-      break
-
-  return (all_patches_applied, failed_patches)
+def apply_patches(repo_path, patches_paths, force=False, reverse=False):
+  patches = [Patch(patch_path, repo_path) for patch_path in patches_paths]
+  patches_list = PatchesList(patches)
+  stop_on_error = not force
+  return patches_list.apply(reverse=reverse, stop_on_error=stop_on_error)
 
 
 def apply_patches_from_directory(repo, directory, force=False, reverse=False):
+  # TODO(alexeykuzmin): Use PatchesConfig instead.
+
   # First, get list of ".patch" files.
   directory_children = [os.path.join(directory, child) for child in os.listdir(directory)]
   patch_files = [path for path in directory_children if os.path.isfile(path) and path.endswith('.patch')]
