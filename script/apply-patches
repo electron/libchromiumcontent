@@ -5,7 +5,7 @@ import os
 import subprocess
 import sys
 
-from patch import apply_patches_from_directory
+from lib.patches import PatchesConfig
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -37,10 +37,12 @@ def main():
 
 def apply_patches_for_dir(directory):
   for root, dirs, files in os.walk(directory):
-    prefix = os.path.relpath(root, directory)
-    repo = SRC if prefix == '.' else os.path.join(SRC, prefix)
+    config = PatchesConfig.from_directory(root)
+    patches_list = config.get_patches_list()
+    if patches_list is None:
+      continue
 
-    (success, failed_patches) = apply_patches_from_directory(repo, root)
+    (success, failed_patches) = patches_list.apply()
     if not success:
       patch_path = failed_patches[0].get_file_path()
       return '{0} failed to apply'.format(os.path.basename(patch_path))

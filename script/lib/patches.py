@@ -1,4 +1,9 @@
-# import yaml  # TODO: Use for PatchesConfig.
+import os
+import sys
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(os.path.join(PROJECT_ROOT, 'vendor', 'pyyaml', 'lib'))
+import yaml
 
 from git import apply as git_apply
 
@@ -22,6 +27,9 @@ class PatchesList:
   def __init__(self, patches):
     self.patches = patches
 
+  def __len__(self):
+    return len(self.patches)
+
   def apply(self, reverse=False, stop_on_error=True):
     all_patches_applied = True
     failed_patches = []
@@ -44,37 +52,45 @@ class PatchesList:
 
 
 class PatchesConfig:
-  def __init__(self, path):
-    raise
+  @staticmethod
+  def from_directory(dir_path, config_name='.patches.yaml'):
+    config_path = os.path.join(dir_path, config_name)
+    return PatchesConfig(config_path)
 
-    self.path = path
-    self.contents = None
-    self.is_parsed = False
+  def __init__(self, config_path):
+    self.path = config_path
 
   def __parse(self):
-    with open(self.path, 'r') as stream:
-      try:
-        self.contents = yaml.load(stream)
-      except yaml.YAMLError as exc:
-        print(exc)
+    contents = None
 
-    self.is_parsed = True
+    if os.path.isfile(self.path):
+      with open(self.path, 'r') as stream:
+        try:
+          contents = yaml.load(stream)
+        except yaml.YAMLError as e:
+          print(e)
 
-  def __parse_if_needed(self):
-    if not self.is_parsed:
-      self.__parse()
+    return contents
 
-  def __create_patch(self, repo_path, raw_data):
-    file_path = raw_data['file']
-    return Patch(file_path, repo_path)
+  def __create_patch(self, raw_data, base_directory, repo_path):
+    relative_file_path = raw_data['file']
+    absolute_file_path = os.path.join(base_directory, relative_file_path)
+
+    return Patch(absolute_file_path, repo_path)
 
   def get_patches_list(self):
-    self.__parse_if_needed()
-    if self.contents is None:
+    config_contents = self.__parse()
+    if config_contents is None:
       return None
 
-    repo_path = self.contents['repo']  # TODO: Make it absolute.
-    raw_patches_data = self.contents['patches']
-    patches = [self.__create_patch(repo_path, data) for data in raw_patches_data]
+    repo_path = config_contents['repo']
+    if sys.platform == 'win32':
+      repo_path = repo_path.replace('/', '\\')
 
-    return patches
+    patches_data = config_contents['patches']
+    base_directory = os.path.dirname(self.path)
+
+    patches = [self.__create_patch(data, base_directory, repo_path) for data in patches_data]
+    patches_list = PatchesList(patches)
+
+    return patches_list

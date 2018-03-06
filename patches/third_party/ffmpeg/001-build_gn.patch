@@ -1,14 +1,11 @@
 diff --git a/BUILD.gn b/BUILD.gn
-index fb2b163..6891861 100755
+index 6ebb34b68d..9d17fc30c5 100755
 --- a/BUILD.gn
 +++ b/BUILD.gn
-@@ -407,6 +407,13 @@ if (is_component_ffmpeg) {
+@@ -420,6 +420,10 @@ if (is_component_ffmpeg) {
      # So we can append below and assume they're defined.
      ldflags = []
  
-+    # Chromium's Mac toolchain sets the "install_name" linker parameter only
-+    # when "is_component_build" is true, but we want to set even if it's false,
-+    # because we are making a dylib which will be distributed inside a bundle.
 +    if (!is_component_build && is_mac) {
 +      ldflags += [ "-Wl,-install_name,@rpath/libffmpeg.dylib" ]
 +    }

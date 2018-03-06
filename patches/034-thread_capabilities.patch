@@ -1,11 +1,3 @@
-Chromium automatically drops all capabilities of renderer threads in
-Linux, which may cause issues in a context like Electron, where the main
-and renderer threads are supposed to keep inherited permissions over the
-system.
-
-See https://github.com/atom/electron/issues/3666
-
-
 diff --git a/sandbox/linux/services/credentials.cc b/sandbox/linux/services/credentials.cc
 index 50a109e..3ee9159 100644
 --- a/sandbox/linux/services/credentials.cc

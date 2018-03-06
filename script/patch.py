@@ -11,7 +11,7 @@ import os
 import subprocess
 import sys
 
-from lib.patches import Patch, PatchesList
+from lib.patches import Patch, PatchesList, PatchesConfig
 
 
 def main():
@@ -24,7 +24,7 @@ def main():
   reverse = args.reverse
 
   if directory:
-    (success, failed_patches) = apply_patches_from_directory(repo, directory, force, reverse)
+    (success, failed_patches) = apply_patches_from_directory(directory, force, reverse)
   else:
     (success, failed_patches) = apply_patches(repo, patches, force, reverse)
 
@@ -44,21 +44,18 @@ def apply_patches(repo_path, patches_paths, force=False, reverse=False):
   return patches_list.apply(reverse=reverse, stop_on_error=stop_on_error)
 
 
-def apply_patches_from_directory(repo, directory, force=False, reverse=False):
-  # TODO(alexeykuzmin): Use PatchesConfig instead.
-
-  # First, get list of ".patch" files.
-  directory_children = [os.path.join(directory, child) for child in os.listdir(directory)]
-  patch_files = [path for path in directory_children if os.path.isfile(path) and path.endswith('.patch')]
+def apply_patches_from_directory(directory, force=False, reverse=False):
+  config = PatchesConfig.from_directory(directory)
+  patches_list = config.get_patches_list()
 
   # Notify user if we didn't find any patch files.
-  if len(patch_files) == 0:
-    print 'Warning: No "*.patch" files found in the "{0}" folder.'.format(directory)
+  if patches_list is None or len(patches_list) == 0:
+    print 'Warning: No patches found in the "{0}" folder.'.format(directory)
     return (True, [])
 
   # Then try to apply patches.
-  sorted_patch_files = sorted(patch_files, reverse=reverse)
-  return apply_patches(repo, sorted_patch_files, force=force, reverse=reverse)
+  stop_on_error = not force
+  return patches_list.apply(reverse=reverse, stop_on_error=stop_on_error)
 
 
 def parse_args():
@@ -66,14 +63,20 @@ def parse_args():
   parser.add_argument('-f', '--force', default=False, action='store_true',
                       help='Do not stop on the first failed patch.')
   parser.add_argument('-R', '--reverse', default=False, action='store_true', help='Apply patches in reverse.')
-  parser.add_argument('-r', '--repo', required=True, help='Path to a repository root folder.')
+  parser.add_argument('-r', '--repo', help='Path to a repository root folder.')
 
   paths_group = parser.add_mutually_exclusive_group(required=True)
   paths_group.add_argument('-d', '--directory',
-                           help='Path to a directory with "*.patch" files. If present, -p/--patch is ignored.')
+                           help='Path to a directory with patches. If present, -p/--patch is ignored.')
   paths_group.add_argument('-p', '--patch', nargs='*', help='Path(s) to a patch file(s).')
 
-  return parser.parse_args()
+  args = parser.parse_args()
+
+  # Additional rules.
+  if args.patch is not None and args.repo is None:
+    parser.error("Repository path (-r/--repo) is required when you supply patches list.")
+
+  return args
 
 
 if __name__ == '__main__':

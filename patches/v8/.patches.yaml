@@ -1,0 +1,70 @@
+repo: src/v8
+patches:
+-
+  owners: alespergl
+  file: 001-build_gn.patch
+  descripion: null
+-
+  owners: zcbenz
+  file: 003-array_buffer.patch
+  descripion: null
+-
+  owners: zcbenz
+  file: 004-mksnapshot.patch
+  descripion: null
+-
+  owners: zcbenz
+  file: 006-ostreams.patch
+  descripion: null
+-
+  owners: alexeykuzmin
+  file: 007-export_platform.patch
+  descripion: null
+-
+  owners: codebytere
+  file: 024-cherry_pick_37a3a15c3.patch
+  descripion: null
+-
+  owners: alespergl
+  file: 026-backport_3ecb047.patch
+  descripion: |
+    Fixes security bug
+    https://bugs.chromium.org/p/project-zero/issues/detail?id=1445
+-
+  owners: alespergl
+  file: 027-backport_a2b91ed.patch
+  descripion: |
+    Fixes security bug
+    https://bugs.chromium.org/p/project-zero/issues/detail?id=1446
+-
+  owners: codebytere
+  file: 032-cherry_pick_c690f54d95802.patch
+  descripion: null
+-
+  owners: codebytere
+  file: 033-cherry_pick_98c40a4bae915.patch
+  descripion: null
+-
+  owners: codebytere
+  file: 035-backport_14ac02c.patch
+  descripion: null
+-
+  owners: codebytere
+  file: 037-backport_76c3ac5.patch
+  descripion: null
+-
+  owners: codebytere
+  file: 039-cherry_pick_c3458a8.patch
+  descripion: null
+-
+  owners: codebytere
+  file: 040-cherry_pick_50f7455.patch
+  descripion: null
+-
+  owners: codebytere
+  file: 041-cherry_pick_ac0fe8ec.patch
+  descripion: null
+-
+  owners: alespergl
+  file: 099-dcheck.patch
+  descripion: null

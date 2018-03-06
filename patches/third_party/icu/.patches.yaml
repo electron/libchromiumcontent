@@ -1,0 +1,10 @@
+repo: src/third_party/icu
+patches:
+-
+  owners: alespergl
+  file: 001-build_gn.patch
+  descripion: null
+-
+  owners: zcbenz
+  file: 002-no_inline_default_constructor.patch
+  descripion: null

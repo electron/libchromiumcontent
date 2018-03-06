@@ -1,13 +1,3 @@
-Several services require "app" capability from all other services
-(wildcard), which is in itself probably a Bad Thing; but it's
-especially bad now because the catalog service exposes module
-directory access through its app capability.
-
-This changes the catalog manifest to move the capability to a
-different more specific capability, and updates two of its
-consumers.
----
-
 diff --git a/services/catalog/manifest.json b/services/catalog/manifest.json
 index 4fd82fd..4b31651 100644
 --- a/services/catalog/manifest.json
