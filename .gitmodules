@@ -8,3 +8,4 @@
 [submodule "vendor/pyyaml"]
 	path = vendor/pyyaml
 	url = https://github.com/yaml/pyyaml.git
+	ignore = dirty
