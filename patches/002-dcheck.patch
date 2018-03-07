@@ -23,10 +23,12 @@ These files have debug checks explicitly commented out:
 
   base/memory/weak_ptr.cc
   base/process/kill_win.cc
+  components/viz/service/display/program_binding.h
   content/browser/frame_host/navigation_controller_impl.cc
   content/browser/frame_host/render_frame_host_impl.cc
   content/browser/renderer_host/render_widget_host_view_mac.mm
   ppapi/host/ppapi_host.cc
+  third_party/WebKit/Source/core/dom/Node.cpp
   third_party/WebKit/Source/platform/wtf/text/StringImpl.h
   ui/base/clipboard/clipboard_win.cc
 
@@ -72,6 +74,28 @@ index 6a0038e2c00d..dd00dfb3e5d0 100644
  
      // This really is a random number.  We haven't received any
      // information about the exit code, presumably because this
+diff --git a/components/viz/service/display/program_binding.h b/components/viz/service/display/program_binding.h
+index 70f1ff97b1ac..d1abd804e988 100644
+--- a/components/viz/service/display/program_binding.h
++++ b/components/viz/service/display/program_binding.h
+@@ -416,7 +416,7 @@ class VIZ_SERVICE_EXPORT Program : public ProgramBindingBase {
+     if (!ProgramBindingBase::Init(context_provider->ContextGL(),
+                                   vertex_shader_.GetShaderString(),
+                                   fragment_shader_.GetShaderString())) {
+-      DCHECK(IsContextLost(context_provider->ContextGL()));
++      // DCHECK(IsContextLost(context_provider->ContextGL()));
+       return;
+     }
+ 
+@@ -428,7 +428,7 @@ class VIZ_SERVICE_EXPORT Program : public ProgramBindingBase {
+ 
+     // Link after binding uniforms
+     if (!Link(context_provider->ContextGL())) {
+-      DCHECK(IsContextLost(context_provider->ContextGL()));
++      // DCHECK(IsContextLost(context_provider->ContextGL()));
+       return;
+     }
+ 
 diff --git a/content/browser/frame_host/navigation_controller_impl.cc b/content/browser/frame_host/navigation_controller_impl.cc
 index 4eb65b14dd49..8fd5d9ec9a1d 100644
 --- a/content/browser/frame_host/navigation_controller_impl.cc
@@ -150,6 +174,19 @@ index 1e08519e1410..eceb046eb309 100644
 +    defines += [ "ELECTRON_NO_DCHECK" ]
 +  }
  }
+diff --git a/third_party/WebKit/Source/core/dom/Node.cpp b/third_party/WebKit/Source/core/dom/Node.cpp
+index 922a2561bcef..e31fa34f98ea 100644
+--- a/third_party/WebKit/Source/core/dom/Node.cpp
++++ b/third_party/WebKit/Source/core/dom/Node.cpp
+@@ -2435,7 +2435,7 @@ StaticNodeList* Node::getDestinationInsertionPoints() {
+ 
+ HTMLSlotElement* Node::AssignedSlot() const {
+   // assignedSlot doesn't need to call updateDistribution().
+-  DCHECK(!IsPseudoElement());
++  // DCHECK(!IsPseudoElement());
+   if (ShadowRoot* root = V1ShadowRootOfParent())
+     return root->AssignedSlotFor(*this);
+   return nullptr;
 diff --git a/third_party/WebKit/Source/platform/wtf/text/StringImpl.h b/third_party/WebKit/Source/platform/wtf/text/StringImpl.h
 index 9a02085a635e..1f4de626ee1b 100644
 --- a/third_party/WebKit/Source/platform/wtf/text/StringImpl.h
