@@ -8,7 +8,7 @@ dependencies (e.g., Blink, V8, etc.).
 
 ### Prerequisites
 
-* [Linux](https://chromium.googlesource.com/chromium/src/+/master/docs/linux_build_instructions_prerequisites.md)
+* [Linux](https://chromium.googlesource.com/chromium/src/+/master/docs/linux_build_instructions.md)
 * [Mac](https://chromium.googlesource.com/chromium/src/+/master/docs/mac_build_instructions.md#Prerequisites)
 * [Windows](https://chromium.googlesource.com/chromium/src/+/master/docs/windows_build_instructions.md)
 
