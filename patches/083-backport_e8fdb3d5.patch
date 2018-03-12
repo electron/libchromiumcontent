@@ -1,0 +1,394 @@
+Backport of https://chromium.googlesource.com/chromium/src/+/e8fdb3d52ab59c69baabcda544690100a2a136ea
+to fix https://github.com/electron/electron/issues/12175.
+
+diff --git a/content/browser/dom_storage/local_storage_context_mojo.cc b/content/browser/dom_storage/local_storage_context_mojo.cc
+index c04db5977701..81b3d618caf5 100644
+--- a/content/browser/dom_storage/local_storage_context_mojo.cc
++++ b/content/browser/dom_storage/local_storage_context_mojo.cc
+@@ -68,6 +68,9 @@ const unsigned kMaxStorageAreaCount = 50;
+ const size_t kMaxCacheSize = 20 * 1024 * 1024;
+ #endif
+ 
++static const uint8_t kUTF16Format = 0;
++static const uint8_t kLatin1Format = 1;
++
+ std::vector<uint8_t> CreateMetaDataKey(const url::Origin& origin) {
+   auto serialized_origin = leveldb::StdStringToUint8Vector(origin.Serialize());
+   std::vector<uint8_t> key;
+@@ -260,6 +263,58 @@ class LocalStorageContextMojo::LevelDBWrapperHolder final
+     std::move(callback).Run(nullptr);
+   }
+ 
++  std::vector<LevelDBWrapperImpl::Change> FixUpData(
++      const LevelDBWrapperImpl::ValueMap& data) override {
++    std::vector<LevelDBWrapperImpl::Change> changes;
++    // Chrome M61/M62 had a bug where keys that should have been encoded as
++    // Latin1 were instead encoded as UTF16. Fix this by finding any 8-bit only
++    // keys, and re-encode those. If two encodings of the key exist, the Latin1
++    // encoded value should take precedence.
++    size_t fix_count = 0;
++    for (const auto& it : data) {
++      // Skip over any Latin1 encoded keys, or unknown encodings/corrupted data.
++      if (it.first.empty() || it.first[0] != kUTF16Format)
++        continue;
++      // Check if key is actually 8-bit safe.
++      bool is_8bit = true;
++      for (size_t i = 1; i < it.first.size(); i += sizeof(base::char16)) {
++        // Don't just cast to char16* as that could be undefined behavior.
++        // Instead use memcpy for the conversion, which compilers will generally
++        // optimize away anyway.
++        base::char16 char_val;
++        memcpy(&char_val, it.first.data() + i, sizeof(base::char16));
++        if (char_val & 0xff00) {
++          is_8bit = false;
++          break;
++        }
++      }
++      if (!is_8bit)
++        continue;
++      // Found a key that should have been encoded differently. Decode and
++      // re-encode.
++      std::vector<uint8_t> key(1 + (it.first.size() - 1) / 2);
++      key[0] = kLatin1Format;
++      for (size_t in = 1, out = 1; in < it.first.size();
++           in += sizeof(base::char16), out++) {
++        base::char16 char_val;
++        memcpy(&char_val, it.first.data() + in, sizeof(base::char16));
++        key[out] = char_val;
++      }
++      // Delete incorrect key.
++      changes.push_back(std::make_pair(it.first, base::nullopt));
++      fix_count++;
++      // Check if correct key already exists in data.
++      auto new_it = data.find(key);
++      if (new_it != data.end())
++        continue;
++      // Update value for correct key.
++      changes.push_back(std::make_pair(key, it.second));
++    }
++    UMA_HISTOGRAM_BOOLEAN("LocalStorageContext.MigrationFixUpNeeded",
++                          fix_count != 0);
++    return changes;
++  }
++
+   void OnMapLoaded(leveldb::mojom::DatabaseError error) override {
+     if (error != leveldb::mojom::DatabaseError::OK)
+       UMA_HISTOGRAM_ENUMERATION("LocalStorageContext.MapLoadError",
+@@ -524,8 +579,21 @@ bool LocalStorageContextMojo::OnMemoryDump(
+ // static
+ std::vector<uint8_t> LocalStorageContextMojo::MigrateString(
+     const base::string16& input) {
+-  static const uint8_t kUTF16Format = 0;
+-
++  // TODO(mek): Deduplicate this somehow with the code in
++  // LocalStorageCachedArea::String16ToUint8Vector.
++  bool is_8bit = true;
++  for (const auto& c : input) {
++    if (c & 0xff00) {
++      is_8bit = false;
++      break;
++    }
++  }
++  if (is_8bit) {
++    std::vector<uint8_t> result(input.size() + 1);
++    result[0] = kLatin1Format;
++    std::copy(input.begin(), input.end(), result.begin() + 1);
++    return result;
++  }
+   const uint8_t* data = reinterpret_cast<const uint8_t*>(input.data());
+   std::vector<uint8_t> result;
+   result.reserve(input.size() * sizeof(base::char16) + 1);
+diff --git a/content/browser/dom_storage/local_storage_context_mojo_unittest.cc b/content/browser/dom_storage/local_storage_context_mojo_unittest.cc
+index efb31eeaffb6..40c2f63f3707 100644
+--- a/content/browser/dom_storage/local_storage_context_mojo_unittest.cc
++++ b/content/browser/dom_storage/local_storage_context_mojo_unittest.cc
+@@ -115,6 +115,21 @@ class TestLevelDBObserver : public mojom::LevelDBObserver {
+   mojo::AssociatedBinding<mojom::LevelDBObserver> binding_;
+ };
+ 
++class GetAllCallback : public mojom::LevelDBWrapperGetAllCallback {
++ public:
++  static mojom::LevelDBWrapperGetAllCallbackAssociatedPtrInfo CreateAndBind() {
++    mojom::LevelDBWrapperGetAllCallbackAssociatedPtrInfo ptr_info;
++    auto request = mojo::MakeRequest(&ptr_info);
++    mojo::MakeStrongAssociatedBinding(base::WrapUnique(new GetAllCallback),
++                                      std::move(request));
++    return ptr_info;
++  }
++
++ private:
++  GetAllCallback() {}
++  void Complete(bool success) override {}
++};
++
+ }  // namespace
+ 
+ class LocalStorageContextMojoTest : public testing::Test {
+@@ -692,11 +707,15 @@ TEST_F(LocalStorageContextMojoTest, Migration) {
+   url::Origin origin2(GURL("http://example.com"));
+   base::string16 key = base::ASCIIToUTF16("key");
+   base::string16 value = base::ASCIIToUTF16("value");
++  base::string16 key2 = base::ASCIIToUTF16("key2");
++  key2.push_back(0xd83d);
++  key2.push_back(0xde00);
+ 
+   DOMStorageNamespace* local = local_storage_namespace();
+   DOMStorageArea* area = local->OpenStorageArea(origin1.GetURL());
+   base::NullableString16 dummy;
+   area->SetItem(key, value, &dummy);
++  area->SetItem(key2, value, &dummy);
+   local->CloseStorageArea(area);
+   FlushAndPurgeDOMStorageMemory();
+ 
+@@ -714,15 +733,29 @@ TEST_F(LocalStorageContextMojoTest, Migration) {
+   base::RunLoop().RunUntilIdle();
+   EXPECT_FALSE(mock_data().empty());
+ 
+-  base::RunLoop run_loop;
+-  bool success = false;
+-  std::vector<uint8_t> result;
+-  wrapper->Get(
+-      LocalStorageContextMojo::MigrateString(key),
+-      base::Bind(&GetCallback, run_loop.QuitClosure(), &success, &result));
+-  run_loop.Run();
+-  EXPECT_TRUE(success);
+-  EXPECT_EQ(LocalStorageContextMojo::MigrateString(value), result);
++  {
++    base::RunLoop run_loop;
++    bool success = false;
++    std::vector<uint8_t> result;
++    wrapper->Get(LocalStorageContextMojo::MigrateString(key),
++                 base::BindOnce(&GetCallback, run_loop.QuitClosure(), &success,
++                                &result));
++    run_loop.Run();
++    EXPECT_TRUE(success);
++    EXPECT_EQ(LocalStorageContextMojo::MigrateString(value), result);
++  }
++
++  {
++    base::RunLoop run_loop;
++    bool success = false;
++    std::vector<uint8_t> result;
++    wrapper->Get(LocalStorageContextMojo::MigrateString(key2),
++                 base::BindOnce(&GetCallback, run_loop.QuitClosure(), &success,
++                                &result));
++    run_loop.Run();
++    EXPECT_TRUE(success);
++    EXPECT_EQ(LocalStorageContextMojo::MigrateString(value), result);
++  }
+ 
+   // Origin1 should no longer exist in old storage.
+   area = local->OpenStorageArea(origin1.GetURL());
+@@ -730,6 +763,70 @@ TEST_F(LocalStorageContextMojoTest, Migration) {
+   local->CloseStorageArea(area);
+ }
+ 
++static std::string EncodeKeyAsUTF16(const std::string& origin,
++                                    const base::string16& key) {
++  std::string result = '_' + origin + '\x00' + '\x00';
++  std::copy(reinterpret_cast<const char*>(key.data()),
++            reinterpret_cast<const char*>(key.data()) +
++                key.size() * sizeof(base::char16),
++            std::back_inserter(result));
++  return result;
++}
++
++TEST_F(LocalStorageContextMojoTest, FixUp) {
++  set_mock_data("VERSION", "1");
++  // Add mock data for the "key" key, with both possible encodings for key.
++  // We expect the value of the correctly encoded key to take precedence over
++  // the incorrectly encoded key (and expect the incorrectly encoded key to be
++  // deleted.
++  set_mock_data(std::string("_http://foobar.com") + '\x00' + "\x01key",
++                "value1");
++  set_mock_data(
++      EncodeKeyAsUTF16("http://foobar.com", base::ASCIIToUTF16("key")),
++      "value2");
++  // Also add mock data for the "foo" key, this time only with the incorrec
++  // encoding. This should be updated to the correct encoding.
++  set_mock_data(
++      EncodeKeyAsUTF16("http://foobar.com", base::ASCIIToUTF16("foo")),
++      "value3");
++
++  mojom::LevelDBWrapperPtr wrapper;
++  context()->OpenLocalStorage(url::Origin(GURL("http://foobar.com")),
++                              MakeRequest(&wrapper));
++
++  {
++    base::RunLoop run_loop;
++    bool success = false;
++    std::vector<uint8_t> result;
++    wrapper->Get(leveldb::StdStringToUint8Vector("\x01key"),
++                 base::BindOnce(&GetCallback, run_loop.QuitClosure(), &success,
++                                &result));
++    run_loop.Run();
++    EXPECT_TRUE(success);
++    EXPECT_EQ(leveldb::StdStringToUint8Vector("value1"), result);
++  }
++  {
++    base::RunLoop run_loop;
++    bool success = false;
++    std::vector<uint8_t> result;
++    wrapper->Get(leveldb::StdStringToUint8Vector("\x01"
++                                                 "foo"),
++                 base::BindOnce(&GetCallback, run_loop.QuitClosure(), &success,
++                                &result));
++    run_loop.Run();
++    EXPECT_TRUE(success);
++    EXPECT_EQ(leveldb::StdStringToUint8Vector("value3"), result);
++  }
++
++  // Expect 4 rows in the database: VERSION, meta-data for the origin, and two
++  // rows of actual data.
++  EXPECT_EQ(4u, mock_data().size());
++  EXPECT_EQ(leveldb::StdStringToUint8Vector("value1"),
++            mock_data().rbegin()->second);
++  EXPECT_EQ(leveldb::StdStringToUint8Vector("value3"),
++            std::next(mock_data().rbegin())->second);
++}
++
+ TEST_F(LocalStorageContextMojoTest, ShutdownClearsData) {
+   url::Origin origin1(GURL("http://foobar.com"));
+   url::Origin origin2(GURL("http://example.com"));
+diff --git a/content/browser/leveldb_wrapper_impl.cc b/content/browser/leveldb_wrapper_impl.cc
+index fde489efecc0..1914d9300745 100644
+--- a/content/browser/leveldb_wrapper_impl.cc
++++ b/content/browser/leveldb_wrapper_impl.cc
+@@ -19,6 +19,11 @@ void LevelDBWrapperImpl::Delegate::MigrateData(
+   std::move(callback).Run(nullptr);
+ }
+ 
++std::vector<LevelDBWrapperImpl::Change> LevelDBWrapperImpl::Delegate::FixUpData(
++    const ValueMap& data) {
++  return std::vector<Change>();
++}
++
+ void LevelDBWrapperImpl::Delegate::OnMapLoaded(leveldb::mojom::DatabaseError) {}
+ 
+ bool LevelDBWrapperImpl::s_aggressive_flushing_enabled_ = false;
+@@ -346,6 +351,31 @@ void LevelDBWrapperImpl::OnMapLoaded(
+     bytes_used_ += it->key.size() - prefix_.size() + it->value.size();
+   }
+ 
++  std::vector<Change> changes = delegate_->FixUpData(*map_);
++  if (!changes.empty()) {
++    DCHECK(database_);
++    CreateCommitBatchIfNeeded();
++    for (auto& change : changes) {
++      auto it = map_->find(change.first);
++      if (!change.second) {
++        DCHECK(it != map_->end());
++        bytes_used_ -= it->first.size() + it->second.size();
++        map_->erase(it);
++      } else {
++        if (it != map_->end()) {
++          bytes_used_ -= it->second.size();
++          it->second = std::move(*change.second);
++          bytes_used_ += it->second.size();
++        } else {
++          bytes_used_ += change.first.size() + change.second->size();
++          (*map_)[change.first] = std::move(*change.second);
++        }
++      }
++      commit_batch_->changed_keys.insert(std::move(change.first));
++    }
++    CommitChanges();
++  }
++
+   // We proceed without using a backing store, nothing will be persisted but the
+   // class is functional for the lifetime of the object.
+   delegate_->OnMapLoaded(status);
+diff --git a/content/browser/leveldb_wrapper_impl.h b/content/browser/leveldb_wrapper_impl.h
+index b6d47d10df1b..336d4fdaf231 100644
+--- a/content/browser/leveldb_wrapper_impl.h
++++ b/content/browser/leveldb_wrapper_impl.h
+@@ -40,6 +40,8 @@ class CONTENT_EXPORT LevelDBWrapperImpl : public mojom::LevelDBWrapper {
+  public:
+   using ValueMap = std::map<std::vector<uint8_t>, std::vector<uint8_t>>;
+   using ValueMapCallback = base::OnceCallback<void(std::unique_ptr<ValueMap>)>;
++  using Change =
++      std::pair<std::vector<uint8_t>, base::Optional<std::vector<uint8_t>>>;
+ 
+   class CONTENT_EXPORT Delegate {
+    public:
+@@ -49,6 +51,9 @@ class CONTENT_EXPORT LevelDBWrapperImpl : public mojom::LevelDBWrapper {
+     virtual void DidCommit(leveldb::mojom::DatabaseError error) = 0;
+     // Called during loading if no data was found. Needs to call |callback|.
+     virtual void MigrateData(ValueMapCallback callback);
++    // Called during loading to give delegate a chance to modify the data as
++    // stored in the database.
++    virtual std::vector<Change> FixUpData(const ValueMap& data);
+     virtual void OnMapLoaded(leveldb::mojom::DatabaseError error);
+   };
+ 
+diff --git a/content/browser/leveldb_wrapper_impl_unittest.cc b/content/browser/leveldb_wrapper_impl_unittest.cc
+index 31339c2fc7b9..a0167f38c294 100644
+--- a/content/browser/leveldb_wrapper_impl_unittest.cc
++++ b/content/browser/leveldb_wrapper_impl_unittest.cc
+@@ -59,11 +59,19 @@ class MockDelegate : public LevelDBWrapperImpl::Delegate {
+   void OnMapLoaded(leveldb::mojom::DatabaseError error) override {
+     map_load_count_++;
+   }
++  std::vector<LevelDBWrapperImpl::Change> FixUpData(
++      const LevelDBWrapperImpl::ValueMap& data) override {
++    return mock_changes_;
++  }
+ 
+   int map_load_count() const { return map_load_count_; }
++  void set_mock_changes(std::vector<LevelDBWrapperImpl::Change> changes) {
++    mock_changes_ = std::move(changes);
++  }
+ 
+  private:
+   int map_load_count_ = 0;
++  std::vector<LevelDBWrapperImpl::Change> mock_changes_;
+ };
+ 
+ void GetCallback(const base::Closure& callback,
+@@ -526,4 +534,26 @@ TEST_F(LevelDBWrapperImplTest, PurgeMemoryWithPendingChanges) {
+   EXPECT_EQ(delegate()->map_load_count(), 1);
+ }
+ 
++TEST_F(LevelDBWrapperImplTest, FixUpData) {
++  std::vector<LevelDBWrapperImpl::Change> changes;
++  changes.push_back(std::make_pair(StdStringToUint8Vector("def"),
++                                   StdStringToUint8Vector("foo")));
++  changes.push_back(
++      std::make_pair(StdStringToUint8Vector("123"), base::nullopt));
++  changes.push_back(std::make_pair(StdStringToUint8Vector("abc"),
++                                   StdStringToUint8Vector("bla")));
++  delegate()->set_mock_changes(std::move(changes));
++
++  std::vector<uint8_t> result;
++  EXPECT_FALSE(GetSync(StdStringToUint8Vector("123"), &result));
++  EXPECT_TRUE(GetSync(StdStringToUint8Vector("def"), &result));
++  EXPECT_EQ(StdStringToUint8Vector("foo"), result);
++  EXPECT_TRUE(GetSync(StdStringToUint8Vector("abc"), &result));
++  EXPECT_EQ(StdStringToUint8Vector("bla"), result);
++
++  EXPECT_FALSE(has_mock_data(kTestPrefix + std::string("123")));
++  EXPECT_EQ("foo", get_mock_data(kTestPrefix + std::string("def")));
++  EXPECT_EQ("bla", get_mock_data(kTestPrefix + std::string("abc")));
++}
++
+ }  // namespace content
+diff --git a/tools/metrics/histograms/histograms.xml b/tools/metrics/histograms/histograms.xml
+index 1b16909351c9..6048ebd12e7a 100644
+--- a/tools/metrics/histograms/histograms.xml
++++ b/tools/metrics/histograms/histograms.xml
+@@ -29832,6 +29832,15 @@ http://cs/file:chrome/histograms.xml - but prefer this file for new entries.
+   </summary>
+ </histogram>
+ 
++<histogram name="LocalStorageContext.MigrationFixUpNeeded" enum="Boolean">
++  <owner>mek@chromium.org</owner>
++  <summary>
++    Whether or not any fixes needed to be made to localstorage data, as a result
++    of bugs in the migration code in M61/M62. Recorded every time the browser
++    loads an initial snapshot of the localstorage data for an origin.
++  </summary>
++</histogram>
++
+ <histogram name="LocalStorageContext.OpenError" enum="LocalStorageOpenError">
+   <owner>mek@chromium.org</owner>
+   <summary>
