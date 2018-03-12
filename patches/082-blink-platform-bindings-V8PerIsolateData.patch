@@ -7,7 +7,7 @@ index 7ee2fa858b93..a4db35011714 100644
  
  static void BeforeCallEnteredCallback(v8::Isolate* isolate) {
 -  CHECK(!ScriptForbiddenScope::IsScriptForbidden());
-+  DCHECK(!ScriptForbiddenScope::IsScriptForbidden());
++  // CHECK(!ScriptForbiddenScope::IsScriptForbidden());
  }
  
  static void MicrotasksCompletedCallback(v8::Isolate* isolate) {
