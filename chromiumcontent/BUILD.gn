@@ -1,4 +1,5 @@
 import("//build/config/c++/c++.gni")
+import("//build/config/features.gni")
 import("//build/split_static_library.gni")
 
 group("targets") {
