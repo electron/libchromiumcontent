@@ -188,6 +188,7 @@ BINARIES_SHARED_LIBRARY = {
     os.path.join('obj', 'third_party', 'webrtc_overrides', 'init_webrtc_cc.pdb'),
     os.path.join('obj', 'third_party', 'webrtc_overrides', 'init_webrtc.lib'),
     os.path.join('obj', 'third_party', 'zlib', 'zlib_c.pdb'),
+    os.path.join('obj', 'third_party', 'zlib', 'zlib_adler32_simd_c.pdb'),
     os.path.join('obj', 'third_party', 'zlib', 'zlib_x86_simd_c.pdb'),
     os.path.join('obj', 'ui', 'events', 'dom_keycode_converter_cc.pdb'),
     os.path.join('obj', 'ui', 'events', 'dom_keycode_converter.lib'),
