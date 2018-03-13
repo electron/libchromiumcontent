@@ -182,6 +182,7 @@ BINARIES_SHARED_LIBRARY = {
     os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'pdfium_base_cc.pdb'),
     os.path.join('obj', 'third_party', 'webrtc', 'rtc_base', 'rtc_base_cc.pdb'),
     os.path.join('obj', 'third_party', 'webrtc', 'rtc_base', 'rtc_base.lib'),
+    os.path.join('obj', 'third_party', 'webrtc', 'rtc_base', 'rtc_base_approved_generic_cc.pdb'),
     os.path.join('obj', 'third_party', 'webrtc', 'rtc_base', 'rtc_base_generic_cc.pdb'),
     os.path.join('obj', 'third_party', 'webrtc', 'rtc_base', 'rtc_base_generic.lib'),
     os.path.join('obj', 'third_party', 'webrtc_overrides', 'init_webrtc_cc.pdb'),
