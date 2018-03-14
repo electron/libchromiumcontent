@@ -273,6 +273,22 @@ index e524aa7b8510..718d3f963da5 100644
    return true;
  }
  
+diff --git a/sandbox/mac/seatbelt.cc b/sandbox/mac/seatbelt.cc
+index dfba0bded9e3..876f96999f53 100644
+--- a/sandbox/mac/seatbelt.cc
++++ b/sandbox/mac/seatbelt.cc
+@@ -64,7 +64,11 @@ void Seatbelt::FreeError(char* errorbuf) {
+ 
+ // static
+ bool Seatbelt::IsSandboxed() {
++#ifndef MAS_BUILD
+   return ::sandbox_check(getpid(), NULL, 0);
++#else
++  return true;
++#endif
+ }
+ 
+ }  // namespace sandbox
 diff --git a/ui/views/cocoa/bridged_native_widget.mm b/ui/views/cocoa/bridged_native_widget.mm
 index b79029c300d7..f0d94dacc928 100644
 --- a/ui/views/cocoa/bridged_native_widget.mm
