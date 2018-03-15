@@ -317,6 +317,12 @@ def run_gn(target_arch, defines):
         if IS_MIPS64EL_HOST:
           args += ' use_sysroot=false'
 
+    if component == 'static_library':
+      if target_arch == 'mips64el':
+        args += ' is_debug=false'
+      else:
+        args += ' is_official_build=true'
+
     output_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
     subprocess.call([gn, 'gen', os.path.relpath(output_dir, SRC_DIR), '--args=' + args],
                     cwd=SRC_DIR, env=env)
