@@ -1,0 +1,57 @@
+#!/usr/bin/env python
+
+import argparse
+import os
+import platform
+import re
+import sys
+import subprocess
+
+from lib.config import get_output_dir
+
+SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+if sys.platform in ['win32', 'cygwin']:
+  BINARY_TEST_REGEX = re.compile(r'_(unit|browser)?tests(\.exe)?$', re.IGNORECASE)
+else:
+  BINARY_TEST_REGEX = re.compile(r'_(unit|browser)?tests$')
+
+def GetTestsToRun(args):
+  build_dir = get_output_dir(SOURCE_ROOT, args.target_arch, 'tests')
+  tests = []
+  for file_name in os.listdir(build_dir):
+    if re.search(BINARY_TEST_REGEX, file_name):
+      tests.append(os.path.join(build_dir, file_name))
+  return tests
+
+def RunTests(binary_tests):
+  if binary_tests:
+    results = []
+    for test in binary_tests:
+      results.append((os.path.basename(test),
+                      subprocess.call([test]) == 0))
+    failed = [test
+              for (test, success) in results
+              if not success]
+    print '%d tests run.' % len(results)
+    if failed:
+      print 'The following %d tests failed:' % len(failed)
+      for test in failed:
+        print test
+      return 1
+    else:
+      print 'All tests passed!'
+  else:
+    print 'Nothing to test - no tests found!'
+  return 0
+
+def main():
+  parser = argparse.ArgumentParser(description='Run Chromium tests')
+  parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
+  tests = GetTestsToRun(parser.parse_args())
+  if not tests:
+    return 1
+  return RunTests(tests)
+
+if __name__ == '__main__':
+  sys.exit(main())
+
