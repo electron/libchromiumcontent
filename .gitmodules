@@ -5,3 +5,7 @@
 	path = vendor/boto
 	url = https://github.com/piotrbulinski/boto.git
   ignore = untracked
+[submodule "vendor/pyyaml"]
+	path = vendor/pyyaml
+	url = https://github.com/yaml/pyyaml.git
+	ignore = dirty

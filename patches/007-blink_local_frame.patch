@@ -1,14 +1,3 @@
-According to electron/electron#3699, it is unreliable to use |unload|
-event for process.exit('exit'), so we have to do that in
-willReleaseScriptContext.
-
-However Chromium then disallowed scripting in willReleaseScriptContext
-in https://codereview.chromium.org/1657583002, and crash will happen
-when there is code doing that.
-
-This patch reverts the change to fix the crash in Electron.
-
-
 diff --git a/third_party/WebKit/Source/core/frame/LocalFrame.cpp b/third_party/WebKit/Source/core/frame/LocalFrame.cpp
 index 97a5393d40b4..04f88dd2ea15 100644
 --- a/third_party/WebKit/Source/core/frame/LocalFrame.cpp

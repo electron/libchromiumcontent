@@ -1,6 +1,3 @@
-Fix touchpad lagging issue. port from crrev.com/c/867070
----
-
 diff --git a/gpu/ipc/in_process_command_buffer.cc b/gpu/ipc/in_process_command_buffer.cc
 index f5ac52f17443..414a7f647028 100644
 --- a/gpu/ipc/in_process_command_buffer.cc

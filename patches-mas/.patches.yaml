@@ -1,0 +1,10 @@
+repo: src
+patches:
+-
+  owners: zcbenz
+  file: 001-blink_no_private_api.patch
+  descripion: null
+-
+  owners: zcbenz
+  file: 002-no_private_api.patch
+  descripion: null

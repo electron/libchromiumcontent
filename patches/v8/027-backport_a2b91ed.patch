@@ -1,6 +1,3 @@
-Fixes security bug
-https://bugs.chromium.org/p/project-zero/issues/detail?id=1446
-
 diff --git a/src/deoptimizer.cc b/src/deoptimizer.cc
 index 125ca932f7..dd8e4a1745 100644
 --- a/src/deoptimizer.cc

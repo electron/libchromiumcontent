@@ -1,6 +1,3 @@
-Fixes security bug
-https://bugs.chromium.org/p/project-zero/issues/detail?id=1445
-
 diff --git a/src/objects.h b/src/objects.h
 index 895d92ba31..700cb84a51 100644
 --- a/src/objects.h
