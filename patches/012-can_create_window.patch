@@ -162,13 +162,13 @@ index a3d217fd9446..1a6354a291b7 100644
        bool opener_suppressed,
        bool* no_javascript_access);
 diff --git a/content/renderer/render_view_impl.cc b/content/renderer/render_view_impl.cc
-index d9a7e20f21cc..961cb76b162f 100644
+index 22bd13a28fb7..f7e688d9fda6 100644
 --- a/content/renderer/render_view_impl.cc
 +++ b/content/renderer/render_view_impl.cc
-@@ -44,6 +44,7 @@
+@@ -45,6 +45,7 @@
+ #include "content/child/appcache/web_application_cache_host_impl.h"
  #include "content/child/request_extra_data.h"
  #include "content/child/v8_value_converter_impl.h"
- #include "content/child/webmessageportchannel_impl.h"
 +#include "content/child/web_url_request_util.h"
  #include "content/common/content_constants_internal.h"
  #include "content/common/content_switches_internal.h"

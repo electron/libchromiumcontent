@@ -1,0 +1,25 @@
+diff --git a/include/v8-platform.h b/include/v8-platform.h
+index 74630b6f19..9704c35146 100644
+--- a/include/v8-platform.h
++++ b/include/v8-platform.h
+@@ -10,6 +10,8 @@
+ #include <memory>
+ #include <string>
+ 
++#include "v8.h"
++
+ namespace v8 {
+ 
+ class Isolate;
+@@ -117,8 +119,10 @@ class TracingController {
+  *
+  * The embedder has to provide an implementation of this interface before
+  * initializing the rest of V8.
++ * (alexeykuzmin): `v8::Platform` is exported to be visible
++ * for `node::NodePlatform` when V8 is built as a shared library.
+  */
+-class Platform {
++class V8_EXPORT Platform {
+  public:
+   /**
+    * This enum is used to indicate whether a task is potentially long running,

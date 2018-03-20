@@ -271,12 +271,12 @@ index 4b57593227..fd2df5afe3 100644
                                   Handle<SharedFunctionInfo> outer_info,
                                   LanguageMode language_mode,
 diff --git a/src/runtime/runtime.h b/src/runtime/runtime.h
-index a78966f226..018bf6aa00 100644
+index e7084a8cca..a11d274d25 100644
 --- a/src/runtime/runtime.h
 +++ b/src/runtime/runtime.h
-@@ -115,7 +115,6 @@ namespace internal {
+@@ -120,7 +120,6 @@ namespace internal {
    F(NotifyStubFailure, 0, 1)              \
-   F(NotifyDeoptimized, 1, 1)              \
+   F(NotifyDeoptimized, 0, 1)              \
    F(CompileForOnStackReplacement, 1, 1)   \
 -  F(TryInstallOptimizedCode, 1, 1)        \
    F(ResolvePossiblyDirectEval, 6, 1)      \

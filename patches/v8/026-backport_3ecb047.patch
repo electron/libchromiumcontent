@@ -2,10 +2,18 @@ Fixes security bug
 https://bugs.chromium.org/p/project-zero/issues/detail?id=1445
 
 diff --git a/src/objects.h b/src/objects.h
-index a5acf7c6c4..45811fbaaf 100644
+index 895d92ba31..700cb84a51 100644
 --- a/src/objects.h
 +++ b/src/objects.h
-@@ -2651,6 +2651,8 @@ class JSObject: public JSReceiver {
+@@ -1952,6 +1952,7 @@ class PropertyArray : public HeapObject {
+ 
+   static const int kLengthFieldSize = 10;
+   class LengthField : public BitField<int, 0, kLengthFieldSize> {};
++  static const int kMaxLength = LengthField::kMax;
+   class HashField : public BitField<int, kLengthFieldSize,
+                                     kSmiValueSize - kLengthFieldSize - 1> {};
+ 
+@@ -2651,6 +2652,8 @@ class JSObject: public JSReceiver {
    // its size by more than the 1 entry necessary, so sequentially adding fields
    // to the same object requires fewer allocations and copies.
    static const int kFieldsAdded = 3;

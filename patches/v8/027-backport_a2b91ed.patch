@@ -2,10 +2,10 @@ Fixes security bug
 https://bugs.chromium.org/p/project-zero/issues/detail?id=1446
 
 diff --git a/src/deoptimizer.cc b/src/deoptimizer.cc
-index 93a21a7b3a..641bdb4f1f 100644
+index 125ca932f7..dd8e4a1745 100644
 --- a/src/deoptimizer.cc
 +++ b/src/deoptimizer.cc
-@@ -3546,6 +3546,7 @@ Handle<Object> TranslatedState::MaterializeCapturedObjectAt(
+@@ -3550,6 +3550,7 @@ Handle<Object> TranslatedState::MaterializeCapturedObjectAt(
      case JS_SET_VALUE_ITERATOR_TYPE: {
        Handle<JSSetIterator> object = Handle<JSSetIterator>::cast(
            isolate_->factory()->NewJSObjectFromMap(map, NOT_TENURED));
@@ -13,7 +13,7 @@ index 93a21a7b3a..641bdb4f1f 100644
        Handle<Object> properties = materializer.FieldAt(value_index);
        Handle<Object> elements = materializer.FieldAt(value_index);
        Handle<Object> table = materializer.FieldAt(value_index);
-@@ -3561,6 +3562,7 @@ Handle<Object> TranslatedState::MaterializeCapturedObjectAt(
+@@ -3565,6 +3566,7 @@ Handle<Object> TranslatedState::MaterializeCapturedObjectAt(
      case JS_MAP_VALUE_ITERATOR_TYPE: {
        Handle<JSMapIterator> object = Handle<JSMapIterator>::cast(
            isolate_->factory()->NewJSObjectFromMap(map, NOT_TENURED));
