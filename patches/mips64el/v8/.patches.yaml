@@ -2,5 +2,5 @@ repo: src/v8
 patches:
 -
   owners: zcbenz
-  file: 002-Fix-v8-loongson-page-size.patch
+  file: Fix-v8-loongson-page-size.patch
   descripion: null
