@@ -62,10 +62,10 @@ index 70f1ff97b1ac..d1abd804e988 100644
      }
  
 diff --git a/content/browser/frame_host/navigation_controller_impl.cc b/content/browser/frame_host/navigation_controller_impl.cc
-index 4eb65b14dd49..8fd5d9ec9a1d 100644
+index bebde463db6a..46dbb416ce11 100644
 --- a/content/browser/frame_host/navigation_controller_impl.cc
 +++ b/content/browser/frame_host/navigation_controller_impl.cc
-@@ -1053,8 +1053,10 @@ NavigationType NavigationControllerImpl::ClassifyNavigation(
+@@ -1015,8 +1015,10 @@ NavigationType NavigationControllerImpl::ClassifyNavigation(
      return NAVIGATION_TYPE_NEW_PAGE;
    }
  
@@ -78,6 +78,18 @@ index 4eb65b14dd49..8fd5d9ec9a1d 100644
  
    if (rfh->GetParent()) {
      // All manual subframes would be did_create_new_entry and handled above, so
+@@ -1234,7 +1236,10 @@ void NavigationControllerImpl::RendererDidNavigateToNewPage(
+     new_entry->GetFavicon() = GetLastCommittedEntry()->GetFavicon();
+   }
+
+-  DCHECK(!params.history_list_was_cleared || !replace_entry);
++  // Electron does its own book keeping of navigation entries and we
++  // expect content to not track any, by clearing history list for
++  // all navigations.
++  // DCHECK(!params.history_list_was_cleared || !replace_entry);
+   // The browser requested to clear the session history when it initiated the
+   // navigation. Now we know that the renderer has updated its state accordingly
+   // and it is safe to also clear the browser side history.
 diff --git a/content/browser/frame_host/render_frame_host_impl.cc b/content/browser/frame_host/render_frame_host_impl.cc
 index 346765edaef9..a30e87bfcda6 100644
 --- a/content/browser/frame_host/render_frame_host_impl.cc
