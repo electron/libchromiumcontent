@@ -156,14 +156,20 @@ jobs:
           name: Update
           command: script/update --clean -t $TARGET_ARCH
       - run:
+          name: Build mksnapshot
+          command: script/build -t $TARGET_ARCH -c native_mksnapshot
+      - run:
           name: Build shared library
           command: script/build -t $TARGET_ARCH -c $COMPONENT
       - run:
           name: Build FFmpeg
           command: script/build -t $TARGET_ARCH -c ffmpeg
       - run:
-          name: Create distribution
+          name: Create shared distribution
           command: script/create-dist -t $TARGET_ARCH -c $COMPONENT
+      - run:
+          name: Create mksnapshot distribution
+          command: script/create-dist -t $TARGET_ARCH -c native_mksnapshot
       - run:
           name: Upload to S3
           command: |
@@ -174,6 +180,8 @@ jobs:
             fi
       - store_artifacts:
           path: libchromiumcontent.zip
+      - store_artifacts:
+          path: native-mksnapshot.zip
 
   libchromiumcontent-linux-arm-static:
     docker:
@@ -226,14 +234,20 @@ jobs:
           name: Update
           command: script/update --clean -t $TARGET_ARCH
       - run:
+          name: Build mksnapshot
+          command: script/build -t $TARGET_ARCH -c native_mksnapshot
+      - run:
           name: Build shared library
           command: script/build -t $TARGET_ARCH -c $COMPONENT
       - run:
           name: Build FFmpeg
           command: script/build -t $TARGET_ARCH -c ffmpeg
       - run:
-          name: Create distribution
+          name: Create shared distribution
           command: script/create-dist -t $TARGET_ARCH -c $COMPONENT
+      - run:
+          name: Create mksnapshot distribution
+          command: script/create-dist -t $TARGET_ARCH -c native_mksnapshot
       - run:
           name: Upload to S3
           command: |
@@ -244,6 +258,8 @@ jobs:
             fi
       - store_artifacts:
           path: libchromiumcontent.zip
+      - store_artifacts:
+          path: native-mksnapshot.zip
 
   libchromiumcontent-linux-arm64-static:
     docker:

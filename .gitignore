@@ -11,3 +11,4 @@
 .gclient_entries
 _gclient_src_*
 s3credentials
+/native-mksnapshot.zip

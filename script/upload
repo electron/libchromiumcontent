@@ -45,9 +45,10 @@ def upload(target_arch):
   else:
     platform = PLATFORM_KEY
 
+  upload_files = glob.glob('libchromiumcontent*.zip') + glob.glob('native-mksnapshot.zip')
   s3put(bucket, access_key, secret_key, SOURCE_ROOT,
         'libchromiumcontent/{0}/{1}/{2}'.format(platform, target_arch, commit),
-        glob.glob('libchromiumcontent*.zip'))
+        upload_files)
 
 
 def s3_config():

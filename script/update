@@ -19,7 +19,7 @@ VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
 SRC_DIR = os.path.join(SOURCE_ROOT, 'src')
 CHROMIUMCONTENT_SOURCE_DIR = os.path.join(SOURCE_ROOT, 'chromiumcontent')
 CHROMIUMCONTENT_DESTINATION_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
-COMPONENTS = ['static_library', 'shared_library', 'ffmpeg']
+COMPONENTS = ['static_library', 'shared_library', 'ffmpeg', 'native_mksnapshot']
 DEPOT_TOOLS = os.path.join(VENDOR_DIR, 'depot_tools')
 
 NINJA = os.path.join(DEPOT_TOOLS, 'ninja')
@@ -316,6 +316,10 @@ def run_gn(target_arch, defines):
         args += ' use_pulseaudio=true'
         if IS_MIPS64EL_HOST:
           args += ' use_sysroot=false'
+      if target_arch == 'arm' and component == 'native_mksnapshot':
+        args += ' v8_snapshot_toolchain="//build/toolchain/linux:clang_arm"'
+      elif target_arch == 'arm64' and component == 'native_mksnapshot':
+        args += ' v8_snapshot_toolchain="//build/toolchain/linux:clang_arm64"'
 
     if component == 'static_library':
       if target_arch == 'mips64el':

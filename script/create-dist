@@ -58,7 +58,7 @@ STATIC_LIBRARY_SUFFIX = {
   'win32': 'lib',
 }[TARGET_PLATFORM]
 
-COMPONENTS = ['static_library', 'shared_library']
+COMPONENTS = ['static_library', 'shared_library','native_mksnapshot']
 BINARIES = {
   'all': [
     'content_shell.pak',
@@ -365,7 +365,8 @@ def main():
   subprocess.check_call([NINJA, '-C', MAIN_DIR])
 
   for component in COMPONENTS:
-    if args.component == 'all' or args.component == component:
+    if ((args.component == 'all' or args.component == component)
+        and args.component != 'native_mksnapshot'):
       strip_binaries(args.create_debug_archive, args.keep_debug_symbols,
                      component, os.path.join(MAIN_DIR, component),
                      args.target_arch)
@@ -390,8 +391,9 @@ def generate_ninja(args, ninja):
       copy_generated_sources(target_arch, component, ninja)
       copy_locales(target_arch, component, ninja)
 
-  copy_ffmpeg(target_arch, ninja)
-  copy_sources(ninja)
+  if args.component != 'native_mksnapshot':
+    copy_ffmpeg(target_arch, ninja)
+    copy_sources(ninja)
   generate_licenses(ninja)
 
 
@@ -449,6 +451,10 @@ def copy_binaries(target_arch, component, create_debug_archive,
                   keep_debug_symbols, ninja):
   output_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
   target_dir = component
+
+  if component == 'native_mksnapshot':
+    ninja.copy(os.path.join(output_dir, 'mksnapshot'), target_dir)
+    return
 
   binaries = BINARIES['all'] + BINARIES[TARGET_PLATFORM]
   if component == 'shared_library':
@@ -712,6 +718,10 @@ def create_zip(create_debug_archive, component):
     print 'Zipping static_library builds...'
     p = os.path.join(SOURCE_ROOT, 'libchromiumcontent-static.zip')
     make_zip(MAIN_DIR, ['static_library'], [], p)
+  if component == 'native_mksnapshot':
+    print 'Zipping native mksnapshot...'
+    p = os.path.join(SOURCE_ROOT, 'native-mksnapshot.zip')
+    make_zip(MAIN_DIR, ['native_mksnapshot'], ['LICENSES.chromium.html'], p)
 
 
 def make_zip(src, dirs, files, target):

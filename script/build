@@ -13,7 +13,7 @@ from lib.config import MIPS64EL_GCC, IS_MIPS64EL_HOST, set_mips64el_env, \
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
 TARGETS = ['chromiumcontent_all']
-COMPONENTS = ['static_library', 'shared_library', 'ffmpeg']
+COMPONENTS = ['static_library', 'shared_library', 'ffmpeg', 'native_mksnapshot']
 
 NINJA = os.path.join(VENDOR_DIR, 'depot_tools', 'ninja')
 if sys.platform == 'win32':
@@ -49,6 +49,8 @@ def main():
         continue
       out_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
       target = 'chromiumcontent:chromiumcontent'
+      if component == 'native_mksnapshot':
+        target = 'v8:mksnapshot'
       subprocess.check_call([NINJA, '-C', os.path.relpath(out_dir), target], env=env)
       if component == 'static_library':
         subenv = env.copy()
