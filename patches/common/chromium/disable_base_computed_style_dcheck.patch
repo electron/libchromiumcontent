@@ -1,0 +1,15 @@
+diff --git a/third_party/WebKit/Source/core/animation/ElementAnimations.cpp b/third_party/WebKit/Source/core/animation/ElementAnimations.cpp
+index 8b54fa3a9af3..be83456ea6f8 100644
+--- a/third_party/WebKit/Source/core/animation/ElementAnimations.cpp
++++ b/third_party/WebKit/Source/core/animation/ElementAnimations.cpp
+@@ -107,10 +107,6 @@ void ElementAnimations::UpdateBaseComputedStyle(
+     base_computed_style_ = nullptr;
+     return;
+   }
+-#if DCHECK_IS_ON()
+-  if (base_computed_style_ && computed_style)
+-    DCHECK(*base_computed_style_ == *computed_style);
+-#endif
+   base_computed_style_ = ComputedStyle::Clone(*computed_style);
+ }
+
