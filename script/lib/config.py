@@ -12,6 +12,10 @@ MIPS64EL_SYSROOT = 'https://github.com/electron/debian-sysroot-image-creator/rel
 MIPS64EL_GCC = 'cross-gcc-4.9.3-n64-loongson-rc5.4'
 MIPS64EL_GCC_URL = 'https://github.com/electron/debian-sysroot-image-creator/releases/download/v0.5.0/' + MIPS64EL_GCC + '.tar.gz'
 
+# Whether the host system is an arm64 machine
+IS_ARM64_HOST = platform.machine() == 'aarch64'
+# Whether the host system is an arm64 machine
+IS_ARMV7_HOST = platform.machine() == 'armv7l'
 
 def set_mips64el_env(env):
   gcc_dir = os.path.join(VENDOR_DIR, MIPS64EL_GCC)
