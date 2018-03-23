@@ -3,12 +3,12 @@ index 582fb89868cd..24d3e82232b6 100644
 --- a/base/logging.h
 +++ b/base/logging.h
 @@ -850,7 +850,7 @@ const LogSeverity LOG_DCHECK = LOG_INFO;
- 
+
  #else  // !(defined(_PREFAST_) && defined(OS_WIN))
- 
+
 -#if DCHECK_IS_ON()
 +#if DCHECK_IS_ON() && !defined(ELECTRON_NO_DCHECK)
- 
+
  #define DCHECK(condition)                                           \
    LAZY_STREAM(LOG_STREAM(DCHECK), !ANALYZER_ASSUME_TRUE(condition)) \
 diff --git a/base/memory/weak_ptr.cc b/base/memory/weak_ptr.cc
@@ -17,7 +17,7 @@ index 8879651e6da7..33fe8948a063 100644
 +++ b/base/memory/weak_ptr.cc
 @@ -23,8 +23,8 @@ void WeakReference::Flag::Invalidate() {
  }
- 
+
  bool WeakReference::Flag::IsValid() const {
 -  DCHECK(sequence_checker_.CalledOnValidSequence())
 -      << "WeakPtrs must be checked on the same sequenced thread.";
@@ -25,18 +25,18 @@ index 8879651e6da7..33fe8948a063 100644
 +  //    << "WeakPtrs must be checked on the same sequenced thread.";
    return is_valid_;
  }
- 
+
 diff --git a/base/process/kill_win.cc b/base/process/kill_win.cc
 index 6a0038e2c00d..dd00dfb3e5d0 100644
 --- a/base/process/kill_win.cc
 +++ b/base/process/kill_win.cc
 @@ -45,7 +45,7 @@ TerminationStatus GetTerminationStatus(ProcessHandle handle, int* exit_code) {
    DWORD tmp_exit_code = 0;
- 
+
    if (!::GetExitCodeProcess(handle, &tmp_exit_code)) {
 -    DPLOG(FATAL) << "GetExitCodeProcess() failed";
 +    // DPLOG(FATAL) << "GetExitCodeProcess() failed";
- 
+
      // This really is a random number.  We haven't received any
      // information about the exit code, presumably because this
 diff --git a/components/viz/service/display/program_binding.h b/components/viz/service/display/program_binding.h
@@ -51,16 +51,16 @@ index 70f1ff97b1ac..d1abd804e988 100644
 +      // DCHECK(IsContextLost(context_provider->ContextGL()));
        return;
      }
- 
+
 @@ -428,7 +428,7 @@ class VIZ_SERVICE_EXPORT Program : public ProgramBindingBase {
- 
+
      // Link after binding uniforms
      if (!Link(context_provider->ContextGL())) {
 -      DCHECK(IsContextLost(context_provider->ContextGL()));
 +      // DCHECK(IsContextLost(context_provider->ContextGL()));
        return;
      }
- 
+
 diff --git a/content/browser/frame_host/navigation_controller_impl.cc b/content/browser/frame_host/navigation_controller_impl.cc
 index bebde463db6a..46dbb416ce11 100644
 --- a/content/browser/frame_host/navigation_controller_impl.cc
@@ -68,14 +68,14 @@ index bebde463db6a..46dbb416ce11 100644
 @@ -1015,8 +1015,10 @@ NavigationType NavigationControllerImpl::ClassifyNavigation(
      return NAVIGATION_TYPE_NEW_PAGE;
    }
- 
+
 -  // We only clear the session history when navigating to a new page.
 -  DCHECK(!params.history_list_was_cleared);
 +  // Electron does its own book keeping of navigation entries and we
 +  // expect content to not track any, by clearing history list for
 +  // all navigations.
 +  // DCHECK(!params.history_list_was_cleared);
- 
+
    if (rfh->GetParent()) {
      // All manual subframes would be did_create_new_entry and handled above, so
 @@ -1234,7 +1236,10 @@ void NavigationControllerImpl::RendererDidNavigateToNewPage(
@@ -96,7 +96,7 @@ index 346765edaef9..a30e87bfcda6 100644
 +++ b/content/browser/frame_host/render_frame_host_impl.cc
 @@ -2072,8 +2073,10 @@ void RenderFrameHostImpl::AllowBindings(int bindings_flags) {
    }
- 
+
    enabled_bindings_ |= bindings_flags;
 -  if (GetParent())
 -    DCHECK_EQ(GetParent()->GetEnabledBindings(), GetEnabledBindings());
@@ -104,7 +104,7 @@ index 346765edaef9..a30e87bfcda6 100644
 +  // Fix this when we use OOPIF in Electron.
 +  // if (GetParent())
 +  //  DCHECK_EQ(GetParent()->GetEnabledBindings(), GetEnabledBindings());
- 
+
    if (render_frame_created_) {
      if (!frame_bindings_control_)
 diff --git a/content/browser/renderer_host/render_widget_host_view_mac.mm b/content/browser/renderer_host/render_widget_host_view_mac.mm
@@ -114,12 +114,12 @@ index 79e4cc1a0479..19ba3236477e 100644
 @@ -2093,8 +2104,8 @@ - (void)keyEvent:(NSEvent*)theEvent wasKeyEquivalent:(BOOL)equiv {
    if (EventIsReservedBySystem(theEvent))
      return;
- 
+
 -  DCHECK([theEvent type] != NSKeyDown ||
 -         !equiv == !([theEvent modifierFlags] & NSCommandKeyMask));
 +  //DCHECK([theEvent type] != NSKeyDown ||
 +  //       !equiv == !([theEvent modifierFlags] & NSCommandKeyMask));
- 
+
    if ([theEvent type] == NSFlagsChanged) {
      // Ignore NSFlagsChanged events from the NumLock and Fn keys as
 diff --git a/ppapi/host/ppapi_host.cc b/ppapi/host/ppapi_host.cc
@@ -128,13 +128,13 @@ index f3c68fab3de6..b8609daf3ef9 100644
 +++ b/ppapi/host/ppapi_host.cc
 @@ -240,7 +240,7 @@ void PpapiHost::OnHostMsgResourceCreated(
        CreateResourceHost(params.pp_resource(), instance, nested_msg);
- 
+
    if (!resource_host.get()) {
 -    NOTREACHED();
 +    // NOTREACHED();
      return;
    }
- 
+
 diff --git a/third_party/WebKit/Source/core/loader/BUILD.gn b/third_party/WebKit/Source/core/loader/BUILD.gn
 index 4da843f7f712..f07f24a07ef2 100644
 --- a/third_party/WebKit/Source/core/loader/BUILD.gn
@@ -156,7 +156,7 @@ index 922a2561bcef..e31fa34f98ea 100644
 --- a/third_party/WebKit/Source/core/dom/Node.cpp
 +++ b/third_party/WebKit/Source/core/dom/Node.cpp
 @@ -2435,7 +2435,7 @@ StaticNodeList* Node::getDestinationInsertionPoints() {
- 
+
  HTMLSlotElement* Node::AssignedSlot() const {
    // assignedSlot doesn't need to call updateDistribution().
 -  DCHECK(!IsPseudoElement());
@@ -170,7 +170,7 @@ index d3f0bccaee19..f58019d00e93 100644
 +++ b/third_party/WebKit/Source/platform/wtf/text/StringImpl.h
 @@ -254,21 +254,21 @@ class WTF_EXPORT StringImpl {
    }
- 
+
    ALWAYS_INLINE bool HasOneRef() const {
 -#if DCHECK_IS_ON()
 +#if 0
@@ -178,7 +178,7 @@ index d3f0bccaee19..f58019d00e93 100644
  #endif
      return ref_count_ == 1;
    }
- 
+
    ALWAYS_INLINE void AddRef() const {
 -#if DCHECK_IS_ON()
 +#if 0
@@ -186,7 +186,7 @@ index d3f0bccaee19..f58019d00e93 100644
  #endif
      ++ref_count_;
    }
- 
+
    ALWAYS_INLINE void Release() const {
 -#if DCHECK_IS_ON()
 +#if 0
@@ -206,7 +206,7 @@ index 82eb115ae666..b4806804cdbf 100644
 +    defines += [ "ELECTRON_NO_DCHECK" ]
 +  }
  }
- 
+
  if (is_android) {
 diff --git a/ui/base/clipboard/clipboard_win.cc b/ui/base/clipboard/clipboard_win.cc
 index 674b0e9a909c..a1bff6e40f56 100644
@@ -214,7 +214,7 @@ index 674b0e9a909c..a1bff6e40f56 100644
 +++ b/ui/base/clipboard/clipboard_win.cc
 @@ -886,9 +886,9 @@ void ClipboardWin::WriteBitmapFromHandle(HBITMAP source_hbitmap,
  }
- 
+
  void ClipboardWin::WriteToClipboard(unsigned int format, HANDLE handle) {
 -  DCHECK(clipboard_owner_->hwnd() != NULL);
 +  // DCHECK(clipboard_owner_->hwnd() != NULL);
@@ -224,3 +224,16 @@ index 674b0e9a909c..a1bff6e40f56 100644
      FreeData(format, handle);
    }
  }
+ diff --git a/third_party/WebKit/Source/core/animation/ElementAnimations.cpp b/third_party/WebKit/Source/core/animation/ElementAnimations.cpp
+ index 60b8123cd818..dc719dd31dbf 100644
+ --- a/third_party/WebKit/Source/core/animation/ElementAnimations.cpp
+ +++ b/third_party/WebKit/Source/core/animation/ElementAnimations.cpp
+ @@ -108,7 +108,7 @@ void ElementAnimations::UpdateBaseComputedStyle(
+      base_computed_style_ = nullptr;
+      return;
+    }
+ -#if DCHECK_IS_ON()
+ +#if 0
+    if (base_computed_style_ && computed_style)
+      DCHECK(*base_computed_style_ == *computed_style);
+  #endif
