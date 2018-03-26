@@ -235,30 +235,6 @@ patches:
   description: null
 -
   owners: alexeykuzmin
-  file: backport_140d82d6f8e2.patch
-  description: null
--
-  owners: alexeykuzmin
-  file: backport_4dfcf263240a.patch
-  description: null
--
-  owners: alexeykuzmin
-  file: backport_81e7f1791035.patch
-  description: null
--
-  owners: alexeykuzmin
-  file: backport_99b48b47f11f.patch
-  description: null
--
-  owners: alexeykuzmin
-  file: backport_1ed08ea9dbb0.patch
-  description: null
--
-  owners: alexeykuzmin
-  file: backport_97f5f9df6988.patch
-  description: null
--
-  owners: alexeykuzmin
   file: add_atomic_lib_to_dependencies_even_for_sysroot_builds.patch
   description: null
 -
@@ -266,24 +242,12 @@ patches:
   file: gin_enable_disable_v8_platform.patch
   description: null
 -
-  owners: alexeykuzmin
-  file: backport_015a8b82b8e1.patch
-  description: null
--
   owners: deepak1556
   file: disable-recursive-surface-sync.patch
   description: null
 -
-  owners: alexeykuzmin
-  file: backport_a6977980088b.patch
-  description: null
--
   owners: null
   file: can_disable_desktop_capture_throttling.patch
-  description: null
--
-  owners: alexeykuzmin
-  file: backport_72f0a9302524.patch
   description: null
 -
   owners: codebytere
@@ -297,32 +261,6 @@ patches:
     This changes the catalog manifest to move the capability to a
     different more specific capability, and updates two of its
     consumers.
--
-  owners: alexeykuzmin
-  file: backport_22c1deb1bcd1.patch
-  description: null
--
-  owners: null
-  file: fix-touchpad-lagging-issue.patch
-  description: |
-    Fixes the touchpad lagging issue: https://crbug.com/713907, https://crbug.com/793036.
-    Backported from https://crrev.com/c/867070.
--
-  owners: alexeykuzmin
-  file: backport_ea2ad20b708c.patch
-  description: null
--
-  owners: alexeykuzmin
-  file: backport_d3131378a4ef.patch
-  description: null
--
-  owners: alexeykuzmin
-  file: backport_1d39d46571bb.patch
-  description: null
--
-  owners: gavignus
-  file: backport_c1690d3.patch
-  description: Fixes build with VS 2017. Landed in 64.0.3242.0.
 -
   owners: deepak1556
   file: blink-worker-enable-csp-in-file-scheme.patch
