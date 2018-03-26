@@ -1,8 +1,8 @@
 diff --git a/gpu/config/software_rendering_list.json b/gpu/config/software_rendering_list.json
-index ed5c6d6c0e3c..ffec922b199d 100644
+index ed5c6d6c0e3c..da2053366a07 100644
 --- a/gpu/config/software_rendering_list.json
 +++ b/gpu/config/software_rendering_list.json
-@@ -1532,6 +1532,24 @@
+@@ -1532,6 +1532,23 @@
        "features": [
          "gpu_rasterization"
        ]
@@ -21,7 +21,6 @@ index ed5c6d6c0e3c..ffec922b199d 100644
 +      "vendor_id": "0x10de",
 +      "multi_gpu_category": "any",
 +      "features": [
-+        "accelerated_2d_canvas",
 +        "gpu_rasterization"
 +      ]
      }
