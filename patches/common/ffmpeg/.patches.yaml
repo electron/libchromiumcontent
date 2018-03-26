@@ -3,7 +3,7 @@ patches:
 -
   owners: alespergl
   file: build_gn.patch
-  descripion: |
+  description: |
     Chromium's Mac toolchain sets the "install_name" linker parameter only
     when "is_component_build" is true, but we want to set even if it's false,
     because we are making a dylib which will be distributed inside a bundle.

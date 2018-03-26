@@ -3,8 +3,8 @@ patches:
 -
   owners: alespergl
   file: build_gn.patch
-  descripion: null
+  description: null
 -
   owners: zcbenz
   file: no_inline_default_constructor.patch
-  descripion: null
+  description: null

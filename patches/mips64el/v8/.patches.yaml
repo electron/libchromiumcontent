@@ -3,4 +3,4 @@ patches:
 -
   owners: zcbenz
   file: Fix-v8-loongson-page-size.patch
-  descripion: null
+  description: null

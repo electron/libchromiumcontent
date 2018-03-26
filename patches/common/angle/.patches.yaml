@@ -3,4 +3,4 @@ patches:
 -
   owners: alespergl
   file: dcheck.patch
-  descripion: null
+  description: null
