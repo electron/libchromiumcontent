@@ -5,7 +5,7 @@ patches:
   file: build_gn.patch
   description: null
 -
-  owners: alespergl, deepak1556
+  owners: alespergl, deepak1556, codebytere
   file: dcheck.patch
   description: |
     This disables some debug checks which currently fail when running the Electron
@@ -39,6 +39,7 @@ patches:
       content/browser/renderer_host/render_widget_host_view_mac.mm
       ppapi/host/ppapi_host.cc
       third_party/WebKit/Source/core/dom/Node.cpp
+      third_party/WebKit/Source/core/animation/ElementAnimations.cpp
       third_party/WebKit/Source/platform/wtf/text/StringImpl.h
       ui/base/clipboard/clipboard_win.cc
 -
