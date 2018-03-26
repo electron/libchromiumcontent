@@ -21,50 +21,6 @@ patches:
   file: export_platform.patch
   description: null
 -
-  owners: codebytere
-  file: cherry_pick_37a3a15c3.patch
-  description: null
--
-  owners: alespergl
-  file: backport_3ecb047.patch
-  description: |
-    Fixes security bug
-    https://bugs.chromium.org/p/project-zero/issues/detail?id=1445
--
-  owners: alespergl
-  file: backport_a2b91ed.patch
-  description: |
-    Fixes security bug
-    https://bugs.chromium.org/p/project-zero/issues/detail?id=1446
--
-  owners: codebytere
-  file: cherry_pick_c690f54d95802.patch
-  description: null
--
-  owners: codebytere
-  file: cherry_pick_98c40a4bae915.patch
-  description: null
--
-  owners: codebytere
-  file: backport_14ac02c.patch
-  description: null
--
-  owners: codebytere
-  file: backport_76c3ac5.patch
-  description: null
--
-  owners: codebytere
-  file: cherry_pick_c3458a8.patch
-  description: null
--
-  owners: codebytere
-  file: cherry_pick_50f7455.patch
-  description: null
--
-  owners: codebytere
-  file: cherry_pick_ac0fe8ec.patch
-  description: null
--
   owners: alespergl
   file: dcheck.patch
   description: null
