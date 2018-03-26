@@ -161,10 +161,12 @@ patches:
   owners: zcbenz
   file: render_widget_host_view_mac.patch
   description: null
--
-  owners: deepak1556
-  file: resource_request_details.patch
-  description: null
+# TODO(alexeykuzmin): Fix the patch.
+# See https://chromium-review.googlesource.com/791511
+#-
+#  owners: deepak1556
+#  file: resource_request_details.patch
+#  description: null
 -
   owners: null
   file: scoped_clipboard_writer.patch
