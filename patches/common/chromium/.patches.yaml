@@ -320,6 +320,10 @@ patches:
   file: backport_1d39d46571bb.patch
   descripion: null
 -
+  owners: gavignus
+  file: backport_c1690d3.patch
+  descripion: Fixes build with VS 2017. Landed in 64.0.3242.0.
+-
   owners: deepak1556
   file: blink-worker-enable-csp-in-file-scheme.patch
   descripion: null
