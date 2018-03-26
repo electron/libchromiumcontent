@@ -1,32 +1,11 @@
 diff --git a/content/browser/renderer_host/render_widget_host_view_base.cc b/content/browser/renderer_host/render_widget_host_view_base.cc
-index 98460d7a89e9..67dba849df43 100644
+index 09a37c1a2c70..ff8c2db3fdae 100644
 --- a/content/browser/renderer_host/render_widget_host_view_base.cc
 +++ b/content/browser/renderer_host/render_widget_host_view_base.cc
-@@ -406,6 +406,36 @@ cc::FrameSinkId RenderWidgetHostViewBase::FrameSinkIdAtPoint(
-   return viz::FrameSinkId();
+@@ -399,6 +399,15 @@ viz::FrameSinkId RenderWidgetHostViewBase::FrameSinkIdAtPoint(
+   return frame_sink_id.is_valid() ? frame_sink_id : GetFrameSinkId();
  }
  
-+void RenderWidgetHostViewBase::ProcessKeyboardEvent(
-+    const NativeWebKeyboardEvent& event,
-+    const ui::LatencyInfo& latency) {
-+  if (!GetRenderWidgetHost()) return;
-+  GetRenderWidgetHost()->ForwardKeyboardEvent(event);
-+}
-+
-+void RenderWidgetHostViewBase::ProcessMouseEvent(
-+    const blink::WebMouseEvent& event,
-+    const ui::LatencyInfo& latency) {
-+  if (!GetRenderWidgetHost()) return;
-+  GetRenderWidgetHost()->ForwardMouseEvent(event);
-+}
-+
-+void RenderWidgetHostViewBase::ProcessMouseWheelEvent(
-+    const blink::WebMouseWheelEvent& event,
-+    const ui::LatencyInfo& latency) {
-+  if (!GetRenderWidgetHost()) return;
-+  GetRenderWidgetHost()->ForwardWheelEvent(event);
-+}
-+
 +RenderWidgetHostViewBase* RenderWidgetHostViewBase::CreateViewForWidget(
 +    RenderWidgetHost* render_widget_host,
 +    RenderWidgetHost* embedder_render_widget_host,
@@ -36,61 +15,49 @@ index 98460d7a89e9..67dba849df43 100644
 +    !!embedder_render_widget_host);
 +}
 +
- gfx::Point RenderWidgetHostViewBase::TransformPointToRootCoordSpace(
-     const gfx::Point& point) {
-   return point;
+ void RenderWidgetHostViewBase::ProcessMouseEvent(
+     const blink::WebMouseEvent& event,
+     const ui::LatencyInfo& latency) {
 diff --git a/content/browser/renderer_host/render_widget_host_view_base.h b/content/browser/renderer_host/render_widget_host_view_base.h
-index 1764ea8c31cd..b45bcb09ce24 100644
+index 17c07af5e63b..746ed0c9231a 100644
 --- a/content/browser/renderer_host/render_widget_host_view_base.h
 +++ b/content/browser/renderer_host/render_widget_host_view_base.h
-@@ -21,8 +21,10 @@
+@@ -21,7 +21,9 @@
  #include "components/viz/common/quads/compositor_frame.h"
  #include "components/viz/common/surfaces/surface_id.h"
  #include "content/browser/renderer_host/event_with_latency_info.h"
 +#include "content/browser/web_contents/web_contents_view.h"
  #include "content/common/content_export.h"
- #include "content/common/input/input_event_ack_state.h"
 +#include "content/public/browser/render_widget_host.h"
  #include "content/public/browser/render_widget_host_view.h"
+ #include "content/public/common/input_event_ack_state.h"
  #include "content/public/common/screen_info.h"
- #include "ipc/ipc_listener.h"
-@@ -76,8 +78,10 @@ class BrowserAccessibilityDelegate;
+@@ -79,10 +81,12 @@ class BrowserAccessibilityManager;
  class CursorManager;
  class RenderWidgetHostImpl;
  class RenderWidgetHostViewBaseObserver;
 +class RenderWidgetHostViewGuest;
  class SyntheticGestureTarget;
  class TextInputManager;
-+class WebContentsView;
  class TouchSelectionControllerClientManager;
  class WebContentsAccessibility;
++class WebContentsView;
  class WebCursor;
-@@ -120,6 +124,9 @@ class CONTENT_EXPORT RenderWidgetHostViewBase : public RenderWidgetHostView,
+ struct TextInputState;
+ 
+@@ -124,6 +128,9 @@ class CONTENT_EXPORT RenderWidgetHostViewBase : public RenderWidgetHostView,
+   float GetDeviceScaleFactor() const final;
    TouchSelectionControllerClientManager*
    GetTouchSelectionControllerClientManager() override;
- 
++
 +  virtual void InitAsGuest(RenderWidgetHostView* parent_host_view,
 +                           RenderWidgetHostViewGuest* guest_view) {}
-+
+ 
    // This only needs to be overridden by RenderWidgetHostViewBase subclasses
    // that handle content embedded within other RenderWidgetHostViews.
-   gfx::Point TransformPointToRootCoordSpace(const gfx::Point& point) override;
-@@ -265,16 +272,21 @@ class CONTENT_EXPORT RenderWidgetHostViewBase : public RenderWidgetHostView,
-       const gfx::Point& point,
-       gfx::Point* transformed_point);
-   virtual void ProcessKeyboardEvent(const NativeWebKeyboardEvent& event,
--                                    const ui::LatencyInfo& latency) {}
-+                                    const ui::LatencyInfo& latency);
-   virtual void ProcessMouseEvent(const blink::WebMouseEvent& event,
--                                 const ui::LatencyInfo& latency) {}
-+                                 const ui::LatencyInfo& latency);
-   virtual void ProcessMouseWheelEvent(const blink::WebMouseWheelEvent& event,
--                                      const ui::LatencyInfo& latency) {}
-+                                      const ui::LatencyInfo& latency);
-   virtual void ProcessTouchEvent(const blink::WebTouchEvent& event,
-                                  const ui::LatencyInfo& latency) {}
+@@ -318,6 +325,11 @@ class CONTENT_EXPORT RenderWidgetHostViewBase : public RenderWidgetHostView,
    virtual void ProcessGestureEvent(const blink::WebGestureEvent& event,
-                                    const ui::LatencyInfo& latency) {}
+                                    const ui::LatencyInfo& latency);
  
 +  virtual RenderWidgetHostViewBase* CreateViewForWidget(
 +      RenderWidgetHost* render_widget_host,
