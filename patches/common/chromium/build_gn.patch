@@ -91,19 +91,6 @@ index 6c86a6454256..2bc8c31396af 100644
    sources = [
      "text/CharacterPropertyDataGenerator.cpp",
      "text/CharacterPropertyDataGenerator.h",
-diff --git a/third_party/widevine/cdm/BUILD.gn b/third_party/widevine/cdm/BUILD.gn
-index 9e744b9940e2..09208f2e98fa 100644
---- a/third_party/widevine/cdm/BUILD.gn
-+++ b/third_party/widevine/cdm/BUILD.gn
-@@ -110,7 +110,7 @@ if (widevine_cdm_binary_files != []) {
-       "//build/config:exe_and_shlib_deps",
-     ]
- 
--    if (is_mac) {
-+    if (is_mac && !is_electron_build) {
-       ldflags = [
-         # Not to strip important symbols by -Wl,-dead_strip.
-         "-Wl,-exported_symbol,_PPP_GetInterface",
 diff --git a/.gn b/.gn
 index 9e744b9940e2..09208f2e98fa 100644
 --- a/.gn
