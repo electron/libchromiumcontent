@@ -3,8 +3,8 @@ patches:
 -
   owners: zcbenz
   file: blink_no_private_api.patch
-  descripion: null
+  description: null
 -
   owners: zcbenz
   file: no_private_api.patch
-  descripion: null
+  description: null

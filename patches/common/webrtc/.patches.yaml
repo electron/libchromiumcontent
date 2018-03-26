@@ -3,16 +3,16 @@ patches:
 -
   owners: alexeykuzmin
   file: backport_7f90e2cceda.patch
-  descripion: "https://webrtc-review.googlesource.com/9384"
+  description: "https://webrtc-review.googlesource.com/9384"
 -
   owners: alexeykuzmin
   file: fix_laggy_mouse_during_desktop_capture.patch
-  descripion: null
+  description: null
 -
   owners: null
   file: webrtc-desktop_capturer_mac.patch
-  descripion: null
+  description: null
 -
   owners: null
   file: webrtc-rwlock_null.patch
-  descripion: null
+  description: null

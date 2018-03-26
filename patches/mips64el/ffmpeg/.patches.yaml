@@ -3,4 +3,4 @@ patches:
 -
   owners: zcbenz
   file: Fix-build_ffmpeg-with-cross-prefix-mips64el-redhat-l.patch
-  descripion: null
+  description: null
