@@ -124,10 +124,6 @@ patches:
   file: frame_host_manager.patch
   description: null
 -
-  owners: null
-  file: guest_view.patch
-  description: null
--
   owners: tonyganch
   file: latency_info.patch
   description: null
