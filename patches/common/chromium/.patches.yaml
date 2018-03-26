@@ -152,10 +152,6 @@ patches:
   file: render_widget_host_view_mac.patch
   description: null
 -
-  owners: deepak1556
-  file: resource_request_details.patch
-  description: null
--
   owners: null
   file: scoped_clipboard_writer.patch
   description: null
