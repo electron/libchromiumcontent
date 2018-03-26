@@ -1,0 +1,51 @@
+diff --git a/third_party/crashpad/crashpad/util/win/nt_internals.cc b/third_party/crashpad/crashpad/util/win/nt_internals.cc
+index 88ec005..df8288a 100644
+--- a/third_party/crashpad/crashpad/util/win/nt_internals.cc
++++ b/third_party/crashpad/crashpad/util/win/nt_internals.cc
+@@ -19,8 +19,7 @@
+ 
+ // Declarations that the system headers should provide but don’t.
+ 
+-struct _CLIENT_ID;
+-typedef _CLIENT_ID CLIENT_ID;
++extern "C" {
+ 
+ NTSTATUS NTAPI NtCreateThreadEx(PHANDLE ThreadHandle,
+                                 ACCESS_MASK DesiredAccess,
+@@ -47,6 +46,8 @@
+                                     PULONG* ElementCount,
+                                     PVOID* EventTrace);
+ 
++}  // extern "C"
++
+ namespace crashpad {
+ 
+ NTSTATUS NtClose(HANDLE handle) {
+diff --git a/third_party/crashpad/crashpad/util/win/nt_internals.h b/third_party/crashpad/crashpad/util/win/nt_internals.h
+index 41e5fa4..a14678f 100644
+--- a/third_party/crashpad/crashpad/util/win/nt_internals.h
++++ b/third_party/crashpad/crashpad/util/win/nt_internals.h
+@@ -17,6 +17,12 @@
+ 
+ #include "util/win/process_structs.h"
+ 
++// Copied from ntstatus.h because um/winnt.h conflicts with general inclusion of
++// ntstatus.h.
++#define STATUS_INFO_LENGTH_MISMATCH ((NTSTATUS)0xC0000004L)
++#define STATUS_BUFFER_TOO_SMALL ((NTSTATUS)0xC0000023L)
++#define STATUS_PROCESS_IS_TERMINATING ((NTSTATUS)0xC000010AL)
++
+ namespace crashpad {
+ 
+ NTSTATUS NtClose(HANDLE handle);
+@@ -36,11 +42,6 @@
+                  SIZE_T maximum_stack_size,
+                  PVOID /*PPS_ATTRIBUTE_LIST*/ attribute_list);
+ 
+-// Copied from ntstatus.h because um/winnt.h conflicts with general inclusion of
+-// ntstatus.h.
+-#define STATUS_BUFFER_TOO_SMALL ((NTSTATUS)0xC0000023L)
+-#define STATUS_INFO_LENGTH_MISMATCH ((NTSTATUS)0xC0000004L)
+-
+ // winternal.h defines THREADINFOCLASS, but not all members.
+ enum { ThreadBasicInformation = 0 };
