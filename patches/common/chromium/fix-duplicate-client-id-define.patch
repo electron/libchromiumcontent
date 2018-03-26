@@ -1,5 +1,64 @@
+Subject: [PATCH] win: 10.0.16299.0 SDK compatibility
+
+This corresponds to Windows 10 version 1709 (Fall Creators Update,
+“Redstone 3”).
+
+While compiling util/win/nt_internals.cc:
+
+…\crashpad\crashpad\util\win\nt_internals.cc(22): error C2371: 'CLIENT_ID': redefinition; different basic types
+c:\program files (x86)\windows kits\10\include\10.0.16299.0\um\winternl.h(83): note: see declaration of 'CLIENT_ID'
+
+The CLIENT_ID structure, which should have been part of the SDK to begin
+with, has been added. Provide a compatible definition in <winternl.h>.
+
+CL: https://chromium-review.googlesource.com/711415
+---
+
+diff --git a/third_party/crashpad/crashpad/compat/compat.gyp b/third_party/crashpad/crashpad/compat/compat.gyp
+index 92ab7f915cb8..b667ec039fee 100644
+--- a/third_party/crashpad/crashpad/compat/compat.gyp
++++ b/third_party/crashpad/crashpad/compat/compat.gyp
+@@ -45,6 +45,7 @@
+         'win/time.cc',
+         'win/time.h',
+         'win/winnt.h',
++        'win/winternl.h',
+       ],
+       'conditions': [
+         ['OS=="mac"', {
+diff --git a/third_party/crashpad/crashpad/compat/win/winternl.h b/third_party/crashpad/crashpad/compat/win/winternl.h
+new file mode 100644
+index 000000000000..4e571273ec0f
+--- /dev/null
++++ b/third_party/crashpad/crashpad/compat/win/winternl.h
+@@ -0,0 +1,25 @@
++// Copyright 2017 The Crashpad Authors. All rights reserved.
++//
++// Licensed under the Apache License, Version 2.0 (the "License");
++// you may not use this file except in compliance with the License.
++// You may obtain a copy of the License at
++//
++//     http://www.apache.org/licenses/LICENSE-2.0
++//
++// Unless required by applicable law or agreed to in writing, software
++// distributed under the License is distributed on an "AS IS" BASIS,
++// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++// See the License for the specific language governing permissions and
++// limitations under the License.
++
++#ifndef CRASHPAD_COMPAT_WIN_WINTERNL_H_
++#define CRASHPAD_COMPAT_WIN_WINTERNL_H_
++
++// include_next <winternl.h>
++#include <../um/winternl.h>
++
++// 10.0.16299.0 SDK
++
++typedef struct _CLIENT_ID CLIENT_ID;
++
++#endif  // CRASHPAD_COMPAT_WIN_WINTERNL_H_
 diff --git a/third_party/crashpad/crashpad/util/win/nt_internals.cc b/third_party/crashpad/crashpad/util/win/nt_internals.cc
-index 88ec005..df8288a 100644
+index 88ec005aba59..df8288a981a6 100644
 --- a/third_party/crashpad/crashpad/util/win/nt_internals.cc
 +++ b/third_party/crashpad/crashpad/util/win/nt_internals.cc
 @@ -19,8 +19,7 @@
@@ -12,7 +71,7 @@ index 88ec005..df8288a 100644
  
  NTSTATUS NTAPI NtCreateThreadEx(PHANDLE ThreadHandle,
                                  ACCESS_MASK DesiredAccess,
-@@ -47,6 +46,8 @@
+@@ -47,6 +46,8 @@ VOID NTAPI RtlGetUnloadEventTraceEx(PULONG* ElementSize,
                                      PULONG* ElementCount,
                                      PVOID* EventTrace);
  
@@ -21,31 +80,3 @@ index 88ec005..df8288a 100644
  namespace crashpad {
  
  NTSTATUS NtClose(HANDLE handle) {
-diff --git a/third_party/crashpad/crashpad/util/win/nt_internals.h b/third_party/crashpad/crashpad/util/win/nt_internals.h
-index 41e5fa4..a14678f 100644
---- a/third_party/crashpad/crashpad/util/win/nt_internals.h
-+++ b/third_party/crashpad/crashpad/util/win/nt_internals.h
-@@ -17,6 +17,12 @@
- 
- #include "util/win/process_structs.h"
- 
-+// Copied from ntstatus.h because um/winnt.h conflicts with general inclusion of
-+// ntstatus.h.
-+#define STATUS_INFO_LENGTH_MISMATCH ((NTSTATUS)0xC0000004L)
-+#define STATUS_BUFFER_TOO_SMALL ((NTSTATUS)0xC0000023L)
-+#define STATUS_PROCESS_IS_TERMINATING ((NTSTATUS)0xC000010AL)
-+
- namespace crashpad {
- 
- NTSTATUS NtClose(HANDLE handle);
-@@ -36,11 +42,6 @@
-                  SIZE_T maximum_stack_size,
-                  PVOID /*PPS_ATTRIBUTE_LIST*/ attribute_list);
- 
--// Copied from ntstatus.h because um/winnt.h conflicts with general inclusion of
--// ntstatus.h.
--#define STATUS_BUFFER_TOO_SMALL ((NTSTATUS)0xC0000023L)
--#define STATUS_INFO_LENGTH_MISMATCH ((NTSTATUS)0xC0000004L)
--
- // winternal.h defines THREADINFOCLASS, but not all members.
- enum { ThreadBasicInformation = 0 };
