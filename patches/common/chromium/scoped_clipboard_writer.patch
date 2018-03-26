@@ -25,7 +25,7 @@ index 6850cd460b1d..6d652cca59b4 100644
  
    Clipboard::ObjectMapParams parameters;
    parameters.push_back(format_parameter);
-@@ -120,6 +119,13 @@ void ScopedClipboardWriter::WritePickledData(
+@@ -121,6 +121,13 @@ void ScopedClipboardWriter::WritePickledData(
    objects_[Clipboard::CBF_DATA] = parameters;
  }
  
@@ -37,8 +37,8 @@ index 6850cd460b1d..6d652cca59b4 100644
 +}
 +
  void ScopedClipboardWriter::Reset() {
-   url_text_.clear();
    objects_.clear();
+   bitmap_.reset();
 diff --git a/ui/base/clipboard/scoped_clipboard_writer.h b/ui/base/clipboard/scoped_clipboard_writer.h
 index a7e064561ca9..d5a1b76bc6a7 100644
 --- a/ui/base/clipboard/scoped_clipboard_writer.h
