@@ -1,8 +1,8 @@
 diff --git a/content/browser/frame_host/render_frame_host_manager.cc b/content/browser/frame_host/render_frame_host_manager.cc
-index 1bbf60fac4e1..ca71865f89e8 100644
+index d7342d69dd8e..8efeb43ecc55 100644
 --- a/content/browser/frame_host/render_frame_host_manager.cc
 +++ b/content/browser/frame_host/render_frame_host_manager.cc
-@@ -1167,6 +1167,19 @@ RenderFrameHostManager::GetSiteInstanceForNavigation(
+@@ -964,6 +964,20 @@ RenderFrameHostManager::GetSiteInstanceForNavigation(
  
    SiteInstance* current_instance = render_frame_host_->GetSiteInstance();
  
@@ -15,18 +15,20 @@ index 1bbf60fac4e1..ca71865f89e8 100644
 +      dest_url,
 +      &client_custom_instance);
 +  if (client_custom_instance != current_instance) {
-+    GetContentClient()->browser()->OnCreateSiteInstanceForNavigation(client_custom_instance, render_frame_host_.get());
++    GetContentClient()->browser()->OnCreateSiteInstanceForNavigation(
++        client_custom_instance, render_frame_host_.get());
 +    return client_custom_instance;
 +  }
 +
    // We do not currently swap processes for navigations in webview tag guests.
    if (current_instance->GetSiteURL().SchemeIs(kGuestScheme))
      return current_instance;
-@@ -1265,6 +1278,7 @@ RenderFrameHostManager::GetSiteInstanceForNavigation(
+@@ -1035,6 +1049,8 @@ RenderFrameHostManager::GetSiteInstanceForNavigation(
    // BrowserContext.
    DCHECK_EQ(new_instance->GetBrowserContext(), browser_context);
  
-+  GetContentClient()->browser()->OnCreateSiteInstanceForNavigation(new_instance.get(), render_frame_host_.get());
-   // If |new_instance| is a new SiteInstance for a subframe with an isolated
-   // origin, set its process reuse policy so that such subframes are
-   // consolidated into existing processes for that isolated origin.
++  GetContentClient()->browser()->OnCreateSiteInstanceForNavigation(
++      new_instance.get(), render_frame_host_.get());
+   // If |new_instance| is a new SiteInstance for a subframe that requires a
+   // dedicated process, set its process reuse policy so that such subframes are
+   // consolidated into existing processes for that site.
