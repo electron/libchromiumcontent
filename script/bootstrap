@@ -28,7 +28,7 @@ def main():
 
   # Install PyYAML.
   with util.scoped_cwd(os.path.join('vendor', 'pyyaml')):
-    subprocess.call([sys.executable, 'setup.py', 'install', '--user'])
+    subprocess.call([sys.executable, 'setup.py', 'install', '--user', '--prefix', ''])
 
 
 if __name__ == '__main__':
