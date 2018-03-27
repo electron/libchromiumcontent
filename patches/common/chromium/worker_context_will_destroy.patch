@@ -15,11 +15,11 @@ index 0e554ba8467a..8e56489a5152 100644
    // An empty URL is returned if the URL is not overriden.
    virtual GURL OverrideFlashEmbedWithHTML(const GURL& url);
 diff --git a/content/renderer/renderer_blink_platform_impl.cc b/content/renderer/renderer_blink_platform_impl.cc
-index 1a9d6c2e7ef2..3eafb726a190 100644
+index 0affacaa0294..eca456faa640 100644
 --- a/content/renderer/renderer_blink_platform_impl.cc
 +++ b/content/renderer/renderer_blink_platform_impl.cc
-@@ -1336,6 +1336,12 @@ RendererBlinkPlatformImpl::OriginTrialPolicy() {
-   return std::make_unique<TrialPolicyImpl>();
+@@ -1402,6 +1404,12 @@ void RendererBlinkPlatformImpl::WillStopWorkerThread() {
+   WorkerThreadRegistry::Instance()->WillStopCurrentWorkerThread();
  }
  
 +void RendererBlinkPlatformImpl::WorkerContextWillDestroy(
@@ -32,23 +32,23 @@ index 1a9d6c2e7ef2..3eafb726a190 100644
      const v8::Local<v8::Context>& worker) {
    GetContentClient()->renderer()->DidInitializeWorkerContextOnWorkerThread(
 diff --git a/content/renderer/renderer_blink_platform_impl.h b/content/renderer/renderer_blink_platform_impl.h
-index 8d68defb758a..b1ec3279d2b0 100644
+index e8a4578009d1..e9ba4e7f391f 100644
 --- a/content/renderer/renderer_blink_platform_impl.h
 +++ b/content/renderer/renderer_blink_platform_impl.h
-@@ -215,6 +215,7 @@ class CONTENT_EXPORT RendererBlinkPlatformImpl : public BlinkPlatformImpl {
-   std::unique_ptr<blink::WebTrialTokenValidator> TrialTokenValidator() override;
-   std::unique_ptr<blink::TrialPolicy> OriginTrialPolicy() override;
+@@ -219,6 +219,7 @@ class CONTENT_EXPORT RendererBlinkPlatformImpl : public BlinkPlatformImpl {
+   void DidStartWorkerThread() override;
+   void WillStopWorkerThread() override;
    void WorkerContextCreated(const v8::Local<v8::Context>& worker) override;
 +  void WorkerContextWillDestroy(const v8::Local<v8::Context>& worker) override;
  
    // Set the PlatformEventObserverBase in |platform_event_observers_| associated
    // with |type| to |observer|. If there was already an observer associated to
 diff --git a/third_party/WebKit/Source/core/workers/WorkerThread.cpp b/third_party/WebKit/Source/core/workers/WorkerThread.cpp
-index e76c01f..560566a 100644
+index a522ba4dbdf7..6991078b36f5 100644
 --- a/third_party/WebKit/Source/core/workers/WorkerThread.cpp
 +++ b/third_party/WebKit/Source/core/workers/WorkerThread.cpp
-@@ -526,6 +526,12 @@ void WorkerThread::prepareForShutdownOnWorkerThread() {
-       SetExitCode(lock, ExitCode::kGracefullyTerminated);
+@@ -481,6 +481,12 @@ void WorkerThread::PrepareForShutdownOnWorkerThread() {
+       SetExitCode(ExitCode::kGracefullyTerminated);
    }
  
 +  {
@@ -57,7 +57,7 @@ index e76c01f..560566a 100644
 +        GlobalScope()->ScriptController()->GetContext());
 +  }
 +
-   inspector_task_runner_->Kill();
+   inspector_task_runner_->Dispose();
    GetWorkerReportingProxy().WillDestroyWorkerGlobalScope();
    probe::AllAsyncTasksCanceled(GlobalScope());
 diff --git a/third_party/WebKit/public/platform/Platform.h b/third_party/WebKit/public/platform/Platform.h
