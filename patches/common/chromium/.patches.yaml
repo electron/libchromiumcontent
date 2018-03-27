@@ -254,18 +254,6 @@ patches:
   file: can_disable_desktop_capture_throttling.patch
   description: null
 -
-  owners: codebytere
-  file: patch_catalog_vuln.patch
-  description: |
-    Several services require "app" capability from all other services
-    (wildcard), which is in itself probably a Bad Thing; but it's
-    especially bad now because the catalog service exposes module
-    directory access through its app capability.
-    
-    This changes the catalog manifest to move the capability to a
-    different more specific capability, and updates two of its
-    consumers.
--
   owners: deepak1556
   file: blink-worker-enable-csp-in-file-scheme.patch
   description: null
