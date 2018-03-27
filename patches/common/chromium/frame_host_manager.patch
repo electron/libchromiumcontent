@@ -32,3 +32,22 @@ index d7342d69dd8e..8efeb43ecc55 100644
    // If |new_instance| is a new SiteInstance for a subframe that requires a
    // dedicated process, set its process reuse policy so that such subframes are
    // consolidated into existing processes for that site.
+diff --git a/content/public/browser/content_browser_client.h b/content/public/browser/content_browser_client.h
+index 5373ee07b5cd..6075a7233852 100644
+--- a/content/public/browser/content_browser_client.h
++++ b/content/public/browser/content_browser_client.h
+@@ -153,6 +154,14 @@ class CONTENT_EXPORT ContentBrowserClient {
+  public:
+   virtual ~ContentBrowserClient() {}
+ 
++  // Electron: Allows overriding the SiteInstance when navigating.
++  virtual void OverrideSiteInstanceForNavigation(
++      RenderFrameHost* render_frame_host,
++      BrowserContext* browser_context,
++      SiteInstance* current_instance,
++      const GURL& dest_url,
++      SiteInstance** new_instance) {}
++
+   // Allows the embedder to set any number of custom BrowserMainParts
+   // implementations for the browser startup code. See comments in
+   // browser_main_parts.h.

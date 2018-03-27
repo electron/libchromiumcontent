@@ -137,21 +137,6 @@ index 5373ee07b5cd..6075a7233852 100644
  class SiteInstance;
  class SpeechRecognitionManagerDelegate;
  class StoragePartition;
-@@ -153,6 +154,14 @@ class CONTENT_EXPORT ContentBrowserClient {
-  public:
-   virtual ~ContentBrowserClient() {}
- 
-+  // Electron: Allows overriding the SiteInstance when navigating.
-+  virtual void OverrideSiteInstanceForNavigation(
-+      RenderFrameHost* render_frame_host,
-+      BrowserContext* browser_context,
-+      SiteInstance* current_instance,
-+      const GURL& dest_url,
-+      SiteInstance** new_instance) {}
-+
-   // Allows the embedder to set any number of custom BrowserMainParts
-   // implementations for the browser startup code. See comments in
-   // browser_main_parts.h.
 @@ -509,6 +518,8 @@ class CONTENT_EXPORT ContentBrowserClient {
        const std::string& frame_name,
        WindowOpenDisposition disposition,
