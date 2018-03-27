@@ -1,15 +1,15 @@
 diff --git a/modules/desktop_capture/screen_capturer_mac.mm b/modules/desktop_capture/screen_capturer_mac.mm
-index bd116dd6c0..bfe4080ecc 100644
+index 6f2690f28..091d76d6e 100644
 --- a/modules/desktop_capture/screen_capturer_mac.mm
 +++ b/modules/desktop_capture/screen_capturer_mac.mm
-@@ -35,6 +35,7 @@
- #include "rtc_base/logging.h"
+@@ -36,6 +36,7 @@
  #include "rtc_base/macutils.h"
  #include "rtc_base/timeutils.h"
+ #include "sdk/objc/Framework/Classes/Common/scoped_cftyperef.h"
 +#include "system_wrappers/include/rw_lock_wrapper.h"
-
+ 
  namespace webrtc {
-
+ 
 @@ -70,20 +71,33 @@
  // destroy itself once it's done.
  class DisplayStreamManager {
