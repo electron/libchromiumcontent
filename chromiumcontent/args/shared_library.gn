@@ -17,7 +17,7 @@ if (target_os != "linux") {
 
 # Jumbo build should improve compilation times.
 # https://chromium.googlesource.com/chromium/src/+/master/docs/jumbo.md
-use_jumbo_build = true
+use_jumbo_build = false
 
 # This is required by Node.js
 # See https://github.com/nodejs/node/pull/13242
