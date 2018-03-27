@@ -30,12 +30,12 @@ index 197b64b49fd6..2e94b03c4f44 100644
    // Called by |frame| to notify that it has received an update on focused
    // element. |bounds_in_root_view| is the rectangle containing the element that
 diff --git a/content/browser/frame_host/render_frame_host_impl.cc b/content/browser/frame_host/render_frame_host_impl.cc
-index 82ab04e1019d..209dbd15d894 100644
+index 1f566ef1f437..bb2f59d62315 100644
 --- a/content/browser/frame_host/render_frame_host_impl.cc
 +++ b/content/browser/frame_host/render_frame_host_impl.cc
-@@ -18,6 +18,7 @@
- #include "base/metrics/user_metrics.h"
+@@ -20,6 +20,7 @@
  #include "base/process/kill.h"
+ #include "base/task_scheduler/post_task.h"
  #include "base/time/time.h"
 +#include "base/unguessable_token.h"
  #include "build/build_config.h"
@@ -123,10 +123,10 @@ index f985ea2bceab..779cfd79312d 100644
  
  NavigationEntry*
 diff --git a/content/browser/web_contents/web_contents_impl.h b/content/browser/web_contents/web_contents_impl.h
-index 65a6fa4b26a9..203d2c8ebce6 100644
+index 84a01a83c72a..49d0a4b547c2 100644
 --- a/content/browser/web_contents/web_contents_impl.h
 +++ b/content/browser/web_contents/web_contents_impl.h
-@@ -538,7 +538,8 @@ class CONTENT_EXPORT WebContentsImpl
+@@ -534,7 +534,8 @@ class CONTENT_EXPORT WebContentsImpl : public WebContents,
        SiteInstance* source_site_instance) const override;
    void EnsureOpenerProxiesExist(RenderFrameHost* source_rfh) override;
    std::unique_ptr<WebUIImpl> CreateWebUIForRenderFrameHost(
@@ -134,5 +134,5 @@ index 65a6fa4b26a9..203d2c8ebce6 100644
 +      const GURL& url,
 +      const std::string& frame_name) override;
    void SetFocusedFrame(FrameTreeNode* node, SiteInstance* source) override;
+   void DidCallFocus() override;
    RenderFrameHost* GetFocusedFrameIncludingInnerWebContents() override;
-   void OnFocusedElementChangedInFrame(
