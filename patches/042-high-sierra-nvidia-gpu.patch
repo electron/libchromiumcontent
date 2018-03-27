@@ -1,8 +1,8 @@
 diff --git a/gpu/config/software_rendering_list.json b/gpu/config/software_rendering_list.json
-index ebdfca0..bcbcb4a 100644
+index ebdfca0b9d7f..7b94b480a286 100644
 --- a/gpu/config/software_rendering_list.json
 +++ b/gpu/config/software_rendering_list.json
-@@ -1460,6 +1460,24 @@
+@@ -1460,6 +1460,23 @@
        "features": [
          "webgl2"
        ]
@@ -21,7 +21,6 @@ index ebdfca0..bcbcb4a 100644
 +      "vendor_id": "0x10de",
 +      "multi_gpu_category": "any",
 +      "features": [
-+        "accelerated_2d_canvas",
 +        "gpu_rasterization"
 +      ]
      }
