@@ -1,25 +1,37 @@
 diff --git a/content/renderer/renderer_blink_platform_impl.cc b/content/renderer/renderer_blink_platform_impl.cc
-index 6cfd9df..ec79d1c 100644
+index 0affacaa0294..0c321d51364d 100644
 --- a/content/renderer/renderer_blink_platform_impl.cc
 +++ b/content/renderer/renderer_blink_platform_impl.cc
-@@ -1020,9 +1020,9 @@ RendererBlinkPlatformImpl::createOffscreenGraphicsContext3DProvider(
-       web_attributes.support_stencil || web_attributes.support_antialias;
+@@ -1136,8 +1136,10 @@ RendererBlinkPlatformImpl::CreateOffscreenGraphicsContext3DProvider(
    attributes.sample_buffers = 0;
    attributes.bind_generates_resource = false;
+   attributes.enable_raster_interface = web_attributes.enable_raster_interface;
 -  // Prefer discrete GPU for WebGL.
 -  attributes.gpu_preference = gl::PreferDiscreteGpu;
--
++
 +  attributes.gpu_preference = web_attributes.prefer_integrated_gpu
 +      ? gl::PreferIntegratedGpu
 +      : gl::PreferDiscreteGpu;
+ 
    attributes.fail_if_major_perf_caveat =
        web_attributes.fail_if_major_performance_caveat;
-   DCHECK_GT(web_attributes.web_gl_version, 0u);
-diff --git a/third_party/WebKit/Source/core/html/canvas/CanvasContextCreationAttributes.idl b/third_party/WebKit/Source/core/html/canvas/CanvasContextCreationAttributes.idl
-index 752714c..058b969 100644
---- a/third_party/WebKit/Source/core/html/canvas/CanvasContextCreationAttributes.idl
-+++ b/third_party/WebKit/Source/core/html/canvas/CanvasContextCreationAttributes.idl
-@@ -34,6 +34,12 @@ enum CanvasPixelFormat {
+diff --git a/third_party/WebKit/Source/core/html/canvas/CanvasContextCreationAttributesCore.h b/third_party/WebKit/Source/core/html/canvas/CanvasContextCreationAttributesCore.h
+index ca4543a10e69..a1f5e5c9f906 100644
+--- a/third_party/WebKit/Source/core/html/canvas/CanvasContextCreationAttributesCore.h
++++ b/third_party/WebKit/Source/core/html/canvas/CanvasContextCreationAttributesCore.h
+@@ -30,6 +30,7 @@ class CORE_EXPORT CanvasContextCreationAttributesCore {
+   String pixel_format = "8-8-8-8";
+   bool premultiplied_alpha = true;
+   bool preserve_drawing_buffer = false;
++  String power_preference = "default";
+   bool stencil = false;
+ 
+   // This attribute is of type XRDevice, defined in modules/xr/XRDevice.h
+diff --git a/third_party/WebKit/Source/modules/canvas/htmlcanvas/CanvasContextCreationAttributesModule.idl b/third_party/WebKit/Source/modules/canvas/htmlcanvas/CanvasContextCreationAttributesModule.idl
+index 7419bb20d316..5b04af00fab4 100644
+--- a/third_party/WebKit/Source/modules/canvas/htmlcanvas/CanvasContextCreationAttributesModule.idl
++++ b/third_party/WebKit/Source/modules/canvas/htmlcanvas/CanvasContextCreationAttributesModule.idl
+@@ -28,6 +28,12 @@ enum CanvasPixelFormat {
      "float16",
  };
  
@@ -30,37 +42,38 @@ index 752714c..058b969 100644
 +};
 +
  [PermissiveDictionaryConversion]
- dictionary CanvasContextCreationAttributes {
-     // Canvas 2D attributes
-@@ -50,5 +56,6 @@ dictionary CanvasContextCreationAttributes {
+ dictionary CanvasContextCreationAttributesModule {
+     // This is an experimental feature, but it is not hidden behind a flag in
+@@ -47,6 +53,7 @@ dictionary CanvasContextCreationAttributesModule {
      boolean antialias = true;
      boolean premultipliedAlpha = true;
      boolean preserveDrawingBuffer = false;
 +    CanvasPowerPreference powerPreference = "default";
      boolean failIfMajorPerformanceCaveat = false;
+     [RuntimeEnabled=WebXR] XRDevice compatibleXRDevice = null;
  };
 diff --git a/third_party/WebKit/Source/modules/webgl/WebGLContextAttributeHelpers.cpp b/third_party/WebKit/Source/modules/webgl/WebGLContextAttributeHelpers.cpp
-index 8c07036..223ba31 100644
+index 332fa9fb0547..e8fae4b01c39 100644
 --- a/third_party/WebKit/Source/modules/webgl/WebGLContextAttributeHelpers.cpp
 +++ b/third_party/WebKit/Source/modules/webgl/WebGLContextAttributeHelpers.cpp
-@@ -17,6 +17,7 @@ WebGLContextAttributes toWebGLContextAttributes(
-   result.setAntialias(attrs.antialias());
-   result.setPremultipliedAlpha(attrs.premultipliedAlpha());
-   result.setPreserveDrawingBuffer(attrs.preserveDrawingBuffer());
-+  result.setPowerPreference(attrs.powerPreference());
-   result.setFailIfMajorPerformanceCaveat(attrs.failIfMajorPerformanceCaveat());
-   return result;
- }
-@@ -26,6 +27,7 @@ Platform::ContextAttributes toPlatformContextAttributes(
+@@ -18,6 +18,7 @@ WebGLContextAttributes ToWebGLContextAttributes(
+   result.setAntialias(attrs.antialias);
+   result.setPremultipliedAlpha(attrs.premultiplied_alpha);
+   result.setPreserveDrawingBuffer(attrs.preserve_drawing_buffer);
++  result.setPowerPreference(attrs.power_preference);
+   result.setFailIfMajorPerformanceCaveat(
+       attrs.fail_if_major_performance_caveat);
+   result.setCompatibleXRDevice(
+@@ -30,6 +31,7 @@ Platform::ContextAttributes ToPlatformContextAttributes(
      unsigned web_gl_version,
      bool support_own_offscreen_surface) {
    Platform::ContextAttributes result;
-+  result.prefer_integrated_gpu = attrs.powerPreference() == "low-power";
++  result.prefer_integrated_gpu = attrs.power_preference == "low-power";
    result.fail_if_major_performance_caveat =
-       attrs.failIfMajorPerformanceCaveat();
+       attrs.fail_if_major_performance_caveat;
    result.web_gl_version = web_gl_version;
 diff --git a/third_party/WebKit/Source/modules/webgl/WebGLContextAttributes.idl b/third_party/WebKit/Source/modules/webgl/WebGLContextAttributes.idl
-index 9a48073..5196a53 100644
+index 180673be9bd0..0af29cbc9402 100644
 --- a/third_party/WebKit/Source/modules/webgl/WebGLContextAttributes.idl
 +++ b/third_party/WebKit/Source/modules/webgl/WebGLContextAttributes.idl
 @@ -26,6 +26,12 @@
@@ -76,12 +89,13 @@ index 9a48073..5196a53 100644
  dictionary WebGLContextAttributes {
      boolean alpha = true;
      boolean depth = true;
-@@ -33,5 +39,6 @@ dictionary WebGLContextAttributes {
+@@ -33,6 +39,7 @@ dictionary WebGLContextAttributes {
      boolean antialias = true;
      boolean premultipliedAlpha = true;
      boolean preserveDrawingBuffer = false;
 +    WebGLPowerPreference powerPreference = "default";
      boolean failIfMajorPerformanceCaveat = false;
+     [RuntimeEnabled=WebXR] XRDevice compatibleXRDevice = null;
  };
 diff --git a/third_party/WebKit/public/platform/Platform.h b/third_party/WebKit/public/platform/Platform.h
 index 2cd7334..98ecb84 100644
