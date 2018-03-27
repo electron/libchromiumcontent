@@ -1,30 +1,30 @@
 diff --git a/gin/isolate_holder.cc b/gin/isolate_holder.cc
-index 6df4689e0ec5..689a9809561a 100644
+index 56402d477ca3..8ab11bd18783 100644
 --- a/gin/isolate_holder.cc
 +++ b/gin/isolate_holder.cc
-@@ -106,9 +106,10 @@ IsolateHolder::~IsolateHolder() {
- // static
+@@ -116,9 +116,10 @@ IsolateHolder::~IsolateHolder() {
  void IsolateHolder::Initialize(ScriptMode mode,
                                 V8ExtrasMode v8_extras_mode,
--                               v8::ArrayBuffer::Allocator* allocator) {
-+                               v8::ArrayBuffer::Allocator* allocator,
+                                v8::ArrayBuffer::Allocator* allocator,
+-                               const intptr_t* reference_table) {
++                               const intptr_t* reference_table,
 +                               bool create_v8_platform) {
    CHECK(allocator);
 -  V8Initializer::Initialize(mode, v8_extras_mode);
 +  V8Initializer::Initialize(mode, v8_extras_mode, create_v8_platform);
    g_array_buffer_allocator = allocator;
+   g_reference_table = reference_table;
  }
- 
 diff --git a/gin/public/isolate_holder.h b/gin/public/isolate_holder.h
-index fb7ffe0880f0..44851f21e94f 100644
+index 2509aca609f9..94003c6031cf 100644
 --- a/gin/public/isolate_holder.h
 +++ b/gin/public/isolate_holder.h
-@@ -79,7 +79,8 @@ class GIN_EXPORT IsolateHolder {
-   // V8Initializer::LoadV8Snapshot) before calling this method.
+@@ -84,7 +84,8 @@ class GIN_EXPORT IsolateHolder {
    static void Initialize(ScriptMode mode,
                           V8ExtrasMode v8_extras_mode,
--                         v8::ArrayBuffer::Allocator* allocator);
-+                         v8::ArrayBuffer::Allocator* allocator,
+                          v8::ArrayBuffer::Allocator* allocator,
+-                         const intptr_t* reference_table = nullptr);
++                         const intptr_t* reference_table = nullptr,
 +                         bool create_v8_platform = true);
  
    v8::Isolate* isolate() { return isolate_; }
