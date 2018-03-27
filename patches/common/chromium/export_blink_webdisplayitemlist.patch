@@ -1,5 +1,5 @@
 diff --git a/third_party/WebKit/public/platform/WebDisplayItemList.h b/third_party/WebKit/public/platform/WebDisplayItemList.h
-index 3f89349d6cdb..d278b8a18044 100644
+index 82af75c3727e..548eefc0fae5 100644
 --- a/third_party/WebKit/public/platform/WebDisplayItemList.h
 +++ b/third_party/WebKit/public/platform/WebDisplayItemList.h
 @@ -6,6 +6,7 @@
@@ -10,12 +10,12 @@ index 3f89349d6cdb..d278b8a18044 100644
  #include "WebFloatPoint.h"
  #include "WebFloatRect.h"
  #include "WebRect.h"
-@@ -32,7 +33,7 @@ namespace blink {
+@@ -33,7 +34,7 @@ namespace blink {
  // 'drawing' items) and operations to be performed when rendering this content
  // (stored in 'clip', 'transform', 'filter', etc...). For more details see:
  // http://dev.chromium.org/blink/slimming-paint.
 -class WebDisplayItemList {
 +class BLINK_EXPORT WebDisplayItemList {
   public:
-   virtual ~WebDisplayItemList() {}
+   virtual ~WebDisplayItemList() = default;
  
