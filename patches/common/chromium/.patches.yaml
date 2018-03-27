@@ -211,10 +211,6 @@ patches:
   description: See https://github.com/electron/electron/issues/10754
 -
   owners: alexeykuzmin
-  file: restore_adding_custom_cors_enabled_schemes.patch
-  description: null
--
-  owners: alexeykuzmin
   file: fix_blink_property_tree_state_to_tree_string_usage.patch
   description: Should probably be removed since we already have DCHECKs enabled.
 -
