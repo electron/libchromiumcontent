@@ -2,10 +2,6 @@ repo: src/third_party/webrtc
 patches:
 -
   owners: alexeykuzmin
-  file: backport_7f90e2cceda.patch
-  description: "https://webrtc-review.googlesource.com/9384"
--
-  owners: alexeykuzmin
   file: fix_laggy_mouse_during_desktop_capture.patch
   description: null
 -
