@@ -250,10 +250,6 @@ patches:
   file: disable-recursive-surface-sync.patch
   description: null
 -
-  owners: null
-  file: can_disable_desktop_capture_throttling.patch
-  description: null
--
   owners: deepak1556
   file: blink-worker-enable-csp-in-file-scheme.patch
   description: null
