@@ -1,13 +1,13 @@
 diff --git a/src/api.cc b/src/api.cc
-index d9ee0e8c8a..e1f4f329c1 100644
+index 8531cd5c05..47254c9f5c 100644
 --- a/src/api.cc
 +++ b/src/api.cc
-@@ -8788,7 +8788,7 @@ void Isolate::SetPromiseRejectCallback(PromiseRejectCallback callback) {
+@@ -8598,7 +8604,7 @@ void Isolate::SetPromiseRejectCallback(PromiseRejectCallback callback) {
  
  
  void Isolate::RunMicrotasks() {
--  DCHECK(MicrotasksPolicy::kScoped != GetMicrotasksPolicy());
-+//  DCHECK(MicrotasksPolicy::kScoped != GetMicrotasksPolicy());
+-  DCHECK_NE(MicrotasksPolicy::kScoped, GetMicrotasksPolicy());
++  // DCHECK_NE(MicrotasksPolicy::kScoped, GetMicrotasksPolicy());
    reinterpret_cast<i::Isolate*>(this)->RunMicrotasks();
  }
  
@@ -28,18 +28,3 @@ index 62a5856f34..c59dfad2c8 100644
    gc_prologue_callbacks_.emplace_back(callback, gc_type, data);
  }
  
-diff --git a/src/profiler/heap-snapshot-generator.cc b/src/profiler/heap-snapshot-generator.cc
-index 6110d9422f..8b4351731c 100644
---- a/src/profiler/heap-snapshot-generator.cc
-+++ b/src/profiler/heap-snapshot-generator.cc
-@@ -1302,8 +1302,8 @@ void V8HeapExplorer::ExtractMapReferences(int entry, Map* map) {
-                          constructor_or_backpointer,
-                          Map::kConstructorOrBackPointerOffset);
-   } else {
--    DCHECK(constructor_or_backpointer->IsJSFunction() ||
--           constructor_or_backpointer->IsNull(map->GetIsolate()));
-+//    DCHECK(constructor_or_backpointer->IsJSFunction() ||
-+//           constructor_or_backpointer->IsNull(map->GetIsolate()));
-     SetInternalReference(map, entry, "constructor", constructor_or_backpointer,
-                          Map::kConstructorOrBackPointerOffset);
-   }
