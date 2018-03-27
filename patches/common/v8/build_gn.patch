@@ -116,13 +116,13 @@ index 9a2bb3dff4..53be2017c7 100644
      configs += invoker.configs
      configs -= v8_remove_configs
 diff --git a/src/inspector/BUILD.gn b/src/inspector/BUILD.gn
-index e6742c0..ef3876d 100644
+index 699b1bcbd4..11fc31d851 100644
 --- a/src/inspector/BUILD.gn
 +++ b/src/inspector/BUILD.gn
-@@ -106,7 +106,7 @@ config("inspector_config") {
-       "/wd4996",  # Deprecated function call.
-     ]
-   }
+@@ -79,7 +79,7 @@ action("inspector_injected_script") {
+ 
+ config("inspector_config") {
+   visibility = [ ":*" ]  # Only targets in this file can depend on this.
 -  if (is_component_build) {
 +  if (is_component_build || is_electron_build) {
      defines = [ "BUILDING_V8_SHARED" ]
