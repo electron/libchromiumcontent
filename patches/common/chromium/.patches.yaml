@@ -247,3 +247,10 @@ patches:
     in electron (and other applications). This patch provides a way to disable
     the redraw locking mechanism, which fixes these issues. The electron issue
     can be found at https://github.com/electron/electron/issues/1821
+-
+  owners: MarshallOfSound
+  file: backport_35dabc0.patch
+  description: |
+      Backports "ServiceWorker: Fix a jumbo build error",
+      see https://chromium-review.googlesource.com/957568
+      Original change's landed in 67.0.3369.0.
