@@ -250,3 +250,7 @@ patches:
   owners: zcbenz
   file: fix-arm64-linking-error.patch
   description: Do not use system freetype for arm64
+-
+  owners: MarshallOfSound
+  file: fix-shadow-status-callback.patch
+  description: Avoid shadow declaration of callback
