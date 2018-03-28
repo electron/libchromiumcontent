@@ -153,7 +153,6 @@ with open(args.out, 'w') as out:
             "components/mus/input_devices",
             "components/mus/public",
             "components/network_session_configurator/browser",
-            "components/network_session_configurator/common",
             "components/os_crypt",
             "components/password_manager/core/common",
             "components/payments",
