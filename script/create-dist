@@ -89,7 +89,6 @@ BINARIES = {
 BINARIES_SHARED_LIBRARY = {
   'darwin': [
     os.path.join('obj', 'components', 'cdm', 'renderer', 'librenderer.a'),
-    os.path.join('obj', 'components', 'network_session_configurator', 'common', 'libcommon.a'),
     os.path.join('obj', 'net', 'libhttp_server.a'),
     os.path.join('obj', 'third_party', 'webrtc', 'rtc_base', 'librtc_base.a'),
     os.path.join('obj', 'third_party', 'webrtc', 'rtc_base', 'librtc_base_generic.a'),
@@ -107,12 +106,10 @@ BINARIES_SHARED_LIBRARY = {
     os.path.join('obj', 'third_party', 'pdfium', 'libfxcrt.a'),
     os.path.join('obj', 'third_party', 'pdfium', 'libfxge.a'),
     os.path.join('obj', 'third_party', 'pdfium', 'libfxjs.a'),
-    os.path.join('obj', 'third_party', 'pdfium', 'libjavascript.a'),
     os.path.join('obj', 'third_party', 'pdfium', 'libpwl.a'),
   ],
   'linux': [
     os.path.join('obj', 'components', 'cdm', 'renderer', 'librenderer.a'),
-    os.path.join('obj', 'components', 'network_session_configurator', 'common', 'libcommon.a'),
     os.path.join('obj', 'net', 'libhttp_server.a'),
     os.path.join('obj', 'third_party', 'webrtc', 'rtc_base', 'librtc_base.a'),
     os.path.join('obj', 'third_party', 'webrtc', 'rtc_base', 'librtc_base_generic.a'),
@@ -130,7 +127,6 @@ BINARIES_SHARED_LIBRARY = {
     os.path.join('obj', 'third_party', 'pdfium', 'libfxcrt.a'),
     os.path.join('obj', 'third_party', 'pdfium', 'libfxge.a'),
     os.path.join('obj', 'third_party', 'pdfium', 'libfxjs.a'),
-    os.path.join('obj', 'third_party', 'pdfium', 'libjavascript.a'),
     os.path.join('obj', 'third_party', 'pdfium', 'libpwl.a'),
   ],
   'win32': [
@@ -140,8 +136,6 @@ BINARIES_SHARED_LIBRARY = {
     os.path.join('obj', 'base', 'win', 'pe_image.lib'),
     os.path.join('obj', 'components', 'cdm', 'renderer', 'renderer_cc.pdb'),
     os.path.join('obj', 'components', 'cdm', 'renderer', 'renderer.lib'),
-    os.path.join('obj', 'components', 'network_session_configurator', 'common', 'common_cc.pdb'),
-    os.path.join('obj', 'components', 'network_session_configurator', 'common', 'common.lib'),
     os.path.join('obj', 'net', 'http_server_cc.pdb'),
     os.path.join('obj', 'net', 'http_server.lib'),
     os.path.join('obj', 'pdf', 'pdf_cc.pdb'),
@@ -171,8 +165,6 @@ BINARIES_SHARED_LIBRARY = {
     os.path.join('obj', 'third_party', 'pdfium', 'fxge.lib'),
     os.path.join('obj', 'third_party', 'pdfium', 'fxjs_cc.pdb'),
     os.path.join('obj', 'third_party', 'pdfium', 'fxjs.lib'),
-    os.path.join('obj', 'third_party', 'pdfium', 'javascript_cc.pdb'),
-    os.path.join('obj', 'third_party', 'pdfium', 'javascript.lib'),
     os.path.join('obj', 'third_party', 'pdfium', 'pwl_cc.pdb'),
     os.path.join('obj', 'third_party', 'pdfium', 'pwl.lib'),
     os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'bigint_cc.pdb'),
