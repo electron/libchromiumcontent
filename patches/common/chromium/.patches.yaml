@@ -253,3 +253,10 @@ patches:
   description:  |
     Backports part of 4dabe8070550cb4014d1f996aa1a7e130bef42e1 so that we don't
     need the native_client source tree.
+-
+  owners: MarshallOfSound
+  file: backport_35dabc0.patch
+  description: |
+      Backports "ServiceWorker: Fix a jumbo build error",
+      see https://chromium-review.googlesource.com/957568
+      Original change's landed in 67.0.3369.0.
