@@ -1,4 +1,3 @@
-Disable GPU config test as it fails on High Sierra
 diff --git a/gpu/config/gpu_test_config_unittest.cc b/gpu/config/gpu_test_config_unittest.cc
 index e42a805b2d8c..41909e5dc1d6 100644
 --- a/gpu/config/gpu_test_config_unittest.cc

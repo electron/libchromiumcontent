@@ -335,3 +335,5 @@ patches:
   owners: nitsakh
   file: disable_unittests.patch
   description: Disabling unit tests
+    GPUTestConfigTest.LoadCurrentConfig test is disabled as it fails
+    on high sierra. It should be updated with newer chromium.
