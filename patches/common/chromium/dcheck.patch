@@ -237,3 +237,54 @@ index 674b0e9a909c..a1bff6e40f56 100644
     if (base_computed_style_ && computed_style)
       DCHECK(*base_computed_style_ == *computed_style);
   #endif
+
+Disabling unit tests failing because of the dcheck failure
+diff --git a/base/memory/weak_ptr_unittest.cc b/base/memory/weak_ptr_unittest.cc
+index d223bd2bf6d8..eda41c9d9e7f 100644
+--- a/base/memory/weak_ptr_unittest.cc
++++ b/base/memory/weak_ptr_unittest.cc
+@@ -566,7 +566,7 @@ TEST(WeakPtrTest, NonOwnerThreadCanDeleteWeakPtr) {
+   background.DeleteArrow(arrow);
+ }
+ 
+-TEST(WeakPtrDeathTest, WeakPtrCopyDoesNotChangeThreadBinding) {
++TEST(WeakPtrDeathTest, DISABLED_WeakPtrCopyDoesNotChangeThreadBinding) {
+   // The default style "fast" does not support multi-threaded tests
+   // (introduces deadlock on Linux).
+   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+@@ -594,7 +594,7 @@ TEST(WeakPtrDeathTest, WeakPtrCopyDoesNotChangeThreadBinding) {
+   background.DeleteArrow(arrow_copy);
+ }
+ 
+-TEST(WeakPtrDeathTest, NonOwnerThreadDereferencesWeakPtrAfterReference) {
++TEST(WeakPtrDeathTest, DISABLED_NonOwnerThreadDereferencesWeakPtrAfterReference) {
+   // The default style "fast" does not support multi-threaded tests
+   // (introduces deadlock on Linux).
+   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+@@ -614,7 +614,7 @@ TEST(WeakPtrDeathTest, NonOwnerThreadDereferencesWeakPtrAfterReference) {
+   ASSERT_DCHECK_DEATH(background.DeRef(&arrow));
+ }
+ 
+-TEST(WeakPtrDeathTest, NonOwnerThreadDeletesWeakPtrAfterReference) {
++TEST(WeakPtrDeathTest, DISABLED_NonOwnerThreadDeletesWeakPtrAfterReference) {
+   // The default style "fast" does not support multi-threaded tests
+   // (introduces deadlock on Linux).
+   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+@@ -638,7 +638,7 @@ TEST(WeakPtrDeathTest, NonOwnerThreadDeletesWeakPtrAfterReference) {
+   background.DeleteTarget(target.release());
+ }
+ 
+-TEST(WeakPtrDeathTest, NonOwnerThreadDeletesObjectAfterReference) {
++TEST(WeakPtrDeathTest, DISABLED_NonOwnerThreadDeletesObjectAfterReference) {
+   // The default style "fast" does not support multi-threaded tests
+   // (introduces deadlock on Linux).
+   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+@@ -657,7 +657,7 @@ TEST(WeakPtrDeathTest, NonOwnerThreadDeletesObjectAfterReference) {
+   ASSERT_DCHECK_DEATH(background.DeleteTarget(target.release()));
+ }
+ 
+-TEST(WeakPtrDeathTest, NonOwnerThreadReferencesObjectAfterDeletion) {
++TEST(WeakPtrDeathTest, DISABLED_NonOwnerThreadReferencesObjectAfterDeletion) {
+   // The default style "fast" does not support multi-threaded tests
+   // (introduces deadlock on Linux).
+   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
