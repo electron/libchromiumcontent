@@ -228,10 +228,6 @@ patches:
   description: See https://github.com/electron/electron/issues/10754
 -
   owners: alexeykuzmin
-  file: fix_blink_property_tree_state_to_tree_string_usage.patch
-  description: Should probably be removed since we already have DCHECKs enabled.
--
-  owners: alexeykuzmin
   file: add_atomic_lib_to_dependencies_even_for_sysroot_builds.patch
   description: null
 -
