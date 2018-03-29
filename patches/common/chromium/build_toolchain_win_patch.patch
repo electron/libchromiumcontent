@@ -10,7 +10,7 @@ index 53f767a0bddb..661466b779e8 100644
 +      if (is_electron_build && !is_component_build) {
 +        pdbdir = "{{target_out_dir}}"
 +        pdbname = "{{label_name}}_c.pdb"
-+        command = "$env_wrapper$cl /nologo /showIncludes ${clflags} $sys_include_flags{{defines}} {{include_dirs}} {{cflags}} {{cflags_c}} /c {{source}} $pdbdir \"$pdbname\""
++        command = "$python_path $tool_wrapper_path cl-wrapper $env_wrapper$cl /nologo /showIncludes ${clflags} $sys_include_flags{{defines}} {{include_dirs}} {{cflags}} {{cflags_c}} /c {{source}} /Fo{{output}} $pdbdir \"$pdbname\""
 +      }
      }
  
@@ -23,7 +23,7 @@ index 53f767a0bddb..661466b779e8 100644
 +      if (is_electron_build && !is_component_build) {
 +        pdbdir = "{{target_out_dir}}"
 +        pdbname = "{{label_name}}_cc.pdb"
-+        command = "$env_wrapper$cl /nologo /showIncludes ${clflags} $sys_include_flags{{defines}} {{include_dirs}} {{cflags}} {{cflags_cc}} /c {{source}} /Fo{{output}} $pdbdir \"$pdbname\""
++        command = "$python_path $tool_wrapper_path cl-wrapper $env_wrapper$cl /nologo /showIncludes ${clflags} $sys_include_flags{{defines}} {{include_dirs}} {{cflags}} {{cflags_cc}} /c {{source}} /Fo{{output}} $pdbdir \"$pdbname\""
 +      }
      }
  
