@@ -1,14 +1,9 @@
 repo: src/third_party/webrtc
 patches:
-# TODO(alexeykuzmin): Fix the patch.
-# ../../third_party/webrtc/modules/desktop_capture/screen_capturer_mac.mm:53:54:
-# error: mutex 'rw_lock_' is still held at the end of function [-Werror,-Wthread-safety-analysis]
-#    void ReaderLock() { rw_lock_->AcquireLockShared(); }
-#                                                       ^
-#-
-#  owners: null
-#  file: webrtc-desktop_capturer_mac.patch
-#  description: null
+-
+  owners: null
+  file: webrtc-desktop_capturer_mac.patch
+  description: null
 -
   owners: null
   file: webrtc-rwlock_null.patch
