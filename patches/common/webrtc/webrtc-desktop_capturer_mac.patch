@@ -1,5 +1,5 @@
 diff --git a/modules/desktop_capture/screen_capturer_mac.mm b/modules/desktop_capture/screen_capturer_mac.mm
-index 6f2690f28..091d76d6e 100644
+index 6f2690f28..7d297f56e 100644
 --- a/modules/desktop_capture/screen_capturer_mac.mm
 +++ b/modules/desktop_capture/screen_capturer_mac.mm
 @@ -36,6 +36,7 @@
@@ -10,7 +10,7 @@ index 6f2690f28..091d76d6e 100644
  
  namespace webrtc {
  
-@@ -70,20 +71,33 @@
+@@ -48,20 +49,32 @@ namespace {
  // destroy itself once it's done.
  class DisplayStreamManager {
   public:
@@ -22,8 +22,7 @@ index 6f2690f28..091d76d6e 100644
 -    CFRelease(it->second.stream);
 -    display_stream_wrappers_.erase(it);
 +  DisplayStreamManager() : rw_lock_(RWLockWrapper::CreateRWLock()) {}
-+  void ReaderLock() { rw_lock_->AcquireLockShared(); }
-+  void ReaderUnlock() { rw_lock_->ReleaseLockShared(); }
++  RWLockWrapper* GetLock() {return rw_lock_.get();};
  
 -    if (ready_for_self_destruction_ && display_stream_wrappers_.empty())
 +  int GetUniqueId() {
@@ -52,7 +51,7 @@ index 6f2690f28..091d76d6e 100644
      RTC_CHECK(unique_id <= unique_id_generator_);
      DisplayStreamWrapper wrapper;
      wrapper.stream = stream;
-@@ -91,6 +105,7 @@ void SaveStream(int unique_id,
+@@ -69,6 +82,7 @@ class DisplayStreamManager {
    }
  
    void UnregisterActiveStreams() {
@@ -60,7 +59,7 @@ index 6f2690f28..091d76d6e 100644
      for (auto& pair : display_stream_wrappers_) {
        DisplayStreamWrapper& wrapper = pair.second;
        if (wrapper.active) {
-@@ -105,15 +120,23 @@ void UnregisterActiveStreams() {
+@@ -83,15 +97,23 @@ class DisplayStreamManager {
    }
  
    void PrepareForSelfDestruction() {
@@ -81,22 +80,22 @@ index 6f2690f28..091d76d6e 100644
    // Once the DisplayStreamManager is ready for destruction, the
    // ScreenCapturerMac is no longer present. Any updates should be ignored.
 -  bool ShouldIgnoreUpdates() { return ready_for_self_destruction_; }
-+  // Note: not thread-safe! Call ReaderLock() and ReaderUnlock() manually.
++  // Note: not thread-safe! Acquire and release a lock manually.
 +  bool ShouldIgnoreUpdates() {
 +     return ready_for_self_destruction_;
 +  }
  
   private:
    struct DisplayStreamWrapper {
-@@ -128,6 +151,7 @@ class DisplayStreamManager {
+@@ -106,6 +128,7 @@ class DisplayStreamManager {
    std::map<int, DisplayStreamWrapper> display_stream_wrappers_;
    int unique_id_generator_ = 0;
    bool ready_for_self_destruction_ = false;
 +  std::unique_ptr<RWLockWrapper> rw_lock_;
  };
-
+ 
  // Standard Mac displays have 72dpi, but we report 96dpi for
-@@ -950,9 +974,6 @@ void ScreenRefresh(CGRectCount count,
+@@ -659,9 +682,6 @@ bool ScreenCapturerMac::RegisterRefreshAndMoveHandlers() {
              return;
            }
  
@@ -106,17 +105,17 @@ index 6f2690f28..091d76d6e 100644
            // Only pay attention to frame updates.
            if (status != kCGDisplayStreamFrameStatusFrameComplete)
              return;
-@@ -963,7 +984,12 @@ void ScreenRefresh(CGRectCount count,
+@@ -672,7 +692,12 @@ bool ScreenCapturerMac::RegisterRefreshAndMoveHandlers() {
            if (count != 0) {
              // According to CGDisplayStream.h, it's safe to call
              // CGDisplayStreamStop() from within the callback.
 -            ScreenRefresh(count, rects, display_origin);
-+            manager->ReaderLock();
++            manager->GetLock()->AcquireLockShared();
 +            bool screen_capturer_mac_invalidated = manager->ShouldIgnoreUpdates();
 +            if (!screen_capturer_mac_invalidated) {
 +              ScreenRefresh(count, rects, display_origin);
 +            }
-+            manager->ReaderUnlock();
++            manager->GetLock()->ReleaseLockShared();
            }
          };
  
