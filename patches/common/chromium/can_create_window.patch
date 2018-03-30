@@ -6,22 +6,22 @@ index 1f566ef1f437..18f1f546cd16 100644
                 "frame_tree_node", frame_tree_node_->frame_tree_node_id(), "url",
                 params->target_url.possibly_invalid_spec());
  
-+  scoped_refptr<ResourceRequestBody> body;
++  scoped_refptr<network::ResourceRequestBody> body;
 +  if (params->body->has_object) {
 +    body = new ResourceRequestBody;
-+    std::vector<storage::DataElement> elements;
++    std::vector<network::DataElement> elements;
 +    for (const auto& iter : params->body->elements) {
-+      storage::DataElement element;
++      network::DataElement element;
 +      switch (iter->type) {
-+        case storage::DataElement::TYPE_BYTES: {
++        case network::DataElement::TYPE_BYTES: {
 +          element.SetToBytes(iter->bytes.data(), iter->bytes.length());
 +          break;
 +        }
-+        case storage::DataElement::TYPE_BYTES_DESCRIPTION: {
++        case network::DataElement::TYPE_BYTES_DESCRIPTION: {
 +          element.SetToBytesDescription(iter->length);
 +          break;
 +        }
-+        case storage::DataElement::TYPE_FILE: {
++        case network::DataElement::TYPE_FILE: {
 +          element.SetToFilePathRange(iter->path, iter->offset, iter->length,
 +                                      iter->expected_modification_time);
 +          break;
@@ -32,7 +32,7 @@ index 1f566ef1f437..18f1f546cd16 100644
 +                                           iter->expected_modification_time);
 +          break;
 +        }
-+        case storage::DataElement::TYPE_BLOB: {
++        case network::DataElement::TYPE_BLOB: {
 +          element.SetToBlobRange(iter->blob_uuid, iter->offset, iter->length);
 +          break;
 +        }
@@ -142,7 +142,7 @@ index 5373ee07b5cd..90f4a8472e2b 100644
        WindowOpenDisposition disposition,
        const blink::mojom::WindowFeatures& features,
 +      const std::vector<std::string>& additional_features,
-+      const scoped_refptr<ResourceRequestBody>& body,
++      const scoped_refptr<network::ResourceRequestBody>& body,
        bool user_gesture,
        bool opener_suppressed,
        bool* no_javascript_access);
@@ -173,42 +173,31 @@ index a9b91cdcc86d..b5f483924179 100644
 +      content::mojom::DataElementPtr ptr = content::mojom::DataElement::New();
 +      ptr->type = element.type();
 +      switch (element.type()) {
-+        case storage::DataElement::TYPE_BYTES: {
++        case network::DataElement::TYPE_BYTES: {
 +          ptr->bytes = std::string(element.bytes(), element.length());
 +          break;
 +        }
-+        case storage::DataElement::TYPE_BYTES_DESCRIPTION: {
-+          ptr->length = element.length();
-+          break;
-+        }
-+        case storage::DataElement::TYPE_FILE: {
++        case network::DataElement::TYPE_FILE: {
 +          ptr->path = element.path();
 +          ptr->offset = element.offset();
 +          ptr->length = element.length();
 +          ptr->expected_modification_time = element.expected_modification_time();
 +          break;
 +        }
-+        case storage::DataElement::TYPE_FILE_FILESYSTEM: {
-+          ptr->filesystem_url = element.filesystem_url();
-+          ptr->offset = element.offset();
-+          ptr->length = element.length();
-+          ptr->expected_modification_time = element.expected_modification_time();
-+          break;
-+        }
-+        case storage::DataElement::TYPE_BLOB: {
++        case network::DataElement::TYPE_BLOB: {
 +          ptr->blob_uuid = element.blob_uuid();
 +          ptr->offset = element.offset();
 +          ptr->length = element.length();
 +          break;
 +        }
-+        case storage::DataElement::TYPE_DISK_CACHE_ENTRY: {
++        case network::DataElement::TYPE_DISK_CACHE_ENTRY: {
 +          NOTREACHED() << "Can't be sent by IPC.";
 +          break;
 +        }
-+        case storage::DataElement::TYPE_UNKNOWN: {
++        case network::DataElement::TYPE_DATA_PIPE:
++        case network::DataElement::TYPE_UNKNOWN:
 +          NOTREACHED();
 +          break;
-+        }
 +      }
 +      params->body->elements.push_back(std::move(ptr));
 +    }
