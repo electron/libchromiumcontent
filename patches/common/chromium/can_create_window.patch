@@ -148,7 +148,7 @@ index a9b91cdcc86d..b5f483924179 100644
  #include "content/renderer/media/audio_device_factory.h"
  #include "content/renderer/media/stream/media_stream_device_observer.h"
  #include "content/renderer/media/video_capture_impl_manager.h"
-@@ -1284,6 +1285,44 @@ WebView* RenderViewImpl::CreateView(WebLocalFrame* creator,
+@@ -1284,6 +1285,51 @@ WebView* RenderViewImpl::CreateView(WebLocalFrame* creator,
      params->referrer = GetReferrerFromRequest(creator, request);
    }
    params->features = ConvertWebWindowFeaturesToMojoWindowFeatures(features);
@@ -168,6 +168,13 @@ index a9b91cdcc86d..b5f483924179 100644
 +          break;
 +        }
 +        case network::DataElement::TYPE_FILE: {
++          ptr->path = element.path();
++          ptr->offset = element.offset();
++          ptr->length = element.length();
++          ptr->expected_modification_time = element.expected_modification_time();
++          break;
++        }
++        case network::DataElement::TYPE_RAW_FILE: {
 +          ptr->path = element.path();
 +          ptr->offset = element.offset();
 +          ptr->length = element.length();
