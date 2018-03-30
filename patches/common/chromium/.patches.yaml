@@ -99,11 +99,10 @@ patches:
     `static_library` build configuration to ensure PDB names are unique.
     For example, instead of generating `obj/ui/base/base_cc.pdb` the
     build will now generate `obj/ui/base/obj_ui_base_base_cc.pdb`.
-# TODO(alexeykuzmin): Fix the patch.
-#-
-#  owners: zcbenz
-#  file: can_create_window.patch
-#  description: null
+-
+ owners: zcbenz
+ file: can_create_window.patch
+ description: null
 # TODO(alexeykuzmin): Fix the patch.
 #-
 #  owners: null
