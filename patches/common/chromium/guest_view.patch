@@ -2,7 +2,7 @@ diff --git a/content/browser/renderer_host/render_widget_host_view_child_frame.c
 index 47f0f1a361ce..ca5c3a9285f9 100644
 --- a/content/browser/renderer_host/render_widget_host_view_child_frame.cc
 +++ b/content/browser/renderer_host/render_widget_host_view_child_frame.cc
-@@ -32,12 +32,14 @@
+@@ -33,12 +33,14 @@
  #include "content/browser/renderer_host/render_widget_host_impl.h"
  #include "content/browser/renderer_host/render_widget_host_input_event_router.h"
  #include "content/browser/renderer_host/render_widget_host_view_event_handler.h"
@@ -16,11 +16,11 @@ index 47f0f1a361ce..ca5c3a9285f9 100644
 +#include "media/base/video_frame.h"
  #include "services/service_manager/runner/common/client_util.h"
  #include "third_party/WebKit/public/platform/WebTouchEvent.h"
- #include "ui/gfx/geometry/size_conversions.h"
-@@ -857,6 +859,30 @@ void RenderWidgetHostViewChildFrame::OnBeginFramePausedChanged(bool paused) {
-     renderer_compositor_frame_sink_->OnBeginFramePausedChanged(paused);
+ #include "ui/base/ui_base_features.h"
+@@ -903,6 +903,30 @@ void RenderWidgetHostViewChildFrame::OnBeginFramePausedChanged(bool paused) {
+    renderer_compositor_frame_sink_->OnBeginFramePausedChanged(paused);
  }
-
+ 
 +void RenderWidgetHostViewChildFrame::WillDrawSurface(
 +    const viz::LocalSurfaceId& local_surface_id,
 +    const gfx::Rect& damage_rect) {
@@ -47,8 +47,8 @@ index 47f0f1a361ce..ca5c3a9285f9 100644
 +
  void RenderWidgetHostViewChildFrame::OnFirstSurfaceActivation(
      const viz::SurfaceInfo& surface_info) {
-   viz::SurfaceSequence sequence(frame_sink_id_, next_surface_sequence_++);
-@@ -952,6 +978,8 @@ void RenderWidgetHostViewChildFrame::CreateCompositorFrameSinkSupport() {
+   SendSurfaceInfoToEmbedderImpl(surface_info);
+@@ -1037,6 +1037,8 @@ void RenderWidgetHostViewChildFrame::CreateCompositorFrameSinkSupport() {
    constexpr bool needs_sync_points = true;
    support_ = GetHostFrameSinkManager()->CreateCompositorFrameSinkSupport(
        this, frame_sink_id_, is_root, needs_sync_points);
@@ -61,7 +61,7 @@ diff --git a/content/browser/renderer_host/render_widget_host_view_child_frame.h
 index b0617bb1fdb1..9774b4cd4291 100644
 --- a/content/browser/renderer_host/render_widget_host_view_child_frame.h
 +++ b/content/browser/renderer_host/render_widget_host_view_child_frame.h
-@@ -181,6 +181,11 @@ class CONTENT_EXPORT RenderWidgetHostViewChildFrame
+@@ -200,6 +200,11 @@ class CONTENT_EXPORT RenderWidgetHostViewChildFrame
    void ReclaimResources(
        const std::vector<viz::ReturnedResource>& resources) override;
    void OnBeginFramePausedChanged(bool paused) override;
@@ -70,15 +70,15 @@ index b0617bb1fdb1..9774b4cd4291 100644
 +  void BeginFrameSubscription(
 +      std::unique_ptr<RenderWidgetHostViewFrameSubscriber> subscriber) override;
 +  void EndFrameSubscription() override;
-
+ 
    // viz::HostFrameSinkClient implementation.
    void OnFirstSurfaceActivation(const viz::SurfaceInfo& surface_info) override;
-@@ -301,6 +306,8 @@ class CONTENT_EXPORT RenderWidgetHostViewChildFrame
+@@ -310,6 +310,8 @@ class CONTENT_EXPORT RenderWidgetHostViewChildFrame
    // The surface client ID of the parent RenderWidgetHostView.  0 if none.
    viz::FrameSinkId parent_frame_sink_id_;
-
+ 
 +  std::unique_ptr<RenderWidgetHostViewFrameSubscriber> frame_subscriber_;
 +
+   const bool enable_viz_;
    bool has_frame_ = false;
    viz::mojom::CompositorFrameSinkClient* renderer_compositor_frame_sink_ =
-       nullptr;
