@@ -2,13 +2,13 @@ diff --git a/content/browser/frame_host/render_frame_host_impl.cc b/content/brow
 index 1f566ef1f437..18f1f546cd16 100644
 --- a/content/browser/frame_host/render_frame_host_impl.cc
 +++ b/content/browser/frame_host/render_frame_host_impl.cc
-@@ -2872,6 +2875,48 @@ void RenderFrameHostImpl::CreateNewWindow(
+@@ -2872,6 +2875,38 @@ void RenderFrameHostImpl::CreateNewWindow(
                 "frame_tree_node", frame_tree_node_->frame_tree_node_id(), "url",
                 params->target_url.possibly_invalid_spec());
  
 +  scoped_refptr<network::ResourceRequestBody> body;
 +  if (params->body->has_object) {
-+    body = new ResourceRequestBody;
++    body = new network::ResourceRequestBody;
 +    std::vector<network::DataElement> elements;
 +    for (const auto& iter : params->body->elements) {
 +      network::DataElement element;
@@ -17,29 +17,19 @@ index 1f566ef1f437..18f1f546cd16 100644
 +          element.SetToBytes(iter->bytes.data(), iter->bytes.length());
 +          break;
 +        }
-+        case network::DataElement::TYPE_BYTES_DESCRIPTION: {
-+          element.SetToBytesDescription(iter->length);
-+          break;
-+        }
 +        case network::DataElement::TYPE_FILE: {
 +          element.SetToFilePathRange(iter->path, iter->offset, iter->length,
 +                                      iter->expected_modification_time);
-+          break;
-+        }
-+        case storage::DataElement::TYPE_FILE_FILESYSTEM: {
-+          element.SetToFileSystemUrlRange(iter->filesystem_url,
-+                                           iter->offset, iter->length,
-+                                           iter->expected_modification_time);
 +          break;
 +        }
 +        case network::DataElement::TYPE_BLOB: {
 +          element.SetToBlobRange(iter->blob_uuid, iter->offset, iter->length);
 +          break;
 +        }
-+        default: {
++        case network::DataElement::TYPE_DATA_PIPE:
++        default:
 +          NOTREACHED();
 +          break;
-+        }
 +      }
 +      elements.push_back(std::move(element));
 +    }
@@ -121,7 +111,7 @@ index 37e2d88e28e9..3e7cc0aa72eb 100644
      WindowOpenDisposition disposition,
      const blink::mojom::WindowFeatures& features,
 +    const std::vector<std::string>& additional_features,
-+    const scoped_refptr<ResourceRequestBody>& body,
++    const scoped_refptr<network::ResourceRequestBody>& body,
      bool user_gesture,
      bool opener_suppressed,
      bool* no_javascript_access) {
@@ -158,7 +148,7 @@ index a9b91cdcc86d..b5f483924179 100644
  #include "content/renderer/media/audio_device_factory.h"
  #include "content/renderer/media/stream/media_stream_device_observer.h"
  #include "content/renderer/media/video_capture_impl_manager.h"
-@@ -1284,6 +1285,59 @@ WebView* RenderViewImpl::CreateView(WebLocalFrame* creator,
+@@ -1284,6 +1285,44 @@ WebView* RenderViewImpl::CreateView(WebLocalFrame* creator,
      params->referrer = GetReferrerFromRequest(creator, request);
    }
    params->features = ConvertWebWindowFeaturesToMojoWindowFeatures(features);
@@ -188,10 +178,6 @@ index a9b91cdcc86d..b5f483924179 100644
 +          ptr->blob_uuid = element.blob_uuid();
 +          ptr->offset = element.offset();
 +          ptr->length = element.length();
-+          break;
-+        }
-+        case network::DataElement::TYPE_DISK_CACHE_ENTRY: {
-+          NOTREACHED() << "Can't be sent by IPC.";
 +          break;
 +        }
 +        case network::DataElement::TYPE_DATA_PIPE:
