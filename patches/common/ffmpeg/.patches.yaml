@@ -7,3 +7,9 @@ patches:
     Chromium's Mac toolchain sets the "install_name" linker parameter only
     when "is_component_build" is true, but we want to set even if it's false,
     because we are making a dylib which will be distributed inside a bundle.
+-
+  owners: alexeykuzmin
+  file: fix_build_on_linux_x86.patch
+  description: |
+    Builds on Linux x86 fail with a clang error. See https://crbug.com/796379.
+    Once it's fixed the patch can be removed.
