@@ -121,7 +121,7 @@ index 37e2d88e28e9..3e7cc0aa72eb 100644
      WindowOpenDisposition disposition,
      const blink::mojom::WindowFeatures& features,
 +    const std::vector<std::string>& additional_features,
-+    const scoped_refptr<ResourceRequestBody>& body
++    const scoped_refptr<ResourceRequestBody>& body,
      bool user_gesture,
      bool opener_suppressed,
      bool* no_javascript_access) {
