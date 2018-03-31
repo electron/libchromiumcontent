@@ -165,8 +165,6 @@ BINARIES_SHARED_LIBRARY = {
     os.path.join('obj', 'third_party', 'pdfium', 'fxge.lib'),
     os.path.join('obj', 'third_party', 'pdfium', 'fxjs_cc.pdb'),
     os.path.join('obj', 'third_party', 'pdfium', 'fxjs.lib'),
-    os.path.join('obj', 'third_party', 'pdfium', 'javascript_cc.pdb'),
-    os.path.join('obj', 'third_party', 'pdfium', 'javascript.lib'),
     os.path.join('obj', 'third_party', 'pdfium', 'pwl_cc.pdb'),
     os.path.join('obj', 'third_party', 'pdfium', 'pwl.lib'),
     os.path.join('obj', 'third_party', 'pdfium', 'third_party', 'bigint_cc.pdb'),
