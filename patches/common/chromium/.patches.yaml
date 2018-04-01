@@ -125,11 +125,6 @@ patches:
   owners: zcbenz
   file: frame_host_manager.patch
   description: null
-# TODO(alexeykuzmin): Fix the patch.
-#-
-#  owners: null
-#  file: guest_view.patch
-#  description: null
 -
   owners: tonyganch
   file: latency_info.patch
