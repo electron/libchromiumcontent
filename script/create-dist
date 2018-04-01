@@ -130,7 +130,6 @@ BINARIES_SHARED_LIBRARY = {
     os.path.join('obj', 'third_party', 'pdfium', 'libpwl.a'),
   ],
   'win32': [
-    os.path.join('obj', 'base', 'base_static_cc.pdb'),
     os.path.join('obj', 'base', 'base_static.lib'),
     os.path.join('obj', 'base', 'win', 'pe_image_cc.pdb'),
     os.path.join('obj', 'base', 'win', 'pe_image.lib'),
