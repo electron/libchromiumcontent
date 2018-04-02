@@ -104,11 +104,10 @@ patches:
 #  owners: zcbenz
 #  file: can_create_window.patch
 #  description: null
-# TODO(alexeykuzmin): Fix the patch.
-#-
-#  owners: null
-#  file: compositor_delegate.patch
-#  description: null
+-
+  owners: null
+  file: compositor_delegate.patch
+  description: null
 -
   owners: null
   file: desktop_screen_win.patch
