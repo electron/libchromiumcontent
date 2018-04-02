@@ -1,45 +1,35 @@
 diff --git a/content/browser/frame_host/render_frame_host_impl.cc b/content/browser/frame_host/render_frame_host_impl.cc
-index 1bf37e107a90..82ab04e1019d 100644
+index 1f566ef1f437..18f1f546cd16 100644
 --- a/content/browser/frame_host/render_frame_host_impl.cc
 +++ b/content/browser/frame_host/render_frame_host_impl.cc
-@@ -2716,6 +2719,48 @@ void RenderFrameHostImpl::CreateNewWindow(
+@@ -2872,6 +2875,38 @@ void RenderFrameHostImpl::CreateNewWindow(
                 "frame_tree_node", frame_tree_node_->frame_tree_node_id(), "url",
                 params->target_url.possibly_invalid_spec());
  
-+  scoped_refptr<ResourceRequestBody> body;
++  scoped_refptr<network::ResourceRequestBody> body;
 +  if (params->body->has_object) {
-+    body = new ResourceRequestBody;
-+    std::vector<storage::DataElement> elements;
++    body = new network::ResourceRequestBody;
++    std::vector<network::DataElement> elements;
 +    for (const auto& iter : params->body->elements) {
-+      storage::DataElement element;
++      network::DataElement element;
 +      switch (iter->type) {
-+        case storage::DataElement::TYPE_BYTES: {
++        case network::DataElement::TYPE_BYTES: {
 +          element.SetToBytes(iter->bytes.data(), iter->bytes.length());
 +          break;
 +        }
-+        case storage::DataElement::TYPE_BYTES_DESCRIPTION: {
-+          element.SetToBytesDescription(iter->length);
-+          break;
-+        }
-+        case storage::DataElement::TYPE_FILE: {
++        case network::DataElement::TYPE_FILE: {
 +          element.SetToFilePathRange(iter->path, iter->offset, iter->length,
-+                                     iter->expected_modification_time);
++                                      iter->expected_modification_time);
 +          break;
 +        }
-+        case storage::DataElement::TYPE_FILE_FILESYSTEM: {
-+          element.SetToFileSystemUrlRange(iter->filesystem_url,
-+                                          iter->offset, iter->length,
-+                                          iter->expected_modification_time);
-+          break;
-+        }
-+        case storage::DataElement::TYPE_BLOB: {
++        case network::DataElement::TYPE_BLOB: {
 +          element.SetToBlobRange(iter->blob_uuid, iter->offset, iter->length);
 +          break;
 +        }
-+        default: {
++        case network::DataElement::TYPE_DATA_PIPE:
++        default:
 +          NOTREACHED();
 +          break;
-+        }
 +      }
 +      elements.push_back(std::move(element));
 +    }
@@ -51,7 +41,7 @@ index 1bf37e107a90..82ab04e1019d 100644
    bool no_javascript_access = false;
  
    // Filter out URLs that this process cannot request.
-@@ -2729,8 +2774,9 @@ void RenderFrameHostImpl::CreateNewWindow(
+@@ -2885,8 +2930,9 @@ void RenderFrameHostImpl::CreateNewWindow(
            frame_tree_node_->frame_tree()->GetMainFrame()->GetLastCommittedURL(),
            last_committed_origin_.GetURL(), params->window_container_type,
            params->target_url, params->referrer, params->frame_name,
@@ -60,11 +50,11 @@ index 1bf37e107a90..82ab04e1019d 100644
 +          params->disposition, *params->features, params->additional_features,
 +          body, params->user_gesture, params->opener_suppressed,
 +          &no_javascript_access);
-
+ 
    if (!can_create_window) {
      std::move(callback).Run(mojom::CreateNewWindowStatus::kIgnore, nullptr);
 diff --git a/content/common/frame.mojom b/content/common/frame.mojom
-index e5fbf20747e0..f0d8af2f119b 100644
+index e5fbf20747e0..02dcc3657d91 100644
 --- a/content/common/frame.mojom
 +++ b/content/common/frame.mojom
 @@ -9,6 +9,8 @@ import "content/common/service_worker/controller_service_worker.mojom";
@@ -113,20 +103,20 @@ index e5fbf20747e0..f0d8af2f119b 100644
  
  // Operation result when the renderer asks the browser to create a new window.
 diff --git a/content/public/browser/content_browser_client.cc b/content/public/browser/content_browser_client.cc
-index 5c2ab72ff537..3e7c25009c6a 100644
+index 37e2d88e28e9..3e7cc0aa72eb 100644
 --- a/content/public/browser/content_browser_client.cc
 +++ b/content/public/browser/content_browser_client.cc
-@@ -298,6 +298,8 @@ bool ContentBrowserClient::CanCreateWindow(
+@@ -382,6 +382,8 @@ bool ContentBrowserClient::CanCreateWindow(
      const std::string& frame_name,
      WindowOpenDisposition disposition,
      const blink::mojom::WindowFeatures& features,
 +    const std::vector<std::string>& additional_features,
-+    const scoped_refptr<ResourceRequestBody>& body,
++    const scoped_refptr<network::ResourceRequestBody>& body,
      bool user_gesture,
      bool opener_suppressed,
      bool* no_javascript_access) {
 diff --git a/content/public/browser/content_browser_client.h b/content/public/browser/content_browser_client.h
-index 5373ee07b5cd..6075a7233852 100644
+index 5373ee07b5cd..90f4a8472e2b 100644
 --- a/content/public/browser/content_browser_client.h
 +++ b/content/public/browser/content_browser_client.h
 @@ -150,6 +150,7 @@ class RenderProcessHost;
@@ -137,17 +127,17 @@ index 5373ee07b5cd..6075a7233852 100644
  class SiteInstance;
  class SpeechRecognitionManagerDelegate;
  class StoragePartition;
-@@ -509,6 +518,8 @@ class CONTENT_EXPORT ContentBrowserClient {
+@@ -625,6 +639,8 @@ class CONTENT_EXPORT ContentBrowserClient {
        const std::string& frame_name,
        WindowOpenDisposition disposition,
        const blink::mojom::WindowFeatures& features,
 +      const std::vector<std::string>& additional_features,
-+      const scoped_refptr<ResourceRequestBody>& body,
++      const scoped_refptr<network::ResourceRequestBody>& body,
        bool user_gesture,
        bool opener_suppressed,
        bool* no_javascript_access);
 diff --git a/content/renderer/render_view_impl.cc b/content/renderer/render_view_impl.cc
-index 09a26d8a7a6c..ffc823d49817 100644
+index a9b91cdcc86d..b5f483924179 100644
 --- a/content/renderer/render_view_impl.cc
 +++ b/content/renderer/render_view_impl.cc
 @@ -80,6 +80,7 @@
@@ -158,10 +148,11 @@ index 09a26d8a7a6c..ffc823d49817 100644
  #include "content/renderer/media/audio_device_factory.h"
  #include "content/renderer/media/stream/media_stream_device_observer.h"
  #include "content/renderer/media/video_capture_impl_manager.h"
-@@ -1439,6 +1440,59 @@ WebView* RenderViewImpl::CreateView(WebLocalFrame* creator,
+@@ -1284,6 +1285,45 @@ WebView* RenderViewImpl::CreateView(WebLocalFrame* creator,
+     params->referrer = GetReferrerFromRequest(creator, request);
    }
    params->features = ConvertWebWindowFeaturesToMojoWindowFeatures(features);
- 
++
 +  params->body = mojom::ResourceRequestBody::New();
 +  auto body = GetRequestBodyForWebURLRequest(request);
 +  if (body) {
@@ -172,49 +163,34 @@ index 09a26d8a7a6c..ffc823d49817 100644
 +      content::mojom::DataElementPtr ptr = content::mojom::DataElement::New();
 +      ptr->type = element.type();
 +      switch (element.type()) {
-+        case storage::DataElement::TYPE_BYTES: {
++        case network::DataElement::TYPE_BYTES: {
 +          ptr->bytes = std::string(element.bytes(), element.length());
 +          break;
 +        }
-+        case storage::DataElement::TYPE_BYTES_DESCRIPTION: {
-+          ptr->length = element.length();
-+          break;
-+        }
-+        case storage::DataElement::TYPE_FILE: {
++        case network::DataElement::TYPE_FILE: {
 +          ptr->path = element.path();
 +          ptr->offset = element.offset();
 +          ptr->length = element.length();
 +          ptr->expected_modification_time = element.expected_modification_time();
 +          break;
 +        }
-+        case storage::DataElement::TYPE_FILE_FILESYSTEM: {
-+          ptr->filesystem_url = element.filesystem_url();
-+          ptr->offset = element.offset();
-+          ptr->length = element.length();
-+          ptr->expected_modification_time = element.expected_modification_time();
-+          break;
-+        }
-+        case storage::DataElement::TYPE_BLOB: {
++        case network::DataElement::TYPE_BLOB: {
 +          ptr->blob_uuid = element.blob_uuid();
 +          ptr->offset = element.offset();
 +          ptr->length = element.length();
 +          break;
 +        }
-+        case storage::DataElement::TYPE_DISK_CACHE_ENTRY: {
-+          NOTREACHED() << "Can't be sent by IPC.";
-+          break;
-+        }
-+        case storage::DataElement::TYPE_UNKNOWN: {
++        case network::DataElement::TYPE_RAW_FILE:
++        case network::DataElement::TYPE_DATA_PIPE:
++        case network::DataElement::TYPE_UNKNOWN:
 +          NOTREACHED();
 +          break;
-+        }
 +      }
 +      params->body->elements.push_back(std::move(ptr));
 +    }
 +  } else {
 +    params->body->has_object = false;
 +  }
-+
+ 
    // We preserve this information before sending the message since |params| is
    // moved on send.
-   bool is_background_tab =
