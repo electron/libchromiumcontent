@@ -14,23 +14,23 @@ patches:
     build Electron (debug configuration) and make sure all tests pass on the CI
     systems. Unfortunately the tests don't always cover the check failures, so it's
     good to also run some non-trivial Electron app to verify.
-    
+
     Apart from getting rid of a whole diff, you may also be able to replace one diff
     with another which enables at least some of the previously disabled checks. For
     example, the checks might be disabled for a whole build target, but actually
     only one or two specific checks fail. Then it's better to simply comment out the
     failing checks and allow the rest of the target to have them enabled.
-    
+
     Please keep the following lists updated.
-    
+
     The ELECTRON_NO_DCHECK build flag disables debug checks universally.
     This patch applies the flag to the following GN targets:
-    
+
       third_party/WebKit/Source/core/loader:loader
       url:url
-    
+
     These files have debug checks explicitly commented out:
-    
+
       base/memory/weak_ptr.cc
       base/process/kill_win.cc
       components/viz/service/display/program_binding.h
@@ -64,11 +64,11 @@ patches:
     According to electron/electron#3699, it is unreliable to use |unload|
     event for process.exit('exit'), so we have to do that in
     willReleaseScriptContext.
-    
+
     However Chromium then disallowed scripting in willReleaseScriptContext
     in https://codereview.chromium.org/1657583002, and crash will happen
     when there is code doing that.
-    
+
     This patch reverts the change to fix the crash in Electron.
 -
   owners: null
@@ -179,7 +179,7 @@ patches:
     Linux, which may cause issues in a context like Electron, where the main
     and renderer threads are supposed to keep inherited permissions over the
     system.
-    
+
     See https://github.com/atom/electron/issues/3666
 -
   owners: zcbenz
@@ -274,6 +274,10 @@ patches:
   file: disable-recursive-surface-sync.patch
   description: null
 -
+  owners: brenca
+  file: disable-redraw-lock.patch
+  description: null
+-
   owners: alexeykuzmin
   file: backport_a6977980088b.patch
   description: null
@@ -293,7 +297,7 @@ patches:
     (wildcard), which is in itself probably a Bad Thing; but it's
     especially bad now because the catalog service exposes module
     directory access through its app capability.
-    
+
     This changes the catalog manifest to move the capability to a
     different more specific capability, and updates two of its
     consumers.
