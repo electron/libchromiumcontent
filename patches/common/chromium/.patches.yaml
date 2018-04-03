@@ -100,14 +100,13 @@ patches:
     For example, instead of generating `obj/ui/base/base_cc.pdb` the
     build will now generate `obj/ui/base/obj_ui_base_base_cc.pdb`.
 -
- owners: zcbenz
- file: can_create_window.patch
- description: null
-# TODO(alexeykuzmin): Fix the patch.
-#-
-#  owners: null
-#  file: compositor_delegate.patch
-#  description: null
+  owners: zcbenz
+  file: can_create_window.patch
+  description: null
+-
+  owners: null
+  file: compositor_delegate.patch
+  description: null
 -
   owners: null
   file: desktop_screen_win.patch
