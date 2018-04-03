@@ -42,7 +42,7 @@ index d842aa55175b..2c2131774b71 100644
 +class COMPOSITOR_EXPORT CompositorDelegate {
 + public:
 +  virtual std::unique_ptr<viz::SoftwareOutputDevice> CreateSoftwareOutputDevice(
-+      ui::Compositor* compositor) {}
++      ui::Compositor* compositor) = 0;
 +
 + protected:
 +  virtual ~CompositorDelegate() {}
