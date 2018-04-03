@@ -1,0 +1,14 @@
+root_extra_deps = [ "//v8:v8_maybe_snapshot" ]
+is_electron_build = true
+is_component_build = false
+is_debug = false
+enable_linux_installer = false
+v8_use_snapshot = true
+v8_enable_i18n_support = false
+if (target_cpu == "arm") {
+  v8_snapshot_toolchain="//build/toolchain/linux:clang_arm"
+}
+
+if (target_cpu == "arm64") {
+  v8_snapshot_toolchain="//build/toolchain/linux:clang_arm64"
+}
