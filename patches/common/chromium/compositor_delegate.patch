@@ -35,16 +35,14 @@ index d842aa55175b..2c2131774b71 100644
  #include "third_party/skia/include/core/SkColor.h"
  #include "third_party/skia/include/core/SkMatrix44.h"
  #include "ui/compositor/compositor_animation_observer.h"
-@@ -182,6 +183,17 @@ class COMPOSITOR_EXPORT ContextFactory {
+@@ -182,6 +183,15 @@ class COMPOSITOR_EXPORT ContextFactory {
    virtual void RemoveObserver(ContextFactoryObserver* observer) = 0;
  };
  
 +class COMPOSITOR_EXPORT CompositorDelegate {
 + public:
 +  virtual std::unique_ptr<viz::SoftwareOutputDevice> CreateSoftwareOutputDevice(
-+      ui::Compositor* compositor) {
-+    return nullptr;
-+  }
++      ui::Compositor* compositor) {}
 +
 + protected:
 +  virtual ~CompositorDelegate() {}
