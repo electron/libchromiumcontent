@@ -33,7 +33,7 @@ jobs:
               script/upload -t $TARGET_ARCH
             fi
       - store_artifacts:
-          path: libchromiumcontent.zip
+          path: libchromiumcontent.tar.bz2
 
   libchromiumcontent-linux-x64-static:
     docker:
@@ -68,7 +68,7 @@ jobs:
               script/upload -t $TARGET_ARCH
             fi
       - store_artifacts:
-          path: libchromiumcontent-static.zip
+          path: libchromiumcontent-static.tar.bz2
 
   libchromiumcontent-linux-ia32-shared:
     docker:
@@ -103,7 +103,7 @@ jobs:
               script/upload -t $TARGET_ARCH
             fi
       - store_artifacts:
-          path: libchromiumcontent.zip
+          path: libchromiumcontent.tar.bz2
 
   libchromiumcontent-linux-ia32-static:
     docker:
@@ -138,7 +138,7 @@ jobs:
               script/upload -t $TARGET_ARCH
             fi
       - store_artifacts:
-          path: libchromiumcontent-static.zip
+          path: libchromiumcontent-static.tar.bz2
 
   libchromiumcontent-linux-arm-shared:
     docker:
@@ -156,14 +156,20 @@ jobs:
           name: Update
           command: script/update --clean -t $TARGET_ARCH
       - run:
+          name: Build mksnapshot
+          command: script/build -t $TARGET_ARCH -c native_mksnapshot
+      - run:
           name: Build shared library
           command: script/build -t $TARGET_ARCH -c $COMPONENT
       - run:
           name: Build FFmpeg
           command: script/build -t $TARGET_ARCH -c ffmpeg
       - run:
-          name: Create distribution
+          name: Create shared distribution
           command: script/create-dist -t $TARGET_ARCH -c $COMPONENT
+      - run:
+          name: Create mksnapshot distribution
+          command: script/create-dist -t $TARGET_ARCH -c native_mksnapshot
       - run:
           name: Upload to S3
           command: |
@@ -173,7 +179,9 @@ jobs:
               script/upload -t $TARGET_ARCH
             fi
       - store_artifacts:
-          path: libchromiumcontent.zip
+          path: libchromiumcontent.tar.bz2
+      - store_artifacts:
+          path: native-mksnapshot.tar.bz2
 
   libchromiumcontent-linux-arm-static:
     docker:
@@ -208,7 +216,7 @@ jobs:
               script/upload -t $TARGET_ARCH
             fi
       - store_artifacts:
-          path: libchromiumcontent-static.zip
+          path: libchromiumcontent-static.tar.bz2
 
   libchromiumcontent-linux-arm64-shared:
     docker:
@@ -226,14 +234,20 @@ jobs:
           name: Update
           command: script/update --clean -t $TARGET_ARCH
       - run:
+          name: Build mksnapshot
+          command: script/build -t $TARGET_ARCH -c native_mksnapshot
+      - run:
           name: Build shared library
           command: script/build -t $TARGET_ARCH -c $COMPONENT
       - run:
           name: Build FFmpeg
           command: script/build -t $TARGET_ARCH -c ffmpeg
       - run:
-          name: Create distribution
+          name: Create shared distribution
           command: script/create-dist -t $TARGET_ARCH -c $COMPONENT
+      - run:
+          name: Create mksnapshot distribution
+          command: script/create-dist -t $TARGET_ARCH -c native_mksnapshot
       - run:
           name: Upload to S3
           command: |
@@ -243,7 +257,9 @@ jobs:
               script/upload -t $TARGET_ARCH
             fi
       - store_artifacts:
-          path: libchromiumcontent.zip
+          path: libchromiumcontent.tar.bz2
+      - store_artifacts:
+          path: native-mksnapshot.tar.bz2
 
   libchromiumcontent-linux-arm64-static:
     docker:
@@ -278,7 +294,7 @@ jobs:
               script/upload -t $TARGET_ARCH
             fi
       - store_artifacts:
-          path: libchromiumcontent-static.zip
+          path: libchromiumcontent-static.tar.bz2
 
   libchromiumcontent-linux-mips64el-shared:
     docker:
@@ -313,7 +329,7 @@ jobs:
               script/upload -t $TARGET_ARCH
             fi
       - store_artifacts:
-          path: libchromiumcontent.zip
+          path: libchromiumcontent.tar.bz2
 
   libchromiumcontent-linux-mips64el-static:
     docker:
@@ -348,7 +364,7 @@ jobs:
               script/upload -t $TARGET_ARCH
             fi
       - store_artifacts:
-          path: libchromiumcontent-static.zip
+          path: libchromiumcontent-static.tar.bz2
 
 workflows:
   version: 2

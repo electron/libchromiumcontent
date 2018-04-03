@@ -11,7 +11,7 @@ from lib.config import get_output_dir
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
-COMPONENTS = ['static_library', 'shared_library', 'ffmpeg']
+COMPONENTS = ['static_library', 'shared_library', 'ffmpeg', 'native_mksnapshot']
 
 MIPS64EL_GCC = 'gcc-4.8.3-d197-n64-loongson'
 # Whether the host system is a mips64el machine.
@@ -64,6 +64,8 @@ def main():
   for component in components_to_build:
     out_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
     target = 'chromiumcontent:chromiumcontent'
+    if component == 'native_mksnapshot':
+      target = 'v8:mksnapshot'
     subprocess.check_call([NINJA, '-C', os.path.relpath(out_dir), target], env=env)
     if component == 'static_library':
       subenv = env.copy()

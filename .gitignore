@@ -3,8 +3,8 @@
 *.pyc
 /dist/
 /src/
-/libchromiumcontent.zip
-/libchromiumcontent-static.zip
+/libchromiumcontent.tar.bz2
+/libchromiumcontent-static.tar.bz2
 /vendor/binutils-aarch64
 /vendor/gcc-4.8.3-d197-n64-loongson
 /vendor/readme-gcc483-loongson.txt
@@ -12,3 +12,4 @@
 .gclient_entries
 _gclient_src_*
 s3credentials
+/native-mksnapshot.tar.bz2
