@@ -120,7 +120,7 @@ patches:
   file: dom_storage_map.patch
   description: null
 -
-  owners: zcbenz
+  owners: zcbenz, deepak1556
   file: frame_host_manager.patch
   description: null
 -
@@ -134,10 +134,6 @@ patches:
 -
   owners: zcbenz
   file: net_url_request_job.patch
-  description: null
--
-  owners: MarshallOfSound
-  file: new_site_instance.patch
   description: null
 -
   owners: alexeykuzmin

@@ -126,10 +126,10 @@ index 5c2ab72ff537..3e7c25009c6a 100644
      bool opener_suppressed,
      bool* no_javascript_access) {
 diff --git a/content/public/browser/content_browser_client.h b/content/public/browser/content_browser_client.h
-index a3d217fd9446..1a6354a291b7 100644
+index 61c108c53b92..d475ea55b085 100644
 --- a/content/public/browser/content_browser_client.h
 +++ b/content/public/browser/content_browser_client.h
-@@ -129,6 +129,7 @@ class RenderFrameHost;
+@@ -134,6 +134,7 @@ class RenderFrameHost;
  class RenderProcessHost;
  class RenderViewHost;
  class ResourceContext;
@@ -137,22 +137,7 @@ index a3d217fd9446..1a6354a291b7 100644
  class SiteInstance;
  class SpeechRecognitionManagerDelegate;
  class StoragePartition;
-@@ -153,6 +154,14 @@ class CONTENT_EXPORT ContentBrowserClient {
-  public:
-   virtual ~ContentBrowserClient() {}
- 
-+  // Electron: Allows overriding the SiteInstance when navigating.
-+  virtual void OverrideSiteInstanceForNavigation(
-+      RenderFrameHost* render_frame_host,
-+      BrowserContext* browser_context,
-+      SiteInstance* current_instance,
-+      const GURL& dest_url,
-+      SiteInstance** new_instance) {}
-+
-   // Allows the embedder to set any number of custom BrowserMainParts
-   // implementations for the browser startup code. See comments in
-   // browser_main_parts.h.
-@@ -509,6 +518,8 @@ class CONTENT_EXPORT ContentBrowserClient {
+@@ -577,6 +578,8 @@ class CONTENT_EXPORT ContentBrowserClient {
        const std::string& frame_name,
        WindowOpenDisposition disposition,
        const blink::mojom::WindowFeatures& features,
