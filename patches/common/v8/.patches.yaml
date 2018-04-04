@@ -10,10 +10,6 @@ patches:
   description: null
 -
   owners: zcbenz
-  file: mksnapshot.patch
-  description: null
--
-  owners: zcbenz
   file: ostreams.patch
   description: null
 -
