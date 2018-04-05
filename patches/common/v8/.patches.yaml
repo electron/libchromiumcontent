@@ -68,3 +68,8 @@ patches:
   owners: alespergl
   file: dcheck.patch
   description: null
+-
+  owners: nitsakh
+  file: disable-warning-win.patch
+  description:
+    Disable unit test windows build warning

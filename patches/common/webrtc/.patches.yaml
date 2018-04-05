@@ -16,3 +16,9 @@ patches:
   owners: null
   file: webrtc-rwlock_null.patch
   description: null
+-
+  owners: nitsakh
+  file: disable-warning-win.patch
+  description:
+    Disable windows warning
+
