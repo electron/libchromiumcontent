@@ -26,10 +26,6 @@ def main():
     # do so some modules like multiprocessing would break.
     shutil.copy(os.path.join('bin', 's3put'), os.path.join('bin', 's3put.py'))
 
-  # Install PyYAML.
-  with util.scoped_cwd(os.path.join('vendor', 'pyyaml')):
-    subprocess.call([sys.executable, 'setup.py', 'install', '--user', '--prefix', ''])
-
 
 if __name__ == '__main__':
   sys.exit(main())

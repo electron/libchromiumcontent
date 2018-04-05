@@ -23,7 +23,7 @@ VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
 SRC_DIR = os.path.join(SOURCE_ROOT, 'src')
 CHROMIUMCONTENT_SOURCE_DIR = os.path.join(SOURCE_ROOT, 'chromiumcontent')
 CHROMIUMCONTENT_DESTINATION_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
-COMPONENTS = ['static_library', 'shared_library', 'ffmpeg', 'tests']
+COMPONENTS = ['static_library', 'shared_library', 'ffmpeg', 'tests', 'native_mksnapshot']
 DEPOT_TOOLS = os.path.join(VENDOR_DIR, 'depot_tools')
 
 DEBIAN_MIRROR = 'http://ftp.jp.debian.org/debian/pool/main/'

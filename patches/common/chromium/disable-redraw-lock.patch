@@ -1,0 +1,49 @@
+diff --git a/ui/views/win/hwnd_message_handler.cc b/ui/views/win/hwnd_message_handler.cc
+index 9776325defc8..570fb6330f48 100644
+--- a/ui/views/win/hwnd_message_handler.cc
++++ b/ui/views/win/hwnd_message_handler.cc
+@@ -305,6 +305,7 @@ class HWNDMessageHandler::ScopedRedrawLock {
+         cancel_unlock_(false),
+         should_lock_(owner_->IsVisible() && !owner->HasChildRenderingWindow() &&
+                      ::IsWindow(hwnd_) &&
++                     !owner_->HasNativeFrame() &&
+                      (!(GetWindowLong(hwnd_, GWL_STYLE) & WS_CAPTION) ||
+                       !ui::win::IsAeroGlassEnabled())) {
+     if (should_lock_)
+@@ -905,6 +906,10 @@ bool HWNDMessageHandler::HasChildRenderingWindow() {
+       hwnd());
+ }
+
++bool HWNDMessageHandler::HasNativeFrame() {
++  return delegate_->HasNativeFrame();
++}
++
+ ////////////////////////////////////////////////////////////////////////////////
+ // HWNDMessageHandler, gfx::WindowImpl overrides:
+
+diff --git a/ui/views/win/hwnd_message_handler.h b/ui/views/win/hwnd_message_handler.h
+index ad432b4d9ac6..9c22521f2bfb 100644
+--- a/ui/views/win/hwnd_message_handler.h
++++ b/ui/views/win/hwnd_message_handler.h
+@@ -227,6 +227,8 @@ class VIEWS_EXPORT HWNDMessageHandler : public gfx::WindowImpl,
+   typedef std::set<DWORD> TouchIDs;
+   enum class DwmFrameState { OFF, ON };
+
++  bool HasNativeFrame();
++
+   // Overridden from WindowImpl:
+   HICON GetDefaultWindowIcon() const override;
+   HICON GetSmallWindowIcon() const override;
+diff --git a/ui/views/win/hwnd_message_handler_delegate.h b/ui/views/win/hwnd_message_handler_delegate.h
+index 2168aedea4bb..1615c65f18d8 100644
+--- a/ui/views/win/hwnd_message_handler_delegate.h
++++ b/ui/views/win/hwnd_message_handler_delegate.h
+@@ -40,6 +40,8 @@ class VIEWS_EXPORT HWNDMessageHandlerDelegate {
+   // True if the widget associated with this window has a non-client view.
+   virtual bool HasNonClientView() const = 0;
+
++  virtual bool HasNativeFrame() const { return false; }
++
+   // Returns who we want to be drawing the frame. Either the system (Windows)
+   // will handle it or Chrome will custom draw it.
+   virtual FrameMode GetFrameMode() const = 0;

@@ -10,15 +10,7 @@ patches:
   description: null
 -
   owners: zcbenz
-  file: mksnapshot.patch
-  description: null
--
-  owners: zcbenz
   file: ostreams.patch
-  description: null
--
-  owners: alexeykuzmin
-  file: export_platform.patch
   description: null
 -
   owners: codebytere
@@ -64,6 +56,11 @@ patches:
   owners: codebytere
   file: cherry_pick_ac0fe8ec.patch
   description: null
+-
+  owners: alexeykuzmin,alespergl
+  file: export_platform.patch
+  description: |
+    v8::Platform::SystemClockTimeMillis must be exported so that node::NodePlatform can call it
 -
   owners: alespergl
   file: dcheck.patch
