@@ -1,32 +1,83 @@
 diff --git a/content/browser/frame_host/render_frame_host_manager.cc b/content/browser/frame_host/render_frame_host_manager.cc
-index 1bbf60fac4e1..ca71865f89e8 100644
+index f409294d982c..2de46b47ae40 100644
 --- a/content/browser/frame_host/render_frame_host_manager.cc
 +++ b/content/browser/frame_host/render_frame_host_manager.cc
-@@ -1167,6 +1167,19 @@ RenderFrameHostManager::GetSiteInstanceForNavigation(
+@@ -1996,6 +1996,18 @@ RenderFrameHostManager::GetSiteInstanceForNavigationRequest(
+   bool was_server_redirect = request.navigation_handle() &&
+                              request.navigation_handle()->WasServerRedirect();
  
-   SiteInstance* current_instance = render_frame_host_->GetSiteInstance();
- 
-+  // Gives user a chance to pass a custom side instance.
-+  SiteInstance* client_custom_instance = current_instance;
-+  GetContentClient()->browser()->OverrideSiteInstanceForNavigation(
-+      render_frame_host_.get(),
-+      delegate_->GetControllerForRenderManager().GetBrowserContext(),
-+      current_instance,
-+      dest_url,
-+      &client_custom_instance);
-+  if (client_custom_instance != current_instance) {
-+    GetContentClient()->browser()->OnCreateSiteInstanceForNavigation(client_custom_instance, render_frame_host_.get());
-+    return client_custom_instance;
-+  }
++  BrowserContext* browser_context =
++      delegate_->GetControllerForRenderManager().GetBrowserContext();
++  // If the navigation can swap SiteInstances, compute the SiteInstance it
++  // should use.
++  // TODO(clamy): We should also consider as a candidate SiteInstance the
++  // speculative SiteInstance that was computed on redirects.
++  scoped_refptr<SiteInstance> candidate_site_instance =
++      speculative_render_frame_host_
++          ? speculative_render_frame_host_->GetSiteInstance()
++          : content::SiteInstance::CreateForURL(browser_context,
++                                                request.common_params().url);
 +
-   // We do not currently swap processes for navigations in webview tag guests.
-   if (current_instance->GetSiteURL().SchemeIs(kGuestScheme))
-     return current_instance;
-@@ -1265,6 +1278,7 @@ RenderFrameHostManager::GetSiteInstanceForNavigation(
-   // BrowserContext.
-   DCHECK_EQ(new_instance->GetBrowserContext(), browser_context);
+   if (frame_tree_node_->IsMainFrame()) {
+     // Renderer-initiated main frame navigations that may require a
+     // SiteInstance swap are sent to the browser via the OpenURL IPC and are
+@@ -2012,6 +2024,19 @@ RenderFrameHostManager::GetSiteInstanceForNavigationRequest(
  
-+  GetContentClient()->browser()->OnCreateSiteInstanceForNavigation(new_instance.get(), render_frame_host_.get());
-   // If |new_instance| is a new SiteInstance for a subframe with an isolated
-   // origin, set its process reuse policy so that such subframes are
-   // consolidated into existing processes for that isolated origin.
+     no_renderer_swap_allowed |=
+         request.from_begin_navigation() && !can_renderer_initiate_transfer;
++
++    bool has_response_started =
++        (request.state() == NavigationRequest::RESPONSE_STARTED ||
++         request.state() == NavigationRequest::FAILED) &&
++        !speculative_render_frame_host_;
++    // Gives user a chance to choose a custom site instance.
++    SiteInstance* client_custom_instance = nullptr;
++    GetContentClient()->browser()->OverrideSiteInstanceForNavigation(
++        render_frame_host_.get(), browser_context, request.common_params().url,
++        has_response_started, candidate_site_instance.get(),
++        &client_custom_instance);
++    if (client_custom_instance)
++      return scoped_refptr<SiteInstance>(client_custom_instance);
+   } else {
+     // Subframe navigations will use the current renderer, unless specifically
+     // allowed to swap processes.
+@@ -2023,18 +2048,9 @@ RenderFrameHostManager::GetSiteInstanceForNavigationRequest(
+   if (no_renderer_swap_allowed)
+     return scoped_refptr<SiteInstance>(current_site_instance);
+ 
+-  // If the navigation can swap SiteInstances, compute the SiteInstance it
+-  // should use.
+-  // TODO(clamy): We should also consider as a candidate SiteInstance the
+-  // speculative SiteInstance that was computed on redirects.
+-  SiteInstance* candidate_site_instance =
+-      speculative_render_frame_host_
+-          ? speculative_render_frame_host_->GetSiteInstance()
+-          : nullptr;
+-
+   scoped_refptr<SiteInstance> dest_site_instance = GetSiteInstanceForNavigation(
+       request.common_params().url, request.source_site_instance(),
+-      request.dest_site_instance(), candidate_site_instance,
++      request.dest_site_instance(), candidate_site_instance.get(),
+       request.common_params().transition,
+       request.restore_type() != RestoreType::NONE, request.is_view_source(),
+       was_server_redirect);
+diff --git a/content/public/browser/content_browser_client.h b/content/public/browser/content_browser_client.h
+index 61c108c53b92..a68b77ed429c 100644
+--- a/content/public/browser/content_browser_client.h
++++ b/content/public/browser/content_browser_client.h
+@@ -163,6 +163,15 @@ class CONTENT_EXPORT ContentBrowserClient {
+  public:
+   virtual ~ContentBrowserClient() {}
+ 
++  // Electron: Allows overriding the SiteInstance when navigating.
++  virtual void OverrideSiteInstanceForNavigation(
++      RenderFrameHost* render_frame_host,
++      BrowserContext* browser_context,
++      const GURL& dest_url,
++      bool has_response_started,
++      SiteInstance* candidate_site_instance,
++      SiteInstance** new_instance) {}
++
+   // Allows the embedder to set any number of custom BrowserMainParts
+   // implementations for the browser startup code. See comments in
+   // browser_main_parts.h.
