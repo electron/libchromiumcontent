@@ -1,0 +1,89 @@
+Backport of "[IndexedDB] Added wrapper to cursor to avoid use-after-free on shutdown."
+See https://codereview.chromium.org/2892223003
+
+diff --git a/content/browser/indexed_db/indexed_db_callbacks.cc b/content/browser/indexed_db/indexed_db_callbacks.cc
+index 3cd348c5a5a6..052eb61df016 100644
+--- a/content/browser/indexed_db/indexed_db_callbacks.cc
++++ b/content/browser/indexed_db/indexed_db_callbacks.cc
+@@ -44,10 +44,8 @@ namespace content {
+ 
+ namespace {
+ 
+-// If this is destructed with the connection still living inside it, we assume
+-// we have been killed due to IO thread shutdown, and we need to safely schedule
+-// the destruction of the connection on the IDB thread, as we should still be in
+-// a transaction's operation queue, where we cannot destroy the transaction.
++// The following two objects protect the given objects from being destructed on
++// the IO thread if we have a shutdown or an error.
+ struct SafeIOThreadConnectionWrapper {
+   SafeIOThreadConnectionWrapper(std::unique_ptr<IndexedDBConnection> connection)
+       : connection(std::move(connection)),
+@@ -72,6 +70,23 @@ struct SafeIOThreadConnectionWrapper {
+   DISALLOW_COPY_AND_ASSIGN(SafeIOThreadConnectionWrapper);
+ };
+ 
++struct SafeIOThreadCursorWrapper {
++  SafeIOThreadCursorWrapper(std::unique_ptr<IndexedDBCursor> cursor)
++      : cursor(std::move(cursor)),
++        idb_runner(base::ThreadTaskRunnerHandle::Get()) {}
++  ~SafeIOThreadCursorWrapper() {
++    if (cursor)
++      idb_runner->DeleteSoon(FROM_HERE, cursor.release());
++  }
++  SafeIOThreadCursorWrapper(SafeIOThreadCursorWrapper&& other) = default;
++
++  std::unique_ptr<IndexedDBCursor> cursor;
++  scoped_refptr<base::SequencedTaskRunner> idb_runner;
++
++ private:
++  DISALLOW_COPY_AND_ASSIGN(SafeIOThreadCursorWrapper);
++};
++
+ void ConvertBlobInfo(
+     const std::vector<IndexedDBBlobInfo>& blob_info,
+     std::vector<::indexed_db::mojom::BlobInfoPtr>* blob_or_file_info) {
+@@ -129,7 +144,7 @@ class IndexedDBCallbacks::IOThreadHelper {
+                          const content::IndexedDBDatabaseMetadata& metadata);
+   void SendSuccessDatabase(SafeIOThreadConnectionWrapper connection,
+                            const content::IndexedDBDatabaseMetadata& metadata);
+-  void SendSuccessCursor(std::unique_ptr<IndexedDBCursor> cursor,
++  void SendSuccessCursor(SafeIOThreadCursorWrapper cursor,
+                          const IndexedDBKey& key,
+                          const IndexedDBKey& primary_key,
+                          ::indexed_db::mojom::ValuePtr value,
+@@ -328,12 +343,14 @@ void IndexedDBCallbacks::OnSuccess(std::unique_ptr<IndexedDBCursor> cursor,
+     blob_info.swap(value->blob_info);
+   }
+ 
++  SafeIOThreadCursorWrapper cursor_wrapper(std::move(cursor));
++
+   BrowserThread::PostTask(
+       BrowserThread::IO, FROM_HERE,
+       base::Bind(&IOThreadHelper::SendSuccessCursor,
+-                 base::Unretained(io_helper_.get()), base::Passed(&cursor), key,
+-                 primary_key, base::Passed(&mojo_value),
+-                 base::Passed(&blob_info)));
++                 base::Unretained(io_helper_.get()),
++                 base::Passed(&cursor_wrapper), key, primary_key,
++                 base::Passed(&mojo_value), base::Passed(&blob_info)));
+   complete_ = true;
+ }
+ 
+@@ -574,7 +591,7 @@ void IndexedDBCallbacks::IOThreadHelper::SendSuccessDatabase(
+ }
+ 
+ void IndexedDBCallbacks::IOThreadHelper::SendSuccessCursor(
+-    std::unique_ptr<IndexedDBCursor> cursor,
++    SafeIOThreadCursorWrapper cursor,
+     const IndexedDBKey& key,
+     const IndexedDBKey& primary_key,
+     ::indexed_db::mojom::ValuePtr value,
+@@ -587,7 +604,7 @@ void IndexedDBCallbacks::IOThreadHelper::SendSuccessCursor(
+     return;
+   }
+   auto cursor_impl = base::MakeUnique<CursorImpl>(
+-      std::move(cursor), origin_, dispatcher_host_.get(), idb_runner_);
++      std::move(cursor.cursor), origin_, dispatcher_host_.get(), idb_runner_);
+ 
+   if (value && !CreateAllBlobs(blob_info, &value->blob_or_file_info))
+     return;
