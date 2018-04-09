@@ -1,0 +1,35 @@
+#!/usr/bin/env python
+
+"""Retrieves commit contents in a patch format.
+
+Use it to export commits from Chromium's and other repos as patch files. E.g.
+$ ./script/get-patch --repo src --commit 72d995cf2 > some/folder/path/backport_72d995cf2.patch
+"""
+
+import argparse
+import sys
+
+from lib.git import get_patch as git_get_patch
+
+
+def parse_args():
+  parser = argparse.ArgumentParser(description='Apply patches to a git repo')
+
+  parser.add_argument('-c', '--commit', help='Commit hash.')
+  parser.add_argument('-r', '--repo', help='Path to a repository root folder.')
+
+  return parser.parse_args()
+
+
+def main():
+  args = parse_args()
+
+  repo = args.repo
+  commit_hash = args.commit
+
+  patch_contents = git_get_patch(repo, commit_hash)
+  sys.stdout.write(patch_contents)
+
+
+if __name__ == '__main__':
+  sys.exit(main())
