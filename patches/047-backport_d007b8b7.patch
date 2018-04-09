@@ -1,0 +1,55 @@
+Backport of "[IndexedDB] Fix Cursor UAF".
+See https://chromium-review.googlesource.com/526284
+
+diff --git a/content/browser/indexed_db/cursor_impl.cc b/content/browser/indexed_db/cursor_impl.cc
+index 15382eb88178..60c171ad204a 100644
+--- a/content/browser/indexed_db/cursor_impl.cc
++++ b/content/browser/indexed_db/cursor_impl.cc
+@@ -96,9 +96,7 @@ CursorImpl::IDBThreadHelper::IDBThreadHelper(
+     std::unique_ptr<IndexedDBCursor> cursor)
+     : cursor_(std::move(cursor)) {}
+ 
+-CursorImpl::IDBThreadHelper::~IDBThreadHelper() {
+-  cursor_->RemoveCursorFromTransaction();
+-}
++CursorImpl::IDBThreadHelper::~IDBThreadHelper() {}
+ 
+ void CursorImpl::IDBThreadHelper::Advance(
+     uint32_t count,
+diff --git a/content/browser/indexed_db/indexed_db_cursor.cc b/content/browser/indexed_db/indexed_db_cursor.cc
+index f9a130cc6234..c84547fb43f9 100644
+--- a/content/browser/indexed_db/indexed_db_cursor.cc
++++ b/content/browser/indexed_db/indexed_db_cursor.cc
+@@ -70,6 +70,8 @@ IndexedDBCursor::IndexedDBCursor(
+ }
+ 
+ IndexedDBCursor::~IndexedDBCursor() {
++  if (transaction_)
++    transaction_->UnregisterOpenCursor(this);
+   // Call to make sure we complete our lifetime trace.
+   Close();
+ }
+@@ -106,11 +108,6 @@ void IndexedDBCursor::Advance(uint32_t count,
+                         ptr_factory_.GetWeakPtr(), count, callbacks));
+ }
+ 
+-void IndexedDBCursor::RemoveCursorFromTransaction() {
+-  if (transaction_)
+-    transaction_->UnregisterOpenCursor(this);
+-}
+-
+ leveldb::Status IndexedDBCursor::CursorAdvanceOperation(
+     uint32_t count,
+     scoped_refptr<IndexedDBCallbacks> callbacks,
+diff --git a/content/browser/indexed_db/indexed_db_cursor.h b/content/browser/indexed_db/indexed_db_cursor.h
+index 591f9f890502..1d10e901d70c 100644
+--- a/content/browser/indexed_db/indexed_db_cursor.h
++++ b/content/browser/indexed_db/indexed_db_cursor.h
+@@ -44,7 +44,6 @@ class CONTENT_EXPORT IndexedDBCursor {
+                                                          : cursor_->value();
+   }
+ 
+-  void RemoveCursorFromTransaction();
+   void Close();
+ 
+   leveldb::Status CursorIterationOperation(
