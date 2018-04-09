@@ -17,6 +17,7 @@ import lib.util as util
 from lib.config import MIPS64EL_GCC, set_mips64el_env, get_output_dir, \
                        SOURCE_ROOT, VENDOR_DIR, SRC_DIR, DEPOT_TOOLS_DIR, \
                        TOOLS_DIR
+from lib.ninja import run as run_ninja
 
 
 DIST_DIR = os.path.join(SOURCE_ROOT, 'dist')
@@ -28,10 +29,6 @@ import ninja_syntax
 # Almost everything goes into the main archive
 MAIN_DIR = os.path.join(DIST_DIR, 'main')
 DIST_SRC_DIR = os.path.join(MAIN_DIR, 'src')
-
-NINJA = os.path.join(DEPOT_TOOLS_DIR, 'ninja')
-if sys.platform == 'win32':
-  NINJA = '{0}.exe'.format(NINJA)
 
 COPY_PY = os.path.join(TOOLS_DIR, 'copy.py')
 LICENSES_PY = os.path.join(TOOLS_DIR, 'licenses.py')
@@ -385,7 +382,7 @@ def main():
   with Ninja(open(os.path.join(MAIN_DIR, 'build.ninja'), 'wb')) as ninja:
     generate_ninja(args, ninja)
 
-  subprocess.check_call([NINJA, '-C', MAIN_DIR])
+  run_ninja(MAIN_DIR)
 
   for component in COMPONENTS:
     if ((args.component == 'all' or args.component == component)
