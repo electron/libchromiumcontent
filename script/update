@@ -2,6 +2,7 @@
 
 import argparse
 import contextlib
+import json
 import os
 import shutil
 import subprocess
@@ -10,12 +11,10 @@ import urllib2
 import platform
 
 import lib.filesystem as filesystem
-import lib.gn as gn
 import lib.util as util
 
 from lib.config import MIPS64EL_GCC, MIPS64EL_GCC_URL, MIPS64EL_SYSROOT, \
-                       set_mips64el_env, get_output_dir, \
-                       IS_ARM64_HOST, IS_ARMV7_HOST, \
+                       set_mips64el_env, IS_ARM64_HOST, IS_ARMV7_HOST, \
                        SOURCE_ROOT, VENDOR_DIR, DEPOT_TOOLS_DIR, SRC_DIR, \
                        COMPONENTS
 
@@ -249,38 +248,16 @@ def setup_mips64el_toolchain(target_arch):
   subprocess.check_call(['chromium/scripts/copy_config.sh'], cwd=ffmpeg_dir)
   subprocess.check_call(['chromium/scripts/generate_gn.py'], cwd=ffmpeg_dir)
 
+
 def run_gn(target_arch):
-  env = os.environ.copy()
-  if sys.platform in ['win32', 'cygwin']:
-    env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
+  gn_args = {}
 
-  target_os = {
-    "cygwin": "win",
-    "darwin": "mac",
-    "linux2": "linux",
-    "win32": "win",
-  }.get(sys.platform)
-
-  if target_arch == 'ia32':
-    target_cpu = 'x86'
-  else:
-    target_cpu = target_arch
-
-  for component in COMPONENTS:
-    # Create output dir.
-    output_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
-    if not os.path.isdir(output_dir):
-      os.makedirs(output_dir)
-
-    # Create a GN build configuration file.
-    args_file_path = os.path.join(CHROMIUMCONTENT_SOURCE_DIR, 'args', component + '.gn')
-    with open(args_file_path) as f:
-      gn.create_args(output_dir, f.read(),
-          target_os=target_os,
-          target_cpu=target_cpu)
-
-    # Generate Ninja build files.
-    gn.generate(output_dir, chromium_root_dir=SRC_DIR, depot_tools_dir=DEPOT_TOOLS_DIR, env=env)
+  script_path = os.path.join(SOURCE_ROOT, 'script', 'run-gn')
+  script_arguments = [
+      '--args', json.dumps(gn_args),
+      '--target_arch', target_arch
+      ]
+  return subprocess.call([sys.executable, script_path] + script_arguments)
 
 
 def is_newer(destination, source):
