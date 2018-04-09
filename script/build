@@ -6,14 +6,12 @@ import subprocess
 import sys
 import platform
 
-from lib.config import MIPS64EL_GCC, set_mips64el_env, get_output_dir
+from lib.config import MIPS64EL_GCC, set_mips64el_env, get_output_dir, \
+                       SOURCE_ROOT, VENDOR_DIR, DEPOT_TOOLS_DIR, \
+                       COMPONENTS
 
 
-SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
-COMPONENTS = ['static_library', 'shared_library', 'ffmpeg', 'tests', 'native_mksnapshot']
-
-NINJA = os.path.join(VENDOR_DIR, 'depot_tools', 'ninja')
+NINJA = os.path.join(DEPOT_TOOLS_DIR, 'ninja')
 if sys.platform == 'win32':
   NINJA = '{0}.exe'.format(NINJA)
 
@@ -23,8 +21,7 @@ def main():
   target_arch = args.target_arch
 
   env = os.environ.copy()
-  env['PATH'] = os.pathsep.join([os.path.join(VENDOR_DIR, 'depot_tools'),
-                                 env['PATH']])
+  env['PATH'] = os.pathsep.join([DEPOT_TOOLS_DIR, env['PATH']])
   if sys.platform in ['win32', 'cygwin']:
     env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
   elif target_arch == 'arm64':

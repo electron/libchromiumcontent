@@ -14,14 +14,12 @@ import platform
 import lib.filesystem as filesystem
 import lib.util as util
 
-from lib.config import MIPS64EL_GCC, set_mips64el_env, get_output_dir
+from lib.config import MIPS64EL_GCC, set_mips64el_env, get_output_dir, \
+                       SOURCE_ROOT, VENDOR_DIR, SRC_DIR, DEPOT_TOOLS_DIR, \
+                       TOOLS_DIR
 
 
-SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
-TOOLS_DIR = os.path.join(SOURCE_ROOT, 'tools')
 DIST_DIR = os.path.join(SOURCE_ROOT, 'dist')
-SRC_DIR = os.path.join(SOURCE_ROOT, 'src')
 
 # import helper module to generate ninja build files
 sys.path.insert(0, os.path.join(SRC_DIR, 'tools', 'gyp', 'pylib', 'gyp'))
@@ -31,7 +29,7 @@ import ninja_syntax
 MAIN_DIR = os.path.join(DIST_DIR, 'main')
 DIST_SRC_DIR = os.path.join(MAIN_DIR, 'src')
 
-NINJA = os.path.join(VENDOR_DIR, 'depot_tools', 'ninja')
+NINJA = os.path.join(DEPOT_TOOLS_DIR, 'ninja')
 if sys.platform == 'win32':
   NINJA = '{0}.exe'.format(NINJA)
 

@@ -4,7 +4,12 @@ import os
 import platform
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+SRC_DIR = os.path.join(SOURCE_ROOT, 'src')
+TOOLS_DIR = os.path.join(SOURCE_ROOT, 'tools')
 VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
+DEPOT_TOOLS_DIR = os.path.join(VENDOR_DIR, 'depot_tools')
+
+COMPONENTS = ['static_library', 'shared_library', 'ffmpeg', 'tests', 'native_mksnapshot']
 
 # URL to the mips64el sysroot image.
 MIPS64EL_SYSROOT = 'https://github.com/electron/debian-sysroot-image-creator/releases/download/v0.5.0/debian_jessie_mips64-sysroot.tar.bz2'

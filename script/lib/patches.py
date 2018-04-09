@@ -1,8 +1,10 @@
 import os
 import sys
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.append(os.path.join(PROJECT_ROOT, 'vendor', 'pyyaml', 'lib'))
+from config import VENDOR_DIR
+
+PYYAML_LIB_DIR = os.path.join(VENDOR_DIR, 'pyyaml', 'lib')
+sys.path.append(PYYAML_LIB_DIR)
 import yaml
 
 from git import apply as git_apply
