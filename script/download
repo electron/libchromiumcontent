@@ -11,6 +11,7 @@ import urllib2
 import tarfile
 
 import lib.filesystem as filesystem
+import lib.git as git
 
 from lib.config import SOURCE_ROOT, TOOLS_DIR
 
@@ -50,7 +51,7 @@ def main():
       sys.exit(0)
     else:
       if args.commit == 'HEAD':
-        commit = head_commit()
+        commit = git.get_head_commit(SOURCE_ROOT)
       else:
         commit = args.commit
       if os.environ.has_key('MAS_BUILD'):
@@ -94,16 +95,6 @@ def parse_args():
   parser.add_argument('--libcc_static_library_path', required=False,
                         help='The static library path of libchromiumcontent. NOTE: All options of libchromiumcontent are required OR let libchromiumcontent choose it')
   return parser.parse_args()
-
-
-def head_commit():
-  cwd = os.getcwd()
-  os.chdir(SOURCE_ROOT)
-  try:
-    args = ['git', 'rev-parse', 'HEAD']
-    return subprocess.check_output(args).strip()
-  finally:
-    os.chdir(cwd)
 
 
 def download_if_needed(destination, base_url, commit, filename, force):

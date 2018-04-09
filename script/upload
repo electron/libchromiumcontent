@@ -7,6 +7,8 @@ import platform
 import subprocess
 import sys
 
+import lib.git as git
+
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 BOTO_DIR = os.path.join(SOURCE_ROOT, 'vendor', 'boto')
@@ -37,7 +39,7 @@ def parse_args():
 def upload(target_arch):
   os.chdir(SOURCE_ROOT)
   bucket, access_key, secret_key = s3_config()
-  commit = command_output(['git', 'rev-parse', 'HEAD']).strip()
+  commit = git.get_head_commit(SOURCE_ROOT)
 
   if os.environ.has_key('MAS_BUILD'):
     platform = 'mas'
@@ -89,14 +91,6 @@ def s3put(bucket, access_key, secret_key, prefix, key_prefix, files):
   ] + files
 
   run_boto_script(access_key, secret_key, 's3put', *args)
-
-
-def command_output(args):
-  process = subprocess.Popen(args, stdout=subprocess.PIPE)
-  output = process.communicate()[0]
-  if process.returncode != 0:
-    raise subprocess.CalledProcessError(process.returncode, args)
-  return output
 
 
 if __name__ == '__main__':
