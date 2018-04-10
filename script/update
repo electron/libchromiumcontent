@@ -74,7 +74,7 @@ def main():
           copy_chromiumcontent_files() or
           update_clang() or
           setup_mips64el_toolchain(target_arch) or
-          run_gn(target_arch))
+          run_gn(target_arch, args.sccache))
 
 
 def parse_args():
@@ -92,6 +92,7 @@ def parse_args():
                       help='Skips update depot tools on Windows, easier to build locally')
   parser.add_argument('--source_only', action='store_true',
                       help='Only sync the Chromium source code')
+  parser.add_argument('--sccache', default=False, help='Enable sccache support')
   parser.set_defaults(apply_patches=True, run_gclient=True, update_depot_tools=True)
   return parser.parse_args()
 
@@ -249,7 +250,9 @@ def setup_mips64el_toolchain(target_arch):
   subprocess.check_call(['chromium/scripts/generate_gn.py'], cwd=ffmpeg_dir)
 
 
-def run_gn(target_arch):
+def run_gn(target_arch, use_sccache):
+  # TODO: Respect use_sccache. 
+
   gn_args = {}
 
   script_path = os.path.join(SOURCE_ROOT, 'script', 'run-gn')
