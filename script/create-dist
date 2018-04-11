@@ -302,6 +302,7 @@ GENERATED_INCLUDE_DIRS = [
   'base',
   'build',
   'cc',
+  'components/download/public',
   'components/filesystem',
   'components/leveldb',
   'components/ukm',
