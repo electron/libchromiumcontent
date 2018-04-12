@@ -1,0 +1,87 @@
+resources:
+- repo: self
+phases:
+- phase: Build_libchromiumcontent
+  queue:
+    parallel: 4
+    timeoutInMinutes: 180
+    matrix:
+      libchromiumcontent-mas-shared:
+        COMPONENT: shared_library
+        MAS_BUILD: 1
+        TARGET_ARCH: x64
+        TARGET_TYPE: mas
+      libchromiumcontent-mas-static:
+        COMPONENT: shared_library
+        MAS_BUILD: 1
+        TARGET_ARCH: x64
+        TARGET_TYPE: mas
+      libchromiumcontent-osx-shared:
+        COMPONENT: shared_library
+        TARGET_ARCH: x64
+        TARGET_TYPE: osx
+      libchromiumcontent-osx-static:
+        COMPONENT: shared_library
+        TARGET_ARCH: x64
+        TARGET_TYPE: osx
+
+  steps:
+  - bash: |
+     echo "##vso[task.setvariable variable=gitcommit]$BUILD_SOURCEVERSION"
+     echo "===Bootstrapping===" | tee -a buildlog.txt
+     script/bootstrap | tee -a buildlog.txt
+    name: Bootstrap
+
+  - bash: |
+     echo "===Updating for $TARGET_ARCH===" | tee -a buildlog.txt
+     script/update --clean -t $TARGET_ARCH | tee -a buildlog.txt
+    name: Update
+
+  - bash: |
+     echo "===Building $COMPONENT for $TARGET_ARCH===" | tee -a buildlog.txt
+     script/build -t $TARGET_ARCH -c $COMPONENT | tee -a buildlog.txt
+    name: Build_library
+
+  - bash: |
+     echo "===Building ffmpeg for $TARGET_ARCH===" | tee -a buildlog.txt
+     script/build -t $TARGET_ARCH -c ffmpeg | tee -a buildlog.txt
+    name: Build_ffmpeg
+
+  - bash: |
+     echo "===Create $COMPONENT distribution for $TARGET_ARCH===" | tee -a buildlog.txt
+     script/create-dist -t $TARGET_ARCH -c $COMPONENT | tee -a buildlog.txt
+     mkdir s3files
+     mv libchromiumcontent* s3files
+     mv buildlog.txt s3files
+    name: Create_distribution
+
+  - task: AmazonWebServices.aws-vsts-tools.S3Upload.S3Upload@1
+    inputs:
+      awsCredentials: 'Libchromium Content S3'
+      regionName: 'us-east-1'
+      bucketName: 'github-janky-artifacts'
+      sourceFolder: s3files
+      globExpressions: '*'
+      targetFolder: 'libchromiumcontent/$(TARGET_TYPE)/$(TARGET_ARCH)/$(gitcommit)'
+      filesAcl: 'public-read'
+      logRequest: true
+      logResponse: true
+
+  - bash: |
+     if [[ -z "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER}" ]]; then
+       echo "Skipping build results upload because there is not a PR number"
+     else
+       npm install --prefix ./script/reportbuild
+       LIBCHROMIUMCONTENT_GITHUB_TOKEN=$(LIBCHROMIUMCONTENT_GITHUB_TOKEN) node script/reportbuild/upload-build-results.js --buildName=$AGENT_JOBNAME --logFile=$(TARGET_TYPE)/$(TARGET_ARCH)/$(gitcommit)/buildlog.txt --prNumber=$SYSTEM_PULLREQUEST_PULLREQUESTNUMBER --commitId=$BUILD_SOURCEVERSION --failed
+      fi
+    condition: failed()
+
+  - bash: |
+     if [[ -z "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER}" ]]; then
+       echo "Skipping build results upload because there is not a PR number"
+     else
+       npm install --prefix ./script/reportbuild
+       LIBCHROMIUMCONTENT_GITHUB_TOKEN=$(LIBCHROMIUMCONTENT_GITHUB_TOKEN) node script/reportbuild/upload-build-results.js --buildName=$AGENT_JOBNAME --logFile=$(TARGET_TYPE)/$(TARGET_ARCH)/$(gitcommit)/buildlog.txt --prNumber=$SYSTEM_PULLREQUEST_PULLREQUESTNUMBER --commitId=$BUILD_SOURCEVERSION
+      fi
+
+  - task: mspremier.PostBuildCleanup.PostBuildCleanup-task.PostBuildCleanup@3
