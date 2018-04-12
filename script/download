@@ -11,9 +11,10 @@ import urllib2
 import tarfile
 
 import lib.filesystem as filesystem
+import lib.git as git
 
+from lib.config import SOURCE_ROOT, TOOLS_DIR
 
-SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 PLATFORM_KEY = {
   'cygwin': 'win',
@@ -50,7 +51,7 @@ def main():
       sys.exit(0)
     else:
       if args.commit == 'HEAD':
-        commit = head_commit()
+        commit = git.get_head_commit(SOURCE_ROOT)
       else:
         commit = args.commit
       if os.environ.has_key('MAS_BUILD'):
@@ -94,16 +95,6 @@ def parse_args():
   parser.add_argument('--libcc_static_library_path', required=False,
                         help='The static library path of libchromiumcontent. NOTE: All options of libchromiumcontent are required OR let libchromiumcontent choose it')
   return parser.parse_args()
-
-
-def head_commit():
-  cwd = os.getcwd()
-  os.chdir(SOURCE_ROOT)
-  try:
-    args = ['git', 'rev-parse', 'HEAD']
-    return subprocess.check_output(args).strip()
-  finally:
-    os.chdir(cwd)
 
 
 def download_if_needed(destination, base_url, commit, filename, force):
@@ -157,7 +148,7 @@ def download_and_extract(destination, url):
 def generate_filenames_gypi(target_file, libcc_source_path,
                             libcc_shared_library_path,
                             libcc_static_library_path):
-  generate = os.path.join(SOURCE_ROOT, 'tools', 'generate_filenames_gypi.py')
+  generate = os.path.join(TOOLS_DIR, 'generate_filenames_gypi.py')
   subprocess.check_call([sys.executable, generate] + [target_file,
                          libcc_source_path, libcc_shared_library_path,
                          libcc_static_library_path])

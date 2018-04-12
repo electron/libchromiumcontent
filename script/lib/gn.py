@@ -14,6 +14,9 @@ def __get_executable_path(depot_tools_dir):
 def create_args(out_dir, raw_config, **kwargs):
   named_arguments = ['{0} = "{1}"\n'.format(k, v) for k, v in kwargs.iteritems()]
 
+  if not os.path.isdir(out_dir):
+    os.makedirs(out_dir)
+
   with open(os.path.join(out_dir, 'args.gn'), 'w') as f:
     lines_to_write = named_arguments + ['#' * 80 + '\n']
     f.writelines(lines_to_write)

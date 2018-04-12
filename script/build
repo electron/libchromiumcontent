@@ -6,16 +6,10 @@ import subprocess
 import sys
 import platform
 
-from lib.config import MIPS64EL_GCC, set_mips64el_env, get_output_dir
-
-
-SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
-COMPONENTS = ['static_library', 'shared_library', 'ffmpeg', 'tests', 'native_mksnapshot']
-
-NINJA = os.path.join(VENDOR_DIR, 'depot_tools', 'ninja')
-if sys.platform == 'win32':
-  NINJA = '{0}.exe'.format(NINJA)
+from lib.config import MIPS64EL_GCC, set_mips64el_env, get_output_dir, \
+                       SOURCE_ROOT, VENDOR_DIR, DEPOT_TOOLS_DIR, \
+                       COMPONENTS
+from lib.ninja import run as run_ninja
 
 
 def main():
@@ -23,8 +17,7 @@ def main():
   target_arch = args.target_arch
 
   env = os.environ.copy()
-  env['PATH'] = os.pathsep.join([os.path.join(VENDOR_DIR, 'depot_tools'),
-                                 env['PATH']])
+  env['PATH'] = os.pathsep.join([DEPOT_TOOLS_DIR, env['PATH']])
   if sys.platform in ['win32', 'cygwin']:
     env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
   elif target_arch == 'arm64':
@@ -53,12 +46,13 @@ def main():
       target = 'chromiumcontent:chromiumcontent_tests'
     if component == 'native_mksnapshot':
       target = 'v8:mksnapshot'
-    subprocess.check_call([NINJA, '-C', os.path.relpath(out_dir), target], env=env)
+    run_ninja(os.path.relpath(out_dir), target=target, env=env)
+
     if component == 'static_library':
       subenv = env.copy()
       subenv['CHROMIUMCONTENT_2ND_PASS'] = '1'
       target = 'chromiumcontent:libs'
-      subprocess.check_call([NINJA, '-C', os.path.relpath(out_dir), target], env=subenv)
+      run_ninja(os.path.relpath(out_dir), target=target, env=subenv)
 
 
 def parse_args():

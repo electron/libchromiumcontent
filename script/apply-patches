@@ -52,7 +52,7 @@ def apply_patches_for_dir(directory):
 def parse_args():
   parser = argparse.ArgumentParser(description='Apply all required patches.')
 
-  parser.add_argument('-t', '--target-arch',
+  parser.add_argument('-t', '--target_arch',
                       help='Target architecture')
 
   return parser.parse_args()

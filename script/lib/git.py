@@ -35,3 +35,10 @@ def get_patch(repo, commit_hash):
 
   with scoped_cwd(repo):
     return subprocess.check_output(args)
+
+
+def get_head_commit(repo):
+  args = ['git', 'rev-parse', 'HEAD']
+
+  with scoped_cwd(repo):
+    return subprocess.check_output(args).strip()

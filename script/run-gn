@@ -1,0 +1,85 @@
+#!/usr/bin/env python
+
+import argparse
+import json
+import os
+import sys
+
+import lib.gn as gn
+
+from lib.config import get_output_dir, COMPONENTS, \
+                       SOURCE_ROOT, SRC_DIR, DEPOT_TOOLS_DIR
+
+
+# TODO(alexeykuzmin): There are no reasons to keep args files
+# in the "chromiumcontent" folder.
+CHROMIUMCONTENT_SOURCE_DIR = os.path.join(SOURCE_ROOT, 'chromiumcontent')
+
+
+def parse_args():
+  parser = argparse.ArgumentParser(description='Generate Ninja')
+
+  parser.add_argument('-a', '--args', type=json.loads, default=None,
+                      help='List of GN args in JSON format. E.g. \'{"key": "value"}\'')
+  parser.add_argument('-c', '--components', nargs='+', default=COMPONENTS, choices=COMPONENTS,
+                      help='Component(s) to generate build files for.')
+  parser.add_argument('-t', '--target_arch', default='x64', help='E.g. "x64".')
+
+  return parser.parse_args()
+
+
+def main():
+  args = parse_args()
+
+  # List of common default GN config args. Please keep in alphabetical order.
+  # Any value can be overridden by the '--args' script argument.
+  gn_args = {
+    'target_cpu': get_target_cpu(args.target_arch),
+    'target_os': get_target_os()
+  }
+  # Add new and override default args from a command line argument.
+  if args.args:
+     gn_args.update(args.args)
+
+  for component in args.components:
+    generate_build_files(component, args.target_arch, **gn_args)
+
+
+def generate_build_files(component, target_arch, **gnargs):
+  build_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
+  create_gn_config(component, build_dir, **gnargs)
+
+  env = os.environ.copy()
+  if sys.platform in ['win32', 'cygwin']:
+    env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
+
+  gn.generate(build_dir, chromium_root_dir=SRC_DIR, depot_tools_dir=DEPOT_TOOLS_DIR, env=env)
+
+
+def create_gn_config(component, build_dir, **gnargs):
+  args_file_path = os.path.join(CHROMIUMCONTENT_SOURCE_DIR, 'args', component + '.gn')
+  with open(args_file_path) as f:
+    gn.create_args(build_dir, f.read(), **gnargs)
+
+
+def get_target_os():
+  target_os = {
+    "cygwin": "win",
+    "darwin": "mac",
+    "linux2": "linux",
+    "win32": "win",
+  }.get(sys.platform)
+
+  return target_os
+
+
+def get_target_cpu(target_arch):
+  target_cpu = target_arch
+  if target_arch == 'ia32':
+    target_cpu = 'x86'
+
+  return target_cpu
+
+
+if __name__ == '__main__':
+  sys.exit(main())

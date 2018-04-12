@@ -2,6 +2,7 @@
 
 import argparse
 import contextlib
+import json
 import os
 import shutil
 import subprocess
@@ -10,21 +11,16 @@ import urllib2
 import platform
 
 import lib.filesystem as filesystem
-import lib.gn as gn
 import lib.util as util
 
 from lib.config import MIPS64EL_GCC, MIPS64EL_GCC_URL, MIPS64EL_SYSROOT, \
-                       set_mips64el_env, get_output_dir, \
-                       IS_ARM64_HOST, IS_ARMV7_HOST
+                       set_mips64el_env, IS_ARM64_HOST, IS_ARMV7_HOST, \
+                       SOURCE_ROOT, VENDOR_DIR, DEPOT_TOOLS_DIR, SRC_DIR, \
+                       COMPONENTS
 
 
-SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-VENDOR_DIR = os.path.join(SOURCE_ROOT, 'vendor')
-SRC_DIR = os.path.join(SOURCE_ROOT, 'src')
 CHROMIUMCONTENT_SOURCE_DIR = os.path.join(SOURCE_ROOT, 'chromiumcontent')
 CHROMIUMCONTENT_DESTINATION_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
-COMPONENTS = ['static_library', 'shared_library', 'ffmpeg', 'tests', 'native_mksnapshot']
-DEPOT_TOOLS = os.path.join(VENDOR_DIR, 'depot_tools')
 
 DEBIAN_MIRROR = 'http://ftp.jp.debian.org/debian/pool/main/'
 BINTOOLS_NAME = 'c/cross-binutils/binutils-aarch64-linux-gnu_2.25-5_amd64.deb'
@@ -181,8 +177,8 @@ def update_depot_tools():
   # Remove trailing slash from TEMP
   # https://bugs.chromium.org/p/chromium/issues/detail?id=340243
   env['TEMP'] = env['TEMP'].rstrip('\\')
-  env['PATH'] = os.pathsep.join([DEPOT_TOOLS, env['PATH']])
-  update_path = os.path.join(DEPOT_TOOLS, 'update_depot_tools.bat')
+  env['PATH'] = os.pathsep.join([DEPOT_TOOLS_DIR, env['PATH']])
+  update_path = os.path.join(DEPOT_TOOLS_DIR, 'update_depot_tools.bat')
   subprocess.check_call([update_path], env=env)
 
 
@@ -205,8 +201,8 @@ def gclient_sync(version, force, git_cache, nohooks):
   env = os.environ.copy()
   if sys.platform in ['win32', 'cygwin']:
     env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
-  env['PATH'] = os.pathsep.join([DEPOT_TOOLS, env['PATH']])
-  gclient = os.path.join(DEPOT_TOOLS, 'gclient.py')
+  env['PATH'] = os.pathsep.join([DEPOT_TOOLS_DIR, env['PATH']])
+  gclient = os.path.join(DEPOT_TOOLS_DIR, 'gclient.py')
   args = [sys.executable, gclient, 'sync', '--jobs', '16',
           '--revision', 'src@{0}'.format(version), '--with_tags',
           '--with_branch_heads', '--reset', '--delete_unversioned_trees']
@@ -221,13 +217,13 @@ def gclient_sync(version, force, git_cache, nohooks):
 
 def apply_patches(target_arch):
   script_path = os.path.join(SOURCE_ROOT, 'script', 'apply-patches')
-  script_arguments = ['--target-arch', target_arch]
+  script_arguments = ['--target_arch', target_arch]
   return subprocess.call([sys.executable, script_path] + script_arguments)
 
 
 def update_clang():
   env = os.environ.copy()
-  env['PATH'] = os.pathsep.join([DEPOT_TOOLS, env['PATH']])
+  env['PATH'] = os.pathsep.join([DEPOT_TOOLS_DIR, env['PATH']])
   env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
   update = os.path.join(SRC_DIR, 'tools', 'clang', 'scripts', 'update.py')
   return subprocess.call([sys.executable, update, '--if-needed'], env=env)
@@ -252,38 +248,16 @@ def setup_mips64el_toolchain(target_arch):
   subprocess.check_call(['chromium/scripts/copy_config.sh'], cwd=ffmpeg_dir)
   subprocess.check_call(['chromium/scripts/generate_gn.py'], cwd=ffmpeg_dir)
 
+
 def run_gn(target_arch):
-  env = os.environ.copy()
-  if sys.platform in ['win32', 'cygwin']:
-    env['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
+  gn_args = {}
 
-  target_os = {
-    "cygwin": "win",
-    "darwin": "mac",
-    "linux2": "linux",
-    "win32": "win",
-  }.get(sys.platform)
-
-  if target_arch == 'ia32':
-    target_cpu = 'x86'
-  else:
-    target_cpu = target_arch
-
-  for component in COMPONENTS:
-    # Create output dir.
-    output_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
-    if not os.path.isdir(output_dir):
-      os.makedirs(output_dir)
-
-    # Create a GN build configuration file.
-    args_file_path = os.path.join(CHROMIUMCONTENT_SOURCE_DIR, 'args', component + '.gn')
-    with open(args_file_path) as f:
-      gn.create_args(output_dir, f.read(),
-          target_os=target_os,
-          target_cpu=target_cpu)
-
-    # Generate Ninja build files.
-    gn.generate(output_dir, chromium_root_dir=SRC_DIR, depot_tools_dir=DEPOT_TOOLS, env=env)
+  script_path = os.path.join(SOURCE_ROOT, 'script', 'run-gn')
+  script_arguments = [
+      '--args', json.dumps(gn_args),
+      '--target_arch', target_arch
+      ]
+  return subprocess.call([sys.executable, script_path] + script_arguments)
 
 
 def is_newer(destination, source):
