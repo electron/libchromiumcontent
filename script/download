@@ -9,11 +9,15 @@ import sys
 import tempfile
 import urllib2
 import tarfile
+import shutil
 
 import lib.filesystem as filesystem
 
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+CACHE_ROOT = os.path.join(tempfile.gettempdir(), 'libcc_cache')
+if 'ELECTRON_LIBCC_CACHE_DIR' in os.environ:
+  CACHE_ROOT = os.environ['ELECTRON_LIBCC_CACHE_DIR']
 
 PLATFORM_KEY = {
   'cygwin': 'win',
@@ -33,6 +37,9 @@ class ProgramError(Exception):
 def main():
   try:
     args = parse_args()
+    if args.cache:
+      print('Using cache root: ' + CACHE_ROOT + '\n')
+      mkdir_p(CACHE_ROOT)
     if (args.libcc_source_path != None and
         args.libcc_shared_library_path != None and
         args.libcc_static_library_path != None):
@@ -59,10 +66,10 @@ def main():
         platform = PLATFORM_KEY
       base_url = '{0}/{1}/{2}'.format(args.url, platform, args.target_arch)
       download_if_needed(args.path, base_url, commit, SHARED_LIBRARY_FILENAME,
-                         args.force)
+                         args.force, args.cache)
       if (args.static and
           not os.path.exists(os.path.join(args.path, 'static_library'))):
-        download(args.path, base_url, commit, STATIC_LIBRARY_FILENAME)
+        download(args.path, base_url, commit, STATIC_LIBRARY_FILENAME, args.cache)
       generate_filenames_gypi(os.path.join(args.path, 'filenames.gypi'),
                               os.path.join(args.path, 'src'),
                               os.path.join(args.path, 'shared_library'),
@@ -80,6 +87,7 @@ def parse_args():
                       help='Overwrite destination if it already exists.')
   parser.add_argument('-c', '--commit', nargs='?', default='HEAD',
                       help='The commit of libchromiumcontent to download.')
+  parser.add_argument('--cache', action='store_true')
   parser.add_argument('-s', '--static', action='store_true',
                       help='Download static_library build')
   parser.add_argument('--target_arch', required=True,
@@ -106,7 +114,7 @@ def head_commit():
     os.chdir(cwd)
 
 
-def download_if_needed(destination, base_url, commit, filename, force):
+def download_if_needed(destination, base_url, commit, filename, force, use_cache):
   version_file = os.path.join(destination, '.version')
   existing_version = ''
   try:
@@ -124,30 +132,49 @@ def download_if_needed(destination, base_url, commit, filename, force):
     raise ProgramError('Error: {0} already exists. Pass --force if you '
                        'want to overwrite it.'.format(destination))
 
-  download(destination, base_url, commit, filename)
+  download(destination, base_url, commit, filename, use_cache)
 
   with open(version_file, 'w') as f:
     f.write('{0}\n'.format(commit))
 
 
-def download(destination, base_url, commit, filename):
+def download(destination, base_url, commit, filename, use_cache):
   sys.stderr.write('Downloading {0}...\n'.format(filename))
   sys.stderr.flush()
   url = '{0}/{1}/{2}'.format(base_url, commit, filename)
-  download_and_extract(destination, url)
+  download_and_extract(destination, url, filename, use_cache, commit)
 
 
-def download_and_extract(destination, url):
+def download_and_extract(destination, url, filename, use_cache, cache_key):
   print url
+  cache_file = os.path.join(CACHE_ROOT, cache_key + '-' + filename)
   with tempfile.TemporaryFile() as t:
-    with contextlib.closing(urllib2.urlopen(url)) as u:
-      while True:
-        chunk = u.read(1024*1024)
-        if not len(chunk):
-          break
-        sys.stderr.write('.')
-        sys.stderr.flush()
-        t.write(chunk)
+    written_from_cache = False
+    if use_cache:
+      try:
+        with open(cache_file, 'r') as f:
+          sys.stderr.write('\nPulling from cache....\n')
+          shutil.copyfileobj(f, t)
+          written_from_cache = True
+      except IOError as e:
+        if e.errno != errno.ENOENT:
+          raise
+
+    if not written_from_cache:
+      with contextlib.closing(urllib2.urlopen(url)) as u:
+        while True:
+          chunk = u.read(1024*1024)
+          if not len(chunk):
+            break
+          sys.stderr.write('.')
+          sys.stderr.flush()
+          t.write(chunk)
+      if use_cache:
+        print('\n\nStoring in cache....')
+        with open(cache_file, 'w') as c:
+          t.seek(0)
+          shutil.copyfileobj(t, c)
+
     sys.stderr.write('\nExtracting...\n')
     sys.stderr.flush()
     with tarfile.open(fileobj=t, mode='r:bz2') as z:
@@ -161,6 +188,13 @@ def generate_filenames_gypi(target_file, libcc_source_path,
   subprocess.check_call([sys.executable, generate] + [target_file,
                          libcc_source_path, libcc_shared_library_path,
                          libcc_static_library_path])
+
+def mkdir_p(path):
+  try:
+    os.makedirs(path)
+  except OSError as e:
+    if e.errno != errno.EEXIST:
+      raise
 
 
 if __name__ == '__main__':
