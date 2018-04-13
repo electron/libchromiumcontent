@@ -11,6 +11,7 @@ import urllib2
 import platform
 
 import lib.filesystem as filesystem
+import lib.sccache as sccache
 import lib.util as util
 
 from lib.config import MIPS64EL_GCC, MIPS64EL_GCC_URL, MIPS64EL_SYSROOT, \
@@ -102,6 +103,9 @@ def parse_args():
   cc_wrapper_group.add_argument('--sccache',
                                 action='store_const', const='sccache', dest='cc_wrapper',
                                 help="Use sccache as a compiler cache.")
+  cc_wrapper_group.add_argument('--use-bundled-sccache',
+                                action='store_const', const=sccache.get_binary_path(), dest='cc_wrapper',
+                                help='Use sccache binary stored in with the libcc repo.')
 
   parser.set_defaults(apply_patches=True, run_gclient=True, update_depot_tools=True)
   return parser.parse_args()
