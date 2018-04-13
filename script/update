@@ -74,7 +74,7 @@ def main():
           copy_chromiumcontent_files() or
           update_clang() or
           setup_mips64el_toolchain(target_arch) or
-          run_gn(target_arch, args.sccache))
+          run_gn(target_arch, args.cc_wrapper))
 
 
 def parse_args():
@@ -92,7 +92,17 @@ def parse_args():
                       help='Skips update depot tools on Windows, easier to build locally')
   parser.add_argument('--source_only', action='store_true',
                       help='Only sync the Chromium source code')
-  parser.add_argument('--sccache', default=False, help='Enable sccache support')
+
+  cc_wrapper_group = parser.add_mutually_exclusive_group()
+  cc_wrapper_group.add_argument('--cc_wrapper',
+                                help="Compiler cache to use. E.g. ccache, sccache, etc.")
+  cc_wrapper_group.add_argument('--ccache',
+                                action='store_const', const='ccache', dest='cc_wrapper',
+                                help="Use ccache as a compiler cache.")
+  cc_wrapper_group.add_argument('--sccache',
+                                action='store_const', const='sccache', dest='cc_wrapper',
+                                help="Use sccache as a compiler cache.")
+
   parser.set_defaults(apply_patches=True, run_gclient=True, update_depot_tools=True)
   return parser.parse_args()
 
@@ -250,10 +260,11 @@ def setup_mips64el_toolchain(target_arch):
   subprocess.check_call(['chromium/scripts/generate_gn.py'], cwd=ffmpeg_dir)
 
 
-def run_gn(target_arch, use_sccache):
-  # TODO: Respect use_sccache. 
-
+def run_gn(target_arch, cc_wrapper=None):
   gn_args = {}
+
+  if cc_wrapper is not None:
+    gn_args['cc_wrapper'] = cc_wrapper
 
   script_path = os.path.join(SOURCE_ROOT, 'script', 'run-gn')
   script_arguments = [
