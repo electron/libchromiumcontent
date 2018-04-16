@@ -195,17 +195,17 @@ index a9b91cdcc86d..4168990971e4 100644
    // moved on send.
    bool is_background_tab =
 diff --git a/content/browser/security_exploit_browsertest.cc b/content/browser/security_exploit_browsertest.cc
-index b2616a679046..6ae77e5d2467 100644
+index 0a1f363a673a..adcef6fca779 100644
 --- a/content/browser/security_exploit_browsertest.cc
 +++ b/content/browser/security_exploit_browsertest.cc
-@@ -275,6 +275,7 @@ IN_PROC_BROWSER_TEST_F(SecurityExploitBrowserTest,
+@@ -293,6 +293,7 @@ IN_PROC_BROWSER_TEST_F(SecurityExploitBrowserTest,
  
    mojom::CreateNewWindowParamsPtr params = mojom::CreateNewWindowParams::New();
    params->target_url = GURL("about:blank");
 +  params->body = mojom::ResourceRequestBody::New();
    pending_rfh->CreateNewWindow(
-       std::move(params), base::BindOnce([](mojom::CreateNewWindowReplyPtr) {}));
-   // If the above operation doesn't cause a crash, the test has succeeded!
+       std::move(params), base::BindOnce([](mojom::CreateNewWindowStatus,
+                                            mojom::CreateNewWindowReplyPtr) {}));
 diff --git a/content/shell/browser/layout_test/layout_test_content_browser_client.cc b/content/shell/browser/layout_test/layout_test_content_browser_client.cc
 index 2eaee37ec780..9994df95a798 100644
 --- a/content/shell/browser/layout_test/layout_test_content_browser_client.cc
