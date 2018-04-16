@@ -218,3 +218,41 @@ index 22bd13a28fb7..f7e688d9fda6 100644
    // We preserve this information before sending the message since |params| is
    // moved on send.
    bool is_background_tab =
+diff --git a/content/browser/security_exploit_browsertest.cc b/content/browser/security_exploit_browsertest.cc
+index b2616a679046..6ae77e5d2467 100644
+--- a/content/browser/security_exploit_browsertest.cc
++++ b/content/browser/security_exploit_browsertest.cc
+@@ -275,6 +275,7 @@ IN_PROC_BROWSER_TEST_F(SecurityExploitBrowserTest,
+ 
+   mojom::CreateNewWindowParamsPtr params = mojom::CreateNewWindowParams::New();
+   params->target_url = GURL("about:blank");
++  params->body = mojom::ResourceRequestBody::New();
+   pending_rfh->CreateNewWindow(
+       std::move(params), base::BindOnce([](mojom::CreateNewWindowReplyPtr) {}));
+   // If the above operation doesn't cause a crash, the test has succeeded!
+diff --git a/content/shell/browser/layout_test/layout_test_content_browser_client.cc b/content/shell/browser/layout_test/layout_test_content_browser_client.cc
+index 2eaee37ec780..9994df95a798 100644
+--- a/content/shell/browser/layout_test/layout_test_content_browser_client.cc
++++ b/content/shell/browser/layout_test/layout_test_content_browser_client.cc
+@@ -182,6 +182,8 @@ bool LayoutTestContentBrowserClient::CanCreateWindow(
+     const std::string& frame_name,
+     WindowOpenDisposition disposition,
+     const blink::mojom::WindowFeatures& features,
++    const std::vector<std::string>& additional_features,
++    const scoped_refptr<ResourceRequestBody>& body,
+     bool user_gesture,
+     bool opener_suppressed,
+     bool* no_javascript_access) {
+diff --git a/content/shell/browser/layout_test/layout_test_content_browser_client.h b/content/shell/browser/layout_test/layout_test_content_browser_client.h
+index 62b637bc80ce..1a9a06ce4bf6 100644
+--- a/content/shell/browser/layout_test/layout_test_content_browser_client.h
++++ b/content/shell/browser/layout_test/layout_test_content_browser_client.h
+@@ -58,6 +58,8 @@ class LayoutTestContentBrowserClient : public ShellContentBrowserClient {
+                        const std::string& frame_name,
+                        WindowOpenDisposition disposition,
+                        const blink::mojom::WindowFeatures& features,
++                       const std::vector<std::string>& additional_features,
++                       const scoped_refptr<ResourceRequestBody>& body,
+                        bool user_gesture,
+                        bool opener_suppressed,
+                        bool* no_javascript_access) override;

@@ -328,6 +328,12 @@ patches:
   file: fix-arm64-linking-error.patch
   description: Do not use system freetype for arm64
 -
+  owners: nitsakh
+  file: disable_unittests.patch
+  description: Disabling unit tests
+    GPUTestConfigTest.LoadCurrentConfig test is disabled as it fails
+    on high sierra. It should be updated with newer chromium.
+-
   owners: brenca
   file: disable-redraw-lock.patch
   description:  |
