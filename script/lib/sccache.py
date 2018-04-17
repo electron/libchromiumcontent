@@ -5,7 +5,7 @@ import sys
 from config import TOOLS_DIR
 
 
-VERSION = '0.2.6'
+VERSION = 'aad2120'
 SUPPORTED_PLATFORMS = {
   'cygwin': 'windows',
   'darwin': 'mac',

@@ -18,6 +18,7 @@ S3_CREDENTIALS_FILE = os.path.join(JENKINS_ROOT, 'config', 's3credentials')
 def main():
   args = parse_args()
   skip_upload = args.skip_upload
+  use_sccache = args.use_sccache
 
   if (not skip_upload and
      not 'LIBCHROMIUMCONTENT_S3_ACCESS_KEY' in os.environ and
@@ -34,23 +35,25 @@ def main():
 
   if 'TARGET_ARCH' in os.environ:
     args = ['-t', os.environ['TARGET_ARCH']]
-    return run_ci(args, skip_upload, os.environ['COMPONENT'])
+    return run_ci(args, skip_upload, use_sccache, os.environ['COMPONENT'])
 
   if sys.platform in ['win32', 'cygwin']:
-    return (run_ci(['-t', 'x64'], skip_upload) or
-            run_ci(['-t', 'ia32'], skip_upload))
+    return (run_ci(['-t', 'x64'], skip_upload, use_sccache) or
+            run_ci(['-t', 'ia32'], skip_upload, use_sccache))
   elif sys.platform == 'linux2':
-    return (run_ci(['-t', 'x64'], skip_upload) or
-            run_ci(['-t', 'ia32'], skip_upload) or
-            run_ci(['-t', 'arm'], skip_upload) or
-            run_ci(['-t', 'arm64'], skip_upload))
+    return (run_ci(['-t', 'x64'], skip_upload, use_sccache) or
+            run_ci(['-t', 'ia32'], skip_upload, use_sccache) or
+            run_ci(['-t', 'arm'], skip_upload, use_sccache) or
+            run_ci(['-t', 'arm64'], skip_upload, use_sccache))
   else:
-    return run_ci([], skip_upload)
+    return run_ci([], skip_upload, use_sccache)
 
 def parse_args():
   parser = argparse.ArgumentParser(description='Run CI build')
   parser.add_argument('-s', '--skip_upload', action='store_true',
                       help='Skip uploading to S3')
+  parser.add_argument('--use_sccache', action='store_true',
+                      help='Use sccache binary stored in with the libcc repo.')
   return parser.parse_args()
 
 def copy_to_environment(credentials_file):
@@ -72,9 +75,12 @@ def os_version():
     return platform.platform()
 
 
-def run_ci(args, skip_upload, component=None):
+def run_ci(args, skip_upload, use_sccache, component=None):
   build_args = []
   component_args = []
+  update_args = ['--clean'] + args
+  if use_sccache:
+    update_args += ['--use-bundled-sccache']
   if component is not None:
     component_args = ['-c', component]
     build_args += component_args + ['ffmpeg']
@@ -88,7 +94,7 @@ def run_ci(args, skip_upload, component=None):
     os.environ.update(vs_env)
 
   return (run_script('bootstrap') or
-          run_script('update', ['--clean'] + args) or
+          run_script('update', update_args) or
           run_script('build', args + build_args) or
           run_script('create-dist', args + component_args) or
           run_script('upload', args, skip_upload))

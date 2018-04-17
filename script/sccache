@@ -1,12 +1,34 @@
 #!/usr/bin/env python
 
+import argparse
+import os
 import sys
 
 import lib.sccache as sccache
 
+def parse_args():
+  parser = argparse.ArgumentParser(description='Run sccache`')
+  parser.add_argument('--azure_container', help='Name of azure container to use')
+  parser.add_argument('--azure_connection', help='Name of azure connection to use')
+  parser.add_argument('-s', '--show-stats', action='store_true', help='Show cache statistics')
+  parser.add_argument('--start-server', action='store_true', help='start background server')
+  parser.add_argument('--stop-server', action='store_true', help='stop background server')
+  parser.add_argument('-V', '--version', action='store_true', help='Prints version information')
+  parser.add_argument('-z', '--zero-stats', action='store_true', help='zero statistics counters')
+  return parser.parse_args()
 
 def main(args_list):
-  return sccache.run(*args_list)
+  args = parse_args()
+  sccache_args = list(args_list)
+  if args.azure_container:
+    os.environ['SCCACHE_AZURE_BLOB_CONTAINER'] = args.azure_container
+    sccache_args.remove('--azure_container')
+    sccache_args.remove(args.azure_container)
+  if args.azure_connection:
+    os.environ['SCCACHE_AZURE_CONNECTION_STRING'] = args.azure_connection
+    sccache_args.remove('--azure_connection')
+    sccache_args.remove(args.azure_connection)
+  return sccache.run(*sccache_args)
 
 
 if __name__ == '__main__':

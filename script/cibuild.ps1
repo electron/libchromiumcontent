@@ -1,4 +1,4 @@
-param([switch]$skipUpload)
+param([switch]$skipUpload, [switch]$useSccache)
 function Run-Command([scriptblock]$Command, [switch]$Fatal, [switch]$Quiet) {
   $output = ""
   try {
@@ -33,8 +33,13 @@ function Run-Command([scriptblock]$Command, [switch]$Fatal, [switch]$Quiet) {
 }
 
 Write-Output ""
+$CommandLine = "python .\script\cibuild"
 if ($skipUpload) {
-  Run-Command -Fatal { python .\script\cibuild --skip_upload }
-} else {
-  Run-Command -Fatal { python .\script\cibuild }
+  $CommandLine += " --skip_upload"
 }
+
+if ($useSccache) {
+  $CommandLine += " --use_sccache"
+}
+$CICommand = [ScriptBlock]::Create($CommandLine)
+Run-Command -Fatal $CICommand

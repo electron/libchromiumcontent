@@ -3,7 +3,7 @@
 Shared Compilation Cache  
 https://github.com/mozilla/sccache
 
-### Building a portable binary version 0.2.6 on Mac
+### Building a portable binary version on Mac
 
 The goal is to build a binary that would not require `openssl` to be installed in the system. The project's docs provide [build instructions](https://github.com/mozilla/sccache#building-portable-binaries)  for that but they're quite laconic.
 
@@ -12,8 +12,8 @@ Old versions might not be available via [Homebrew](https://brew.sh) but `brew in
 2. Clone the repo:  
 `git clone https://github.com/mozilla/sccache.git`
 3. `cd sccache`
-4. Checkout version 0.2.6:  
-`git fetch --tags && git checkout 0.2.6`
+4. Checkout version aad212037ce6340839686da8a1bdf5455b143b1c:  
+`git fetch --tags && git checkout aad212037ce6340839686da8a1bdf5455b143b1c`
 5. `export OPENSSL_STATIC=yes`
 6. Build the project in a release mode:  
 `cargo build --release`.
