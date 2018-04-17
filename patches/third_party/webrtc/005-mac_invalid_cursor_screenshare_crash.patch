@@ -1,0 +1,14 @@
+diff --git a/modules/desktop_capture/mouse_cursor_monitor_mac.mm b/modules/desktop_capture/mouse_cursor_monitor_mac.mm
+index 213071952..64edcfb2f 100644
+--- a/modules/desktop_capture/mouse_cursor_monitor_mac.mm
++++ b/modules/desktop_capture/mouse_cursor_monitor_mac.mm
+@@ -251,6 +251,9 @@ void MouseCursorMonitorMac::CaptureImage(float scale) {
+   NSCursor* nscursor = [NSCursor currentSystemCursor];
+ 
+   NSImage* nsimage = [nscursor image];
++  if (nsimage == nil || !nsimage.isValid) {
++    return;
++  }
+   NSSize nssize = [nsimage size];  // DIP size
+ 
+   // For retina screen, we need to paint the cursor in current graphic context
