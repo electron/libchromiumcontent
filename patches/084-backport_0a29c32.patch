@@ -1,0 +1,409 @@
+[Windows Sandbox] Possible short/8.3 form native file paths prevent startup.
+
+win_utils.cc, GetProcessBaseAddress() ends up comparing file paths from two
+system APIs: ::QueryFullProcessImageName() and ::GetMappedFileName().  Both APIs return
+native file paths.  However, depending on filesystem, these paths can be in
+short/8.3 form.  Path comparison in GetProcessBaseAddress can fail, preventing
+process startup.
+
+This CL does the following:
+ - GetProcessBaseAddress() now uses sandbox::ConvertToLongPath().
+ - sandbox::ConvertToLongPath() now handles extending native device paths.
+
+TESTS=sbox_unittests.exe
+BUG=744638
+
+Cq-Include-Trybots: master.tryserver.chromium.win:win10_chromium_x64_rel_ng
+Change-Id: I86cb8b4c8da13f4405aba16e127c512a1eec539d
+Reviewed-on: https://chromium-review.googlesource.com/580629
+Reviewed-by: James Forshaw <forshaw@chromium.org>
+Commit-Queue: Penny MacNeil <pennymac@chromium.org>
+Cr-Commit-Position: refs/heads/master@{#493034}
+
+Commit 0a29c328... initially landed in 62.0.3181.0
+
+No merges found.
+
+diff --git a/sandbox/win/src/win_utils.cc b/sandbox/win/src/win_utils.cc
+index 51ae51d9fc04..054567a9f58f 100644
+--- a/sandbox/win/src/win_utils.cc
++++ b/sandbox/win/src/win_utils.cc
+@@ -23,6 +23,14 @@
+ 
+ namespace {
+ 
++const size_t kDriveLetterLen = 3;
++
++constexpr wchar_t kNTDotPrefix[] = L"\\\\.\\";
++const size_t kNTDotPrefixLen = arraysize(kNTDotPrefix) - 1;
++
++constexpr wchar_t kWIN32Prefix[] = L"\\\\?\\";
++const size_t kWIN32PrefixLen = arraysize(kWIN32Prefix) - 1;
++
+ // Holds the information about a known registry key.
+ struct KnownReservedKey {
+   const wchar_t* name;
+@@ -47,6 +55,12 @@ bool EqualPath(const base::string16& first, const base::string16& second) {
+   return _wcsicmp(first.c_str(), second.c_str()) == 0;
+ }
+ 
++bool EqualPath(const base::string16& first,
++               const base::string16& second,
++               size_t len) {
++  return _wcsnicmp(first.c_str(), second.c_str(), len) == 0;
++}
++
+ bool EqualPath(const base::string16& first, size_t first_offset,
+                const base::string16& second, size_t second_offset) {
+   return _wcsicmp(first.c_str() + first_offset,
+@@ -65,9 +79,9 @@ bool EqualPath(const base::string16& first, size_t first_offset,
+ 
+ // Returns true if |path| starts with "\??\" and returns a path without that
+ // component.
+-bool IsNTPath(const base::string16& path, base::string16* trimmed_path ) {
++bool IsNTPath(const base::string16& path, base::string16* trimmed_path) {
+   if ((path.size() < sandbox::kNTPrefixLen) ||
+-      (0 != path.compare(0, sandbox::kNTPrefixLen, sandbox::kNTPrefix))) {
++      !EqualPath(path, sandbox::kNTPrefix, sandbox::kNTPrefixLen)) {
+     *trimmed_path = path;
+     return false;
+   }
+@@ -78,7 +92,7 @@ bool IsNTPath(const base::string16& path, base::string16* trimmed_path ) {
+ 
+ // Returns true if |path| starts with "\Device\" and returns a path without that
+ // component.
+-bool IsDevicePath(const base::string16& path, base::string16* trimmed_path ) {
++bool IsDevicePath(const base::string16& path, base::string16* trimmed_path) {
+   if ((path.size() < sandbox::kNTDevicePrefixLen) ||
+       (!EqualPath(path, sandbox::kNTDevicePrefix,
+                   sandbox::kNTDevicePrefixLen))) {
+@@ -90,8 +104,38 @@ bool IsDevicePath(const base::string16& path, base::string16* trimmed_path ) {
+   return true;
+ }
+ 
++// Returns the offset to the path seperator following
++// "\Device\HarddiskVolumeX" in |path|.
++size_t PassHarddiskVolume(const base::string16& path) {
++  static constexpr wchar_t pattern[] = L"\\Device\\HarddiskVolume";
++  const size_t patternLen = arraysize(pattern) - 1;
++
++  // First, check for |pattern|.
++  if ((path.size() < patternLen) || (!EqualPath(path, pattern, patternLen)))
++    return base::string16::npos;
++
++  // Find the next path separator, after the pattern match.
++  return path.find_first_of(L'\\', patternLen - 1);
++}
++
++// Returns true if |path| starts with "\Device\HarddiskVolumeX\" and returns a
++// path without that component.  |removed| will hold the prefix removed.
++bool IsDeviceHarddiskPath(const base::string16& path,
++                          base::string16* trimmed_path,
++                          base::string16* removed) {
++  size_t offset = PassHarddiskVolume(path);
++  if (offset == base::string16::npos)
++    return false;
++
++  // Remove up to and including the path separator.
++  *removed = path.substr(0, offset + 1);
++  // Remaining path starts after the path separator.
++  *trimmed_path = path.substr(offset + 1);
++  return true;
++}
++
+ bool StartsWithDriveLetter(const base::string16& path) {
+-  if (path.size() < 3)
++  if (path.size() < kDriveLetterLen)
+     return false;
+ 
+   if (path[1] != L':' || path[2] != L'\\')
+@@ -100,29 +144,57 @@ bool StartsWithDriveLetter(const base::string16& path) {
+   return base::IsAsciiAlpha(path[0]);
+ }
+ 
+-const wchar_t kNTDotPrefix[] = L"\\\\.\\";
+-const size_t kNTDotPrefixLen = arraysize(kNTDotPrefix) - 1;
+-
+ // Removes "\\\\.\\" from the path.
+ void RemoveImpliedDevice(base::string16* path) {
+-  if (0 == path->compare(0, kNTDotPrefixLen, kNTDotPrefix))
++  if (EqualPath(*path, kNTDotPrefix, kNTDotPrefixLen))
+     *path = path->substr(kNTDotPrefixLen);
+ }
+ 
+-// Get the native path to the process.
+-bool GetProcessPath(HANDLE process, base::string16* path) {
++// Get drive letter from a Win32 path (if it's there).
++// - Returns 'false' if no drive letter is found.
++bool GetDriveLetter(const base::string16& win32_path,
++                    base::string16* drive_letter) {
++  base::string16 temp = win32_path;
++
++  if (win32_path.size() >= kWIN32PrefixLen &&
++      EqualPath(win32_path, kWIN32Prefix, kWIN32PrefixLen)) {
++    // Bypass Win32 file prefix ("\\?\") if it's there.
++    temp = win32_path.substr(kWIN32PrefixLen);
++  } else if (win32_path.size() >= kNTDotPrefixLen &&
++             EqualPath(win32_path, kNTDotPrefix, kNTDotPrefixLen)) {
++    // Bypass Win32 device prefix ("\\.\") if it's there.
++    temp = win32_path.substr(kNTDotPrefixLen);
++  } else if (win32_path.size() >= sandbox::kNTPrefixLen &&
++             EqualPath(win32_path, sandbox::kNTPrefix, sandbox::kNTPrefixLen)) {
++    // Bypass object manager prefix ("\??\") if it's there.
++    temp = win32_path.substr(sandbox::kNTPrefixLen);
++  }
++
++  if (!StartsWithDriveLetter(temp)) {
++    drive_letter->clear();
++    return false;
++  }
++
++  drive_letter->assign(temp, 0, kDriveLetterLen);
++  return true;
++}
++
++// Get the path to the process.
++// - Pass 'true' for native format, or 'false' for win32.
++// - Returns the full name of the exe image for |process|.
++bool GetProcessPath(HANDLE process, base::string16* path, bool native) {
+   wchar_t process_name[MAX_PATH];
+   DWORD size = MAX_PATH;
+-  if (::QueryFullProcessImageNameW(process, PROCESS_NAME_NATIVE, process_name,
+-                                   &size)) {
++  DWORD flags = (native) ? PROCESS_NAME_NATIVE : 0;
++  if (::QueryFullProcessImageNameW(process, flags, process_name, &size)) {
+     *path = process_name;
+     return true;
+   }
+   // Process name is potentially greater than MAX_PATH, try larger max size.
+   std::vector<wchar_t> process_name_buffer(SHRT_MAX);
+   size = SHRT_MAX;
+-  if (::QueryFullProcessImageNameW(process, PROCESS_NAME_NATIVE,
+-                                   &process_name_buffer[0], &size)) {
++  if (::QueryFullProcessImageNameW(process, flags, &process_name_buffer[0],
++                                   &size)) {
+     *path = &process_name_buffer[0];
+     return true;
+   }
+@@ -155,7 +227,7 @@ namespace sandbox {
+ // Returns true if the provided path points to a pipe.
+ bool IsPipe(const base::string16& path) {
+   size_t start = 0;
+-  if (0 == path.compare(0, sandbox::kNTPrefixLen, sandbox::kNTPrefix))
++  if (EqualPath(path, sandbox::kNTPrefix, sandbox::kNTPrefixLen))
+     start = sandbox::kNTPrefixLen;
+ 
+   const wchar_t kPipe[] = L"pipe\\";
+@@ -319,21 +391,42 @@ bool SameObject(HANDLE handle, const wchar_t* full_path) {
+   return true;
+ }
+ 
+-// Paths like \Device\HarddiskVolume0\some\foo\bar are assumed to be already
+-// expanded.
+-bool ConvertToLongPath(base::string16* path) {
+-  if (IsPipe(*path))
++// Just make a best effort here.  There are lots of corner cases that we're
++// not expecting - and will fail to make long.
++bool ConvertToLongPath(base::string16* native_path,
++                       const base::string16* drive_letter) {
++  if (IsPipe(*native_path))
+     return true;
+ 
++  bool is_device_harddisk_path = false;
++  bool is_nt_path = false;
++  bool added_implied_device = false;
+   base::string16 temp_path;
+-  if (IsDevicePath(*path, &temp_path))
++  base::string16 to_restore;
++
++  // Process a few prefix types.
++  if (IsNTPath(*native_path, &temp_path)) {
++    // "\??\"
++    if (!StartsWithDriveLetter(temp_path)) {
++      // Prepend with "\\.\".
++      temp_path = base::string16(kNTDotPrefix) + temp_path;
++      added_implied_device = true;
++    }
++    is_nt_path = true;
++  } else if (IsDeviceHarddiskPath(*native_path, &temp_path, &to_restore)) {
++    // "\Device\HarddiskVolumeX\" - hacky attempt making ::GetLongPathName
++    // work for native device paths.  Remove "\Device\HarddiskVolumeX\" and
++    // replace with drive letter.
++
++    // Nothing we can do if we don't have a drive letter.  Leave |native_path|
++    // as is.
++    if (!drive_letter || drive_letter->empty())
++      return false;
++    temp_path = *drive_letter + temp_path;
++    is_device_harddisk_path = true;
++  } else if (IsDevicePath(*native_path, &temp_path)) {
++    // "\Device\" - there's nothing we can do to convert to long here.
+     return false;
+-
+-  bool is_nt_path = IsNTPath(temp_path, &temp_path);
+-  bool added_implied_device = false;
+-  if (!StartsWithDriveLetter(temp_path) && is_nt_path) {
+-    temp_path = base::string16(kNTDotPrefix) + temp_path;
+-    added_implied_device = true;
+   }
+ 
+   DWORD size = MAX_PATH;
+@@ -369,15 +462,21 @@ bool ConvertToLongPath(base::string16* path) {
+     temp_path = long_path_buf.get();
+   }
+ 
++  // If successful, re-apply original namespace prefix before returning.
+   if (return_value != 0) {
+     if (added_implied_device)
+       RemoveImpliedDevice(&temp_path);
+ 
+     if (is_nt_path) {
+-      *path = kNTPrefix;
+-      *path += temp_path;
++      *native_path = kNTPrefix;
++      *native_path += temp_path;
++    } else if (is_device_harddisk_path) {
++      // Remove the added drive letter.
++      temp_path = temp_path.substr(kDriveLetterLen);
++      *native_path = to_restore;
++      *native_path += temp_path;
+     } else {
+-      *path = temp_path;
++      *native_path = temp_path;
+     }
+ 
+     return true;
+@@ -469,7 +568,17 @@ void* GetProcessBaseAddress(HANDLE process) {
+   void* current = reinterpret_cast<void*>(0x10000);
+   base::string16 process_path;
+ 
+-  if (!GetProcessPath(process, &process_path))
++  // First, get the win32 process path.
++  if (!GetProcessPath(process, &process_path, false))
++    return nullptr;
++
++  // Next, get the drive letter from the win32 path. (May not be one.)
++  base::string16 drive;
++  GetDriveLetter(process_path, &drive);
++
++  // Now get the native process path.
++  // (Currently assuming QueryFullProcessImageName returns long format.)
++  if (!GetProcessPath(process, &process_path, true))
+     return nullptr;
+ 
+   // Walk the virtual memory mappings trying to find image sections.
+@@ -478,9 +587,19 @@ void* GetProcessBaseAddress(HANDLE process) {
+   while (::VirtualQueryEx(process, current, &mem_info, sizeof(mem_info))) {
+     base::string16 image_path;
+     if (mem_info.Type == MEM_IMAGE &&
+-        GetImageFilePath(process, mem_info.BaseAddress, &image_path) &&
+-        EqualPath(process_path, image_path)) {
+-      return mem_info.BaseAddress;
++        GetImageFilePath(process, mem_info.BaseAddress, &image_path)) {
++      // Compare HarddiskVolume before doing any more work.
++      size_t offset = PassHarddiskVolume(process_path);
++      if (offset != base::string16::npos &&
++          EqualPath(process_path, image_path, offset + 1)) {
++        // Native file paths returned from GetImageFilePath can be in short/8.3
++        // form, depending on filesystem.
++        ConvertToLongPath(&image_path, &drive);
++        // Compare the rest of the two paths.
++        if (EqualPath(process_path, offset + 1, image_path, offset + 1)) {
++          return mem_info.BaseAddress;
++        }
++      }
+     }
+     // VirtualQueryEx should fail before overflow, but just in case we'll check
+     // to prevent an infinite loop.
+diff --git a/sandbox/win/src/win_utils.h b/sandbox/win/src/win_utils.h
+index b88b08c63c15..76f6c3642ad4 100644
+--- a/sandbox/win/src/win_utils.h
++++ b/sandbox/win/src/win_utils.h
+@@ -69,7 +69,10 @@ class SingletonBase {
+ // Convert a short path (C:\path~1 or \\??\\c:\path~1) to the long version of
+ // the path. If the path is not a valid filesystem path, the function returns
+ // false and argument is not modified.
+-bool ConvertToLongPath(base::string16* path);
++// - If passing in a short native device path (\Device\HarddiskVolumeX\path~1),
++//   a drive letter string (c:\) must also be provided.
++bool ConvertToLongPath(base::string16* path,
++                       const base::string16* drive_letter = nullptr);
+ 
+ // Returns ERROR_SUCCESS if the path contains a reparse point,
+ // ERROR_NOT_A_REPARSE_POINT if there's no reparse point in this path, or an
+diff --git a/sandbox/win/src/win_utils_unittest.cc b/sandbox/win/src/win_utils_unittest.cc
+index 50ded5191531..fa3e588875b5 100644
+--- a/sandbox/win/src/win_utils_unittest.cc
++++ b/sandbox/win/src/win_utils_unittest.cc
+@@ -7,7 +7,10 @@
+ 
+ #include <vector>
+ 
++#include "base/files/file_path.h"
++#include "base/files/file_util.h"
+ #include "base/numerics/safe_conversions.h"
++#include "base/path_service.h"
+ #include "base/win/scoped_handle.h"
+ #include "base/win/scoped_process_information.h"
+ #include "sandbox/win/src/nt_internals.h"
+@@ -208,4 +211,59 @@ TEST(WinUtils, GetProcessBaseAddress) {
+   }
+   EXPECT_EQ(base_address,
+             GetProcessBaseAddress(scoped_proc_info.process_handle()));
++}
++
++// This test requires an elevated prompt to setup.
++TEST(WinUtils, ConvertToLongPath) {
++  // Test setup.
++  base::FilePath orig_path;
++  ASSERT_TRUE(base::PathService::Get(base::DIR_SYSTEM, &orig_path));
++  orig_path = orig_path.Append(L"calc.exe");
++
++  base::FilePath temp_path;
++  ASSERT_TRUE(base::PathService::Get(base::DIR_PROGRAM_FILES, &temp_path));
++  temp_path = temp_path.Append(L"test_calc.exe");
++
++  ASSERT_TRUE(base::CopyFile(orig_path, temp_path));
++  // No more asserts until cleanup.
++
++  // WIN32 long path: "c:\Program Files\test_calc.exe"
++  wchar_t short_path[MAX_PATH] = {};
++  DWORD size =
++      ::GetShortPathNameW(temp_path.value().c_str(), short_path, MAX_PATH);
++  EXPECT_TRUE(size > 0 && size < MAX_PATH);
++  // WIN32 short path: "C:\PROGRA~1\TEST_C~1.exe"
++
++  // Sanity check that we actually got a short path above!  Small chance
++  // it was disabled in the filesystem setup.
++  EXPECT_NE(temp_path.value().length(), ::wcslen(short_path));
++
++  base::string16 short_form_native_path;
++  EXPECT_TRUE(sandbox::GetNtPathFromWin32Path(base::string16(short_path),
++                                              &short_form_native_path));
++  // NT short path: "\Device\HarddiskVolume4\PROGRA~1\TEST_C~1.EXE"
++
++  // Test 1: convert win32 short path to long:
++  base::string16 test1(short_path);
++  EXPECT_TRUE(sandbox::ConvertToLongPath(&test1));
++  EXPECT_TRUE(::wcsicmp(temp_path.value().c_str(), test1.c_str()) == 0);
++  // Expected result: "c:\Program Files\test_calc.exe"
++
++  // Test 2: convert native short path to long:
++  base::string16 drive_letter = temp_path.value().substr(0, 3);
++  base::string16 test2(short_form_native_path);
++  EXPECT_TRUE(sandbox::ConvertToLongPath(&test2, &drive_letter));
++
++  size_t index = short_form_native_path.find_first_of(
++      L'\\', ::wcslen(L"\\Device\\HarddiskVolume"));
++  EXPECT_TRUE(index != base::string16::npos);
++  base::string16 expected_result = short_form_native_path.substr(0, index + 1);
++  expected_result.append(temp_path.value().substr(3));
++  EXPECT_TRUE(::wcsicmp(expected_result.c_str(), test2.c_str()) == 0);
++  // Expected result: "\Device\HarddiskVolumeX\Program Files\test_calc.exe"
++
++  // clean up
++  EXPECT_TRUE(base::DeleteFileW(temp_path, false));
++
++  return;
+ }
+\ No newline at end of file
