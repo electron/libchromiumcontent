@@ -12,7 +12,7 @@ phases:
         TARGET_ARCH: x64
         TARGET_TYPE: mas
       libchromiumcontent-mas-static:
-        COMPONENT: shared_library
+        COMPONENT: static_library
         MAS_BUILD: 1
         TARGET_ARCH: x64
         TARGET_TYPE: mas
@@ -21,7 +21,7 @@ phases:
         TARGET_ARCH: x64
         TARGET_TYPE: osx
       libchromiumcontent-osx-static:
-        COMPONENT: shared_library
+        COMPONENT: static_library
         TARGET_ARCH: x64
         TARGET_TYPE: osx
 
