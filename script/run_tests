@@ -18,9 +18,21 @@ else:
 def GetTestsToRun(args):
   build_dir = get_output_dir(SOURCE_ROOT, args.target_arch, 'tests')
   tests = []
-  for file_name in os.listdir(build_dir):
-    if re.search(BINARY_TEST_REGEX, file_name):
-      tests.append(os.path.join(build_dir, file_name))
+  if args.only is None:
+    for file_name in os.listdir(build_dir):
+      if file_name in args.exclude:
+        continue
+      if re.search(BINARY_TEST_REGEX, file_name):
+        tests.append(os.path.join(build_dir, file_name))
+  else:
+    for test_name in args.only:
+      if test_name in args.exclude:
+        continue
+      test_file = os.path.join(build_dir, test_name)
+      if os.path.isfile(test_file):
+        tests.append(test_file)
+      else:
+        print 'Invalid test target name: ' + test_name
   return tests
 
 def RunTests(binary_tests):
@@ -47,9 +59,9 @@ def RunTests(binary_tests):
 def main():
   parser = argparse.ArgumentParser(description='Run Chromium tests')
   parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
+  parser.add_argument('--only', nargs='+', help='Names of the test targets to run. For example: base_unittests url_unittests')
+  parser.add_argument('--exclude', nargs='+', help='Names of the test targets to exclude. For example: base_unittests url_unittests')
   tests = GetTestsToRun(parser.parse_args())
-  if not tests:
-    return 1
   return RunTests(tests)
 
 if __name__ == '__main__':
