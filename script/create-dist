@@ -255,6 +255,7 @@ GENERATED_INCLUDE_DIRS = [
   'components/download/public',
   'components/filesystem',
   'components/leveldb',
+  'components/payments',
   'components/ukm',
   'content',
   'device',
