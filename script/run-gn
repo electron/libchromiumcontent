@@ -47,6 +47,8 @@ def main():
 
 
 def generate_build_files(component, target_arch, **gnargs):
+  print 'Generating build files for "{0}" configuration...'.format(component)
+
   build_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
   create_gn_config(component, build_dir, **gnargs)
 
