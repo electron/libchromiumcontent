@@ -256,3 +256,9 @@ patches:
       Backports "ServiceWorker: Fix a jumbo build error",
       see https://chromium-review.googlesource.com/957568
       Original change's landed in 67.0.3369.0.
+-
+  owners: alexeykuzmin
+  file: exclude_next_version_mini_installer_from_deps.patch
+  description: |
+      It breaks ninja files generation for the "shared_library" configuration.
+      Probably won't be needed on the next Chromium upgrade (after 66).
