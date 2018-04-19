@@ -42,6 +42,7 @@ def main():
      gn_args.update(args.args)
 
   for component in args.components:
+    print 'Generating build files for "{0}" configuration...'.format(component)
     generate_build_files(component, args.target_arch, **gn_args)
 
 
