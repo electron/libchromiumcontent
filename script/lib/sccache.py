@@ -1,4 +1,5 @@
 import os
+import subprocess
 import sys
 
 from config import TOOLS_DIR
@@ -29,3 +30,12 @@ def get_binary_path():
     path += '.exe'
 
   return path
+
+
+def run(*args):
+  binary_path = get_binary_path()
+  if binary_path is None:
+    raise Exception('No sccache binary found for the current platform.')
+
+  call_args = [binary_path] + list(args)
+  return subprocess.call(call_args)
