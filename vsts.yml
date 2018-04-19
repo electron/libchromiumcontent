@@ -27,11 +27,11 @@ phases:
 
   steps:
   - bash: |
-     if [[ -z "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER}" ]] || "$SYSTEM_PULLREQUEST_ISFORK" == "True"; then
+     if [[ -z "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER}" ]] || "${SYSTEM_PULLREQUEST_ISFORK}" == "True"; then
        echo "##vso[task.setvariable variable=gitcommit]$BUILD_SOURCEVERSION"
      else
-       tmp="${BUILD_SOURCEVERSIONMESSAGE/#Merge/}"
-       PR_COMMIT_ID="${tmp%%into*}"
+       tmp="${BUILD_SOURCEVERSIONMESSAGE/#Merge /}"
+       PR_COMMIT_ID="${tmp%% into*}"
        echo "PR is for repo branch, using original commit $PR_COMMIT_ID"
        echo "##vso[task.setvariable variable=gitcommit]$PR_COMMIT_ID"
        echo "Checking out $PR_COMMIT_ID"
