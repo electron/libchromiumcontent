@@ -27,7 +27,20 @@ phases:
 
   steps:
   - bash: |
-     echo "##vso[task.setvariable variable=gitcommit]$BUILD_SOURCEVERSION"
+     if [[ -z "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER}" ]] || "${SYSTEM_PULLREQUEST_ISFORK}" == "True"; then
+       echo "##vso[task.setvariable variable=gitcommit]$BUILD_SOURCEVERSION"
+     else
+       tmp="${BUILD_SOURCEVERSIONMESSAGE/#Merge /}"
+       PR_COMMIT_ID="${tmp%% into*}"
+       echo "PR is for repo branch, using original commit $PR_COMMIT_ID"
+       echo "##vso[task.setvariable variable=gitcommit]$PR_COMMIT_ID"
+       echo "Checking out $PR_COMMIT_ID"
+       git checkout $PR_COMMIT_ID
+       echo "Now switched to `git rev-parse HEAD`"
+     fi
+    name: Get_commit
+
+  - bash: |
      echo "===Bootstrapping===" > >(tee -a buildlog.txt) 2> >(tee -a buildlog.txt >&2)
      script/bootstrap > >(tee -a buildlog.txt) 2> >(tee -a buildlog.txt >&2)
     name: Bootstrap
