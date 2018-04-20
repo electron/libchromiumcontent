@@ -197,6 +197,7 @@ with open(args.out, 'w') as out:
         "obj_media",
         [
             "media",
+            "third_party/libaom",
         ])
 
     gen_list(
@@ -207,8 +208,10 @@ with open(args.out, 'w') as out:
             "net/constants",
             "net/dns",
             "net/extras",
+            "net/interfaces",
             "net/http_server",
             "net/net",
+            "net/net_browser_services",
             "net/net_with_v8",
             "net/proxy_resolution",
         ])
@@ -224,6 +227,7 @@ with open(args.out, 'w') as out:
             "services/file",
             "services/metrics",
             "services/network",
+            "services/proxy_resolver",
             "services/resource_coordinator",
             "services/service_manager",
             "services/shape_detection",
@@ -235,8 +239,7 @@ with open(args.out, 'w') as out:
             "services/ui/gpu",
             "services/user",
             "services/video_capture",
-            "services/viz/privileged/interfaces",
-            "services/viz/public/interfaces",
+            "services/viz",
         ])
 
     gen_list(
