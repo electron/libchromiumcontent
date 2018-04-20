@@ -15,17 +15,3 @@ index 0a6b0176a982..35a1c3c11a58 100644
  
    (*map_type)[key] = value;
    ResetKeyIterator();
-
-diff --git a/content/common/dom_storage/dom_storage_map_unittest.cc b/content/common/dom_storage/dom_storage_map_unittest.cc
-index bad1d7d44f5b..ea35cf6763c7 100644
---- a/content/common/dom_storage/dom_storage_map_unittest.cc
-+++ b/content/common/dom_storage/dom_storage_map_unittest.cc
-@@ -108,7 +108,7 @@ TEST_P(DOMStorageMapParamTest, DOMStorageMapBasics) {
-   EXPECT_EQ(0u, map->storage_used());
- }
- 
--TEST_P(DOMStorageMapParamTest, EnforcesQuota) {
-+TEST_P(DOMStorageMapParamTest, DISABLED_EnforcesQuota) {
-   const bool has_only_keys = GetParam();
-   const base::string16 kKey = ASCIIToUTF16("test_key");
-   const base::string16 kValue = ASCIIToUTF16("test_value");
