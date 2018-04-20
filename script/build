@@ -52,7 +52,7 @@ def main():
   os.chdir(SOURCE_ROOT)
 
   # Build everything by default.
-  components_to_build = COMPONENTS
+  components_to_build = list(COMPONENTS)
 
   if args.debug:
     components_to_build = ['shared_library', 'ffmpeg']
@@ -60,6 +60,8 @@ def main():
     components_to_build = ['static_library', 'ffmpeg']
   elif args.component is not None:
     components_to_build = args.component
+  elif "arm" not in target_arch:
+    components_to_build.remove('native_mksnapshot')
 
   for component in components_to_build:
     out_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
