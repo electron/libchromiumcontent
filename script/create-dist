@@ -51,7 +51,7 @@ STATIC_LIBRARY_SUFFIX = {
   'win32': 'lib',
 }[TARGET_PLATFORM]
 
-COMPONENTS = ['static_library', 'shared_library','native_mksnapshot']
+COMPONENTS = ['static_library', 'shared_library', 'native_mksnapshot']
 BINARIES = {
   'all': [
     'content_shell.pak',
@@ -405,7 +405,8 @@ def generate_ninja(args, ninja):
       BINARIES[TARGET_PLATFORM].remove(lib)
 
   for component in COMPONENTS:
-    if args.component == 'all' or args.component == component:
+    if ((args.component == 'all' or args.component == component) and
+        (component != 'native_mksnapshot' or 'arm' in target_arch)):
       copy_binaries(target_arch, component, create_debug_archive,
                     args.keep_debug_symbols, ninja)
       copy_generated_sources(target_arch, component, ninja)
