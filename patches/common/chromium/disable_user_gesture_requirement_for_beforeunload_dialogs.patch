@@ -13,16 +13,3 @@ index a39067db8c52..4a0d69dc3fb5 100644
    }
  
    if (did_allow_navigation) {
-diff --git a/content/browser/frame_host/render_frame_host_impl_browsertest.cc b/content/browser/frame_host/render_frame_host_impl_browsertest.cc
-index 541d9619b2d8..9842fdc589c4 100644
---- a/content/browser/frame_host/render_frame_host_impl_browsertest.cc
-+++ b/content/browser/frame_host/render_frame_host_impl_browsertest.cc
-@@ -304,7 +304,7 @@ IN_PROC_BROWSER_TEST_F(RenderFrameHostImplBrowserTest,
- // Tests that a gesture is required in a frame before it can request a
- // beforeunload dialog.
- IN_PROC_BROWSER_TEST_F(RenderFrameHostImplBrowserTest,
--                       BeforeUnloadDialogRequiresGesture) {
-+                       DISABLED_BeforeUnloadDialogRequiresGesture) {
-   WebContentsImpl* wc = static_cast<WebContentsImpl*>(shell()->web_contents());
-   TestJavaScriptDialogManager dialog_manager;
-   wc->SetDelegate(&dialog_manager);

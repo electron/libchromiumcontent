@@ -6,6 +6,7 @@ import platform
 import re
 import sys
 import subprocess
+import yaml
 
 from lib.config import get_output_dir
 
@@ -20,13 +21,13 @@ def GetTestsToRun(args):
   tests = []
   if args.only is None:
     for file_name in os.listdir(build_dir):
-      if file_name in args.exclude:
+      if args.exclude and file_name in args.exclude:
         continue
       if re.search(BINARY_TEST_REGEX, file_name):
         tests.append(os.path.join(build_dir, file_name))
   else:
     for test_name in args.only:
-      if test_name in args.exclude:
+      if args.exclude and test_name in args.exclude:
         continue
       test_file = os.path.join(build_dir, test_name)
       if os.path.isfile(test_file):
@@ -37,10 +38,21 @@ def GetTestsToRun(args):
 
 def RunTests(binary_tests):
   if binary_tests:
+    disabled_tests_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'disabled-tests.yaml')
+    disabled_tests = {}
+    if os.path.isfile(disabled_tests_path):
+      disabled_tests = yaml.load(file(disabled_tests_path, 'r'))
+    else:
+      print 'No disabled-tests.yaml file found. Not excluding any tests.'
     results = []
     for test in binary_tests:
+      test_args = [test]
+      test_name = os.path.basename(test)
+      if disabled_tests and test_name in disabled_tests and disabled_tests[test_name]:
+        exclusion_filter = '-' + ':'.join(disabled_tests[test_name])
+        test_args.append('--gtest_filter=%s' % exclusion_filter)
       results.append((os.path.basename(test),
-                      subprocess.call([test]) == 0))
+                      subprocess.call(test_args) == 0))
     failed = [test
               for (test, success) in results
               if not success]

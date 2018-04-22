@@ -1,0 +1,20 @@
+# This file lists all of the disabled tests
+# It is used by the run_tests script to determine the tests to be excluded
+# Here's an example of the file contents format:
+#
+# test_name:
+#   - exclude_test_filter
+#
+# The `test_name` is the test target that's built (same as the test executable name)
+# The `exclude_test_filter` is the gtest filter pattern that should be applied for
+# exclusion. All tests matching this pattern will be excluded.
+
+
+base_unittests:
+  - WeakPtrDeathTest*
+content_browsertests:
+  - RenderFrameHostImplBrowserTest.BeforeUnloadDialogRequiresGesture
+gpu_unittests:
+  - GPUTestConfigTest.LoadCurrentConfig
+content_unittests:
+  - DOMStorageMapParamTest.EnforcesQuota
