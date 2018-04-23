@@ -1,0 +1,20 @@
+diff --git a/BUILD.gn b/BUILD.gn
+index d7c8640a2..26a9edb45 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -196,7 +196,6 @@ jumbo_static_library("pdfium") {
+     ":pwl",
+     "third_party:bigint",
+     "third_party:pdfium_base",
+-    "third_party:skia_shared",
+   ]
+ 
+   public_deps = [
+@@ -667,6 +666,7 @@ jumbo_static_library("fpdfapi") {
+   deps = [
+     ":fxcrt",
+     "third_party:lcms2",
++    "third_party:skia_shared",
+   ]
+ }
+ 

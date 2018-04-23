@@ -1,0 +1,12 @@
+repo: src/third_party/pdfium
+patches:
+-
+  owners: alexeykuzmin
+  file: move_skia_shared_to_fpdfapi_deps.patch
+  description: |
+    "fpdfapi" actually uses skia_shared but doesn't depend on it explicitly
+    while "pdfium" doesn't use it but depends on it.
+    As a result we have linking errors while building Electron.
+
+    The CL that caused the problem: https://pdfium-review.googlesource.com/21990
+    This patch should probably be upstreamed.
