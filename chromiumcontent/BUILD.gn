@@ -44,6 +44,7 @@ group("targets") {
     if (is_component_build) {
       deps += [
         ":desktop_capture",
+        ":device_service",
         ":fx_agg",
         ":fx_lcms2",
         ":fx_libopenjpeg",
@@ -95,6 +96,11 @@ if (is_electron_build && is_component_build) {
   static_library("desktop_capture") {
       complete_static_lib = true
       deps = [ "//third_party/webrtc/modules/desktop_capture" ]
+  }
+
+  static_library("device_service") {
+      complete_static_lib = true
+      public_deps = [ "//services/device:lib" ]
   }
 
   static_library("fx_agg") {
