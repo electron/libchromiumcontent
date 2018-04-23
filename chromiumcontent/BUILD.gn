@@ -54,6 +54,7 @@ group("targets") {
         ":ppapi_internal_module",
         ":security_state",
         ":system_wrappers",
+        ":viz_service",
         ":webrtc_common",
       ]
 
@@ -147,6 +148,11 @@ if (is_electron_build && is_component_build) {
   static_library("system_wrappers") {
       complete_static_lib = true
       deps = [ "//third_party/webrtc/system_wrappers" ]
+  }
+
+  static_library("viz_service") {
+      complete_static_lib = true
+      public_deps = [ "//services/viz:lib" ]
   }
 
   static_library("webrtc_common") {
