@@ -13,6 +13,8 @@ from lib.ninja import run as run_ninja
 
 
 def main():
+  return 1
+
   args = parse_args()
   target_arch = args.target_arch
 
