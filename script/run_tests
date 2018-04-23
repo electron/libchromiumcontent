@@ -6,9 +6,12 @@ import platform
 import re
 import sys
 import subprocess
-import yaml
 
-from lib.config import get_output_dir
+from lib.config import get_output_dir, VENDOR_DIR
+
+PYYAML_LIB_DIR = os.path.join(VENDOR_DIR, 'pyyaml', 'lib')
+sys.path.append(PYYAML_LIB_DIR)
+import yaml
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 if sys.platform in ['win32', 'cygwin']:
@@ -53,7 +56,7 @@ def RunTests(binary_tests, generate_report):
         test_args.append('--gtest_filter=%s' % exclusion_filter)
       # Add reporting path if enabled
       if generate_report:
-        test_args.append("--gtest_output=xml:" + os.path.join(SOURCE_ROOT, 'test_reports', test_name + os.path.extsep + 'xml'))
+        test_args.append("--gtest_output=xml:" + get_output_file_path(test_name))
       results.append((os.path.basename(test),
                       subprocess.call(test_args) == 0))
     failed = [test
@@ -71,6 +74,9 @@ def RunTests(binary_tests, generate_report):
     print 'Nothing to test - no tests found!'
   return 0
 
+def get_output_file_path(test_name):
+  return os.path.join(SOURCE_ROOT, 'test_reports', test_name + os.path.extsep + 'xml')
+
 def main():
   parser = argparse.ArgumentParser(description='Run Chromium tests')
   parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
@@ -83,4 +89,3 @@ def main():
 
 if __name__ == '__main__':
   sys.exit(main())
-

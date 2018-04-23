@@ -28,6 +28,7 @@ phases:
 
   steps:
   - bash: |
+     set -e
      if [[ -z "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER}" ]] || "${SYSTEM_PULLREQUEST_ISFORK}" == "True"; then
        echo "##vso[task.setvariable variable=gitcommit]$BUILD_SOURCEVERSION"
      else
@@ -42,11 +43,13 @@ phases:
     name: Get_commit
 
   - bash: |
+     set -e
      echo "===Bootstrapping===" > >(tee -a buildlog.txt) 2> >(tee -a buildlog.txt >&2)
      script/bootstrap > >(tee -a buildlog.txt) 2> >(tee -a buildlog.txt >&2)
     name: Bootstrap
 
   - bash: |
+     set -e
      echo "===Updating for $TARGET_ARCH===" > >(tee -a buildlog.txt) 2> >(tee -a buildlog.txt >&2)
      if [ "${COMPONENT}" == "shared_library" ]; then
        script/update --clean -t $TARGET_ARCH --use-bundled-sccache > >(tee -a buildlog.txt) 2> >(tee -a buildlog.txt >&2)
@@ -56,6 +59,7 @@ phases:
     name: Update
 
   - bash: |
+     set -e
      if [ "${COMPONENT}" == "shared_library" ]; then
        script/sccache --start-server --azure_container "$(SCCACHE_AZURE_BLOB_CONTAINER)" --azure_connection "$(SCCACHE_AZURE_CONNECTION_STRING)" > >(tee -a buildlog.txt) 2> >(tee -a buildlog.txt >&2)
        script/sccache -s > >(tee -a buildlog.txt) 2> >(tee -a buildlog.txt >&2)
@@ -66,16 +70,36 @@ phases:
      script/build -t $TARGET_ARCH -c ffmpeg > >(tee -a buildlog.txt) 2> >(tee -a buildlog.txt >&2)
      if [ "${COMPONENT}" == "shared_library" ]; then
        script/sccache --stop-server > >(tee -a buildlog.txt) 2> >(tee -a buildlog.txt >&2)
+     else
+       if [ "${BUILD_REASON}" == "Schedule" ]; then
+         script/build -t $TARGET_ARCH -c tests > >(tee -a buildlog.txt) 2> >(tee -a buildlog.txt >&2)
+       fi
      fi
     name: Build
 
   - bash: |
+     set -e
      echo "===Create $COMPONENT distribution for $TARGET_ARCH===" > >(tee -a buildlog.txt) 2> >(tee -a buildlog.txt >&2)
      script/create-dist -t $TARGET_ARCH -c $COMPONENT > >(tee -a buildlog.txt) 2> >(tee -a buildlog.txt >&2)
      mkdir s3files
      mv libchromiumcontent* s3files
      mv buildlog.txt s3files
     name: Create_distribution
+
+  - bash: |
+     set +e
+     echo "===Run tests against $COMPONENT distribution for $TARGET_ARCH===" > >(tee -a buildlog.txt) 2> >(tee -a buildlog.txt >&2)
+     script/run_tests --generate_report > >(tee -a buildlog.txt) 2> >(tee -a buildlog.txt >&2)
+     cp -r test_reports s3files
+    name: Run_tests
+    condition: and(succeeded(), eq(variables['Build.Reason'], 'Schedule'), eq(variables['COMPONENT'], 'static_library'))
+
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFiles: '*.xml'
+      searchFolder: '$(System.DefaultWorkingDirectory)/test_reports'
+      testRunTitle: 'Libchromiumcontent Tests'
+    condition: and(always(), eq(variables['Build.Reason'], 'Schedule'), eq(variables['COMPONENT'], 'static_library'))
 
   - task: AmazonWebServices.aws-vsts-tools.S3Upload.S3Upload@1
     inputs:

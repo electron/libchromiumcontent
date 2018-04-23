@@ -1,4 +1,4 @@
-param([switch]$skipUpload, [switch]$useSccache)
+param([switch]$skipUpload, [switch]$useSccache, [switch]$buildTests)
 function Run-Command([scriptblock]$Command, [switch]$Fatal, [switch]$Quiet) {
   $output = ""
   try {
@@ -40,6 +40,10 @@ if ($skipUpload) {
 
 if ($useSccache) {
   $CommandLine += " --use_sccache"
+}
+
+if ($buildTests) {
+  $CommandLine += " --build_tests"
 }
 $CICommand = [ScriptBlock]::Create($CommandLine)
 Run-Command -Fatal $CICommand
