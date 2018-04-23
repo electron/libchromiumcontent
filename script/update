@@ -40,6 +40,10 @@ solutions = [
 '''
 
 def main():
+  # FIXME(alexeykuzmin)
+  if sys.platform == 'darwin':
+    return 1
+
   args = parse_args()
 
   if sys.platform == 'win32' and args.update_depot_tools:
