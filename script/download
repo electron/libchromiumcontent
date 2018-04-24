@@ -6,22 +6,11 @@ import errno
 import os
 import subprocess
 import sys
-import tempfile
-import urllib2
-import tarfile
 
 import lib.filesystem as filesystem
 import lib.git as git
 
-from lib.config import SOURCE_ROOT, TOOLS_DIR
-
-
-PLATFORM_KEY = {
-  'cygwin': 'win',
-  'darwin': 'osx',
-  'linux2': 'linux',
-  'win32': 'win',
-}[sys.platform]
+from lib.config import PLATFORM_KEY, SOURCE_ROOT, TOOLS_DIR
 
 SHARED_LIBRARY_FILENAME = 'libchromiumcontent.tar.bz2'
 STATIC_LIBRARY_FILENAME = 'libchromiumcontent-static.tar.bz2'
@@ -125,24 +114,7 @@ def download(destination, base_url, commit, filename):
   sys.stderr.write('Downloading {0}...\n'.format(filename))
   sys.stderr.flush()
   url = '{0}/{1}/{2}'.format(base_url, commit, filename)
-  download_and_extract(destination, url)
-
-
-def download_and_extract(destination, url):
-  print url
-  with tempfile.TemporaryFile() as t:
-    with contextlib.closing(urllib2.urlopen(url)) as u:
-      while True:
-        chunk = u.read(1024*1024)
-        if not len(chunk):
-          break
-        sys.stderr.write('.')
-        sys.stderr.flush()
-        t.write(chunk)
-    sys.stderr.write('\nExtracting...\n')
-    sys.stderr.flush()
-    with tarfile.open(fileobj=t, mode='r:bz2') as z:
-      z.extractall(destination)
+  filesystem.download_and_extract(destination, url)
 
 
 def generate_filenames_gypi(target_file, libcc_source_path,

@@ -9,23 +9,16 @@ import sys
 
 import lib.git as git
 
+from lib.config import PLATFORM_KEY
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 BOTO_DIR = os.path.join(SOURCE_ROOT, 'vendor', 'boto')
-
-PLATFORM_KEY = {
-  'cygwin': 'win',
-  'darwin': 'osx',
-  'linux2': 'linux',
-  'win32': 'win',
-}[sys.platform]
-
 
 def main():
   args = parse_args()
 
   try:
-    upload(args.target_arch)
+    upload(args)
   except AssertionError as e:
     return e.message
 
@@ -33,10 +26,14 @@ def main():
 def parse_args():
   parser = argparse.ArgumentParser(description='Upload distribution')
   parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
+  parser.add_argument('--upload_packaged_src', action='store_true',
+                      help='Upload packaged source to s3')
+  parser.add_argument('--chromium_version',
+                      help='Chromium version for uploading packaged source to s3')
   return parser.parse_args()
 
 
-def upload(target_arch):
+def upload(args):
   os.chdir(SOURCE_ROOT)
   bucket, access_key, secret_key = s3_config()
   commit = git.get_head_commit(SOURCE_ROOT)
@@ -46,10 +43,16 @@ def upload(target_arch):
   else:
     platform = PLATFORM_KEY
 
-  upload_files = glob.glob('libchromiumcontent*.tar.bz2') + glob.glob('native-mksnapshot.tar.bz2')
-  s3put(bucket, access_key, secret_key, SOURCE_ROOT,
-        'libchromiumcontent/{0}/{1}/{2}'.format(platform, target_arch, commit),
-        upload_files)
+  if args.upload_packaged_src:
+    upload_files = ['src.tar.bz2']
+    s3put(bucket, access_key, secret_key, SOURCE_ROOT,
+          'libchromiumcontent/{0}/src/{1}'.format(PLATFORM_KEY, args.chromium_version),
+          upload_files)
+  else:
+    upload_files = glob.glob('libchromiumcontent*.tar.bz2') + glob.glob('native-mksnapshot.tar.bz2')
+    s3put(bucket, access_key, secret_key, SOURCE_ROOT,
+          'libchromiumcontent/{0}/{1}/{2}'.format(platform, args.target_arch, commit),
+          upload_files)
 
 
 def s3_config():

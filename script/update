@@ -9,6 +9,7 @@ import subprocess
 import sys
 import urllib2
 import platform
+import tarfile
 
 import lib.filesystem as filesystem
 import lib.sccache as sccache
@@ -16,12 +17,13 @@ import lib.util as util
 
 from lib.config import MIPS64EL_GCC, MIPS64EL_GCC_URL, MIPS64EL_SYSROOT, \
                        set_mips64el_env, IS_ARM64_HOST, IS_ARMV7_HOST, \
-                       SOURCE_ROOT, VENDOR_DIR, DEPOT_TOOLS_DIR, SRC_DIR
-
+                       SOURCE_ROOT, VENDOR_DIR, DEPOT_TOOLS_DIR, SRC_DIR, \
+                       PLATFORM_KEY
 
 CHROMIUMCONTENT_SOURCE_DIR = os.path.join(SOURCE_ROOT, 'chromiumcontent')
 CHROMIUMCONTENT_DESTINATION_DIR = os.path.join(
     SRC_DIR, 'libchromiumcontent', 'chromiumcontent')
+CHROMIUMCONTENT_SRC_URL = 'https://s3.amazonaws.com/github-janky-artifacts/libchromiumcontent'
 
 DEBIAN_MIRROR = 'http://ftp.jp.debian.org/debian/pool/main/'
 BINTOOLS_NAME = 'c/cross-binutils/binutils-aarch64-linux-gnu_2.25-5_amd64.deb'
@@ -38,6 +40,14 @@ solutions = [
 ]
 {cache_dir_line}
 '''
+SRC_FILES_TO_IGNORE = [
+  os.path.join('src', 'native_client'),
+  os.path.join('src', 'third_party', 'WebKit', 'LayoutTests'),
+  os.path.join('src', 'third_party', 'catapult', 'tracing', 'test_data'),
+  os.path.join('src', 'third_party', 'deqp'),
+  os.path.join('src', 'third_party', 'sqlite', 'sqlite-src-3200100', 'test'),
+  os.path.join('src', 'third_party', 'sqlite', 'src', 'test')
+]
 
 def main():
   args = parse_args()
@@ -59,8 +69,12 @@ def main():
   target_arch = args.target_arch
   nohooks = target_arch == 'arm64' and IS_ARM64_HOST or target_arch == 'arm' and IS_ARMV7_HOST
 
+
   if args.run_gclient:
-    gclient_sync(chromium_version(), args.clean, git_cache, nohooks)
+    if args.use_packaged_src:
+      get_packaged_src(args.clean, git_cache, nohooks, args.upload_packaged_src)
+    else:
+      gclient_sync(chromium_version(), args.clean, git_cache, nohooks)
     if args.source_only:
       return
 
@@ -93,6 +107,10 @@ def parse_args():
                       help='Skips update depot tools on Windows, easier to build locally')
   parser.add_argument('--source_only', action='store_true',
                       help='Only sync the Chromium source code')
+  parser.add_argument('--use_packaged_src', action='store_true',
+                      help='Get chromium source as packaged file')
+  parser.add_argument('--upload_packaged_src', action='store_true',
+                      help='Upload packaged chromium source if it does not exist')
 
   cc_wrapper_group = parser.add_mutually_exclusive_group()
   cc_wrapper_group.add_argument('--cc_wrapper',
@@ -298,6 +316,44 @@ def download(url, filename):
         if not len(chunk):
           break
         f.write(chunk)
+
+def get_packaged_src(clean, git_cache, nohooks, upload_src):
+  src_version = chromium_version()
+  tar_name = 'src.tar.bz2'
+  package_url = '{0}/{1}/src/{2}/{3}'.format(CHROMIUMCONTENT_SRC_URL,
+                                         PLATFORM_KEY, src_version, tar_name)
+  try:
+    print('Trying to download ' + package_url)
+    filesystem.download_and_extract(SOURCE_ROOT, package_url)
+    os.environ['CHROMIUM_BUILDTOOLS_PATH'] = os.path.join(SRC_DIR, 'buildtools')
+  except urllib2.URLError as err:
+    print('Could not download {0}, syncing from git'.format(package_url))
+    gclient_sync(src_version, clean, git_cache, nohooks)
+    if upload_src:
+      print('Packaging source to ' + tar_name + '.')
+      tar_path =  os.path.join(SOURCE_ROOT, tar_name)
+      filesystem.safe_unlink(tar_path)
+      with util.scoped_cwd(SOURCE_ROOT):
+        tar_file = tarfile.open(tar_path, 'w:bz2')
+        tar_file.add('src', exclude=exclude_packaged_files)
+        tar_file.close()
+      if ('LIBCHROMIUMCONTENT_S3_ACCESS_KEY' in os.environ and
+         'LIBCHROMIUMCONTENT_S3_BUCKET' in os.environ and
+         'LIBCHROMIUMCONTENT_S3_SECRET_KEY' in os.environ):
+        script_path = os.path.join(SOURCE_ROOT, 'script', 'upload')
+        script_arguments = ['--upload_packaged_src', '--chromium_version', src_version]
+        print('Uploading source to ' + package_url + '.')
+        subprocess.check_call([sys.executable, script_path] + script_arguments)
+  except:
+    print('Unexpected error downloading and extracting chromium source:', sys.exc_info()[0])
+    raise
+
+
+def exclude_packaged_files(filename):
+  if ".git" in filename:
+    return True
+  else:
+    return filename in SRC_FILES_TO_IGNORE
 
 if __name__ == '__main__':
   import sys
