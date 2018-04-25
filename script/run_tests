@@ -36,7 +36,7 @@ def GetTestsToRun(args):
         print 'Invalid test target name: ' + test_name
   return tests
 
-def RunTests(binary_tests):
+def RunTests(binary_tests, generate_report):
   if binary_tests:
     disabled_tests_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'disabled-tests.yaml')
     disabled_tests = {}
@@ -51,6 +51,9 @@ def RunTests(binary_tests):
       if disabled_tests and test_name in disabled_tests and disabled_tests[test_name]:
         exclusion_filter = '-' + ':'.join(disabled_tests[test_name])
         test_args.append('--gtest_filter=%s' % exclusion_filter)
+      # Add reporting path if enabled
+      if generate_report:
+        test_args.append("--gtest_output=xml:" + os.path.join(SOURCE_ROOT, 'test_reports', test_name + os.path.extsep + 'xml'))
       results.append((os.path.basename(test),
                       subprocess.call(test_args) == 0))
     failed = [test
@@ -73,8 +76,10 @@ def main():
   parser.add_argument('-t', '--target_arch', default='x64', help='x64 or ia32')
   parser.add_argument('--only', nargs='+', help='Names of the test targets to run. For example: base_unittests url_unittests')
   parser.add_argument('--exclude', nargs='+', help='Names of the test targets to exclude. For example: base_unittests url_unittests')
-  tests = GetTestsToRun(parser.parse_args())
-  return RunTests(tests)
+  parser.add_argument('--generate_report', action='store_true', help='Generate xml reports for test runs. Mainly for CI.')
+  args = parser.parse_args()
+  tests = GetTestsToRun(args)
+  return RunTests(tests, args.generate_report)
 
 if __name__ == '__main__':
   sys.exit(main())
