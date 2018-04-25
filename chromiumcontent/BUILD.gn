@@ -29,6 +29,7 @@ group("targets") {
       "//third_party/webrtc/modules/desktop_capture",
       "//third_party/widevine/cdm:headers",
       "//third_party/widevine/cdm:widevinecdmadapter",
+      "//tools/v8_context_snapshot",
       "//ui/content_accelerators",
       "//ui/display",
       "//ui/display/util",
