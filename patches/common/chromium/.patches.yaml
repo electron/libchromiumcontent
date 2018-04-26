@@ -266,3 +266,9 @@ patches:
   owners: alexeykuzmin
   file: allow_chromiumcontent_to_depend_on_device_service.patch
   description: By default we cannot depend on it, but we want to use it.
+-
+  owners: nitsakh
+  file: v8_context_snapshot_generator.patch
+  description: |
+      v8_context_snapshot_generator is a build time executable.
+      The patch adds the config.
