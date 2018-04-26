@@ -26,3 +26,11 @@ patches:
   file: disable-warning-win.patch
   description:
     Disable unit test windows build warning
+-
+  owners: alexeykuzmin
+  file: backport_b767cde1e7.patch
+  description: Node 10.0.0 needs it.
+-
+  owners: alexeykuzmin
+  file: backport_39d546a.patch
+  description: Node 10.0.0 needs it.
