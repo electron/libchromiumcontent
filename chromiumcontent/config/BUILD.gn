@@ -13,6 +13,12 @@ config("build_time_executable") {
   if (is_electron_build && is_linux && !is_component_build) {
     configs += [ "//build/config/gcc:rpath_for_built_shared_libraries" ]
   }
+
+  if (is_electron_build && is_mac && !is_component_build) {
+    ldflags = [
+      "-Wl,-rpath,@loader_path/."
+    ]
+  }
 }
 
 # For MAS build, we force defining "MAS_BUILD".
