@@ -1,0 +1,45 @@
+diff --git a/modules/audio_coding/neteq/decision_logic_normal.cc b/modules/audio_coding/neteq/decision_logic_normal.cc
+index c5f257075..03e25d000 100644
+--- a/modules/audio_coding/neteq/decision_logic_normal.cc
++++ b/modules/audio_coding/neteq/decision_logic_normal.cc
+@@ -189,10 +189,9 @@ Operations DecisionLogicNormal::FuturePacketAvailable(
+   // If previous was comfort noise, then no merge is needed.
+   if (prev_mode == kModeRfc3389Cng ||
+       prev_mode == kModeCodecInternalCng) {
+-    // Keep the same delay as before the CNG (or maximum 70 ms in buffer as
+-    // safety precaution), but make sure that the number of samples in buffer
+-    // is no higher than 4 times the optimal level. (Note that TargetLevel()
+-    // is in Q8.)
++    // Keep the same delay as before the CNG, but make sure that the number of
++    // samples in buffer is no higher than 4 times the optimal level. (Note that
++    // TargetLevel() is in Q8.)
+     if (static_cast<uint32_t>(generated_noise_samples + target_timestamp) >=
+             available_timestamp ||
+         cur_size_samples >
+diff --git a/modules/audio_coding/neteq/neteq_impl.cc b/modules/audio_coding/neteq/neteq_impl.cc
+index 88e07e857..9a0fd0550 100644
+--- a/modules/audio_coding/neteq/neteq_impl.cc
++++ b/modules/audio_coding/neteq/neteq_impl.cc
+@@ -856,6 +856,7 @@ int NetEqImpl::GetAudioInternal(AudioFrame* audio_frame, bool* muted) {
+ 
+   AudioDecoder::SpeechType speech_type;
+   int length = 0;
++  const size_t start_num_packets = packet_list.size();
+   int decode_return_value = Decode(&packet_list, &operation,
+                                    &length, &speech_type);
+ 
+@@ -865,7 +866,13 @@ int NetEqImpl::GetAudioInternal(AudioFrame* audio_frame, bool* muted) {
+   vad_->Update(decoded_buffer_.get(), static_cast<size_t>(length), speech_type,
+                sid_frame_available, fs_hz_);
+ 
+-  if (sid_frame_available || speech_type == AudioDecoder::kComfortNoise) {
++  // This is the criterion that we did decode some data through the speech
++  // decoder, and the operation resulted in comfort noise.
++  const bool codec_internal_sid_frame =
++      (speech_type == AudioDecoder::kComfortNoise &&
++       start_num_packets > packet_list.size());
++
++  if (sid_frame_available || codec_internal_sid_frame) {
+     // Start a new stopwatch since we are decoding a new CNG packet.
+     generated_noise_stopwatch_ = tick_timer_->GetNewStopwatch();
+   }
