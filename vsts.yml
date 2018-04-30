@@ -2,6 +2,7 @@ resources:
 - repo: self
 phases:
 - phase: Build_libchromiumcontent
+  condition: or(eq(variables['System.PullRequest.IsFork'], 'True'), ne(variables['Build.Reason'], 'PullRequest'))
   queue:
     parallel: 4
     timeoutInMinutes: 180
