@@ -75,6 +75,51 @@ jobs:
       - store_artifacts:
           path: libchromiumcontent-static.tar.bz2
 
+  libchromiumcontent-linux-x64-test:
+    docker:
+      - image: electronbuilds/libchromiumcontent:0.0.4
+        environment:
+          TARGET_ARCH: x64
+          COMPONENT: static_library
+          DISPLAY: ':99.0'
+    resource_class: 2xlarge
+    steps:
+      - checkout
+      - run:
+          name: Bootstrap
+          command: script/bootstrap
+      - run:
+          name: Update
+          command: script/update --clean -t $TARGET_ARCH
+      - run:
+          name: Build static library
+          command: script/build -t $TARGET_ARCH -c $COMPONENT
+      - run:
+          name: Build FFmpeg
+          command: script/build -t $TARGET_ARCH -c ffmpeg
+      - run:
+          name: Build Tests
+          command: script/build -t $TARGET_ARCH -c tests
+      - run:
+          name: Create distribution
+          command: script/create-dist -t $TARGET_ARCH -c $COMPONENT
+          no_output_timeout: 20m
+      - run:
+          name: Setup for headless testing
+          command: |
+            XVFB=/usr/bin/Xvfb
+            XVFBARGS="$DISPLAY -ac -screen 0 1024x768x16 +extension RANDR"
+            /sbin/start-stop-daemon --start --quiet --background --exec $XVFB -- $XVFBARGS
+      - run:
+          name: Run Tests
+          command: |
+            set +e
+            script/run_tests --generate_report -t $TARGET_ARCH
+      - store_test_results:
+          path: test_reports
+      - store_artifacts:
+          path: test_reports
+
   libchromiumcontent-linux-ia32-shared:
     docker:
       - image: electronbuilds/libchromiumcontent:0.0.4
@@ -149,6 +194,48 @@ jobs:
             fi
       - store_artifacts:
           path: libchromiumcontent-static.tar.bz2
+
+  libchromiumcontent-linux-ia32-test:
+    docker:
+      - image: electronbuilds/libchromiumcontent:0.0.4
+        environment:
+          TARGET_ARCH: ia32
+          COMPONENT: static_library
+          DISPLAY: ':99.0'
+    resource_class: 2xlarge
+    steps:
+      - checkout
+      - run:
+          name: Bootstrap
+          command: script/bootstrap
+      - run:
+          name: Update
+          command: script/update --clean -t $TARGET_ARCH
+      - run:
+          name: Build static library
+          command: script/build -t $TARGET_ARCH -c $COMPONENT
+      - run:
+          name: Build FFmpeg
+          command: script/build -t $TARGET_ARCH -c ffmpeg
+      - run:
+          name: Create distribution
+          command: script/create-dist -t $TARGET_ARCH -c $COMPONENT
+          no_output_timeout: 20m
+      - run:
+          name: Setup for headless testing
+          command: |
+            XVFB=/usr/bin/Xvfb
+            XVFBARGS="$DISPLAY -ac -screen 0 1024x768x16 +extension RANDR"
+            /sbin/start-stop-daemon --start --quiet --background --exec $XVFB -- $XVFBARGS
+      - run:
+          name: Run Tests
+          command: |
+            set +e
+            script/run_tests --generate_report -t $TARGET_ARCH
+      - store_test_results:
+          path: test_reports
+      - store_artifacts:
+          path: test_reports          
 
   libchromiumcontent-linux-arm-shared:
     docker:
@@ -410,3 +497,14 @@ workflows:
     jobs:
       - libchromiumcontent-linux-arm64-shared
       - libchromiumcontent-linux-arm64-static
+  nightly-test:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - libchromiumcontent-linux-x64-test
+      - libchromiumcontent-linux-ia32-test
