@@ -62,6 +62,22 @@ index 5e1f7fcc4d83..15723e6b7184 100644
      # Component mode: dynamic CRT. Since the library is shared, it requires
      # exceptions or will give errors about things not matching, so keep
      # exceptions on.
+diff --git a/build/secondary/third_party/crashpad/crashpad/handler/BUILD.gn b/build/secondary/third_party/crashpad/crashpad/handler/BUILD.gn
+index 4d385dd5512b..b747197f03d9 100644
+--- a/build/secondary/third_party/crashpad/crashpad/handler/BUILD.gn
++++ b/build/secondary/third_party/crashpad/crashpad/handler/BUILD.gn
+@@ -54,9 +54,11 @@ executable("crashpad_handler") {
+   if (is_mac && is_component_build) {
+     # The handler is in Chromium.app/Contents/Versions/X/Chromium Framework.framework/Versions/A/Helpers/
+     # so set rpath up to the base.
++    # In Electron, the handler is in Electron.app/Contents/Resources/Electron Framework.framework/Versions/A/Resources/
++    # which is one less level of nesting.
+     ldflags = [
+       "-rpath",
+-      "@loader_path/../../../../../../../..",
++      "@loader_path/../../../../../../..",
+     ]
+   }
 diff --git a/third_party/WebKit/Source/platform/BUILD.gn b/third_party/WebKit/Source/platform/BUILD.gn
 index 6c86a6454256..2bc8c31396af 100644
 --- a/third_party/WebKit/Source/platform/BUILD.gn
