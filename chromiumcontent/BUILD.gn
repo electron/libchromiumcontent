@@ -52,6 +52,7 @@ group("targets") {
         ":fx_zlib",
         ":libjpeg",
         ":libyuv",
+        ":pdfium_skia_shared",
         ":ppapi_cpp_objects",
         ":ppapi_internal_module",
         ":security_state",
@@ -132,6 +133,11 @@ if (is_electron_build && is_component_build) {
   static_library("libyuv") {
       complete_static_lib = true
       deps = [ "//third_party/libyuv" ]
+  }
+
+  static_library("pdfium_skia_shared") {
+      complete_static_lib = true
+      deps = [ "//third_party/pdfium/third_party:skia_shared" ]
   }
 
   static_library("ppapi_cpp_objects") {
