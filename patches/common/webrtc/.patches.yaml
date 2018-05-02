@@ -21,4 +21,7 @@ patches:
   file: disable-warning-win.patch
   description:
     Disable windows warning
-
+-
+  owners: ajmacd
+  file: fix_jitter_buffer_with_opus_dtx.patch
+  description: "https://webrtc-review.googlesource.com/c/src/+/18181"
