@@ -78,6 +78,7 @@ index 4d385dd5512b..b747197f03d9 100644
 +      "@loader_path/../../../../../../..",
      ]
    }
+ 
 diff --git a/third_party/WebKit/Source/platform/BUILD.gn b/third_party/WebKit/Source/platform/BUILD.gn
 index 6c86a6454256..2bc8c31396af 100644
 --- a/third_party/WebKit/Source/platform/BUILD.gn
@@ -103,3 +104,16 @@ index 9e744b9940e2..09208f2e98fa 100644
        ldflags = [
          # Not to strip important symbols by -Wl,-dead_strip.
          "-Wl,-exported_symbol,_PPP_GetInterface",
+diff --git a/.gn b/.gn
+index 9e744b9940e2..09208f2e98fa 100644
+--- a/.gn
++++ b/.gn
+@@ -245,4 +245,8 @@ exec_script_whitelist =
+       # Not gypi-to-gn.
+       "//google_apis/BUILD.gn",
+       "//printing/BUILD.gn",
++      # While electron transitions to GN, we use gypi_to_gn to synchronize
++      # file lists
++      "//electron/BUILD.gn",
++      "//electron/brightray/BUILD.gn",
+     ]
