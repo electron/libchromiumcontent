@@ -1,4 +1,4 @@
-root_extra_deps = [ "//chromiumcontent:chromiumcontent" ]
+root_extra_deps = [ "//libchromiumcontent/chromiumcontent" ]
 is_electron_build = true
 is_component_build = true
 is_debug = true

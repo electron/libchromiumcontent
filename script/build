@@ -41,9 +41,9 @@ def main():
 
   for component in components_to_build:
     out_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
-    target = 'chromiumcontent:chromiumcontent'
+    target = 'libchromiumcontent/chromiumcontent:chromiumcontent'
     if component == 'tests':
-      target = 'chromiumcontent:chromiumcontent_tests'
+      target = 'libchromiumcontent/chromiumcontent:chromiumcontent_tests'
     if component == 'native_mksnapshot':
       target = 'v8:mksnapshot'
     run_ninja(os.path.relpath(out_dir), target=target, env=env)
@@ -51,7 +51,7 @@ def main():
     if component == 'static_library':
       subenv = env.copy()
       subenv['CHROMIUMCONTENT_2ND_PASS'] = '1'
-      target = 'chromiumcontent:libs'
+      target = 'libchromiumcontent/chromiumcontent:libs'
       run_ninja(os.path.relpath(out_dir), target=target, env=subenv)
 
 

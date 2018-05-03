@@ -15,7 +15,7 @@ index de3f35f124aa..a52003f1b5e1 100644
    "//build/config/compiler:runtime_library",
    "//build/config/coverage:default_coverage",
    "//build/config/sanitizers:default_sanitizer_flags",
-+  "//chromiumcontent/config:mas_build",
++  "//libchromiumcontent/chromiumcontent/config:mas_build",
  ]
  if (is_win) {
    default_compiler_configs += [
@@ -70,7 +70,7 @@ index 6c86a6454256..2bc8c31396af 100644
  }
  
  executable("character_data_generator") {
-+  configs += [ "//chromiumcontent/config:build_time_executable" ]
++  configs += [ "//libchromiumcontent/chromiumcontent/config:build_time_executable" ]
    sources = [
      "text/CharacterPropertyDataGenerator.cpp",
      "text/CharacterPropertyDataGenerator.h",
