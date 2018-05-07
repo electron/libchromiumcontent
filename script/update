@@ -21,7 +21,8 @@ from lib.config import MIPS64EL_GCC, MIPS64EL_GCC_URL, MIPS64EL_SYSROOT, \
 
 
 CHROMIUMCONTENT_SOURCE_DIR = os.path.join(SOURCE_ROOT, 'chromiumcontent')
-CHROMIUMCONTENT_DESTINATION_DIR = os.path.join(SRC_DIR, 'chromiumcontent')
+CHROMIUMCONTENT_DESTINATION_DIR = os.path.join(
+    SRC_DIR, 'libchromiumcontent', 'chromiumcontent')
 
 DEBIAN_MIRROR = 'http://ftp.jp.debian.org/debian/pool/main/'
 BINTOOLS_NAME = 'c/cross-binutils/binutils-aarch64-linux-gnu_2.25-5_amd64.deb'
