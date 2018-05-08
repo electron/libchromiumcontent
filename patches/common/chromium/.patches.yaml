@@ -341,3 +341,10 @@ patches:
     in electron (and other applications). This patch provides a way to disable
     the redraw locking mechanism, which fixes these issues. The electron issue
     can be found at https://github.com/electron/electron/issues/1821
+-
+  owners: nornagon
+  file: no_lock_scheme_registry.patch
+  description: |
+    Electron apps can register URL schemes after the app has started via the
+    registerURLSchemeAs* WebFrame APIs, so locking the scheme registry on boot
+    doesn't make sense. Effectively this just disables some DCHECKs.

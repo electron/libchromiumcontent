@@ -1,0 +1,13 @@
+diff --git a/content/app/content_main_runner.cc b/content/app/content_main_runner.cc
+index d2275a49982e..f3c47a7e790c 100644
+--- a/content/app/content_main_runner.cc
++++ b/content/app/content_main_runner.cc
+@@ -617,7 +617,7 @@ class ContentMainRunnerImpl : public ContentMainRunner {
+ #endif
+ 
+     RegisterPathProvider();
+-    RegisterContentSchemes(true);
++    RegisterContentSchemes(false);
+ 
+ #if defined(OS_ANDROID) && (ICU_UTIL_DATA_IMPL == ICU_UTIL_DATA_FILE)
+     int icudata_fd = g_fds->MaybeGet(kAndroidICUDataDescriptor);
