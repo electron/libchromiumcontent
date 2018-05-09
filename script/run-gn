@@ -42,7 +42,8 @@ def main():
      gn_args.update(args.args)
 
   for component in args.components:
-    generate_build_files(component, args.target_arch, **gn_args)
+    if component != 'native_mksnapshot' or 'arm' in args.target_arch:
+      generate_build_files(component, args.target_arch, **gn_args)
 
 
 def generate_build_files(component, target_arch, **gnargs):

@@ -16,8 +16,7 @@ import lib.util as util
 
 from lib.config import MIPS64EL_GCC, MIPS64EL_GCC_URL, MIPS64EL_SYSROOT, \
                        set_mips64el_env, IS_ARM64_HOST, IS_ARMV7_HOST, \
-                       SOURCE_ROOT, VENDOR_DIR, DEPOT_TOOLS_DIR, SRC_DIR, \
-                       COMPONENTS
+                       SOURCE_ROOT, VENDOR_DIR, DEPOT_TOOLS_DIR, SRC_DIR
 
 
 CHROMIUMCONTENT_SOURCE_DIR = os.path.join(SOURCE_ROOT, 'chromiumcontent')
