@@ -341,3 +341,9 @@ patches:
     in electron (and other applications). This patch provides a way to disable
     the redraw locking mechanism, which fixes these issues. The electron issue
     can be found at https://github.com/electron/electron/issues/1821
+-
+  owners: jkleinsc
+  file: backport_4dabe8070550.patch
+  description:  |
+    Backports part of 4dabe8070550cb4014d1f996aa1a7e130bef42e1 so that we don't
+    need the native_client source tree.

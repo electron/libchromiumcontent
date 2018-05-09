@@ -14,7 +14,8 @@ jobs:
           command: script/bootstrap
       - run:
           name: Update
-          command: script/update --clean -t $TARGET_ARCH --use-bundled-sccache
+          command: script/update --clean -t $TARGET_ARCH --use-bundled-sccache --use_packaged_src --upload_packaged_src
+          no_output_timeout: 60m
       - run:
           name: Build shared library
           command: script/build -t $TARGET_ARCH -c $COMPONENT
@@ -53,7 +54,8 @@ jobs:
           command: script/bootstrap
       - run:
           name: Update
-          command: script/update --clean -t $TARGET_ARCH
+          command: script/update --clean -t $TARGET_ARCH --use_packaged_src
+          no_output_timeout: 20m
       - run:
           name: Build static library
           command: script/build -t $TARGET_ARCH -c $COMPONENT
@@ -90,7 +92,7 @@ jobs:
           command: script/bootstrap
       - run:
           name: Update
-          command: script/update --clean -t $TARGET_ARCH
+          command: script/update --clean -t $TARGET_ARCH --use-bundled-sccache --use_packaged_src
       - run:
           name: Build static library
           command: script/build -t $TARGET_ARCH -c $COMPONENT
@@ -134,7 +136,8 @@ jobs:
           command: script/bootstrap
       - run:
           name: Update
-          command: script/update --clean -t $TARGET_ARCH --use-bundled-sccache
+          command: script/update --clean -t $TARGET_ARCH --use-bundled-sccache --use_packaged_src
+          no_output_timeout: 20m
       - run:
           name: Build shared library
           command: script/build -t $TARGET_ARCH -c $COMPONENT
@@ -173,7 +176,8 @@ jobs:
           command: script/bootstrap
       - run:
           name: Update
-          command: script/update --clean -t $TARGET_ARCH
+          command: script/update --clean -t $TARGET_ARCH --use_packaged_src
+          no_output_timeout: 20m
       - run:
           name: Build static library
           command: script/build -t $TARGET_ARCH -c $COMPONENT
@@ -210,7 +214,7 @@ jobs:
           command: script/bootstrap
       - run:
           name: Update
-          command: script/update --clean -t $TARGET_ARCH
+          command: script/update --clean -t $TARGET_ARCH --use-bundled-sccache --use_packaged_src
       - run:
           name: Build static library
           command: script/build -t $TARGET_ARCH -c $COMPONENT
@@ -235,7 +239,7 @@ jobs:
       - store_test_results:
           path: test_reports
       - store_artifacts:
-          path: test_reports          
+          path: test_reports
 
   libchromiumcontent-linux-arm-shared:
     docker:
@@ -251,7 +255,8 @@ jobs:
           command: script/bootstrap
       - run:
           name: Update
-          command: script/update --clean -t $TARGET_ARCH --use-bundled-sccache
+          command: script/update --clean -t $TARGET_ARCH --use-bundled-sccache --use_packaged_src
+          no_output_timeout: 20m
       - run:
           name: Build mksnapshot
           command: script/build -t $TARGET_ARCH -c native_mksnapshot
@@ -298,7 +303,8 @@ jobs:
           command: script/bootstrap
       - run:
           name: Update
-          command: script/update --clean -t $TARGET_ARCH
+          command: script/update --clean -t $TARGET_ARCH --use_packaged_src
+          no_output_timeout: 20m
       - run:
           name: Build static library
           command: script/build -t $TARGET_ARCH -c $COMPONENT
@@ -334,7 +340,8 @@ jobs:
           command: script/bootstrap
       - run:
           name: Update
-          command: script/update --clean -t $TARGET_ARCH --use-bundled-sccache
+          command: script/update --clean -t $TARGET_ARCH --use-bundled-sccache --use_packaged_src
+          no_output_timeout: 20m
       - run:
           name: Build mksnapshot
           command: script/build -t $TARGET_ARCH -c native_mksnapshot
@@ -381,7 +388,8 @@ jobs:
           command: script/bootstrap
       - run:
           name: Update
-          command: script/update --clean -t $TARGET_ARCH
+          command: script/update --clean -t $TARGET_ARCH --use_packaged_src
+          no_output_timeout: 20m
       - run:
           name: Build static library
           command: script/build -t $TARGET_ARCH -c $COMPONENT
@@ -417,7 +425,8 @@ jobs:
           command: script/bootstrap
       - run:
           name: Update
-          command: script/update --clean -t $TARGET_ARCH --use-bundled-sccache
+          command: script/update --clean -t $TARGET_ARCH --use-bundled-sccache --use_packaged_src
+          no_output_timeout: 20m
       - run:
           name: Build shared library
           command: script/build -t $TARGET_ARCH -c $COMPONENT
@@ -456,8 +465,8 @@ jobs:
           command: script/bootstrap
       - run:
           name: Update
-          command: script/update --clean -t $TARGET_ARCH
-
+          command: script/update --clean -t $TARGET_ARCH --use_packaged_src
+          no_output_timeout: 20m
       - run:
           name: Build static library
           command: script/build -t $TARGET_ARCH -c $COMPONENT

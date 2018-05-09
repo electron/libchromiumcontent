@@ -2,6 +2,7 @@
 
 import os
 import platform
+import sys
 
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 SRC_DIR = os.path.join(SOURCE_ROOT, 'src')
@@ -21,6 +22,13 @@ MIPS64EL_GCC_URL = 'https://github.com/electron/debian-sysroot-image-creator/rel
 IS_ARM64_HOST = platform.machine() == 'aarch64'
 # Whether the host system is an arm64 machine
 IS_ARMV7_HOST = platform.machine() == 'armv7l'
+
+PLATFORM_KEY = {
+  'cygwin': 'win',
+  'darwin': 'osx',
+  'linux2': 'linux',
+  'win32': 'win',
+}[sys.platform]
 
 def set_mips64el_env(env):
   gcc_dir = os.path.join(VENDOR_DIR, MIPS64EL_GCC)
