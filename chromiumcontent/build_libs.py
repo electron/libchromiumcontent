@@ -9,10 +9,19 @@ parser.add_argument('-s', dest='stamp')
 parser.add_argument('-t', dest='target_cpu')
 args = parser.parse_args()
 
-def gen_list(out, name, obj_dirs):
+def walk_dir(root, exclude_dirs=[]):
+    for dir, subdirs, files in os.walk(root):
+        for exclude_dir in exclude_dirs:
+            test_dir = os.path.join(*(dir.split(os.path.sep)[1:]))
+            if exclude_dirs and test_dir in exclude_dirs:
+                files = []
+        yield dir, subdirs, files
+
+def gen_list(out, name, obj_dirs, exclude_dirs=[]):
     out.write(name + " = [\n")
     for base_dir in obj_dirs:
-        for dir, subdirs, files in os.walk(os.path.join('obj', base_dir)):
+        base_path = os.path.join('obj', base_dir)
+        for dir, subdirs, files in walk_dir(base_path, exclude_dirs):
             for f in files:
                 if f.endswith('.obj') or f.endswith('.o'):
                     out.write('"' + os.path.abspath(os.path.join(dir, f)) + '",\n')
@@ -95,7 +104,10 @@ with open(args.out, 'w') as out:
             "tools",
             "ui",
             "url",
-        ] + additional_libchromiumcontent)
+        ] + additional_libchromiumcontent,
+        [
+            "tools/v8_context_snapshot/v8_context_snapshot_generator"
+        ])
 
     gen_list(
         out,
@@ -261,8 +273,8 @@ with open(args.out, 'w') as out:
             "third_party/angle/libGLESv2",
             "third_party/angle/preprocessor",
             "third_party/angle/src/third_party/libXNVCtrl",
-            "third_party/angle/src/vulkan_support/glslang",
-            "third_party/angle/src/vulkan_support/vulkan_loader",
+            "third_party/angle/third_party/glslang",
+            "third_party/angle/third_party/vulkan-validation-layers/vulkan_loader",
             "third_party/angle/translator",
             "third_party/angle/translator_lib",
         ])
@@ -282,18 +294,11 @@ with open(args.out, 'w') as out:
             "third_party/WebKit/common",
             "third_party/WebKit/public",
             "third_party/WebKit/Source/controller",
-            "third_party/WebKit/Source/platform/blink_common",
-            "third_party/WebKit/Source/platform/blob",
-            "third_party/WebKit/Source/platform/heap",
-            "third_party/WebKit/Source/platform/instrumentation",
-            "third_party/WebKit/Source/platform/loader",
-            "third_party/WebKit/Source/platform/media",
-            "third_party/WebKit/Source/platform/mojo",
-            "third_party/WebKit/Source/platform/network",
-            "third_party/WebKit/Source/platform/platform",
-            "third_party/WebKit/Source/platform/scheduler",
-            "third_party/WebKit/Source/platform/wtf",
+            "third_party/WebKit/Source/platform",
             "third_party/WebKit/Source/web",
+        ],
+        [
+            "third_party/WebKit/Source/platform/character_data_generator"
         ])
 
     gen_list(
