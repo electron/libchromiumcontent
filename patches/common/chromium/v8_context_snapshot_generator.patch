@@ -6,7 +6,7 @@ index d6691a527f25..000105b86f53 100644
      configs += [
        "//v8:external_startup_data",
        ":disable_icf",
-+      "//chromiumcontent/config:build_time_executable"
++      "//libchromiumcontent/chromiumcontent/config:build_time_executable"
      ]
    }
  }
