@@ -6,7 +6,7 @@ index 20301dbd005d..31a7568a8aa8 100644
    # dependence should only be for the purpose of embedding the Device Service.
    visibility = [
      ":test_support",
-+    "//chromiumcontent:device_service",
++    "//libchromiumcontent/chromiumcontent:device_service",
      "//content/browser",
    ]
    sources = [
