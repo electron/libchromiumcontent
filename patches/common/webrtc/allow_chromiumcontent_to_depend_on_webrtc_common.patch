@@ -7,7 +7,7 @@ index f32e490f7..6bc8d1205 100644
  }
  
 +if (is_electron_build) {
-+  webrtc_default_visibility += [ "//chromiumcontent:webrtc_common" ]
++  webrtc_default_visibility += [ "//libchromiumcontent/chromiumcontent:webrtc_common" ]
 +}
 +
  template("rtc_test") {
