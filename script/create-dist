@@ -485,7 +485,7 @@ def copy_binaries(target_arch, component, create_debug_archive,
     copy_with_blacklist(target_arch, os.path.join(output_dir, binary), target_dir, ninja)
 
   # Copy all static libraries from chromiumcontent
-  for library in glob.glob(os.path.join(output_dir, 'obj', 'chromiumcontent', '*.' + STATIC_LIBRARY_SUFFIX)):
+  for library in glob.glob(os.path.join(output_dir, 'obj', 'libchromiumcontent', 'chromiumcontent', '*.' + STATIC_LIBRARY_SUFFIX)):
     ninja.copy(library, target_dir)
 
   if TARGET_PLATFORM == 'darwin':
