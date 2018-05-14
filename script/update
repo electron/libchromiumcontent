@@ -49,7 +49,8 @@ SRC_FILES_TO_IGNORE = [
   os.path.join('src', 'third_party', 'catapult', 'tracing', 'test_data'),
   os.path.join('src', 'third_party', 'deqp'),
   os.path.join('src', 'third_party', 'sqlite', 'sqlite-src-3200100', 'test'),
-  os.path.join('src', 'third_party', 'sqlite', 'src', 'test')
+  os.path.join('src', 'third_party', 'sqlite', 'src', 'test'),
+  os.path.join('src', 'tools', 'swarming_client', 'example')
 ]
 
 def main():
@@ -333,20 +334,23 @@ def get_packaged_src(clean, git_cache, nohooks, upload_src):
     print('Could not download {0}, syncing from git'.format(package_url))
     gclient_sync(src_version, clean, git_cache, nohooks)
     if upload_src:
-      print('Packaging source to ' + tar_name + '.')
-      tar_path =  os.path.join(SOURCE_ROOT, tar_name)
-      filesystem.safe_unlink(tar_path)
-      with util.scoped_cwd(SOURCE_ROOT):
-        tar_file = tarfile.open(tar_path, 'w:bz2')
-        tar_file.add('src', exclude=exclude_packaged_files)
-        tar_file.close()
-      if ('LIBCHROMIUMCONTENT_S3_ACCESS_KEY' in os.environ and
-         'LIBCHROMIUMCONTENT_S3_BUCKET' in os.environ and
-         'LIBCHROMIUMCONTENT_S3_SECRET_KEY' in os.environ):
-        script_path = os.path.join(SOURCE_ROOT, 'script', 'upload')
-        script_arguments = ['--upload_packaged_src', '--chromium_version', src_version]
-        print('Uploading source to ' + package_url + '.')
-        subprocess.check_call([sys.executable, script_path] + script_arguments)
+      try:
+        print('Packaging source to ' + tar_name + '.')
+        tar_path =  os.path.join(SOURCE_ROOT, tar_name)
+        filesystem.safe_unlink(tar_path)
+        with util.scoped_cwd(SOURCE_ROOT):
+          tar_file = tarfile.open(tar_path, 'w:bz2')
+          tar_file.add('src', exclude=exclude_packaged_files)
+          tar_file.close()
+        if ('LIBCHROMIUMCONTENT_S3_ACCESS_KEY' in os.environ and
+          'LIBCHROMIUMCONTENT_S3_BUCKET' in os.environ and
+          'LIBCHROMIUMCONTENT_S3_SECRET_KEY' in os.environ):
+          script_path = os.path.join(SOURCE_ROOT, 'script', 'upload')
+          script_arguments = ['--upload_packaged_src', '--chromium_version', src_version]
+          print('Uploading source to ' + package_url + '.')
+          subprocess.check_call([sys.executable, script_path] + script_arguments)
+      except OSError as e:
+        print('Unexpected error packaging {0} in chromium source: {1}'.format(e.strerror, e.filename))
   except:
     print('Unexpected error downloading and extracting chromium source:', sys.exc_info()[0])
     raise

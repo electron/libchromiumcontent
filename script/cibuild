@@ -90,7 +90,7 @@ def run_ci(target_arch, skip_upload, use_sccache, build_tests, component=None):
   update_args = ['--clean', '--use_packaged_src'] + args
   if use_sccache:
     update_args += ['--use-bundled-sccache']
-  if target_arch == 'x64':
+  if target_arch == 'x64' and component == 'shared_library':
     update_args += ['--upload_packaged_src']
   if component is not None:
     component_args = ['-c', component]
