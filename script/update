@@ -35,6 +35,9 @@ solutions = [
     "managed": False,
     "name": "src",
     "deps_file": ".DEPS.git",
+    "custom_vars": {{
+      "checkout_nacl": False
+    }},
     "custom_deps": {{}},
   }},
 ]
