@@ -17,14 +17,16 @@ build_script:
     if(($env:APPVEYOR_PULL_REQUEST_HEAD_REPO_NAME -split "/")[0] -eq ($env:APPVEYOR_REPO_NAME -split "/")[0]) {
       Write-warning "Skipping PR build for branch"; Exit-AppveyorBuild
     } else {
+      python script\sccache -s
       if($env:APPVEYOR_SCHEDULED_BUILD -eq 'True')  {
-        script\cibuild.ps1 -buildTests
+        script\cibuild.ps1 -buildTests -useSccache
       } else {
-        script\cibuild.ps1
+        script\cibuild.ps1 -useSccache
       }
       if ($? -ne 'True') {
         throw "Build failed with exit code $?"
       } else {
+        python script\sccache -s
         "Build succeeded."
       }
     }
