@@ -17,6 +17,7 @@ build_script:
     if(($env:APPVEYOR_PULL_REQUEST_HEAD_REPO_NAME -split "/")[0] -eq ($env:APPVEYOR_REPO_NAME -split "/")[0]) {
       Write-warning "Skipping PR build for branch"; Exit-AppveyorBuild
     } else {
+      python script\sccache --start-server --azure_container "$env:SCCACHE_AZURE_BLOB_CONTAINER" --azure_connection "$env:SCCACHE_AZURE_CONNECTION_STRING"
       python script\sccache -s
       if($env:APPVEYOR_SCHEDULED_BUILD -eq 'True')  {
         script\cibuild.ps1 -buildTests -useSccache
