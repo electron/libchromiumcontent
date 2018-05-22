@@ -266,3 +266,12 @@ patches:
   description: |
       v8_context_snapshot_generator is a build time executable.
       The patch adds the config.
+-
+  owners: codebytere
+  file: backport_953144.patch
+  description: |
+    Fixes failing <webview> loads devtools extensions registered on the parent
+    window test by baking the screencast module into the remote debugging
+    configurations of the inspector app. See
+    https://chromium-review.googlesource.com/c/chromium/src/+/953144 for more
+    details.
