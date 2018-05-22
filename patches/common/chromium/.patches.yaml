@@ -275,3 +275,12 @@ patches:
     configurations of the inspector app. See
     https://chromium-review.googlesource.com/c/chromium/src/+/953144 for more
     details.
+-
+  owners: codebytere
+  file: backport_3743d0f.patch
+  description: |
+    Fixes some failing guestinstance attribute tests by removing the DCHECK for 
+    wait order number and the spammy invalidclient wait logging. See
+    https://bitbucket.org/chromiumembedded/cef/issues/2434/client-did-not-release-sync-token-as
+    and https://chromium-review.googlesource.com/c/chromium/src/+/969968 for 
+    more details.
