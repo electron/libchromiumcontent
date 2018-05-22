@@ -1,7 +1,7 @@
-diff --git content/shell/browser/shell_devtools_frontend.cc content/shell/browser/shell_devtools_frontend.cc
+diff --git a/content/shell/browser/shell_devtools_frontend.cc b/content/shell/browser/shell_devtools_frontend.cc
 index 3b3221a..6447347 100644
---- content/shell/browser/shell_devtools_frontend.cc
-+++ content/shell/browser/shell_devtools_frontend.cc
+--- a/content/shell/browser/shell_devtools_frontend.cc
++++ b/content/shell/browser/shell_devtools_frontend.cc
 @@ -19,8 +19,8 @@
  namespace {
  static GURL GetFrontendURL() {
@@ -13,10 +13,10 @@ index 3b3221a..6447347 100644
  }
  }  // namespace
  
-diff --git third_party/WebKit/Source/devtools/BUILD.gn third_party/WebKit/Source/devtools/BUILD.gn
+diff --git a/third_party/WebKit/Source/devtools/BUILD.gn b/third_party/WebKit/Source/devtools/BUILD.gn
 index 952b922..9e7b4bf 100644
---- third_party/WebKit/Source/devtools/BUILD.gn
-+++ third_party/WebKit/Source/devtools/BUILD.gn
+--- a/third_party/WebKit/Source/devtools/BUILD.gn
++++ b/third_party/WebKit/Source/devtools/BUILD.gn
 @@ -1048,7 +1048,6 @@
    "$resources_out_dir/cm_modes/cm_modes_module.js",
    "$resources_out_dir/emulated_devices/emulated_devices_module.js",
@@ -25,10 +25,10 @@ index 952b922..9e7b4bf 100644
  ]
  
  devtools_applications = [
-diff --git third_party/WebKit/Source/devtools/front_end/inspector.json third_party/WebKit/Source/devtools/front_end/inspector.json
+diff --git a/third_party/WebKit/Source/devtools/front_end/inspector.json b/third_party/WebKit/Source/devtools/front_end/inspector.json
 index 36c222f..dc2149a 100644
---- third_party/WebKit/Source/devtools/front_end/inspector.json
-+++ third_party/WebKit/Source/devtools/front_end/inspector.json
+--- a/third_party/WebKit/Source/devtools/front_end/inspector.json
++++ b/third_party/WebKit/Source/devtools/front_end/inspector.json
 @@ -1,6 +1,6 @@
  {
    "modules" : [
@@ -37,10 +37,10 @@ index 36c222f..dc2149a 100644
    ],
    "extends": "devtools_app",
    "has_html": true
-diff --git third_party/WebKit/Source/devtools/front_end/main/Main.js third_party/WebKit/Source/devtools/front_end/main/Main.js
+diff --git a/third_party/WebKit/Source/devtools/front_end/main/Main.js b/third_party/WebKit/Source/devtools/front_end/main/Main.js
 index 4c9d9aa..e6d73b1 100644
---- third_party/WebKit/Source/devtools/front_end/main/Main.js
-+++ third_party/WebKit/Source/devtools/front_end/main/Main.js
+--- a/third_party/WebKit/Source/devtools/front_end/main/Main.js
++++ b/third_party/WebKit/Source/devtools/front_end/main/Main.js
 @@ -212,19 +212,8 @@
      this._registerForwardedShortcuts();
      this._registerMessageSinkListener();
