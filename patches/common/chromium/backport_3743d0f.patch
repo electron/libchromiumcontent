@@ -1,0 +1,187 @@
+diff --git a/gpu/command_buffer/service/sync_point_manager.cc b/gpu/command_buffer/service/sync_point_manager.cc
+index a3c4bf1..7fdf99e 100644
+--- a/gpu/command_buffer/service/sync_point_manager.cc
++++ b/gpu/command_buffer/service/sync_point_manager.cc
+@@ -72,8 +72,9 @@
+ uint32_t SyncPointOrderData::GenerateUnprocessedOrderNumber() {
+   base::AutoLock auto_lock(lock_);
+   DCHECK(!destroyed_);
+-  unprocessed_order_num_ = sync_point_manager_->GenerateOrderNumber();
+-  return unprocessed_order_num_;
++  last_unprocessed_order_num_ = sync_point_manager_->GenerateOrderNumber();
++  unprocessed_order_nums_.push(last_unprocessed_order_num_);
++  return last_unprocessed_order_num_;
+ }
+ 
+ void SyncPointOrderData::BeginProcessingOrderNumber(uint32_t order_num) {
+@@ -85,29 +86,6 @@
+   DCHECK_LE(order_num, unprocessed_order_num());
+   current_order_num_ = order_num;
+   paused_ = false;
+-
+-  // Catch invalid waits which were waiting on fence syncs that do not exist.
+-  // When we begin processing an order number, we should release any fence
+-  // syncs which were enqueued but the order number never existed.
+-  // Release without the lock to avoid possible deadlocks.
+-  std::vector<OrderFence> ensure_releases;
+-  {
+-    base::AutoLock auto_lock(lock_);
+-    while (!order_fence_queue_.empty()) {
+-      const OrderFence& order_fence = order_fence_queue_.top();
+-      if (order_fence_queue_.top().order_num < order_num) {
+-        ensure_releases.push_back(order_fence);
+-        order_fence_queue_.pop();
+-        continue;
+-      }
+-      break;
+-    }
+-  }
+-
+-  for (OrderFence& order_fence : ensure_releases) {
+-    order_fence.client_state->EnsureWaitReleased(order_fence.fence_release,
+-                                                 order_fence.release_callback);
+-  }
+ }
+ 
+ void SyncPointOrderData::PauseProcessingOrderNumber(uint32_t order_num) {
+@@ -132,9 +110,20 @@
+     DCHECK_GT(order_num, processed_order_num_);
+     processed_order_num_ = order_num;
+
++    DCHECK(!unprocessed_order_nums_.empty());
++    DCHECK_EQ(order_num, unprocessed_order_nums_.front());
++    unprocessed_order_nums_.pop();
++
++    uint32_t next_order_num = 0;
++    if (!unprocessed_order_nums_.empty())
++      next_order_num = unprocessed_order_nums_.front();
++
+     while (!order_fence_queue_.empty()) {
+       const OrderFence& order_fence = order_fence_queue_.top();
+-      if (order_fence_queue_.top().order_num <= order_num) {
++      // It's possible for the fence's order number to equal next order number.
++      // This happens when the wait was enqueued with an order number greater
++      // than the last unprocessed order number. So don't release the fence yet.
++      if (!next_order_num || order_fence.order_num < next_order_num) {
+         ensure_releases.push_back(order_fence);
+         order_fence_queue_.pop();
+         continue;
+@@ -144,6 +133,7 @@
+   }
+
+   for (OrderFence& order_fence : ensure_releases) {
++    DLOG(ERROR) << "Client did not release sync token as expected";
+     order_fence.client_state->EnsureWaitReleased(order_fence.fence_release,
+                                                  order_fence.release_callback);
+   }
+@@ -158,19 +148,22 @@
+   if (destroyed_)
+     return false;
+ 
+-  // Release should have a possible unprocessed order number lower than the wait
+-  // order number.
+-  if ((processed_order_num_ + 1) >= wait_order_num)
++  // We should have unprocessed order numbers which could potentially release
++  // this fence.
++  if (unprocessed_order_nums_.empty())
+     return false;
+ 
+-  // Release should have more unprocessed numbers if we are waiting.
+-  if (unprocessed_order_num_ <= processed_order_num_)
++  // We should have an unprocessed order number lower than the wait order
++  // number for the wait to be valid. It's not possible for wait order number to
++  // equal next unprocessed order number, but we handle that defensively.
++  DCHECK_NE(wait_order_num, unprocessed_order_nums_.front());
++  if (wait_order_num <= unprocessed_order_nums_.front())
+     return false;
+ 
+   // So far it could be valid, but add an order fence guard to be sure it
+   // gets released eventually.
+   uint32_t expected_order_num =
+-      std::min(unprocessed_order_num_, wait_order_num);
++      std::min(unprocessed_order_nums_.back(), wait_order_num);
+   order_fence_queue_.push(OrderFence(expected_order_num, fence_release,
+                                      release_callback,
+                                      std::move(client_state)));
+@@ -237,17 +230,20 @@
+                                           const base::Closure& callback) {
+   // Lock must be held the whole time while we validate otherwise it could be
+   // released while we are checking.
+-  {
+-    base::AutoLock auto_lock(fence_sync_lock_);
+-    if (release > fence_sync_release_ &&
+-        order_data_->ValidateReleaseOrderNumber(this, wait_order_num, release,
+-                                                callback)) {
+-      // Add the callback which will be called upon release.
+-      release_callback_queue_.push(ReleaseCallback(release, callback));
+-      return true;
+-    }
+-  }
++  base::AutoLock auto_lock(fence_sync_lock_);
++
+   // Already released, do not run the callback.
++  if (release <= fence_sync_release_)
++    return false;
++
++  if (order_data_->ValidateReleaseOrderNumber(this, wait_order_num, release,
++                                              callback)) {
++    // Add the callback which will be called upon release.
++    release_callback_queue_.push(ReleaseCallback(release, callback));
++    return true;
++  }
++
++  DLOG(ERROR) << "Client waiting on non-existent sync token";
+   return false;
+ }
+ 
+diff --git a/gpu/command_buffer/service/sync_point_manager.h b/gpu/command_buffer/service/sync_point_manager.h
+index be8e510..ca5c4c9 100644
+--- a/gpu/command_buffer/service/sync_point_manager.h
++++ b/gpu/command_buffer/service/sync_point_manager.h
+@@ -51,7 +51,7 @@
+ 
+   uint32_t unprocessed_order_num() const {
+     base::AutoLock auto_lock(lock_);
+-    return unprocessed_order_num_;
++    return last_unprocessed_order_num_;
+   }
+ 
+   uint32_t current_order_num() const {
+@@ -122,9 +122,7 @@
+   bool paused_ = false;
+ 
+   // This lock protects destroyed_, processed_order_num_,
+-  // unprocessed_order_num_, and order_fence_queue_. All order numbers (n) in
+-  // order_fence_queue_ must follow the invariant:
+-  //   processed_order_num_ < n <= unprocessed_order_num_.
++  // unprocessed_order_nums_, and order_fence_queue_.
+   mutable base::Lock lock_;
+ 
+   bool destroyed_ = false;
+@@ -132,8 +130,13 @@
+   // Last finished IPC order number.
+   uint32_t processed_order_num_ = 0;
+ 
+-  // Unprocessed order number expected to be processed under normal execution.
+-  uint32_t unprocessed_order_num_ = 0;
++  // Last unprocessed order number. Updated in GenerateUnprocessedOrderNumber.
++  uint32_t last_unprocessed_order_num_ = 0;
++
++  // Queue of unprocessed order numbers. Order numbers are enqueued in
++  // GenerateUnprocessedOrderNumber, and dequeued in
++  // FinishProcessingOrderNumber.
++  std::queue<uint32_t> unprocessed_order_nums_;
+ 
+   // In situations where we are waiting on fence syncs that do not exist, we
+   // validate by making sure the order number does not pass the order number
+@@ -141,7 +144,9 @@
+   // wait command's, we should automatically release up to the expected
+   // release count. Note that this also releases other lower release counts,
+   // so a single misbehaved fence sync is enough to invalidate/signal all
+-  // previous fence syncs.
++  // previous fence syncs. All order numbers (n) in order_fence_queue_ must
++  // follow the invariant:
++  //   unprocessed_order_nums_.front() < n <= unprocessed_order_nums_.back().
+   OrderFenceQueue order_fence_queue_;
+ 
+   DISALLOW_COPY_AND_ASSIGN(SyncPointOrderData);
