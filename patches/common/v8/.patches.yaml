@@ -34,3 +34,19 @@ patches:
   owners: alexeykuzmin
   file: backport_39d546a.patch
   description: Node 10.0.0 needs it.
+-
+  owners: alexeykuzmin
+  file: backport_ff0a97933.patch
+  description: Node 10.2.0 needs it.
+-
+  owners: alexeykuzmin
+  file: backport_9fb02b526.patch
+  description: Node 10.2.0 needs it.
+-
+  owners: alexeykuzmin
+  file: backport_23652c5f.patch
+  description: Node 10.2.0 needs it.
+-
+  owners: alexeykuzmin
+  file: backport_b49206d.patch
+  description: Node 10.2.0 needs it.
