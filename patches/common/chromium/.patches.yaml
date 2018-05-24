@@ -275,3 +275,9 @@ patches:
     configurations of the inspector app. See
     https://chromium-review.googlesource.com/c/chromium/src/+/953144 for more
     details.
+-
+  owners: alexeykuzmin
+  file: backport_ef091c206.patch
+  description: |
+      https://chromium-review.googlesource.com/969968
+      The change originally landed in 67.0.3378.0.
