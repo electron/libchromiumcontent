@@ -95,11 +95,6 @@ if (is_electron_build && is_component_build) {
   # this set of static libraries. Most can just depend on the respective
   # source_set target.
 
-  static_library("desktop_capture") {
-      complete_static_lib = true
-      deps = [ "//third_party/webrtc/modules/desktop_capture" ]
-  }
-
   static_library("device_service") {
       complete_static_lib = true
       public_deps = [ "//services/device:lib" ]
