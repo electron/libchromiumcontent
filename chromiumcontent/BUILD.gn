@@ -26,7 +26,6 @@ group("targets") {
       "//ppapi/shared_impl",
       "//net:net_with_v8",
       "//third_party/libyuv",
-      "//third_party/webrtc/modules/desktop_capture",
       "//third_party/widevine/cdm:headers",
       "//third_party/widevine/cdm:widevinecdmadapter",
       "//tools/v8_context_snapshot",
@@ -44,7 +43,6 @@ group("targets") {
 
     if (is_component_build) {
       deps += [
-        ":desktop_capture",
         ":device_service",
         ":fx_agg",
         ":fx_lcms2",
@@ -94,11 +92,6 @@ if (is_electron_build && is_component_build) {
   # produced by a component build. So we put a copy of the needed symbols in
   # this set of static libraries. Most can just depend on the respective
   # source_set target.
-
-  static_library("desktop_capture") {
-      complete_static_lib = true
-      deps = [ "//third_party/webrtc/modules/desktop_capture" ]
-  }
 
   static_library("device_service") {
       complete_static_lib = true
