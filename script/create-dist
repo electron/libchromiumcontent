@@ -85,6 +85,7 @@ BINARIES_SHARED_LIBRARY = {
   'darwin': [
     os.path.join('obj', 'components', 'cdm', 'renderer', 'librenderer.a'),
     os.path.join('obj', 'net', 'libhttp_server.a'),
+    os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture', 'libdesktop_capture_generic.a'),
     os.path.join('obj', 'third_party', 'webrtc', 'rtc_base', 'librtc_base.a'),
     os.path.join('obj', 'third_party', 'webrtc', 'rtc_base', 'librtc_base_generic.a'),
     os.path.join('obj', 'third_party', 'webrtc_overrides', 'libinit_webrtc.a'),
@@ -106,6 +107,7 @@ BINARIES_SHARED_LIBRARY = {
   'linux': [
     os.path.join('obj', 'components', 'cdm', 'renderer', 'librenderer.a'),
     os.path.join('obj', 'net', 'libhttp_server.a'),
+    os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture', 'libdesktop_capture_generic.a'),
     os.path.join('obj', 'third_party', 'webrtc', 'rtc_base', 'librtc_base.a'),
     os.path.join('obj', 'third_party', 'webrtc', 'rtc_base', 'librtc_base_generic.a'),
     os.path.join('obj', 'third_party', 'webrtc_overrides', 'libinit_webrtc.a'),
@@ -143,6 +145,7 @@ BINARIES_SHARED_LIBRARY = {
     os.path.join('obj', 'third_party', 'pdfium', 'fxge.lib'),
     os.path.join('obj', 'third_party', 'pdfium', 'fxjs.lib'),
     os.path.join('obj', 'third_party', 'pdfium', 'pwl.lib'),
+    os.path.join('obj', 'third_party', 'webrtc', 'modules', 'desktop_capture', 'desktop_capture_generic.lib'),
     os.path.join('obj', 'third_party', 'webrtc', 'rtc_base', 'rtc_base.lib'),
     os.path.join('obj', 'third_party', 'webrtc', 'rtc_base', 'rtc_base_generic.lib'),
     os.path.join('obj', 'third_party', 'webrtc_overrides', 'init_webrtc.lib'),
