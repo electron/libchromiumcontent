@@ -289,3 +289,9 @@ patches:
       errors with Chromium where it is enabled by default.
       This patch will disable Crashpad in Chromium using fallback
       mechanism which uses Breakpad.
+-
+  owners: nornagon
+  file: boringssl_build_gn.patch
+  description: |
+    Build BoringSSL with some extra functions that nodejs needs. Only affects
+    the GN build; with the GYP build, nodejs is still built with OpenSSL.
