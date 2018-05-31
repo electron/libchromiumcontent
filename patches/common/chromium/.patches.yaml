@@ -281,3 +281,11 @@ patches:
   description: |
       https://chromium-review.googlesource.com/969968
       The change originally landed in 67.0.3378.0.
+-
+  owners: torycl
+  file: crashpad-disabled-windows.patch
+  description: |
+      On Windows Electron does not link Crashpad. This causes linking
+      errors with Chromium where it is enabled by default.
+      This patch will disable Crashpad in Chromium using fallback
+      mechanism which uses Breakpad.
