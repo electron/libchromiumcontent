@@ -226,6 +226,7 @@ with open(args.out, 'w') as out:
             "net/net_browser_services",
             "net/net_with_v8",
             "net/proxy_resolution",
+            "net/net_nqe_proto",
         ])
 
     gen_list(
