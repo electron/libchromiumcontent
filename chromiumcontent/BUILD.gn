@@ -24,6 +24,7 @@ group("targets") {
       "//ppapi/host",
       "//ppapi/proxy",
       "//ppapi/shared_impl",
+      "//ppapi/thunk",
       "//net:net_with_v8",
       "//third_party/libyuv",
       "//third_party/widevine/cdm:headers",
