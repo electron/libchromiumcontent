@@ -19,7 +19,6 @@ Cr-Branched-From: 8457e810efd34381448d51d93f50079cf1f6a812-refs/heads/6.7.288@{#
 Cr-Branched-From: e921be5c4f2c6407936bde750992dedbf47c1016-refs/heads/master@{#52547}
 (cherry picked from commit 2eb23a17cc9af7fb9c7a64d0c9c794772642d77d)
 ---
- include/v8-version.h                               |  2 +-
  src/builtins/builtins-array-gen.cc                 |  6 +-
  src/builtins/builtins-array.cc                     |  4 +-
  src/builtins/builtins-promise-gen.cc               |  4 +-
@@ -48,21 +47,8 @@ Cr-Branched-From: e921be5c4f2c6407936bde750992dedbf47c1016-refs/heads/master@{#5
  test/mjsunit/harmony/regexp-named-captures.js      | 22 ++---
  test/mjsunit/keyed-store-generic.js                |  4 +-
  tools/v8heapconst.py                               | 57 ++++++-------
- 29 files changed, 264 insertions(+), 153 deletions(-)
+ 28 files changed, 263 insertions(+), 152 deletions(-)
 
-diff --git a/include/v8-version.h b/include/v8-version.h
-index cdb2c5381e..6779dda60d 100644
---- a/include/v8-version.h
-+++ b/include/v8-version.h
-@@ -11,7 +11,7 @@
- #define V8_MAJOR_VERSION 6
- #define V8_MINOR_VERSION 6
- #define V8_BUILD_NUMBER 346
--#define V8_PATCH_LEVEL 32
-+#define V8_PATCH_LEVEL 9999
- 
- // Use 1 for candidates and 0 otherwise.
- // (Boolean macro values are not supported by all preprocessors.)
 diff --git a/src/builtins/builtins-array-gen.cc b/src/builtins/builtins-array-gen.cc
 index 52a6222882..e44f6cddcc 100644
 --- a/src/builtins/builtins-array-gen.cc
