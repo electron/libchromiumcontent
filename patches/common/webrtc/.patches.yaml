@@ -25,3 +25,9 @@ patches:
   owners: ajmacd
   file: fix_jitter_buffer_with_opus_dtx.patch
   description: "https://webrtc-review.googlesource.com/c/src/+/18181"
+-
+  owners: alexeykuzmin
+  file: backport_a157e0809.patch
+  description:
+    VP9 temporal index bounds check. Landed in 67.0.3396.62.
+    https://webrtc-review.googlesource.com/73701
