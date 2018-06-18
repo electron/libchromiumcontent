@@ -3,6 +3,8 @@ resources:
 phases:
 - phase: Build_libchromiumcontent
   condition: or(eq(variables['System.PullRequest.IsFork'], 'True'), ne(variables['Build.Reason'], 'PullRequest'))
+  queue:    
+    timeoutInMinutes: 180
   steps:
   - bash: |
      set -e

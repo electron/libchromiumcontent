@@ -26,5 +26,5 @@ def create_args(out_dir, raw_config, **kwargs):
 def generate(out_dir, chromium_root_dir, depot_tools_dir, env):
   executable = __get_executable_path(depot_tools_dir)
   out_dir_relative_path = os.path.relpath(out_dir, chromium_root_dir)
-  subprocess.check_call([executable, 'gen', out_dir_relative_path],
+  subprocess.check_call([executable, 'gen', '-v', out_dir_relative_path],
                         cwd=chromium_root_dir, env=env)
