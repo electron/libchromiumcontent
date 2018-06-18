@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "@octokit/rest": "^15.2.6",
-    "minimist": "^1.2.0"
-  }
-}
