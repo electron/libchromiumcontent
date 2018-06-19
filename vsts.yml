@@ -3,7 +3,7 @@ resources:
 phases:
 - phase: Build_libchromiumcontent
   condition: or(eq(variables['System.PullRequest.IsFork'], 'True'), ne(variables['Build.Reason'], 'PullRequest'))
-  queue:    
+  queue:
     timeoutInMinutes: 180
   steps:
   - bash: |
@@ -70,6 +70,9 @@ phases:
   - bash: |
      set -e
      if [ "${COMPONENT}" == "shared_library" ]; then
+       script/sccache --help
+       script/sccache -s
+       script/sccache --stop-server
        script/sccache --start-server --azure_container "$(SCCACHE_AZURE_BLOB_CONTAINER)" --azure_connection "$(SCCACHE_AZURE_CONNECTION_STRING)" > >(tee -a buildlog.txt) 2> >(tee -a buildlog.txt >&2)
        script/sccache -s > >(tee -a buildlog.txt) 2> >(tee -a buildlog.txt >&2)
      fi
