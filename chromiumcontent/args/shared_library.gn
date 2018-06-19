@@ -35,6 +35,11 @@ if (target_cpu == "arm64") {
   fatal_linker_warnings = false
 }
 
+# FIXME(alexeykuzmin): We should use clang starting Ch67.
+if (target_os == "win") {
+  is_clang = false
+}
+
 # Configuration for mips64el
 if (target_cpu == "mips64el") {
   is_clang = false

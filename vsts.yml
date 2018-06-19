@@ -3,29 +3,8 @@ resources:
 phases:
 - phase: Build_libchromiumcontent
   condition: or(eq(variables['System.PullRequest.IsFork'], 'True'), ne(variables['Build.Reason'], 'PullRequest'))
-  queue:
-    parallel: 4
+  queue:    
     timeoutInMinutes: 180
-    matrix:
-      libchromiumcontent-mas-shared:
-        COMPONENT: shared_library
-        MAS_BUILD: 1
-        TARGET_ARCH: x64
-        TARGET_TYPE: mas
-      libchromiumcontent-mas-static:
-        COMPONENT: static_library
-        MAS_BUILD: 1
-        TARGET_ARCH: x64
-        TARGET_TYPE: mas
-      libchromiumcontent-osx-shared:
-        COMPONENT: shared_library
-        TARGET_ARCH: x64
-        TARGET_TYPE: osx
-      libchromiumcontent-osx-static:
-        COMPONENT: static_library
-        TARGET_ARCH: x64
-        TARGET_TYPE: osx
-
   steps:
   - bash: |
      set -e
@@ -141,23 +120,6 @@ phases:
       filesAcl: 'public-read'
       logRequest: true
       logResponse: true
-
-  - bash: |
-     if [[ -z "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER}" ]]; then
-       echo "Skipping build results upload because there is not a PR number"
-     else
-       npm install --prefix ./script/reportbuild
-       LIBCHROMIUMCONTENT_GITHUB_TOKEN=$(LIBCHROMIUMCONTENT_GITHUB_TOKEN) node script/reportbuild/upload-build-results.js --buildName="$AGENT_JOBNAME" --logFile="$(TARGET_TYPE)/$(TARGET_ARCH)/$(gitcommit)/buildlog.txt" --prNumber="$SYSTEM_PULLREQUEST_PULLREQUESTNUMBER" --commitId="$BUILD_SOURCEVERSION" --failed
-      fi
-    condition: failed()
-
-  - bash: |
-     if [[ -z "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER}" ]]; then
-       echo "Skipping build results upload because there is not a PR number"
-     else
-       npm install --prefix ./script/reportbuild
-       LIBCHROMIUMCONTENT_GITHUB_TOKEN=$(LIBCHROMIUMCONTENT_GITHUB_TOKEN) node script/reportbuild/upload-build-results.js --buildName="$AGENT_JOBNAME" --logFile="$(TARGET_TYPE)/$(TARGET_ARCH)/$(gitcommit)/buildlog.txt" --prNumber="$SYSTEM_PULLREQUEST_PULLREQUESTNUMBER" --commitId="$BUILD_SOURCEVERSION"
-      fi
 
   - task: mspremier.PostBuildCleanup.PostBuildCleanup-task.PostBuildCleanup@3
     condition: always()

@@ -29,6 +29,7 @@ group("targets") {
       "//third_party/webrtc/modules/desktop_capture",
       "//third_party/widevine/cdm:headers",
       "//third_party/widevine/cdm:widevinecdmadapter",
+      "//tools/v8_context_snapshot",
       "//ui/content_accelerators",
       "//ui/display",
       "//ui/display/util",
@@ -44,16 +45,19 @@ group("targets") {
     if (is_component_build) {
       deps += [
         ":desktop_capture",
+        ":device_service",
         ":fx_agg",
         ":fx_lcms2",
         ":fx_libopenjpeg",
         ":fx_zlib",
         ":libjpeg",
         ":libyuv",
+        ":pdfium_skia_shared",
         ":ppapi_cpp_objects",
         ":ppapi_internal_module",
         ":security_state",
         ":system_wrappers",
+        ":viz_service",
         ":webrtc_common",
       ]
 
@@ -96,6 +100,11 @@ if (is_electron_build && is_component_build) {
       deps = [ "//third_party/webrtc/modules/desktop_capture" ]
   }
 
+  static_library("device_service") {
+      complete_static_lib = true
+      public_deps = [ "//services/device:lib" ]
+  }
+
   static_library("fx_agg") {
       complete_static_lib = true
       deps = [ "//third_party/pdfium/third_party:fx_agg" ]
@@ -126,6 +135,11 @@ if (is_electron_build && is_component_build) {
       deps = [ "//third_party/libyuv" ]
   }
 
+  static_library("pdfium_skia_shared") {
+      complete_static_lib = true
+      deps = [ "//third_party/pdfium/third_party:skia_shared" ]
+  }
+
   static_library("ppapi_cpp_objects") {
       complete_static_lib = true
       deps = [ "//ppapi/cpp:objects" ]
@@ -147,6 +161,11 @@ if (is_electron_build && is_component_build) {
   static_library("system_wrappers") {
       complete_static_lib = true
       deps = [ "//third_party/webrtc/system_wrappers" ]
+  }
+
+  static_library("viz_service") {
+      complete_static_lib = true
+      public_deps = [ "//services/viz:lib" ]
   }
 
   static_library("webrtc_common") {
@@ -372,9 +391,7 @@ if (is_electron_build && !is_component_build) {
       # "//media/mojo:media_mojo_unittests",
       # "//media/capture:capture_unittests",
       # "//mojo/common:mojo_common_unittests",
-      # "//mojo/edk/system:mojo_system_unittests",
-      # "//mojo/edk/test:mojo_public_bindings_unittests",
-      # "//mojo/edk/test:mojo_public_system_unittests",
+      # "//mojo:mojo_unittests",
       # "//net:net_unittests",
       # "//ppapi:ppapi_unittests",
       # "//printing:printing_unittests",

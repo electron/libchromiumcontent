@@ -9,10 +9,19 @@ parser.add_argument('-s', dest='stamp')
 parser.add_argument('-t', dest='target_cpu')
 args = parser.parse_args()
 
-def gen_list(out, name, obj_dirs):
+def walk_dir(root, exclude_dirs=[]):
+    for dir, subdirs, files in os.walk(root):
+        for exclude_dir in exclude_dirs:
+            test_dir = os.path.join(*(dir.split(os.path.sep)[1:]))
+            if exclude_dirs and test_dir in exclude_dirs:
+                files = []
+        yield dir, subdirs, files
+
+def gen_list(out, name, obj_dirs, exclude_dirs=[]):
     out.write(name + " = [\n")
     for base_dir in obj_dirs:
-        for dir, subdirs, files in os.walk(os.path.join('obj', base_dir)):
+        base_path = os.path.join('obj', base_dir)
+        for dir, subdirs, files in walk_dir(base_path, exclude_dirs):
             for f in files:
                 if f.endswith('.obj') or f.endswith('.o'):
                     out.write('"' + os.path.abspath(os.path.join(dir, f)) + '",\n')
@@ -95,7 +104,10 @@ with open(args.out, 'w') as out:
             "tools",
             "ui",
             "url",
-        ] + additional_libchromiumcontent)
+        ] + additional_libchromiumcontent,
+        [
+            "tools/v8_context_snapshot/v8_context_snapshot_generator"
+        ])
 
     gen_list(
         out,
@@ -133,14 +145,18 @@ with open(args.out, 'w') as out:
         [
             "components/autofill/core/common",
             "components/bitmap_uploader",
+            "components/cbor",
             "components/cdm",
             "components/cookie_config",
             "components/crash/core/common",
             "components/device_event_log",
             "components/discardable_memory",
             "components/display_compositor",
+            "components/download",
+            "components/filename_generation",
             "components/filesystem",
             "components/leveldb",
+            "components/leveldb_proto",
             "components/link_header_util",
             "components/memory_coordinator",
             "components/metrics/public/interfaces",
@@ -152,8 +168,7 @@ with open(args.out, 'w') as out:
             "components/mus/gpu",
             "components/mus/input_devices",
             "components/mus/public",
-            "components/network_session_configurator/browser",
-            "components/network_session_configurator/common",
+            "components/network_session_configurator",
             "components/os_crypt",
             "components/password_manager/core/common",
             "components/payments",
@@ -172,7 +187,7 @@ with open(args.out, 'w') as out:
             "components/viz/common",
             "components/viz/hit_test",
             "components/viz/host",
-            "components/viz/service/service",
+            "components/viz/service",
             "components/webcrypto",
             "components/webmessaging",
         ])
@@ -194,6 +209,7 @@ with open(args.out, 'w') as out:
         "obj_media",
         [
             "media",
+            "third_party/libaom",
         ])
 
     gen_list(
@@ -202,44 +218,41 @@ with open(args.out, 'w') as out:
         [
             "net/base",
             "net/constants",
+            "net/dns",
             "net/extras",
+            "net/interfaces",
             "net/http_server",
             "net/net",
+            "net/net_browser_services",
             "net/net_with_v8",
+            "net/proxy_resolution",
+            "net/net_nqe_proto",
         ])
 
     gen_list(
         out,
         "obj_services",
         [
+            "services/audio",
             "services/catalog",
             "services/data_decoder",
             "services/device",
             "services/file",
-            "services/metrics/public",
-            "services/network/public",
+            "services/metrics",
+            "services/network",
+            "services/proxy_resolver",
             "services/resource_coordinator",
-            "services/service_manager/background",
-            "services/service_manager/embedder",
-            "services/service_manager/public/cpp/cpp",
-            "services/service_manager/public/cpp/cpp_types",
-            "services/service_manager/public/cpp/standalone_service/standalone_service",
-            "services/service_manager/public/interfaces",
-            "services/service_manager/runner",
-            "services/service_manager/sandbox",
-            "services/service_manager/service_manager",
-            "services/service_manager/standalone",
+            "services/service_manager",
             "services/shape_detection",
             "services/shell/public",
             "services/shell/runner",
             "services/shell/shell",
-            "services/tracing/public",
+            "services/tracing",
             "services/ui/public",
             "services/ui/gpu",
             "services/user",
             "services/video_capture",
-            "services/viz/privileged/interfaces",
-            "services/viz/public/interfaces",
+            "services/viz",
         ])
 
     gen_list(
@@ -261,8 +274,8 @@ with open(args.out, 'w') as out:
             "third_party/angle/libGLESv2",
             "third_party/angle/preprocessor",
             "third_party/angle/src/third_party/libXNVCtrl",
-            "third_party/angle/src/vulkan_support/glslang",
-            "third_party/angle/src/vulkan_support/vulkan_loader",
+            "third_party/angle/third_party/glslang",
+            "third_party/angle/third_party/vulkan-validation-layers/vulkan_loader",
             "third_party/angle/translator",
             "third_party/angle/translator_lib",
         ])
@@ -282,16 +295,11 @@ with open(args.out, 'w') as out:
             "third_party/WebKit/common",
             "third_party/WebKit/public",
             "third_party/WebKit/Source/controller",
-            "third_party/WebKit/Source/platform/heap",
-            "third_party/WebKit/Source/platform/blink_common",
-            "third_party/WebKit/Source/platform/instrumentation",
-            "third_party/WebKit/Source/platform/loader",
-            "third_party/WebKit/Source/platform/media",
-            "third_party/WebKit/Source/platform/mojo",
-            "third_party/WebKit/Source/platform/platform",
-            "third_party/WebKit/Source/platform/scheduler",
-            "third_party/WebKit/Source/platform/wtf",
+            "third_party/WebKit/Source/platform",
             "third_party/WebKit/Source/web",
+        ],
+        [
+            "third_party/WebKit/Source/platform/character_data_generator"
         ])
 
     gen_list(

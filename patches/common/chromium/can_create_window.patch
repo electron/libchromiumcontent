@@ -1,45 +1,35 @@
 diff --git a/content/browser/frame_host/render_frame_host_impl.cc b/content/browser/frame_host/render_frame_host_impl.cc
-index 1bf37e107a90..82ab04e1019d 100644
+index 25841d376bcd..df41213f4c49 100644
 --- a/content/browser/frame_host/render_frame_host_impl.cc
 +++ b/content/browser/frame_host/render_frame_host_impl.cc
-@@ -2716,6 +2719,48 @@ void RenderFrameHostImpl::CreateNewWindow(
+@@ -2874,6 +2874,38 @@ void RenderFrameHostImpl::CreateNewWindow(
                 "frame_tree_node", frame_tree_node_->frame_tree_node_id(), "url",
                 params->target_url.possibly_invalid_spec());
  
-+  scoped_refptr<ResourceRequestBody> body;
++  scoped_refptr<network::ResourceRequestBody> body;
 +  if (params->body->has_object) {
-+    body = new ResourceRequestBody;
-+    std::vector<storage::DataElement> elements;
++    body = new network::ResourceRequestBody;
++    std::vector<network::DataElement> elements;
 +    for (const auto& iter : params->body->elements) {
-+      storage::DataElement element;
++      network::DataElement element;
 +      switch (iter->type) {
-+        case storage::DataElement::TYPE_BYTES: {
++        case network::DataElement::TYPE_BYTES: {
 +          element.SetToBytes(iter->bytes.data(), iter->bytes.length());
 +          break;
 +        }
-+        case storage::DataElement::TYPE_BYTES_DESCRIPTION: {
-+          element.SetToBytesDescription(iter->length);
-+          break;
-+        }
-+        case storage::DataElement::TYPE_FILE: {
++        case network::DataElement::TYPE_FILE: {
 +          element.SetToFilePathRange(iter->path, iter->offset, iter->length,
 +                                     iter->expected_modification_time);
 +          break;
 +        }
-+        case storage::DataElement::TYPE_FILE_FILESYSTEM: {
-+          element.SetToFileSystemUrlRange(iter->filesystem_url,
-+                                          iter->offset, iter->length,
-+                                          iter->expected_modification_time);
-+          break;
-+        }
-+        case storage::DataElement::TYPE_BLOB: {
++        case network::DataElement::TYPE_BLOB: {
 +          element.SetToBlobRange(iter->blob_uuid, iter->offset, iter->length);
 +          break;
 +        }
-+        default: {
++        case network::DataElement::TYPE_DATA_PIPE:
++        default:
 +          NOTREACHED();
 +          break;
-+        }
 +      }
 +      elements.push_back(std::move(element));
 +    }
@@ -50,9 +40,9 @@ index 1bf37e107a90..82ab04e1019d 100644
 +
    bool no_javascript_access = false;
  
-   // Filter out URLs that this process cannot request.
-@@ -2729,8 +2774,9 @@ void RenderFrameHostImpl::CreateNewWindow(
-           frame_tree_node_->frame_tree()->GetMainFrame()->last_committed_url(),
+   // Filter out URLs to which navigation is disallowed from this context.
+@@ -2896,8 +2928,9 @@ void RenderFrameHostImpl::CreateNewWindow(
+           frame_tree_node_->frame_tree()->GetMainFrame()->GetLastCommittedURL(),
            last_committed_origin_.GetURL(), params->window_container_type,
            params->target_url, params->referrer, params->frame_name,
 -          params->disposition, *params->features, params->user_gesture,
@@ -61,23 +51,23 @@ index 1bf37e107a90..82ab04e1019d 100644
 +          body, params->user_gesture, params->opener_suppressed,
 +          &no_javascript_access);
  
-   mojom::CreateNewWindowReplyPtr reply = mojom::CreateNewWindowReply::New();
    if (!can_create_window) {
+     std::move(callback).Run(mojom::CreateNewWindowStatus::kIgnore, nullptr);
 diff --git a/content/common/frame.mojom b/content/common/frame.mojom
-index 613037782fd5..e2ec468a8e36 100644
+index e5fbf20747e0..f0d8af2f119b 100644
 --- a/content/common/frame.mojom
 +++ b/content/common/frame.mojom
-@@ -5,6 +5,8 @@
- module content.mojom;
- 
+@@ -9,6 +9,8 @@ import "content/common/service_worker/controller_service_worker.mojom";
+ import "content/common/url_loader_factory_bundle.mojom";
+ import "content/public/common/resource_type.mojom";
  import "content/public/common/window_container_type.mojom";
 +import "mojo/common/file_path.mojom";
 +import "mojo/common/time.mojom";
- import "services/service_manager/public/interfaces/interface_provider.mojom";
- import "third_party/WebKit/public/platform/referrer.mojom";
- import "third_party/WebKit/public/web/window_features.mojom";
-@@ -41,6 +43,24 @@ interface FrameFactory {
-   CreateFrame(int32 frame_routing_id, Frame& frame, FrameHostInterfaceBroker host);
+ import "mojo/common/unguessable_token.mojom";
+ import "mojo/public/mojom/base/string16.mojom";
+ import "services/network/public/mojom/url_loader.mojom";
+@@ -146,6 +148,24 @@ interface FrameFactory {
+   CreateFrame(int32 frame_routing_id, Frame& frame);
  };
  
 +struct DataElement {
@@ -101,7 +91,7 @@ index 613037782fd5..e2ec468a8e36 100644
  struct CreateNewWindowParams {
    // True if this open request came in the context of a user gesture.
    bool user_gesture;
-@@ -72,6 +92,10 @@ struct CreateNewWindowParams {
+@@ -182,6 +202,10 @@ struct CreateNewWindowParams {
  
    // The window features to use for the new window.
    blink.mojom.WindowFeatures features;
@@ -111,54 +101,54 @@ index 613037782fd5..e2ec468a8e36 100644
 +  ResourceRequestBody body;
  };
  
- struct CreateNewWindowReply {
+ // Operation result when the renderer asks the browser to create a new window.
 diff --git a/content/public/browser/content_browser_client.cc b/content/public/browser/content_browser_client.cc
-index 5c2ab72ff537..3e7c25009c6a 100644
+index 37e2d88e28e9..6c366435ddd8 100644
 --- a/content/public/browser/content_browser_client.cc
 +++ b/content/public/browser/content_browser_client.cc
-@@ -298,6 +298,8 @@ bool ContentBrowserClient::CanCreateWindow(
+@@ -382,6 +382,8 @@ bool ContentBrowserClient::CanCreateWindow(
      const std::string& frame_name,
      WindowOpenDisposition disposition,
      const blink::mojom::WindowFeatures& features,
 +    const std::vector<std::string>& additional_features,
-+    const scoped_refptr<ResourceRequestBody>& body,
++    const scoped_refptr<network::ResourceRequestBody>& body,
      bool user_gesture,
      bool opener_suppressed,
      bool* no_javascript_access) {
 diff --git a/content/public/browser/content_browser_client.h b/content/public/browser/content_browser_client.h
-index 61c108c53b92..d475ea55b085 100644
+index 5373ee07b5cd..746760e8596c 100644
 --- a/content/public/browser/content_browser_client.h
 +++ b/content/public/browser/content_browser_client.h
-@@ -134,6 +134,7 @@ class RenderFrameHost;
- class RenderProcessHost;
+@@ -150,6 +150,7 @@ class RenderProcessHost;
  class RenderViewHost;
  class ResourceContext;
+ class ResourceDispatcherHostLoginDelegate;
 +class ResourceRequestBody;
  class SiteInstance;
  class SpeechRecognitionManagerDelegate;
  class StoragePartition;
-@@ -577,6 +578,8 @@ class CONTENT_EXPORT ContentBrowserClient {
+@@ -625,6 +626,8 @@ class CONTENT_EXPORT ContentBrowserClient {
        const std::string& frame_name,
        WindowOpenDisposition disposition,
        const blink::mojom::WindowFeatures& features,
 +      const std::vector<std::string>& additional_features,
-+      const scoped_refptr<ResourceRequestBody>& body,
++      const scoped_refptr<network::ResourceRequestBody>& body,
        bool user_gesture,
        bool opener_suppressed,
        bool* no_javascript_access);
 diff --git a/content/renderer/render_view_impl.cc b/content/renderer/render_view_impl.cc
-index 22bd13a28fb7..f7e688d9fda6 100644
+index a9b91cdcc86d..4168990971e4 100644
 --- a/content/renderer/render_view_impl.cc
 +++ b/content/renderer/render_view_impl.cc
-@@ -45,6 +45,7 @@
- #include "content/child/appcache/web_application_cache_host_impl.h"
- #include "content/child/request_extra_data.h"
- #include "content/child/v8_value_converter_impl.h"
-+#include "content/child/web_url_request_util.h"
- #include "content/common/content_constants_internal.h"
- #include "content/common/content_switches_internal.h"
- #include "content/common/dom_storage/dom_storage_types.h"
-@@ -1439,6 +1440,59 @@ WebView* RenderViewImpl::CreateView(WebLocalFrame* creator,
+@@ -80,6 +80,7 @@
+ #include "content/renderer/input/input_handler_manager.h"
+ #include "content/renderer/internal_document_state_data.h"
+ #include "content/renderer/loader/request_extra_data.h"
++#include "content/renderer/loader/web_url_request_util.h"
+ #include "content/renderer/media/audio_device_factory.h"
+ #include "content/renderer/media/stream/media_stream_device_observer.h"
+ #include "content/renderer/media/video_capture_impl_manager.h"
+@@ -1285,6 +1286,45 @@ WebView* RenderViewImpl::CreateView(WebLocalFrame* creator,
    }
    params->features = ConvertWebWindowFeaturesToMojoWindowFeatures(features);
  
@@ -172,42 +162,28 @@ index 22bd13a28fb7..f7e688d9fda6 100644
 +      content::mojom::DataElementPtr ptr = content::mojom::DataElement::New();
 +      ptr->type = element.type();
 +      switch (element.type()) {
-+        case storage::DataElement::TYPE_BYTES: {
++        case network::DataElement::TYPE_BYTES: {
 +          ptr->bytes = std::string(element.bytes(), element.length());
 +          break;
 +        }
-+        case storage::DataElement::TYPE_BYTES_DESCRIPTION: {
-+          ptr->length = element.length();
-+          break;
-+        }
-+        case storage::DataElement::TYPE_FILE: {
++        case network::DataElement::TYPE_FILE: {
 +          ptr->path = element.path();
 +          ptr->offset = element.offset();
 +          ptr->length = element.length();
 +          ptr->expected_modification_time = element.expected_modification_time();
 +          break;
 +        }
-+        case storage::DataElement::TYPE_FILE_FILESYSTEM: {
-+          ptr->filesystem_url = element.filesystem_url();
-+          ptr->offset = element.offset();
-+          ptr->length = element.length();
-+          ptr->expected_modification_time = element.expected_modification_time();
-+          break;
-+        }
-+        case storage::DataElement::TYPE_BLOB: {
++        case network::DataElement::TYPE_BLOB: {
 +          ptr->blob_uuid = element.blob_uuid();
 +          ptr->offset = element.offset();
 +          ptr->length = element.length();
 +          break;
 +        }
-+        case storage::DataElement::TYPE_DISK_CACHE_ENTRY: {
-+          NOTREACHED() << "Can't be sent by IPC.";
-+          break;
-+        }
-+        case storage::DataElement::TYPE_UNKNOWN: {
++        case network::DataElement::TYPE_RAW_FILE:
++        case network::DataElement::TYPE_DATA_PIPE:
++        case network::DataElement::TYPE_UNKNOWN:
 +          NOTREACHED();
 +          break;
-+        }
 +      }
 +      params->body->elements.push_back(std::move(ptr));
 +    }
@@ -219,17 +195,17 @@ index 22bd13a28fb7..f7e688d9fda6 100644
    // moved on send.
    bool is_background_tab =
 diff --git a/content/browser/security_exploit_browsertest.cc b/content/browser/security_exploit_browsertest.cc
-index b2616a679046..6ae77e5d2467 100644
+index 0a1f363a673a..adcef6fca779 100644
 --- a/content/browser/security_exploit_browsertest.cc
 +++ b/content/browser/security_exploit_browsertest.cc
-@@ -275,6 +275,7 @@ IN_PROC_BROWSER_TEST_F(SecurityExploitBrowserTest,
+@@ -293,6 +293,7 @@ IN_PROC_BROWSER_TEST_F(SecurityExploitBrowserTest,
  
    mojom::CreateNewWindowParamsPtr params = mojom::CreateNewWindowParams::New();
    params->target_url = GURL("about:blank");
 +  params->body = mojom::ResourceRequestBody::New();
    pending_rfh->CreateNewWindow(
-       std::move(params), base::BindOnce([](mojom::CreateNewWindowReplyPtr) {}));
-   // If the above operation doesn't cause a crash, the test has succeeded!
+       std::move(params), base::BindOnce([](mojom::CreateNewWindowStatus,
+                                            mojom::CreateNewWindowReplyPtr) {}));
 diff --git a/content/shell/browser/layout_test/layout_test_content_browser_client.cc b/content/shell/browser/layout_test/layout_test_content_browser_client.cc
 index 2eaee37ec780..9994df95a798 100644
 --- a/content/shell/browser/layout_test/layout_test_content_browser_client.cc

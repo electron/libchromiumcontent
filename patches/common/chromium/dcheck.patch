@@ -62,11 +62,11 @@ index 70f1ff97b1ac..d1abd804e988 100644
      }
  
 diff --git a/content/browser/frame_host/navigation_controller_impl.cc b/content/browser/frame_host/navigation_controller_impl.cc
-index bebde463db6a..46dbb416ce11 100644
+index ff1d3fcb6eba..ad6578f645d4 100644
 --- a/content/browser/frame_host/navigation_controller_impl.cc
 +++ b/content/browser/frame_host/navigation_controller_impl.cc
-@@ -1015,8 +1015,10 @@ NavigationType NavigationControllerImpl::ClassifyNavigation(
-     return NAVIGATION_TYPE_NEW_PAGE;
+@@ -1079,8 +1079,10 @@ NavigationType NavigationControllerImpl::ClassifyNavigation(
+     return NAVIGATION_TYPE_NEW_SUBFRAME;
    }
  
 -  // We only clear the session history when navigating to a new page.
@@ -78,7 +78,7 @@ index bebde463db6a..46dbb416ce11 100644
  
    if (rfh->GetParent()) {
      // All manual subframes would be did_create_new_entry and handled above, so
-@@ -1234,7 +1236,10 @@ void NavigationControllerImpl::RendererDidNavigateToNewPage(
+@@ -1301,7 +1303,10 @@ void NavigationControllerImpl::RendererDidNavigateToNewPage(
      new_entry->GetFavicon() = GetLastCommittedEntry()->GetFavicon();
    }
  
@@ -237,3 +237,21 @@ index 674b0e9a909c..a1bff6e40f56 100644
     if (base_computed_style_ && computed_style)
       DCHECK(*base_computed_style_ == *computed_style);
   #endif
+diff --git a/base/process/process_metrics_win.cc b/base/process/process_metrics_win.cc
+index 61f0bf4ad06f..259783ad67a1 100644
+--- a/base/process/process_metrics_win.cc
++++ b/base/process/process_metrics_win.cc
+@@ -326,10 +326,9 @@ bool ProcessMetrics::GetIOCounters(IoCounters* io_counters) const {
+ ProcessMetrics::ProcessMetrics(ProcessHandle process) : last_system_time_(0) {
+   if (process) {
+     HANDLE duplicate_handle;
+-    BOOL result = ::DuplicateHandle(::GetCurrentProcess(), process,
+-                                    ::GetCurrentProcess(), &duplicate_handle,
+-                                    PROCESS_QUERY_INFORMATION, FALSE, 0);
+-    DCHECK(result);
++    ::DuplicateHandle(::GetCurrentProcess(), process,
++                      ::GetCurrentProcess(), &duplicate_handle,
++                      PROCESS_QUERY_INFORMATION, FALSE, 0);
+     process_.Set(duplicate_handle);
+   }
+ }
