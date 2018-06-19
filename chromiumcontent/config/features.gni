@@ -1,0 +1,4 @@
+declare_args() {
+  # Build pepper flash library for flash plugin support.
+  enable_pepper_flash = true
+}

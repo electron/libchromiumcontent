@@ -295,3 +295,8 @@ patches:
   description: |
     Build BoringSSL with some extra functions that nodejs needs. Only affects
     the GN build; with the GYP build, nodejs is still built with OpenSSL.
+-
+  owners: deepak1556
+  file: pepper_flash.patch
+  description: |
+    Allows building chrome pepper flash integration for Electron.
