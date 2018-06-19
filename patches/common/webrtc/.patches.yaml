@@ -26,3 +26,9 @@ patches:
       //third_party/webrtc/*
       //third_party/webrtc_overrides/*
     ]
+-
+  owners: alexeykuzmin
+  file: backport_a157e0809.patch
+  description:
+    VP9 temporal index bounds check. Landed in 67.0.3396.62.
+    https://webrtc-review.googlesource.com/73701
