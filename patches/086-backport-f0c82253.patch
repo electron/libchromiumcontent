@@ -11,7 +11,23 @@ Reviewed-on: https://chromium-review.googlesource.com/677290
 Commit-Queue: Robert Sesek <rsesek@chromium.org>
 Reviewed-by: Robert Sesek <rsesek@chromium.org>
 Cr-Commit-Position: refs/heads/master@{#503747}
-
+diff --git a/base/mac/mac_util.h b/base/mac/mac_util.h
+index 67d1880849ee..a6d9c8159a94 100644
+--- a/base/mac/mac_util.h
++++ b/base/mac/mac_util.h
+@@ -147,6 +147,12 @@ DEFINE_IS_OS_FUNCS(12, TEST_DEPLOYMENT_TARGET)
+ DEFINE_IS_OS_FUNCS(12, IGNORE_DEPLOYMENT_TARGET)
+ #endif
+ 
++#ifdef MAC_OS_X_VERSION_10_13
++DEFINE_IS_OS_FUNCS(13, TEST_DEPLOYMENT_TARGET)
++#else
++DEFINE_IS_OS_FUNCS(13, IGNORE_DEPLOYMENT_TARGET)
++#endif
++
+ #undef IGNORE_DEPLOYMENT_TARGET
+ #undef TEST_DEPLOYMENT_TARGET
+ #undef DEFINE_IS_OS_FUNCS
 diff --git a/content/browser/gpu.sb b/content/browser/gpu.sb
 index 55bb657236a0..4f8fe59f08ba 100644
 --- a/content/browser/gpu.sb
@@ -24,3 +40,30 @@ index 55bb657236a0..4f8fe59f08ba 100644
 +; Needed for VideoToolbox usage - https://crbug.com/767037
 +(if (param-true? macos-1013)
 +  (allow mach-lookup (global-name "com.apple.coremedia.videodecoder")))
+diff --git a/content/common/common.sb b/content/common/common.sb
+index 0b5394faaf49..7b581fc0ec1b 100644
+--- a/content/common/common.sb
++++ b/content/common/common.sb
+@@ -19,6 +19,7 @@
+ (define permitted-dir "PERMITTED_DIR")
+ (define homedir-as-literal "USER_HOMEDIR_AS_LITERAL")
+ (define elcap-or-later "ELCAP_OR_LATER")
++(define macos-1013 "MACOS_1013")
+ 
+ ; Consumes a subpath and appends it to the user's homedir path.
+ (define (user-homedir-path subpath) (string-append (param homedir-as-literal) subpath))
+diff --git a/content/common/sandbox_mac.mm b/content/common/sandbox_mac.mm
+index 2c219956f05a..cc7623941100 100644
+--- a/content/common/sandbox_mac.mm
++++ b/content/common/sandbox_mac.mm
+@@ -437,6 +437,10 @@ bool Sandbox::EnableSandbox(int sandbox_type,
+   if (!compiler.InsertBooleanParam("ELCAP_OR_LATER", elcap_or_later))
+     return false;
+ 
++  bool macos_1013 = base::mac::IsOS10_13();
++  if (!compiler.InsertBooleanParam("MACOS_1013", macos_1013))
++    return false;
++
+   // Initialize sandbox.
+   std::string error_str;
+   bool success = compiler.CompileAndApplyProfile(&error_str);
