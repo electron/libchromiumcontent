@@ -24,3 +24,50 @@ index bf3c5530a5d0..f9297fe9f711 100644
 +; Needed for VideoToolbox usage - https://crbug.com/767037
 +(if (param-true? macos-1013)
 +  (allow mach-lookup (global-name "com.apple.coremedia.videodecoder")))
+diff --git a/content/common/common.sb b/content/common/common.sb
+index fbe0ff5c1b6f..f8fe48b2c5b3 100644
+--- a/content/common/common.sb
++++ b/content/common/common.sb
+@@ -19,6 +19,7 @@
+ (define permitted-dir "PERMITTED_DIR")
+ (define homedir-as-literal "USER_HOMEDIR_AS_LITERAL")
+ (define elcap-or-later "ELCAP_OR_LATER")
++(define macos-1013 "MACOS_1013")
+ 
+ ; Consumes a subpath and appends it to the user's homedir path.
+ (define (user-homedir-path subpath)
+diff --git a/content/common/sandbox_mac.h b/content/common/sandbox_mac.h
+index 84961047ad3c..93765ed63da2 100644
+--- a/content/common/sandbox_mac.h
++++ b/content/common/sandbox_mac.h
+@@ -61,6 +61,7 @@ class CONTENT_EXPORT Sandbox {
+ 
+   // TODO(kerrnel): this is only for the legacy sandbox.
+   static const char* kSandboxElCapOrLater;
++  static const char* kSandboxMacOS1013;
+ 
+  private:
+   FRIEND_TEST_ALL_PREFIXES(MacDirAccessSandboxTest, StringEscape);
+diff --git a/content/common/sandbox_mac.mm b/content/common/sandbox_mac.mm
+index 91562874c056..e9789fee555d 100644
+--- a/content/common/sandbox_mac.mm
++++ b/content/common/sandbox_mac.mm
+@@ -84,6 +84,7 @@ const char* Sandbox::kSandboxOSVersion = "OS_VERSION";
+ const char* Sandbox::kSandboxPermittedDir = "PERMITTED_DIR";
+ 
+ const char* Sandbox::kSandboxElCapOrLater = "ELCAP_OR_LATER";
++const char* Sandbox::kSandboxMacOS1013 = "MACOS_1013";
+ 
+ // Warm up System APIs that empirically need to be accessed before the Sandbox
+ // is turned on.
+@@ -282,6 +283,10 @@ bool Sandbox::EnableSandbox(int sandbox_type,
+   if (!compiler.InsertBooleanParam(kSandboxElCapOrLater, elcap_or_later))
+     return false;
+ 
++  bool macos_1013 = base::mac::IsOS10_13();
++  if (!compiler.InsertBooleanParam(kSandboxMacOS1013, macos_1013))
++    return false;
++
+   // Initialize sandbox.
+   std::string error_str;
+   bool success = compiler.CompileAndApplyProfile(&error_str);
