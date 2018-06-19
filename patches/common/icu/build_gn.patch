@@ -7,7 +7,7 @@ index 76914cd7..a44d7896 100644
    ]
  
 -  if (!is_component_build) {
-+  if (!is_component_build && !is_electron_build) {
++  if (!is_component_build && !(is_electron_build && !is_electron_gn_build)) {
      defines += [ "U_STATIC_IMPLEMENTATION" ]
    }
  
@@ -19,7 +19,7 @@ index 76914cd7..a44d7896 100644
 +  # U_COMBINED_IMPLEMENTATION defined.
 +  # Also, for the "static_library" configuration, keep icui18n as
 +  # a shared library so that other Chromium targets build cleanly.
-+  if (is_electron_build) {
++  if (is_electron_build && !is_electron_gn_build) {
 +    defines += [ "U_COMBINED_IMPLEMENTATION" ]
 +
 +    if (!is_component_build) {
@@ -44,7 +44,7 @@ index 76914cd7..a44d7896 100644
 +  # U_COMBINED_IMPLEMENTATION defined.
 +  # Also, for the "static_library" configuration, keep icuuc as
 +  # a shared library so that other Chromium targets build cleanly.
-+  if (is_electron_build) {
++  if (is_electron_build && !is_electron_gn_build) {
 +    defines += [ "U_COMBINED_IMPLEMENTATION" ]
 +
 +    if (!is_component_build) {

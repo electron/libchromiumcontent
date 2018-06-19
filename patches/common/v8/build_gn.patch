@@ -26,7 +26,7 @@ index 494ba22f29..6071422d7d 100644
 +  # which Electron would consume, so we don't need to do more complicated tweaks
 +  # but be aware of this and check that it's still the case when upgrading
 +  # to newer Chromium version.
-+  if (is_electron_build && !is_component_build) {
++  if (is_electron_build && !is_electron_gn_build && !is_component_build) {
 +    defines = [ "BUILDING_V8_PLATFORM_SHARED" ]
 +  }
  }
@@ -47,7 +47,7 @@ index 494ba22f29..6071422d7d 100644
 +  # which Electron would consume, so we don't need to do more complicated tweaks
 +  # but be aware of this and check that it's still the case when upgrading
 +  # to newer Chromium version.
-+  if (is_electron_build && !is_component_build) {
++  if (is_electron_build && !is_electron_gn_build && !is_component_build) {
 +    defines = [ "BUILDING_V8_BASE_SHARED" ]
 +  }
  }
@@ -58,7 +58,7 @@ index 494ba22f29..6071422d7d 100644
  config("external_config") {
    defines = []
 -  if (is_component_build) {
-+  if (is_component_build || is_electron_build) {
++  if (is_component_build || (is_electron_build && !is_electron_gn_build)) {
      defines += [ "USING_V8_SHARED" ]
    }
    if (v8_enable_v8_checks) {
@@ -76,7 +76,7 @@ index 494ba22f29..6071422d7d 100644
  }
  
 -if (is_component_build) {
-+if (is_component_build || is_electron_build) {
++if (is_component_build || (is_electron_build && !is_electron_gn_build)) {
    v8_component("v8") {
      sources = [
        "src/v8dll-main.cc",
@@ -88,7 +88,7 @@ index 494ba22f29..6071422d7d 100644
 +    # For Electron "static_library" keep V8 as a shared library. This is only
 +    # needed so that other targets in Chromium build cleanly. Electron doesn't
 +    # need the DLL.
-+    if (is_electron_build && !is_component_build) {
++    if (is_electron_build && !is_electron_gn_build && !is_component_build) {
 +      static_component_type = "shared_library"
 +    }
    }
