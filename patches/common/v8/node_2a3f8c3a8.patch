@@ -215,8 +215,8 @@ index 0149ed3ca24..201c2cc05ca 100644
 -  V8_DEPRECATE_SOON("Keep track of isolate correctly", Isolate* GetIsolate());
 +  Isolate* GetIsolate();
  
-   static Local<Object> New(Isolate* isolate);
- 
+   /**
+    * If this object is a Set, Map, WeakSet or WeakMap, this returns a
 @@ -3833,7 +3838,8 @@ class V8_EXPORT Function : public Object {
    static MaybeLocal<Function> New(
        Local<Context> context, FunctionCallback callback,
