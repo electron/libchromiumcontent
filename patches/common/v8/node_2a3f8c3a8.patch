@@ -46,21 +46,6 @@ diff --git a/include/v8-platform.h b/include/v8-platform.h
 index 2bb14df93e9..62b3af84a0f 100644
 --- a/include/v8-platform.h
 +++ b/include/v8-platform.h
-@@ -5,11 +5,14 @@
- #ifndef V8_V8_PLATFORM_H_
- #define V8_V8_PLATFORM_H_
- 
-+#include <cstdlib>
- #include <stddef.h>
- #include <stdint.h>
- #include <memory>
- #include <string>
- 
-+#include "v8config.h"  // NOLINT(build/include)
-+
- namespace v8 {
- 
- class Isolate;
 @@ -285,6 +288,10 @@ class Platform {
     */
    virtual bool OnCriticalMemoryPressure(size_t length) { return false; }
