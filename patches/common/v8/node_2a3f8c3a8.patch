@@ -12,33 +12,18 @@ Reviewed-By: James M Snell <jasnell@gmail.com>
 Reviewed-By: Yang Guo <yangguo@chromium.org>
 Reviewed-By: Michaël Zasso <targos@protonmail.com>
 ---
- common.gypi                               |  2 +-
- deps/v8/include/libplatform/libplatform.h |  4 +-
- deps/v8/include/v8-platform.h             | 63 +++++++++++++++++++++---
- deps/v8/include/v8.h                      | 79 +++++++++++++------------------
- deps/v8/src/api.cc                        | 54 ++++++++-------------
- deps/v8/src/d8.cc                         | 14 ------
- deps/v8/test/mkgrokdump/mkgrokdump.cc     |  4 --
- src/node_version.h                        |  3 +-
+ include/libplatform/libplatform.h |  4 +-
+ include/v8-platform.h             | 63 +++++++++++++++++++++---
+ include/v8.h                      | 79 +++++++++++++------------------
+ src/api.cc                        | 54 ++++++++-------------
+ src/d8.cc                         | 14 ------
+ test/mkgrokdump/mkgrokdump.cc     |  4 --
  8 files changed, 114 insertions(+), 109 deletions(-)
 
-diff --git a/common.gypi b/common.gypi
-index 4ca1aaf88ec..d1304a14478 100644
---- a/common.gypi
-+++ b/common.gypi
-@@ -27,7 +27,7 @@
- 
-     # Reset this number to 0 on major V8 upgrades.
-     # Increment by one for each non-official patch applied to deps/v8.
--    'v8_embedder_string': '-node.4',
-+    'v8_embedder_string': '-node.5',
- 
-     # Enable disassembler for `--print-code` v8 options
-     'v8_enable_disassembler': 1,
-diff --git a/deps/v8/include/libplatform/libplatform.h b/deps/v8/include/libplatform/libplatform.h
+diff --git a/include/libplatform/libplatform.h b/include/libplatform/libplatform.h
 index 04b47b8d2e1..b5f2b777111 100644
---- a/deps/v8/include/libplatform/libplatform.h
-+++ b/deps/v8/include/libplatform/libplatform.h
+--- a/include/libplatform/libplatform.h
++++ b/include/libplatform/libplatform.h
 @@ -38,7 +38,7 @@ V8_PLATFORM_EXPORT std::unique_ptr<v8::Platform> NewDefaultPlatform(
      int thread_pool_size = 0,
      IdleTaskSupport idle_task_support = IdleTaskSupport::kDisabled,
@@ -57,10 +42,10 @@ index 04b47b8d2e1..b5f2b777111 100644
          v8::TracingController* tracing_controller = nullptr));
  
  /**
-diff --git a/deps/v8/include/v8-platform.h b/deps/v8/include/v8-platform.h
+diff --git a/include/v8-platform.h b/include/v8-platform.h
 index 2bb14df93e9..62b3af84a0f 100644
---- a/deps/v8/include/v8-platform.h
-+++ b/deps/v8/include/v8-platform.h
+--- a/include/v8-platform.h
++++ b/include/v8-platform.h
 @@ -5,11 +5,14 @@
  #ifndef V8_V8_PLATFORM_H_
  #define V8_V8_PLATFORM_H_
@@ -165,10 +150,10 @@ index 2bb14df93e9..62b3af84a0f 100644
  
    /**
     * Schedules a task to be invoked on a foreground thread wrt a specific
-diff --git a/deps/v8/include/v8.h b/deps/v8/include/v8.h
+diff --git a/include/v8.h b/include/v8.h
 index 0149ed3ca24..201c2cc05ca 100644
---- a/deps/v8/include/v8.h
-+++ b/deps/v8/include/v8.h
+--- a/include/v8.h
++++ b/include/v8.h
 @@ -1567,7 +1567,9 @@ class V8_EXPORT ScriptCompiler {
    static V8_WARN_UNUSED_RESULT MaybeLocal<Function> CompileFunctionInContext(
        Local<Context> context, Source* source, size_t arguments_count,
@@ -362,10 +347,10 @@ index 0149ed3ca24..201c2cc05ca 100644
  
   private:
    V8();
-diff --git a/deps/v8/src/api.cc b/deps/v8/src/api.cc
+diff --git a/src/api.cc b/src/api.cc
 index ffe9bef5205..2c3f1b79766 100644
---- a/deps/v8/src/api.cc
-+++ b/deps/v8/src/api.cc
+--- a/src/api.cc
++++ b/src/api.cc
 @@ -456,19 +456,6 @@ void V8::SetSnapshotDataBlob(StartupData* snapshot_blob) {
    i::V8::SetSnapshotBlob(snapshot_blob);
  }
@@ -489,10 +474,10 @@ index ffe9bef5205..2c3f1b79766 100644
    i::Isolate* isolate = Utils::OpenHandle(*context)->GetIsolate();
    LOG_API(isolate, Function, New);
    ENTER_V8_NO_SCRIPT_NO_EXCEPTION(isolate);
-diff --git a/deps/v8/src/d8.cc b/deps/v8/src/d8.cc
+diff --git a/src/d8.cc b/src/d8.cc
 index 0f2ba4257eb..7399af99950 100644
---- a/deps/v8/src/d8.cc
-+++ b/deps/v8/src/d8.cc
+--- a/src/d8.cc
++++ b/src/d8.cc
 @@ -84,20 +84,6 @@ class ArrayBufferAllocatorBase : public v8::ArrayBuffer::Allocator {
      allocator_->Free(data, length);
    }
@@ -514,10 +499,10 @@ index 0f2ba4257eb..7399af99950 100644
   private:
    std::unique_ptr<Allocator> allocator_ =
        std::unique_ptr<Allocator>(NewDefaultAllocator());
-diff --git a/deps/v8/test/mkgrokdump/mkgrokdump.cc b/deps/v8/test/mkgrokdump/mkgrokdump.cc
+diff --git a/test/mkgrokdump/mkgrokdump.cc b/test/mkgrokdump/mkgrokdump.cc
 index 75dac7a4a47..144b5070ea8 100644
---- a/deps/v8/test/mkgrokdump/mkgrokdump.cc
-+++ b/deps/v8/test/mkgrokdump/mkgrokdump.cc
+--- a/test/mkgrokdump/mkgrokdump.cc
++++ b/test/mkgrokdump/mkgrokdump.cc
 @@ -37,11 +37,7 @@ class MockArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
   public:
    void* Allocate(size_t length) override { return nullptr; }
@@ -530,20 +515,3 @@ index 75dac7a4a47..144b5070ea8 100644
  };
  
  static int DumpHeapConstants(const char* argv0) {
-diff --git a/src/node_version.h b/src/node_version.h
-index 51388d63ae5..249075a981d 100644
---- a/src/node_version.h
-+++ b/src/node_version.h
-@@ -107,10 +107,11 @@
-  * V8 6.4: 61
-  * V8 6.5: 62
-  * V8 6.6: 63
-+ * V8 6.7: 64
-  *
-  * More information can be found at https://nodejs.org/en/download/releases/
-  */
--#define NODE_MODULE_VERSION 63
-+#define NODE_MODULE_VERSION 64
- 
- // the NAPI_VERSION provided by this version of the runtime
- #define NAPI_VERSION  3
