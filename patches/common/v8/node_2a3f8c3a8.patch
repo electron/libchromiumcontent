@@ -1,0 +1,549 @@
+From 2a3f8c3a83e3820d3c601bdf02eda8db462027aa Mon Sep 17 00:00:00 2001
+From: Peter Marshall <p.s.marshall0@gmail.com>
+Date: Thu, 12 Apr 2018 16:42:10 +0200
+Subject: [PATCH] deps: patch the V8 API to be forward compatible with 6.7
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+PR-URL: https://github.com/nodejs/node/pull/19999
+Reviewed-By: Anna Henningsen <anna@addaleax.net>
+Reviewed-By: James M Snell <jasnell@gmail.com>
+Reviewed-By: Yang Guo <yangguo@chromium.org>
+Reviewed-By: Michaël Zasso <targos@protonmail.com>
+---
+ common.gypi                               |  2 +-
+ deps/v8/include/libplatform/libplatform.h |  4 +-
+ deps/v8/include/v8-platform.h             | 63 +++++++++++++++++++++---
+ deps/v8/include/v8.h                      | 79 +++++++++++++------------------
+ deps/v8/src/api.cc                        | 54 ++++++++-------------
+ deps/v8/src/d8.cc                         | 14 ------
+ deps/v8/test/mkgrokdump/mkgrokdump.cc     |  4 --
+ src/node_version.h                        |  3 +-
+ 8 files changed, 114 insertions(+), 109 deletions(-)
+
+diff --git a/common.gypi b/common.gypi
+index 4ca1aaf88ec..d1304a14478 100644
+--- a/common.gypi
++++ b/common.gypi
+@@ -27,7 +27,7 @@
+ 
+     # Reset this number to 0 on major V8 upgrades.
+     # Increment by one for each non-official patch applied to deps/v8.
+-    'v8_embedder_string': '-node.4',
++    'v8_embedder_string': '-node.5',
+ 
+     # Enable disassembler for `--print-code` v8 options
+     'v8_enable_disassembler': 1,
+diff --git a/deps/v8/include/libplatform/libplatform.h b/deps/v8/include/libplatform/libplatform.h
+index 04b47b8d2e1..b5f2b777111 100644
+--- a/deps/v8/include/libplatform/libplatform.h
++++ b/deps/v8/include/libplatform/libplatform.h
+@@ -38,7 +38,7 @@ V8_PLATFORM_EXPORT std::unique_ptr<v8::Platform> NewDefaultPlatform(
+     int thread_pool_size = 0,
+     IdleTaskSupport idle_task_support = IdleTaskSupport::kDisabled,
+     InProcessStackDumping in_process_stack_dumping =
+-        InProcessStackDumping::kEnabled,
++        InProcessStackDumping::kDisabled,
+     std::unique_ptr<v8::TracingController> tracing_controller = {});
+ 
+ V8_PLATFORM_EXPORT V8_DEPRECATE_SOON(
+@@ -47,7 +47,7 @@ V8_PLATFORM_EXPORT V8_DEPRECATE_SOON(
+         int thread_pool_size = 0,
+         IdleTaskSupport idle_task_support = IdleTaskSupport::kDisabled,
+         InProcessStackDumping in_process_stack_dumping =
+-            InProcessStackDumping::kEnabled,
++            InProcessStackDumping::kDisabled,
+         v8::TracingController* tracing_controller = nullptr));
+ 
+ /**
+diff --git a/deps/v8/include/v8-platform.h b/deps/v8/include/v8-platform.h
+index 2bb14df93e9..62b3af84a0f 100644
+--- a/deps/v8/include/v8-platform.h
++++ b/deps/v8/include/v8-platform.h
+@@ -5,11 +5,14 @@
+ #ifndef V8_V8_PLATFORM_H_
+ #define V8_V8_PLATFORM_H_
+ 
++#include <cstdlib>
+ #include <stddef.h>
+ #include <stdint.h>
+ #include <memory>
+ #include <string>
+ 
++#include "v8config.h"  // NOLINT(build/include)
++
+ namespace v8 {
+ 
+ class Isolate;
+@@ -285,6 +288,10 @@ class Platform {
+    */
+   virtual bool OnCriticalMemoryPressure(size_t length) { return false; }
+ 
++  virtual int NumberOfWorkerThreads() {
++    return static_cast<int>(NumberOfAvailableBackgroundThreads());
++  }
++
+   /**
+    * Gets the number of threads that are used to execute background tasks. Is
+    * used to estimate the number of tasks a work package should be split into.
+@@ -292,7 +299,12 @@ class Platform {
+    * Note that a value of 0 won't prohibit V8 from posting tasks using
+    * |CallOnBackgroundThread|.
+    */
+-  virtual size_t NumberOfAvailableBackgroundThreads() { return 0; }
++  V8_DEPRECATE_SOON(
++      "NumberOfAvailableBackgroundThreads() is deprecated, use "
++      "NumberOfAvailableBackgroundThreads() instead.",
++      virtual size_t NumberOfAvailableBackgroundThreads()) {
++    return 0;
++  }
+ 
+   /**
+    * Returns a TaskRunner which can be used to post a task on the foreground.
+@@ -309,11 +321,28 @@ class Platform {
+    * Returns a TaskRunner which can be used to post a task on a background.
+    * This function should only be called from a foreground thread.
+    */
+-  virtual std::shared_ptr<v8::TaskRunner> GetBackgroundTaskRunner(
++  V8_DEPRECATE_SOON(
++      "GetBackgroundTaskRunner() is deprecated, use "
++      "GetWorkerThreadsTaskRunner() "
++      "instead.",
++      virtual std::shared_ptr<v8::TaskRunner> GetBackgroundTaskRunner(
++          Isolate* isolate)) {
++    // TODO(gab): Remove this method when all embedders have moved to
++    // GetWorkerThreadsTaskRunner().
++
++    // An implementation needs to be provided here because this is called by the
++    // default GetWorkerThreadsTaskRunner() implementation below. In practice
++    // however, all code either:
++    //  - Overrides GetWorkerThreadsTaskRunner() (thus not making this call) --
++    //    i.e. all v8 code.
++    //  - Overrides this method (thus not making this call) -- i.e. all
++    //    unadapted embedders.
++    abort();
++  }
++
++  virtual std::shared_ptr<v8::TaskRunner> GetWorkerThreadsTaskRunner(
+       Isolate* isolate) {
+-    // TODO(ahaas): Make this function abstract after it got implemented on all
+-    // platforms.
+-    return {};
++    return GetBackgroundTaskRunner(isolate);
+   }
+ 
+   /**
+@@ -323,8 +352,28 @@ class Platform {
+    * of tasks wrt order of scheduling, nor is there a guarantee about the
+    * thread the task will be run on.
+    */
+-  virtual void CallOnBackgroundThread(Task* task,
+-                                      ExpectedRuntime expected_runtime) = 0;
++  V8_DEPRECATE_SOON(
++      "ExpectedRuntime is deprecated, use CallOnWorkerThread() instead.",
++      virtual void CallOnBackgroundThread(Task* task,
++                                          ExpectedRuntime expected_runtime)) {
++    // An implementation needs to be provided here because this is called by the
++    // default implementation below. In practice however, all code either:
++    //  - Overrides the new method (thus not making this call) -- i.e. all v8
++    //    code.
++    //  - Overrides this method (thus not making this call) -- i.e. all
++    //    unadapted embedders.
++    abort();
++  }
++
++  virtual void CallOnWorkerThread(std::unique_ptr<Task> task) {
++    CallOnBackgroundThread(task.release(), kShortRunningTask);
++  }
++
++  virtual void CallBlockingTaskOnWorkerThread(std::unique_ptr<Task> task) {
++    // Embedders may optionally override this to process these tasks in a high
++    // priority pool.
++    CallOnWorkerThread(std::move(task));
++  }
+ 
+   /**
+    * Schedules a task to be invoked on a foreground thread wrt a specific
+diff --git a/deps/v8/include/v8.h b/deps/v8/include/v8.h
+index 0149ed3ca24..201c2cc05ca 100644
+--- a/deps/v8/include/v8.h
++++ b/deps/v8/include/v8.h
+@@ -1567,7 +1567,9 @@ class V8_EXPORT ScriptCompiler {
+   static V8_WARN_UNUSED_RESULT MaybeLocal<Function> CompileFunctionInContext(
+       Local<Context> context, Source* source, size_t arguments_count,
+       Local<String> arguments[], size_t context_extension_count,
+-      Local<Object> context_extensions[]);
++      Local<Object> context_extensions[],
++      CompileOptions options = kNoCompileOptions,
++      NoCacheReason no_cache_reason = kNoCacheNoReason);
+ 
+   /**
+    * Creates and returns code cache for the specified unbound_script.
+@@ -1641,7 +1643,7 @@ class V8_EXPORT Message {
+    * Returns the index within the line of the first character where
+    * the error occurred.
+    */
+-  V8_DEPRECATED("Use maybe version", int GetStartColumn() const);
++  int GetStartColumn() const;
+   V8_WARN_UNUSED_RESULT Maybe<int> GetStartColumn(Local<Context> context) const;
+ 
+   /**
+@@ -3075,6 +3077,8 @@ enum PropertyFilter {
+   SKIP_SYMBOLS = 16
+ };
+ 
++enum class SideEffectType { kHasSideEffect, kHasNoSideEffect };
++
+ /**
+  * Keys/Properties filter enums:
+  *
+@@ -3207,13 +3211,12 @@ class V8_EXPORT Object : public Value {
+   V8_WARN_UNUSED_RESULT Maybe<bool> Delete(Local<Context> context,
+                                            uint32_t index);
+ 
+-  V8_WARN_UNUSED_RESULT Maybe<bool> SetAccessor(Local<Context> context,
+-                          Local<Name> name,
+-                          AccessorNameGetterCallback getter,
+-                          AccessorNameSetterCallback setter = 0,
+-                          MaybeLocal<Value> data = MaybeLocal<Value>(),
+-                          AccessControl settings = DEFAULT,
+-                          PropertyAttribute attribute = None);
++  V8_WARN_UNUSED_RESULT Maybe<bool> SetAccessor(
++      Local<Context> context, Local<Name> name,
++      AccessorNameGetterCallback getter, AccessorNameSetterCallback setter = 0,
++      MaybeLocal<Value> data = MaybeLocal<Value>(),
++      AccessControl settings = DEFAULT, PropertyAttribute attribute = None,
++      SideEffectType getter_side_effect_type = SideEffectType::kHasSideEffect);
+ 
+   void SetAccessorProperty(Local<Name> name, Local<Function> getter,
+                            Local<Function> setter = Local<Function>(),
+@@ -3228,7 +3231,8 @@ class V8_EXPORT Object : public Value {
+       Local<Context> context, Local<Name> name,
+       AccessorNameGetterCallback getter,
+       AccessorNameSetterCallback setter = nullptr,
+-      Local<Value> data = Local<Value>(), PropertyAttribute attributes = None);
++      Local<Value> data = Local<Value>(), PropertyAttribute attributes = None,
++      SideEffectType getter_side_effect_type = SideEffectType::kHasSideEffect);
+ 
+   /**
+    * Attempts to create a property with the given name which behaves like a data
+@@ -3241,7 +3245,8 @@ class V8_EXPORT Object : public Value {
+   V8_WARN_UNUSED_RESULT Maybe<bool> SetLazyDataProperty(
+       Local<Context> context, Local<Name> name,
+       AccessorNameGetterCallback getter, Local<Value> data = Local<Value>(),
+-      PropertyAttribute attributes = None);
++      PropertyAttribute attributes = None,
++      SideEffectType getter_side_effect_type = SideEffectType::kHasSideEffect);
+ 
+   /**
+    * Functionality for private properties.
+@@ -3496,7 +3501,7 @@ class V8_EXPORT Object : public Value {
+   /**
+    * Return the isolate to which the Object belongs to.
+    */
+-  V8_DEPRECATE_SOON("Keep track of isolate correctly", Isolate* GetIsolate());
++  Isolate* GetIsolate();
+ 
+   static Local<Object> New(Isolate* isolate);
+ 
+@@ -3833,7 +3838,8 @@ class V8_EXPORT Function : public Object {
+   static MaybeLocal<Function> New(
+       Local<Context> context, FunctionCallback callback,
+       Local<Value> data = Local<Value>(), int length = 0,
+-      ConstructorBehavior behavior = ConstructorBehavior::kAllow);
++      ConstructorBehavior behavior = ConstructorBehavior::kAllow,
++      SideEffectType side_effect_type = SideEffectType::kHasSideEffect);
+   static V8_DEPRECATE_SOON(
+       "Use maybe version",
+       Local<Function> New(Isolate* isolate, FunctionCallback callback,
+@@ -4271,13 +4277,6 @@ class V8_EXPORT ArrayBuffer : public Object {
+      */
+     virtual void* AllocateUninitialized(size_t length) = 0;
+ 
+-    /**
+-     * Reserved |length| bytes, but do not commit the memory. Must call
+-     * |SetProtection| to make memory accessible.
+-     */
+-    // TODO(eholk): make this pure virtual once blink implements this.
+-    virtual void* Reserve(size_t length);
+-
+     /**
+      * Free the memory block of size |length|, pointed to by |data|.
+      * That memory is guaranteed to be previously allocated by |Allocate|.
+@@ -4286,27 +4285,6 @@ class V8_EXPORT ArrayBuffer : public Object {
+ 
+     enum class AllocationMode { kNormal, kReservation };
+ 
+-    /**
+-     * Free the memory block of size |length|, pointed to by |data|.
+-     * That memory is guaranteed to be previously allocated by |Allocate| or
+-     * |Reserve|, depending on |mode|.
+-     */
+-    // TODO(eholk): make this pure virtual once blink implements this.
+-    virtual void Free(void* data, size_t length, AllocationMode mode);
+-
+-    enum class Protection { kNoAccess, kReadWrite };
+-
+-    /**
+-     * Change the protection on a region of memory.
+-     *
+-     * On platforms that make a distinction between reserving and committing
+-     * memory, changing the protection to kReadWrite must also ensure the memory
+-     * is committed.
+-     */
+-    // TODO(eholk): make this pure virtual once blink implements this.
+-    virtual void SetProtection(void* data, size_t length,
+-                               Protection protection);
+-
+     /**
+      * malloc/free based convenience allocator.
+      *
+@@ -5496,7 +5474,8 @@ class V8_EXPORT FunctionTemplate : public Template {
+       Isolate* isolate, FunctionCallback callback = 0,
+       Local<Value> data = Local<Value>(),
+       Local<Signature> signature = Local<Signature>(), int length = 0,
+-      ConstructorBehavior behavior = ConstructorBehavior::kAllow);
++      ConstructorBehavior behavior = ConstructorBehavior::kAllow,
++      SideEffectType side_effect_type = SideEffectType::kHasSideEffect);
+ 
+   /** Get a template included in the snapshot by index. */
+   static MaybeLocal<FunctionTemplate> FromSnapshot(Isolate* isolate,
+@@ -5508,7 +5487,8 @@ class V8_EXPORT FunctionTemplate : public Template {
+   static Local<FunctionTemplate> NewWithCache(
+       Isolate* isolate, FunctionCallback callback,
+       Local<Private> cache_property, Local<Value> data = Local<Value>(),
+-      Local<Signature> signature = Local<Signature>(), int length = 0);
++      Local<Signature> signature = Local<Signature>(), int length = 0,
++      SideEffectType side_effect_type = SideEffectType::kHasSideEffect);
+ 
+   /** Returns the unique function instance in the current execution context.*/
+   V8_DEPRECATE_SOON("Use maybe version", Local<Function> GetFunction());
+@@ -5529,8 +5509,9 @@ class V8_EXPORT FunctionTemplate : public Template {
+    * callback is called whenever the function created from this
+    * FunctionTemplate is called.
+    */
+-  void SetCallHandler(FunctionCallback callback,
+-                      Local<Value> data = Local<Value>());
++  void SetCallHandler(
++      FunctionCallback callback, Local<Value> data = Local<Value>(),
++      SideEffectType side_effect_type = SideEffectType::kHasSideEffect);
+ 
+   /** Set the predefined length property for the FunctionTemplate. */
+   void SetLength(int length);
+@@ -5828,7 +5809,7 @@ class V8_EXPORT ObjectTemplate : public Template {
+    * \param data A piece of data that will be passed to the callbacks
+    *   whenever they are invoked.
+    */
+-  V8_DEPRECATE_SOON(
++  V8_DEPRECATED(
+       "Use SetHandler(const NamedPropertyHandlerConfiguration) "
+       "with the kOnlyInterceptStrings flag set.",
+       void SetNamedPropertyHandler(
+@@ -6586,8 +6567,11 @@ struct JitCodeEvent {
+   // statement, and is used to indicate possible break locations.
+   enum PositionType { POSITION, STATEMENT_POSITION };
+ 
++  enum CodeType { BYTE_CODE, JIT_CODE };
++
+   // Type of event.
+   EventType type;
++  CodeType code_type;
+   // Start of the instructions.
+   void* code_start;
+   // Size of the instructions.
+@@ -8025,7 +8009,8 @@ class V8_EXPORT V8 {
+    * Enable the default signal handler rather than using one provided by the
+    * embedder.
+    */
+-  static bool RegisterDefaultSignalHandler();
++  V8_DEPRECATE_SOON("Use EnableWebAssemblyTrapHandler",
++                    static bool RegisterDefaultSignalHandler());
+ 
+  private:
+   V8();
+diff --git a/deps/v8/src/api.cc b/deps/v8/src/api.cc
+index ffe9bef5205..2c3f1b79766 100644
+--- a/deps/v8/src/api.cc
++++ b/deps/v8/src/api.cc
+@@ -456,19 +456,6 @@ void V8::SetSnapshotDataBlob(StartupData* snapshot_blob) {
+   i::V8::SetSnapshotBlob(snapshot_blob);
+ }
+ 
+-void* v8::ArrayBuffer::Allocator::Reserve(size_t length) { UNIMPLEMENTED(); }
+-
+-void v8::ArrayBuffer::Allocator::Free(void* data, size_t length,
+-                                      AllocationMode mode) {
+-  UNIMPLEMENTED();
+-}
+-
+-void v8::ArrayBuffer::Allocator::SetProtection(
+-    void* data, size_t length,
+-    v8::ArrayBuffer::Allocator::Protection protection) {
+-  UNIMPLEMENTED();
+-}
+-
+ namespace {
+ 
+ class ArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
+@@ -1419,7 +1406,8 @@ static Local<FunctionTemplate> FunctionTemplateNew(
+ 
+ Local<FunctionTemplate> FunctionTemplate::New(
+     Isolate* isolate, FunctionCallback callback, v8::Local<Value> data,
+-    v8::Local<Signature> signature, int length, ConstructorBehavior behavior) {
++    v8::Local<Signature> signature, int length, ConstructorBehavior behavior,
++    SideEffectType side_effect_type) {
+   i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(isolate);
+   // Changes to the environment cannot be captured in the snapshot. Expect no
+   // function templates when the isolate is created for serialization.
+@@ -1448,7 +1436,8 @@ MaybeLocal<FunctionTemplate> FunctionTemplate::FromSnapshot(Isolate* isolate,
+ 
+ Local<FunctionTemplate> FunctionTemplate::NewWithCache(
+     Isolate* isolate, FunctionCallback callback, Local<Private> cache_property,
+-    Local<Value> data, Local<Signature> signature, int length) {
++    Local<Value> data, Local<Signature> signature, int length,
++    SideEffectType side_effect_type) {
+   i::Isolate* i_isolate = reinterpret_cast<i::Isolate*>(isolate);
+   LOG_API(i_isolate, FunctionTemplate, NewWithCache);
+   ENTER_V8_NO_SCRIPT_NO_EXCEPTION(i_isolate);
+@@ -1474,7 +1463,8 @@ Local<AccessorSignature> AccessorSignature::New(
+   } while (false)
+ 
+ void FunctionTemplate::SetCallHandler(FunctionCallback callback,
+-                                      v8::Local<Value> data) {
++                                      v8::Local<Value> data,
++                                      SideEffectType side_effect_type) {
+   auto info = Utils::OpenHandle(this);
+   EnsureNotInstantiated(info, "v8::FunctionTemplate::SetCallHandler");
+   i::Isolate* isolate = info->GetIsolate();
+@@ -2484,11 +2474,11 @@ class IsIdentifierHelper {
+   DISALLOW_COPY_AND_ASSIGN(IsIdentifierHelper);
+ };
+ 
+-
+ MaybeLocal<Function> ScriptCompiler::CompileFunctionInContext(
+     Local<Context> v8_context, Source* source, size_t arguments_count,
+     Local<String> arguments[], size_t context_extension_count,
+-    Local<Object> context_extensions[]) {
++    Local<Object> context_extensions[], CompileOptions options,
++    NoCacheReason no_cache_reason) {
+   PREPARE_FOR_EXECUTION(v8_context, ScriptCompiler, CompileFunctionInContext,
+                         Function);
+   TRACE_EVENT_CALL_STATS_SCOPED(isolate, "v8", "V8.ScriptCompiler");
+@@ -4719,12 +4709,12 @@ static Maybe<bool> ObjectSetAccessor(Local<Context> context, Object* self,
+   return Just(true);
+ }
+ 
+-
+ Maybe<bool> Object::SetAccessor(Local<Context> context, Local<Name> name,
+                                 AccessorNameGetterCallback getter,
+                                 AccessorNameSetterCallback setter,
+                                 MaybeLocal<Value> data, AccessControl settings,
+-                                PropertyAttribute attribute) {
++                                PropertyAttribute attribute,
++                                SideEffectType getter_side_effect_type) {
+   return ObjectSetAccessor(context, this, name, getter, setter,
+                            data.FromMaybe(Local<Value>()), settings, attribute,
+                            i::FLAG_disable_old_api_accessors, false);
+@@ -4750,21 +4740,19 @@ void Object::SetAccessorProperty(Local<Name> name, Local<Function> getter,
+                               static_cast<i::PropertyAttributes>(attribute));
+ }
+ 
+-Maybe<bool> Object::SetNativeDataProperty(v8::Local<v8::Context> context,
+-                                          v8::Local<Name> name,
+-                                          AccessorNameGetterCallback getter,
+-                                          AccessorNameSetterCallback setter,
+-                                          v8::Local<Value> data,
+-                                          PropertyAttribute attributes) {
++Maybe<bool> Object::SetNativeDataProperty(
++    v8::Local<v8::Context> context, v8::Local<Name> name,
++    AccessorNameGetterCallback getter, AccessorNameSetterCallback setter,
++    v8::Local<Value> data, PropertyAttribute attributes,
++    SideEffectType getter_side_effect_type) {
+   return ObjectSetAccessor(context, this, name, getter, setter, data, DEFAULT,
+                            attributes, true, false);
+ }
+ 
+-Maybe<bool> Object::SetLazyDataProperty(v8::Local<v8::Context> context,
+-                                        v8::Local<Name> name,
+-                                        AccessorNameGetterCallback getter,
+-                                        v8::Local<Value> data,
+-                                        PropertyAttribute attributes) {
++Maybe<bool> Object::SetLazyDataProperty(
++    v8::Local<v8::Context> context, v8::Local<Name> name,
++    AccessorNameGetterCallback getter, v8::Local<Value> data,
++    PropertyAttribute attributes, SideEffectType getter_side_effect_type) {
+   return ObjectSetAccessor(context, this, name, getter,
+                            static_cast<AccessorNameSetterCallback>(nullptr),
+                            data, DEFAULT, attributes, true, true);
+@@ -5030,10 +5018,10 @@ MaybeLocal<Value> Object::CallAsConstructor(Local<Context> context, int argc,
+   RETURN_ESCAPED(result);
+ }
+ 
+-
+ MaybeLocal<Function> Function::New(Local<Context> context,
+                                    FunctionCallback callback, Local<Value> data,
+-                                   int length, ConstructorBehavior behavior) {
++                                   int length, ConstructorBehavior behavior,
++                                   SideEffectType side_effect_type) {
+   i::Isolate* isolate = Utils::OpenHandle(*context)->GetIsolate();
+   LOG_API(isolate, Function, New);
+   ENTER_V8_NO_SCRIPT_NO_EXCEPTION(isolate);
+diff --git a/deps/v8/src/d8.cc b/deps/v8/src/d8.cc
+index 0f2ba4257eb..7399af99950 100644
+--- a/deps/v8/src/d8.cc
++++ b/deps/v8/src/d8.cc
+@@ -84,20 +84,6 @@ class ArrayBufferAllocatorBase : public v8::ArrayBuffer::Allocator {
+     allocator_->Free(data, length);
+   }
+ 
+-  void* Reserve(size_t length) override {
+-    UNIMPLEMENTED();
+-    return nullptr;
+-  }
+-
+-  void Free(void* data, size_t length, AllocationMode mode) override {
+-    UNIMPLEMENTED();
+-  }
+-
+-  void SetProtection(void* data, size_t length,
+-                     Protection protection) override {
+-    UNIMPLEMENTED();
+-  }
+-
+  private:
+   std::unique_ptr<Allocator> allocator_ =
+       std::unique_ptr<Allocator>(NewDefaultAllocator());
+diff --git a/deps/v8/test/mkgrokdump/mkgrokdump.cc b/deps/v8/test/mkgrokdump/mkgrokdump.cc
+index 75dac7a4a47..144b5070ea8 100644
+--- a/deps/v8/test/mkgrokdump/mkgrokdump.cc
++++ b/deps/v8/test/mkgrokdump/mkgrokdump.cc
+@@ -37,11 +37,7 @@ class MockArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
+  public:
+   void* Allocate(size_t length) override { return nullptr; }
+   void* AllocateUninitialized(size_t length) override { return nullptr; }
+-  void* Reserve(size_t length) override { return nullptr; }
+-  void Free(void* data, size_t length, AllocationMode mode) override {}
+   void Free(void* p, size_t) override {}
+-  void SetProtection(void* data, size_t length,
+-                     Protection protection) override {}
+ };
+ 
+ static int DumpHeapConstants(const char* argv0) {
+diff --git a/src/node_version.h b/src/node_version.h
+index 51388d63ae5..249075a981d 100644
+--- a/src/node_version.h
++++ b/src/node_version.h
+@@ -107,10 +107,11 @@
+  * V8 6.4: 61
+  * V8 6.5: 62
+  * V8 6.6: 63
++ * V8 6.7: 64
+  *
+  * More information can be found at https://nodejs.org/en/download/releases/
+  */
+-#define NODE_MODULE_VERSION 63
++#define NODE_MODULE_VERSION 64
+ 
+ // the NAPI_VERSION provided by this version of the runtime
+ #define NAPI_VERSION  3

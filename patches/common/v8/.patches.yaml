@@ -60,3 +60,9 @@ patches:
   file: backport_2eb23a17.patch
   description: |
     Part (2/2) of backporting the array splice perf regression caused in ch66
+-
+  owners: nornagon
+  file: node_2a3f8c3a8.patch
+  description: |
+    Patch lifted from node's patches to their vendored copy of v8.
+    > patch the V8 API to be forward compatible with 6.7
