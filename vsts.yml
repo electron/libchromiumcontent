@@ -2,34 +2,30 @@ resources:
 - repo: self
 phases:
 - phase: Build_libchromiumcontent
-  queue:
-    parallel: 4
+  condition: or(eq(variables['System.PullRequest.IsFork'], 'True'), ne(variables['Build.Reason'], 'PullRequest'))
+  queue:    
     timeoutInMinutes: 180
-    matrix:
-      libchromiumcontent-mas-shared:
-        COMPONENT: shared_library
-        MAS_BUILD: 1
-        TARGET_ARCH: x64
-        TARGET_TYPE: mas
-      libchromiumcontent-mas-static:
-        COMPONENT: static_library
-        MAS_BUILD: 1
-        TARGET_ARCH: x64
-        TARGET_TYPE: mas
-      libchromiumcontent-osx-shared:
-        COMPONENT: shared_library
-        TARGET_ARCH: x64
-        TARGET_TYPE: osx
-      libchromiumcontent-osx-static:
-        COMPONENT: static_library
-        TARGET_ARCH: x64
-        TARGET_TYPE: osx
-
   steps:
   - bash: |
-     echo "##vso[task.setvariable variable=gitcommit]$BUILD_SOURCEVERSION"
+     set -e
+     if [[ -z "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER}" ]] || "${SYSTEM_PULLREQUEST_ISFORK}" == "True"; then
+       echo "##vso[task.setvariable variable=gitcommit]$BUILD_SOURCEVERSION"
+     else
+       tmp="${BUILD_SOURCEVERSIONMESSAGE/#Merge /}"
+       PR_COMMIT_ID="${tmp%% into*}"
+       echo "PR is for repo branch, using original commit $PR_COMMIT_ID"
+       echo "##vso[task.setvariable variable=gitcommit]$PR_COMMIT_ID"
+       echo "Checking out $PR_COMMIT_ID"
+       git checkout $PR_COMMIT_ID
+       echo "Now switched to `git rev-parse HEAD`"
+     fi
+    name: Get_commit
+
+  - bash: |
+     set -e
      echo "===Bootstrapping===" > >(tee -a buildlog.txt) 2> >(tee -a buildlog.txt >&2)
      script/bootstrap > >(tee -a buildlog.txt) 2> >(tee -a buildlog.txt >&2)
+     mkdir s3files
     name: Bootstrap
 
   - bash: |
@@ -50,7 +46,6 @@ phases:
   - bash: |
      echo "===Create $COMPONENT distribution for $TARGET_ARCH===" > >(tee -a buildlog.txt) 2> >(tee -a buildlog.txt >&2)
      script/create-dist -t $TARGET_ARCH -c $COMPONENT > >(tee -a buildlog.txt) 2> >(tee -a buildlog.txt >&2)
-     mkdir s3files
      mv libchromiumcontent* s3files
      mv buildlog.txt s3files
     name: Create_distribution
@@ -61,27 +56,11 @@ phases:
       regionName: 'us-east-1'
       bucketName: 'github-janky-artifacts'
       sourceFolder: s3files
-      globExpressions: '*'
+      globExpressions: 'libchromiumcontent*'
       targetFolder: 'libchromiumcontent/$(TARGET_TYPE)/$(TARGET_ARCH)/$(gitcommit)'
       filesAcl: 'public-read'
       logRequest: true
       logResponse: true
 
-  - bash: |
-     if [[ -z "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER}" ]]; then
-       echo "Skipping build results upload because there is not a PR number"
-     else
-       npm install --prefix ./script/reportbuild
-       LIBCHROMIUMCONTENT_GITHUB_TOKEN=$(LIBCHROMIUMCONTENT_GITHUB_TOKEN) node script/reportbuild/upload-build-results.js --buildName="$AGENT_JOBNAME" --logFile="$(TARGET_TYPE)/$(TARGET_ARCH)/$(gitcommit)/buildlog.txt" --prNumber="$SYSTEM_PULLREQUEST_PULLREQUESTNUMBER" --commitId="$BUILD_SOURCEVERSION" --failed
-      fi
-    condition: failed()
-
-  - bash: |
-     if [[ -z "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER}" ]]; then
-       echo "Skipping build results upload because there is not a PR number"
-     else
-       npm install --prefix ./script/reportbuild
-       LIBCHROMIUMCONTENT_GITHUB_TOKEN=$(LIBCHROMIUMCONTENT_GITHUB_TOKEN) node script/reportbuild/upload-build-results.js --buildName="$AGENT_JOBNAME" --logFile="$(TARGET_TYPE)/$(TARGET_ARCH)/$(gitcommit)/buildlog.txt" --prNumber="$SYSTEM_PULLREQUEST_PULLREQUESTNUMBER" --commitId="$BUILD_SOURCEVERSION"
-      fi
-
   - task: mspremier.PostBuildCleanup.PostBuildCleanup-task.PostBuildCleanup@3
+    condition: always()
