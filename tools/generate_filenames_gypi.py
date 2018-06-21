@@ -43,11 +43,13 @@ EXCLUDE_SHARED_LIBRARIES = {
 EXCLUDE_STATIC_LIBRARIES = {
   'darwin': [
     'libffmpeg_yasm.a',
+    'libpepper_flash.a',
     'libppapi_cpp.a',
     'libv8_nosnapshot.a',
   ],
   'linux': [
     'libffmpeg_yasm.a',
+    'libpepper_flash.a',
     'libppapi_cpp.a',
     'libprotobuf_full_do_not_use.a',
     'libgenperf_libs.a',
@@ -59,6 +61,7 @@ EXCLUDE_STATIC_LIBRARIES = {
     'ffmpeg_yasm.lib',
     'libEGL.dll.lib',
     'libGLESv2.dll.lib',
+    'pepper_flash.lib',
     'ppapi_cpp.lib',
     'widevinecdm.dll.lib',
     'widevinecdmadapter.dll.lib',

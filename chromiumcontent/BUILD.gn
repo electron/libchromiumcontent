@@ -1,6 +1,7 @@
 import("//build/config/c++/c++.gni")
 import("//build/config/features.gni")
 import("//build/split_static_library.gni")
+import("//libchromiumcontent/chromiumcontent/config/features.gni")
 
 group("targets") {
   deps = []
@@ -40,6 +41,10 @@ group("targets") {
 
     if (is_linux) {
       deps += [ "//chrome/browser/ui/libgtkui:libgtk3ui" ]
+    }
+
+    if (enable_pepper_flash) {
+      deps += [ ":pepper_flash" ]
     }
 
     if (is_component_build) {
@@ -96,81 +101,81 @@ if (is_electron_build && is_component_build) {
   # source_set target.
 
   static_library("desktop_capture") {
-      complete_static_lib = true
-      deps = [ "//third_party/webrtc/modules/desktop_capture" ]
+    complete_static_lib = true
+    deps = [ "//third_party/webrtc/modules/desktop_capture" ]
   }
 
   static_library("device_service") {
-      complete_static_lib = true
-      public_deps = [ "//services/device:lib" ]
+    complete_static_lib = true
+    public_deps = [ "//services/device:lib" ]
   }
 
   static_library("fx_agg") {
-      complete_static_lib = true
-      deps = [ "//third_party/pdfium/third_party:fx_agg" ]
+    complete_static_lib = true
+    deps = [ "//third_party/pdfium/third_party:fx_agg" ]
   }
 
   static_library("fx_lcms2") {
-      complete_static_lib = true
-      deps = [ "//third_party/pdfium/third_party:fx_lcms2" ]
+    complete_static_lib = true
+    deps = [ "//third_party/pdfium/third_party:fx_lcms2" ]
   }
 
   static_library("fx_libopenjpeg") {
-      complete_static_lib = true
-      deps = [ "//third_party/pdfium/third_party:fx_libopenjpeg" ]
+    complete_static_lib = true
+    deps = [ "//third_party/pdfium/third_party:fx_libopenjpeg" ]
   }
 
   static_library("fx_zlib") {
-      complete_static_lib = true
-      deps = [ "//third_party/zlib:zlib" ]
+    complete_static_lib = true
+    deps = [ "//third_party/zlib:zlib" ]
   }
 
   static_library("libjpeg") {
-      complete_static_lib = true
-      deps = [ "//third_party:jpeg" ]
+    complete_static_lib = true
+    deps = [ "//third_party:jpeg" ]
   }
 
   static_library("libyuv") {
-      complete_static_lib = true
-      deps = [ "//third_party/libyuv" ]
+    complete_static_lib = true
+    deps = [ "//third_party/libyuv" ]
   }
 
   static_library("pdfium_skia_shared") {
-      complete_static_lib = true
-      deps = [ "//third_party/pdfium/third_party:skia_shared" ]
+    complete_static_lib = true
+    deps = [ "//third_party/pdfium/third_party:skia_shared" ]
   }
 
   static_library("ppapi_cpp_objects") {
-      complete_static_lib = true
-      deps = [ "//ppapi/cpp:objects" ]
+    complete_static_lib = true
+    deps = [ "//ppapi/cpp:objects" ]
   }
 
   static_library("ppapi_internal_module") {
-      complete_static_lib = true
-      deps = [ "//ppapi/cpp/private:internal_module" ]
+    complete_static_lib = true
+    deps = [ "//ppapi/cpp/private:internal_module" ]
   }
 
   static_library("security_state") {
-      complete_static_lib = true
-      deps = [
-        "//components/security_state/content",
-        "//components/security_state/core",
-      ]
+    complete_static_lib = true
+    deps = [
+      "//components/security_state/content",
+      "//components/security_state/core",
+    ]
   }
 
   static_library("system_wrappers") {
-      complete_static_lib = true
-      deps = [ "//third_party/webrtc/system_wrappers" ]
+    complete_static_lib = true
+    deps = [ "//third_party/webrtc/system_wrappers" ]
   }
 
   static_library("viz_service") {
-      complete_static_lib = true
-      public_deps = [ "//services/viz:lib" ]
+    complete_static_lib = true
+    public_deps = [ "//services/viz:lib" ]
   }
 
   static_library("webrtc_common") {
-      complete_static_lib = true
-      deps = [ "//third_party/webrtc:webrtc_common" ]
+    complete_static_lib = true
+    deps = [ "//third_party/webrtc:webrtc_common" ]
   }
 
   if (is_linux) {
@@ -427,4 +432,54 @@ if (is_electron_build && !is_component_build) {
     # }
   }
 
+}
+
+static_library("pepper_flash") {
+  sources = [
+    "//chrome/browser/renderer_host/pepper/chrome_browser_pepper_host_factory.cc",
+    "//chrome/browser/renderer_host/pepper/chrome_browser_pepper_host_factory.h",
+    "//chrome/browser/renderer_host/pepper/pepper_broker_message_filter.cc",
+    "//chrome/browser/renderer_host/pepper/pepper_broker_message_filter.h",
+    "//chrome/browser/renderer_host/pepper/pepper_flash_browser_host.cc",
+    "//chrome/browser/renderer_host/pepper/pepper_flash_browser_host.h",
+    "//chrome/browser/renderer_host/pepper/pepper_flash_clipboard_message_filter.cc",
+    "//chrome/browser/renderer_host/pepper/pepper_flash_clipboard_message_filter.h",
+    "//chrome/browser/renderer_host/pepper/pepper_flash_drm_host.cc",
+    "//chrome/browser/renderer_host/pepper/pepper_flash_drm_host.h",
+    "//chrome/browser/renderer_host/pepper/pepper_isolated_file_system_message_filter.cc",
+    "//chrome/browser/renderer_host/pepper/pepper_isolated_file_system_message_filter.h",
+    "//chrome/renderer/pepper/chrome_renderer_pepper_host_factory.cc",
+    "//chrome/renderer/pepper/chrome_renderer_pepper_host_factory.h",
+    "//chrome/renderer/pepper/pepper_flash_font_file_host.cc",
+    "//chrome/renderer/pepper/pepper_flash_font_file_host.h",
+    "//chrome/renderer/pepper/pepper_flash_fullscreen_host.cc",
+    "//chrome/renderer/pepper/pepper_flash_fullscreen_host.h",
+    "//chrome/renderer/pepper/pepper_flash_drm_renderer_host.cc",
+    "//chrome/renderer/pepper/pepper_flash_drm_renderer_host.h",
+    "//chrome/renderer/pepper/pepper_flash_menu_host.cc",
+    "//chrome/renderer/pepper/pepper_flash_menu_host.h",
+    "//chrome/renderer/pepper/pepper_flash_renderer_host.cc",
+    "//chrome/renderer/pepper/pepper_flash_renderer_host.h",
+    "//chrome/renderer/pepper/pepper_helper.cc",
+    "//chrome/renderer/pepper/pepper_helper.h",
+    "//chrome/renderer/pepper/pepper_shared_memory_message_filter.cc",
+    "//chrome/renderer/pepper/pepper_shared_memory_message_filter.h",
+  ]
+  deps = [
+    "//media:media_features",
+    "//ppapi/host",
+    "//ppapi/proxy",
+    "//ppapi/proxy:ipc",
+    "//ppapi/shared_impl",
+    "//services/device/public/mojom",
+    "//skia",
+    "//third_party/adobe/flash:flapper_version_h",
+    "//third_party/WebKit/public:blink",
+  ]
+  if (is_mac) {
+    sources += [
+      "//chrome/browser/renderer_host/pepper/monitor_finder_mac.h",
+      "//chrome/browser/renderer_host/pepper/monitor_finder_mac.mm",
+    ]
+  }
 }
