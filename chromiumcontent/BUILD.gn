@@ -2,6 +2,7 @@ import("//build/config/c++/c++.gni")
 import("//build/config/features.gni")
 import("//build/split_static_library.gni")
 import("//libchromiumcontent/chromiumcontent/config/features.gni")
+import("//printing/features/features.gni")
 
 group("targets") {
   deps = []
@@ -20,7 +21,6 @@ group("targets") {
       "//content/public/app:both",
       "//content/shell:pak",
       "//content/shell:copy_shell_resources",
-      "//pdf",
       "//ppapi/cpp",
       "//ppapi/host",
       "//ppapi/proxy",
@@ -47,17 +47,15 @@ group("targets") {
       deps += [ ":pepper_flash" ]
     }
 
+    if (enable_basic_printing) {
+      deps += [ ":basic_printing" ]
+    }
+
     if (is_component_build) {
       deps += [
         ":desktop_capture",
         ":device_service",
-        ":fx_agg",
-        ":fx_lcms2",
-        ":fx_libopenjpeg",
-        ":fx_zlib",
-        ":libjpeg",
         ":libyuv",
-        ":pdfium_skia_shared",
         ":ppapi_cpp_objects",
         ":ppapi_internal_module",
         ":security_state",
@@ -110,39 +108,9 @@ if (is_electron_build && is_component_build) {
     public_deps = [ "//services/device:lib" ]
   }
 
-  static_library("fx_agg") {
-    complete_static_lib = true
-    deps = [ "//third_party/pdfium/third_party:fx_agg" ]
-  }
-
-  static_library("fx_lcms2") {
-    complete_static_lib = true
-    deps = [ "//third_party/pdfium/third_party:fx_lcms2" ]
-  }
-
-  static_library("fx_libopenjpeg") {
-    complete_static_lib = true
-    deps = [ "//third_party/pdfium/third_party:fx_libopenjpeg" ]
-  }
-
-  static_library("fx_zlib") {
-    complete_static_lib = true
-    deps = [ "//third_party/zlib:zlib" ]
-  }
-
-  static_library("libjpeg") {
-    complete_static_lib = true
-    deps = [ "//third_party:jpeg" ]
-  }
-
   static_library("libyuv") {
     complete_static_lib = true
     deps = [ "//third_party/libyuv" ]
-  }
-
-  static_library("pdfium_skia_shared") {
-    complete_static_lib = true
-    deps = [ "//third_party/pdfium/third_party:skia_shared" ]
   }
 
   static_library("ppapi_cpp_objects") {
@@ -248,7 +216,6 @@ if (is_electron_build && !is_component_build) {
         ":services",
         ":skia",
         ":angle",
-        ":pdfium",
         ":webkit",
         ":webkitcore",
         ":webkitbindings",
@@ -312,11 +279,6 @@ if (is_electron_build && !is_component_build) {
     static_library("angle") {
       complete_static_lib = true
       sources = obj_angle
-    }
-
-    static_library("pdfium") {
-      complete_static_lib = true
-      sources = obj_pdfium
     }
 
     static_library("webkit") {
@@ -465,15 +427,12 @@ static_library("pepper_flash") {
     "//chrome/renderer/pepper/pepper_shared_memory_message_filter.cc",
     "//chrome/renderer/pepper/pepper_shared_memory_message_filter.h",
   ]
-  deps = [
-    "//media:media_features",
-    "//ppapi/host",
-    "//ppapi/proxy",
-    "//ppapi/proxy:ipc",
-    "//ppapi/shared_impl",
+  data_deps = [
     "//services/device/public/mojom",
-    "//skia",
     "//third_party/adobe/flash:flapper_version_h",
+  ]
+  public_deps = [
+    "//skia",
     "//third_party/WebKit/public:blink",
   ]
   if (is_mac) {
@@ -482,4 +441,20 @@ static_library("pepper_flash") {
       "//chrome/browser/renderer_host/pepper/monitor_finder_mac.mm",
     ]
   }
+}
+
+component("basic_printing") {
+  sources = [
+    "//libchromiumcontent/chromiumcontent/empty.cpp"
+  ]
+  deps = [
+    "//pdf",
+  ]
+  public_deps = [
+    "//components/printing/browser",
+    "//components/printing/common",
+    "//components/printing/renderer",
+    "//components/printing/service",
+    "//printing",
+  ]
 }
