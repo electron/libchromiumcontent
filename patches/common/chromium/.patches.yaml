@@ -300,3 +300,9 @@ patches:
   file: pepper_flash.patch
   description: |
     Allows building chrome pepper flash integration for Electron.
+-
+  owners: nornagon
+  file: wtl_warnings.patch
+  description: |
+    Fixes a bunch of warnings/errors in WTL code that isn't used by Chromium,
+    but is used by Electron.
