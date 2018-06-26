@@ -289,3 +289,9 @@ patches:
       errors with Chromium where it is enabled by default.
       This patch will disable Crashpad in Chromium using fallback
       mechanism which uses Breakpad.
+-
+  owners: zcbenz
+  file: no_cache_storage_check.patch
+  description: |
+    Do not check for unique origin in CacheStorage, in Electron we may have
+    scripts running without an origin.
