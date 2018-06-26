@@ -306,3 +306,9 @@ patches:
   description: |
     Fixes a bunch of warnings/errors in WTL code that isn't used by Chromium,
     but is used by Electron.
+-
+  owners: zcbenz
+  file: no_cache_storage_check.patch
+  description: |
+    Do not check for unique origin in CacheStorage, in Electron we may have
+    scripts running without an origin.
