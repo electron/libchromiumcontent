@@ -228,6 +228,50 @@ index 6b955bdb3724..1775f3b3c1d4 100644
  }
  
  // You are about to read a pretty disgusting hack. In a static initializer,
+diff --git a/device/bluetooth/bluetooth_adapter_mac.mm b/device/bluetooth/bluetooth_adapter_mac.mm
+index 09123af..69d6b92 100644
+--- a/device/bluetooth/bluetooth_adapter_mac.mm
++++ b/device/bluetooth/bluetooth_adapter_mac.mm
+@@ -32,6 +32,7 @@
+ #include "device/bluetooth/bluetooth_low_energy_central_manager_delegate.h"
+ #include "device/bluetooth/bluetooth_socket_mac.h"
+ 
++#ifndef MAS_BUILD
+ extern "C" {
+ // Undocumented IOBluetooth Preference API [1]. Used by `blueutil` [2] and
+ // `Karabiner` [3] to programmatically control the Bluetooth state. Calling the
+@@ -45,6 +46,7 @@
+ // [4] https://support.apple.com/kb/PH25091
+ void IOBluetoothPreferenceSetControllerPowerState(int state);
+ }
++#endif
+ 
+ namespace {
+ 
+@@ -118,8 +120,10 @@ CBCentralManagerState GetCBManagerState(CBCentralManager* manager) {
+       controller_state_function_(
+           base::BindRepeating(&BluetoothAdapterMac::GetHostControllerState,
+                               base::Unretained(this))),
++#ifndef MAS_BUILD
+       power_state_function_(
+           base::BindRepeating(IOBluetoothPreferenceSetControllerPowerState)),
++#endif
+       should_update_name_(true),
+       classic_discovery_manager_(
+           BluetoothDiscoveryManagerMac::CreateClassic(this)),
+@@ -302,8 +306,12 @@ CBCentralManagerState GetCBManagerState(CBCentralManager* manager) {
+ }
+ 
+ bool BluetoothAdapterMac::SetPoweredImpl(bool powered) {
++#ifndef MAS_BUILD
+   power_state_function_.Run(base::strict_cast<int>(powered));
+   return true;
++#else
++  return false;
++#endif
+ }
+ 
+ void BluetoothAdapterMac::RemovePairingDelegateInternal(
 diff --git a/media/audio/BUILD.gn b/media/audio/BUILD.gn
 index 10d786f..2d96723 100644
 --- a/media/audio/BUILD.gn
