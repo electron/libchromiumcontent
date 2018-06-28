@@ -228,6 +228,34 @@ index 6b955bdb3724..1775f3b3c1d4 100644
  }
  
  // You are about to read a pretty disgusting hack. In a static initializer,
+diff --git a/media/audio/BUILD.gn b/media/audio/BUILD.gn
+index 10d786f..2d96723 100644
+--- a/media/audio/BUILD.gn
++++ b/media/audio/BUILD.gn
+@@ -184,8 +184,8 @@ source_set("audio") {
+       "mac/audio_low_latency_input_mac.h",
+       "mac/audio_manager_mac.cc",
+       "mac/audio_manager_mac.h",
+-      "mac/coreaudio_dispatch_override.cc",
+-      "mac/coreaudio_dispatch_override.h",
++      # "mac/coreaudio_dispatch_override.cc",
++      # "mac/coreaudio_dispatch_override.h",
+       "mac/scoped_audio_unit.cc",
+       "mac/scoped_audio_unit.h",
+     ]
+diff --git a/media/audio/mac/audio_manager_mac.cc b/media/audio/mac/audio_manager_mac.cc
+index 1a74579..0a15778 100644
+--- a/media/audio/mac/audio_manager_mac.cc
++++ b/media/audio/mac/audio_manager_mac.cc
+@@ -993,7 +993,7 @@ AudioParameters AudioManagerMac::GetPreferredOutputStreamParameters(
+ 
+ void AudioManagerMac::InitializeOnAudioThread() {
+   DCHECK(GetTaskRunner()->BelongsToCurrentThread());
+-  InitializeCoreAudioDispatchOverride();
++  // InitializeCoreAudioDispatchOverride();
+   power_observer_.reset(new AudioPowerObserver());
+ }
+ 
 diff --git a/net/dns/dns_config_service_posix.cc b/net/dns/dns_config_service_posix.cc
 index 706ba6e8e882..3fbe80c91cd9 100644
 --- a/net/dns/dns_config_service_posix.cc
