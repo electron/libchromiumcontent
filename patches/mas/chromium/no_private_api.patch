@@ -356,6 +356,62 @@ index dfba0bded9e3..876f96999f53 100644
  }
  
  }  // namespace sandbox
+diff --git a/sandbox/mac/seatbelt_extension.cc b/sandbox/mac/seatbelt_extension.cc
+index 9073364..2356add 100644
+--- a/sandbox/mac/seatbelt_extension.cc
++++ b/sandbox/mac/seatbelt_extension.cc
+@@ -8,6 +8,7 @@
+ #include "base/memory/ptr_util.h"
+ #include "sandbox/mac/seatbelt_extension_token.h"
+ 
++#ifndef MAS_BUILD
+ // libsandbox private API.
+ extern "C" {
+ extern const char* APP_SANDBOX_READ;
+@@ -18,6 +19,7 @@ char* sandbox_extension_issue_file(const char* type,
+                                    const char* path,
+                                    uint32_t flags);
+ }
++#endif
+ 
+ namespace sandbox {
+ 
+@@ -46,7 +48,11 @@ std::unique_ptr<SeatbeltExtension> SeatbeltExtension::FromToken(
+ 
+ bool SeatbeltExtension::Consume() {
+   DCHECK(!token_.empty());
++#ifndef MAS_BUILD
+   handle_ = sandbox_extension_consume(token_.c_str());
++#else
++  handle_ = -1;
++#endif
+   return handle_ > 0;
+ }
+ 
+@@ -58,7 +64,11 @@ bool SeatbeltExtension::ConsumePermanently() {
+ }
+ 
+ bool SeatbeltExtension::Revoke() {
++#ifndef MAS_BUILD
+   int rv = sandbox_extension_release(handle_);
++#else
++  int rv = -1;
++#endif
+   handle_ = 0;
+   token_.clear();
+   return rv == 0;
+@@ -76,9 +86,11 @@ SeatbeltExtension::SeatbeltExtension(const std::string& token)
+ char* SeatbeltExtension::IssueToken(SeatbeltExtension::Type type,
+                                     const std::string& resource) {
+   switch (type) {
++#ifndef MAS_BUILD
+     case FILE_READ:
+       return sandbox_extension_issue_file(APP_SANDBOX_READ, resource.c_str(),
+                                           0);
++#endif
+     default:
+       NOTREACHED();
+       return nullptr;
 diff --git a/ui/views/cocoa/bridged_native_widget.mm b/ui/views/cocoa/bridged_native_widget.mm
 index 3c6e9903d7df..ddc9061c64d1 100644
 --- a/ui/views/cocoa/bridged_native_widget.mm
