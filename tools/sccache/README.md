@@ -10,10 +10,10 @@ The goal is to build a binary that would not require `openssl` to be installed i
 1. Install `rust` version `[1.22.0, 1.25.0)`, `1.22.1` works well. See [mozilla/sccache#233](https://github.com/mozilla/sccache/issues/233) for the explanation of the versions range.  
 Old versions might not be available via [Homebrew](https://brew.sh) but `brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/2b57a70c4bb1ac9bec3e6de1beda98f5dafcdf7c/Formula/rust.rb` should work (it will install `rust@1.22.1`).
 2. Clone the repo:  
-`git clone https://github.com/mozilla/sccache.git`
+`git clone https://github.com/marshallofsound/sccache.git`
 3. `cd sccache`
-4. Checkout version aad212037ce6340839686da8a1bdf5455b143b1c:  
-`git fetch --tags && git checkout aad212037ce6340839686da8a1bdf5455b143b1c`
+4. Checkout version 70a36893769ffba0202f831cb3582881f90ca790:  
+`git fetch --tags && git checkout 70a36893769ffba0202f831cb3582881f90ca790`
 5. `export OPENSSL_STATIC=yes`
 6. Build the project in a release mode:  
 `cargo build --release`.
