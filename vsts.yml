@@ -3,7 +3,7 @@ resources:
 phases:
 - phase: Build_libchromiumcontent
   condition: or(eq(variables['System.PullRequest.IsFork'], 'True'), ne(variables['Build.Reason'], 'PullRequest'))
-  queue:    
+  queue:
     timeoutInMinutes: 180
   steps:
   - bash: |
@@ -120,6 +120,15 @@ phases:
       filesAcl: 'public-read'
       logRequest: true
       logResponse: true
+
+  - task: mspremier.PostBuildCleanup.PostBuildCleanup-task.PostBuildCleanup@3
+    condition: always()
+    
+- phase: Skip_libchromiumcontent_PR_build
+  condition: and(eq(variables['System.PullRequest.IsFork'], 'False'), eq(variables['Build.Reason'], 'PullRequest'))
+  steps:
+  - bash: |
+      echo "Skipping PR build for PR requested from branch."
 
   - task: mspremier.PostBuildCleanup.PostBuildCleanup-task.PostBuildCleanup@3
     condition: always()
