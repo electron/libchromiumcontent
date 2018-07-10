@@ -39,10 +39,6 @@ patches:
     Disable unit test windows build warning
 -
   author: Aleksei Kuzmin <alkuzmin@microsoft.com>
-  file: backport_b767cde1e7.patch
-  description: Node 10.0.0 needs it.
--
-  author: Aleksei Kuzmin <alkuzmin@microsoft.com>
   file: backport_39d546a.patch
   description: Node 10.0.0 needs it.
 -
@@ -61,13 +57,3 @@ patches:
   author: Aleksei Kuzmin <alkuzmin@microsoft.com>
   file: backport_b49206d.patch
   description: Node 10.2.0 needs it.
--
-  author: Nitish Sakhawalkar <nitsakh@icloud.com>
-  file: backport_50206308.patch
-  description: |
-    Part (1/2) of backporting the array splice perf regression caused in ch66
--
-  author: Nitish Sakhawalkar <nitsakh@icloud.com>
-  file: backport_2eb23a17.patch
-  description: |
-    Part (2/2) of backporting the array splice perf regression caused in ch66
