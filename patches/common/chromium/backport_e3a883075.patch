@@ -1,0 +1,19 @@
+e3a883075f699e67ab47d9991ac55b143017cfc3
+diff --git a/base/process/process_metrics_win.cc b/base/process/process_metrics_win.cc
+index 32b9282ac96c..cdbf53be763b 100644
+--- a/base/process/process_metrics_win.cc
++++ b/base/process/process_metrics_win.cc
+@@ -244,11 +244,11 @@ bool ProcessMetrics::GetIOCounters(IoCounters* io_counters) const {
+ 
+ ProcessMetrics::ProcessMetrics(ProcessHandle process) : last_system_time_(0) {
+   if (process) {
+-    HANDLE duplicate_handle;
++    HANDLE duplicate_handle = INVALID_HANDLE_VALUE;
+     BOOL result = ::DuplicateHandle(::GetCurrentProcess(), process,
+                                     ::GetCurrentProcess(), &duplicate_handle,
+                                     PROCESS_QUERY_INFORMATION, FALSE, 0);
+-    DCHECK(result);
++    DPCHECK(result);
+     process_.Set(duplicate_handle);
+   }
+ }
