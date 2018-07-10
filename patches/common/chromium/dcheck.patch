@@ -135,13 +135,13 @@ index f3c68fab3de6..b8609daf3ef9 100644
      return;
    }
  
-diff --git a/third_party/WebKit/Source/core/loader/BUILD.gn b/third_party/WebKit/Source/core/loader/BUILD.gn
-index 4da843f7f712..f07f24a07ef2 100644
---- a/third_party/WebKit/Source/core/loader/BUILD.gn
-+++ b/third_party/WebKit/Source/core/loader/BUILD.gn
-@@ -136,4 +136,11 @@ blink_core_sources("loader") {
+diff --git a/third_party/blink/renderer/core/loader/BUILD.gn b/third_party/blink/renderer/core/loader/BUILD.gn
+index 82f6e8bc9d33..ccad95d61a4a 100644
+--- a/third_party/blink/renderer/core/loader/BUILD.gn
++++ b/third_party/blink/renderer/core/loader/BUILD.gn
+@@ -129,4 +129,11 @@ blink_core_sources("loader") {
    public_deps = [
-     "//third_party/WebKit/Source/platform",
+     "//third_party/blink/renderer/platform",
    ]
 +
 +  if (is_electron_build) {
@@ -151,10 +151,10 @@ index 4da843f7f712..f07f24a07ef2 100644
 +    defines += [ "ELECTRON_NO_DCHECK" ]
 +  }
  }
-diff --git a/third_party/WebKit/Source/core/dom/Node.cpp b/third_party/WebKit/Source/core/dom/Node.cpp
+diff --git a/third_party/blink/renderer/core/dom/node.cc b/third_party/blink/renderer/core/dom/node.cc
 index 922a2561bcef..e31fa34f98ea 100644
---- a/third_party/WebKit/Source/core/dom/Node.cpp
-+++ b/third_party/WebKit/Source/core/dom/Node.cpp
+--- a/third_party/blink/renderer/core/dom/node.cc
++++ b/third_party/blink/renderer/core/dom/node.cc
 @@ -2435,7 +2435,7 @@ StaticNodeList* Node::getDestinationInsertionPoints() {
  
  HTMLSlotElement* Node::AssignedSlot() const {
@@ -164,11 +164,11 @@ index 922a2561bcef..e31fa34f98ea 100644
    if (ShadowRoot* root = V1ShadowRootOfParent())
      return root->AssignedSlotFor(*this);
    return nullptr;
-diff --git a/third_party/WebKit/Source/platform/wtf/text/StringImpl.h b/third_party/WebKit/Source/platform/wtf/text/StringImpl.h
-index d3f0bccaee19..f58019d00e93 100644
---- a/third_party/WebKit/Source/platform/wtf/text/StringImpl.h
-+++ b/third_party/WebKit/Source/platform/wtf/text/StringImpl.h
-@@ -254,21 +254,21 @@ class WTF_EXPORT StringImpl {
+diff --git a/third_party/blink/renderer/platform/wtf/text/string_impl.h b/third_party/blink/renderer/platform/wtf/text/string_impl.h
+index 158d81ca9ba2..1b6aafecadef 100644
+--- a/third_party/blink/renderer/platform/wtf/text/string_impl.h
++++ b/third_party/blink/renderer/platform/wtf/text/string_impl.h
+@@ -258,21 +258,21 @@ class WTF_EXPORT StringImpl {
    }
  
    ALWAYS_INLINE bool HasOneRef() const {
