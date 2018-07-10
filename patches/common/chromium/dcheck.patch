@@ -107,20 +107,20 @@ index 346765edaef9..a30e87bfcda6 100644
  
    if (render_frame_created_) {
      if (!frame_bindings_control_)
-diff --git a/content/browser/renderer_host/render_widget_host_view_mac.mm b/content/browser/renderer_host/render_widget_host_view_mac.mm
-index 79e4cc1a0479..19ba3236477e 100644
---- a/content/browser/renderer_host/render_widget_host_view_mac.mm
-+++ b/content/browser/renderer_host/render_widget_host_view_mac.mm
-@@ -2093,8 +2104,8 @@ - (void)keyEvent:(NSEvent*)theEvent wasKeyEquivalent:(BOOL)equiv {
+diff --git a/content/browser/renderer_host/render_widget_host_view_cocoa.mm b/content/browser/renderer_host/render_widget_host_view_cocoa.mm
+index 8ee84cdafbde..c7ad6fa8c75f 100644
+--- a/content/browser/renderer_host/render_widget_host_view_cocoa.mm
++++ b/content/browser/renderer_host/render_widget_host_view_cocoa.mm
+@@ -618,8 +618,8 @@ void ExtractUnderlines(NSAttributedString* string,
    if (EventIsReservedBySystem(theEvent))
      return;
  
--  DCHECK([theEvent type] != NSKeyDown ||
--         !equiv == !([theEvent modifierFlags] & NSCommandKeyMask));
-+  //DCHECK([theEvent type] != NSKeyDown ||
-+  //       !equiv == !([theEvent modifierFlags] & NSCommandKeyMask));
+-  DCHECK(eventType != NSKeyDown ||
+-         !equiv == !(modifierFlags & NSCommandKeyMask));
++  // DCHECK(eventType != NSKeyDown ||
++  //       !equiv == !(modifierFlags & NSCommandKeyMask));
  
-   if ([theEvent type] == NSFlagsChanged) {
+   if (eventType == NSFlagsChanged) {
      // Ignore NSFlagsChanged events from the NumLock and Fn keys as
 diff --git a/ppapi/host/ppapi_host.cc b/ppapi/host/ppapi_host.cc
 index f3c68fab3de6..b8609daf3ef9 100644
