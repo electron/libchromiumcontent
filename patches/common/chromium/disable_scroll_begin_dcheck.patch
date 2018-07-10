@@ -1,0 +1,26 @@
+diff --git a/content/browser/renderer_host/input/mouse_wheel_event_queue.cc b/content/browser/renderer_host/input/mouse_wheel_event_queue.cc
+index 5d5bead..f2ac4d8 100644
+--- a/content/browser/renderer_host/input/mouse_wheel_event_queue.cc
++++ b/content/browser/renderer_host/input/mouse_wheel_event_queue.cc
+@@ -339,7 +339,7 @@ void MouseWheelEventQueue::SendScrollBegin(
+          (synthetic && !needs_scroll_begin_when_scroll_latching_disabled_) ||
+          needs_scroll_begin_when_scroll_latching_disabled_);
+ 
+-  DCHECK(!scroll_in_progress_);
++  // DCHECK(!scroll_in_progress_);
+   scroll_in_progress_ = true;
+ 
+   WebGestureEvent scroll_begin(gesture_update);
+diff --git a/content/browser/renderer_host/render_widget_host_impl.cc b/content/browser/renderer_host/render_widget_host_impl.cc
+index 28ab370..09fb882 100644
+--- a/content/browser/renderer_host/render_widget_host_impl.cc
++++ b/content/browser/renderer_host/render_widget_host_impl.cc
+@@ -1199,7 +1199,7 @@ void RenderWidgetHostImpl::ForwardGestureEventWithLatencyInfo(
+ 
+   bool scroll_update_needs_wrapping = false;
+   if (gesture_event.GetType() == blink::WebInputEvent::kGestureScrollBegin) {
+-    DCHECK(!is_in_gesture_scroll_[gesture_event.source_device]);
++    // DCHECK(!is_in_gesture_scroll_[gesture_event.source_device]);
+     is_in_gesture_scroll_[gesture_event.source_device] = true;
+   } else if (gesture_event.GetType() ==
+              blink::WebInputEvent::kGestureScrollEnd) {
