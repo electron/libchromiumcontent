@@ -255,13 +255,6 @@ patches:
     the redraw locking mechanism, which fixes these issues. The electron issue
     can be found at https://github.com/electron/electron/issues/1821
 -
-  author: Samuel Attard <sattard@atlassian.com>
-  file: backport_35dabc0.patch
-  description: |
-      Backports "ServiceWorker: Fix a jumbo build error",
-      see https://chromium-review.googlesource.com/957568
-      Original change's landed in 67.0.3369.0.
--
   author: Aleksei Kuzmin <alkuzmin@microsoft.com>
   file: exclude_next_version_mini_installer_from_deps.patch
   description: |
@@ -277,21 +270,6 @@ patches:
   description: |
       v8_context_snapshot_generator is a build time executable.
       The patch adds the config.
--
-  author: Shelley Vohr <shelley.vohr@gmail.com>
-  file: backport_953144.patch
-  description: |
-    Fixes failing <webview> loads devtools extensions registered on the parent
-    window test by baking the screencast module into the remote debugging
-    configurations of the inspector app. See
-    https://chromium-review.googlesource.com/c/chromium/src/+/953144 for more
-    details.
--
-  author: Aleksei Kuzmin <alkuzmin@microsoft.com>
-  file: backport_ef091c206.patch
-  description: |
-      https://chromium-review.googlesource.com/969968
-      The change originally landed in 67.0.3378.0.
 -
   author: Tomas Rycl <torycl@microsoft.com>
   file: crashpad-disabled-windows.patch
