@@ -57,12 +57,11 @@ def download_and_extract(destination, url):
         done += len(chunk)
         if not len(chunk):
           break
-        percent = '{0:.2f}'.format(round(float(done) / float(total), 4) * 100) + '%'
+        percent = '{0:.2f}%%'.format(round(float(done) / float(total), 4) * 100)
         ratio = '(' + byte_to_mb(done) + '/' + byte_to_mb(total) + ')'
         line = '-> ' + percent + ' ' + ratio
-        c_length = last_length
-        last_length = len(line)
         sys.stderr.write(line.ljust(c_length) + '\r')
+        last_length = len(line)
         sys.stderr.flush()
         t.write(chunk)
     sys.stderr.write('\nExtracting...\n')
