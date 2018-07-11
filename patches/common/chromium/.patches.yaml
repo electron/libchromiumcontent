@@ -329,3 +329,8 @@ patches:
   description: |
     https://chromium.googlesource.com/chromium/src/+/e3a883075f699e67ab47d9991ac55b143017cfc3
     The change originally landed in 67.0.3380.0.
+-
+  owners: nornagon
+  file: gtk_visibility.patch
+  description: |
+    Allow electron and brightray to depend on GTK in the GN build.
