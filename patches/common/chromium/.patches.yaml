@@ -295,3 +295,9 @@ patches:
   description: |
     Do not check for unique origin in CacheStorage, in Electron we may have
     scripts running without an origin.
+-
+  owners: torycl
+  file: backport_e3a883075.patch
+  description: |
+    https://chromium.googlesource.com/chromium/src/+/e3a883075f699e67ab47d9991ac55b143017cfc3
+    The change originally landed in 67.0.3380.0.
