@@ -329,3 +329,9 @@ patches:
     When testing https://github.com/electron/electron/issues/13137 I have met
     these assertions. I grouped them together since they are all related to the
     ScrollBegin event.
+-
+  owners: torycl
+  file: backport_e3a883075.patch
+  description: |
+    https://chromium.googlesource.com/chromium/src/+/e3a883075f699e67ab47d9991ac55b143017cfc3
+    The change originally landed in 67.0.3380.0.
