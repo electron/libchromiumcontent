@@ -23,6 +23,8 @@ group("targets") {
       "//ppapi/proxy",
       "//ppapi/shared_impl",
       "//net:net_with_v8",
+      "//net:net_browser_services",
+      "//net:net_utility_services",
       "//third_party/libyuv",
       "//third_party/webrtc/modules/desktop_capture",
       "//third_party/widevine/cdm:headers",
