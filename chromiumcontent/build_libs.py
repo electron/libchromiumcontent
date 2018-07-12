@@ -191,7 +191,11 @@ with open(args.out, 'w') as out:
             "net/constants",
             "net/extras",
             "net/http_server",
+            "net/interfaces/interfaces",
+            "net/interfaces/interfaces_shared_cpp_sources",
             "net/net",
+            "net/net_browser_services",
+            "net/net_utility_services",
             "net/net_with_v8",
         ])
 

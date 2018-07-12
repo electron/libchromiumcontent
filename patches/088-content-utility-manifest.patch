@@ -1,0 +1,12 @@
+diff --git a/content/public/app/mojo/content_utility_manifest.json b/content/public/app/mojo/content_utility_manifest.json
+index 3ea2993ba859..3cd0892ebb3b 100644
+--- a/content/public/app/mojo/content_utility_manifest.json
++++ b/content/public/app/mojo/content_utility_manifest.json
+@@ -7,6 +7,7 @@
+         "browser": [
+           "content::mojom::Child",
+           "IPC::mojom::ChannelBootstrap",
++          "net::interfaces::ProxyResolverFactory",
+           "service_manager::mojom::ServiceFactory"
+         ],
+         "service_manager:service_factory": [
