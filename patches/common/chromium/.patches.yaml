@@ -331,6 +331,11 @@ patches:
     The change originally landed in 67.0.3380.0.
 -
   owners: nornagon
+  file: libgtkui_export.patch
+  description: |
+    Export libgtkui symbols for the GN component build.
+-
+  owners: nornagon
   file: gtk_visibility.patch
   description: |
     Allow electron and brightray to depend on GTK in the GN build.
