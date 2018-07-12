@@ -237,21 +237,3 @@ index 674b0e9a909c..a1bff6e40f56 100644
     if (base_computed_style_ && computed_style)
       DCHECK(*base_computed_style_ == *computed_style);
   #endif
-diff --git a/base/process/process_metrics_win.cc b/base/process/process_metrics_win.cc
-index 61f0bf4ad06f..259783ad67a1 100644
---- a/base/process/process_metrics_win.cc
-+++ b/base/process/process_metrics_win.cc
-@@ -326,10 +326,9 @@ bool ProcessMetrics::GetIOCounters(IoCounters* io_counters) const {
- ProcessMetrics::ProcessMetrics(ProcessHandle process) : last_system_time_(0) {
-   if (process) {
-     HANDLE duplicate_handle;
--    BOOL result = ::DuplicateHandle(::GetCurrentProcess(), process,
--                                    ::GetCurrentProcess(), &duplicate_handle,
--                                    PROCESS_QUERY_INFORMATION, FALSE, 0);
--    DCHECK(result);
-+    ::DuplicateHandle(::GetCurrentProcess(), process,
-+                      ::GetCurrentProcess(), &duplicate_handle,
-+                      PROCESS_QUERY_INFORMATION, FALSE, 0);
-     process_.Set(duplicate_handle);
-   }
- }
