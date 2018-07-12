@@ -22,7 +22,6 @@ group("targets") {
       "//ppapi/host",
       "//ppapi/proxy",
       "//ppapi/shared_impl",
-      "//net:net_with_v8",
       "//net:net_browser_services",
       "//net:net_utility_services",
       "//third_party/libyuv",
@@ -50,6 +49,7 @@ group("targets") {
         ":fx_zlib",
         ":libjpeg",
         ":libyuv",
+        ":net_proxy_service",
         ":ppapi_cpp_objects",
         ":ppapi_internal_module",
         ":security_state",
@@ -152,6 +152,14 @@ if (is_electron_build && is_component_build) {
   static_library("webrtc_common") {
       complete_static_lib = true
       deps = [ "//third_party/webrtc:webrtc_common" ]
+  }
+
+  static_library("net_proxy_service") {
+    complete_static_lib = true
+    deps = [
+      "//net:net_browser_services",
+      "//net:net_utility_services",
+    ]
   }
 
   if (is_linux) {
