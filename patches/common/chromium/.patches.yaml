@@ -334,3 +334,8 @@ patches:
   file: libgtkui_export.patch
   description: |
     Export libgtkui symbols for the GN component build.
+-
+  owners: nornagon
+  file: gtk_visibility.patch
+  description: |
+    Allow electron and brightray to depend on GTK in the GN build.
