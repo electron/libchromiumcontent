@@ -76,7 +76,7 @@ def main():
 
   if args.run_gclient:
     if args.use_packaged_src:
-      get_packaged_src(args.clean, git_cache, nohooks, args.upload_packaged_src)
+      get_packaged_src(args.clean, git_cache, nohooks, args.upload_packaged_src, args.verbose)
     else:
       gclient_sync(chromium_version(), args.clean, git_cache, nohooks)
     if args.source_only:
@@ -93,7 +93,7 @@ def main():
           copy_chromiumcontent_files() or
           update_clang() or
           setup_mips64el_toolchain(target_arch) or
-          run_gn(target_arch, args.cc_wrapper))
+          run_gn(target_arch, args.cc_wrapper, args.verbose))
 
 
 def parse_args():
@@ -115,6 +115,9 @@ def parse_args():
                       help='Get chromium source as packaged file')
   parser.add_argument('--upload_packaged_src', action='store_true',
                       help='Upload packaged chromium source if it does not exist')
+  parser.add_argument('-v', '--verbose',
+                      action='store_true',
+                      help='Prints verbose output')
 
   cc_wrapper_group = parser.add_mutually_exclusive_group()
   cc_wrapper_group.add_argument('--cc_wrapper',
@@ -286,7 +289,7 @@ def setup_mips64el_toolchain(target_arch):
   subprocess.check_call(['chromium/scripts/generate_gn.py'], cwd=ffmpeg_dir)
 
 
-def run_gn(target_arch, cc_wrapper=None):
+def run_gn(target_arch, cc_wrapper=None, verbose=False):
   gn_args = {}
 
   if cc_wrapper is not None:
@@ -297,6 +300,8 @@ def run_gn(target_arch, cc_wrapper=None):
       '--args', json.dumps(gn_args),
       '--target_arch', target_arch
       ]
+  if verbose:    
+    script_arguments.append('-v')
   return subprocess.call([sys.executable, script_path] + script_arguments)
 
 
@@ -321,14 +326,14 @@ def download(url, filename):
           break
         f.write(chunk)
 
-def get_packaged_src(clean, git_cache, nohooks, upload_src):
+def get_packaged_src(clean, git_cache, nohooks, upload_src, verbose):
   src_version = chromium_version()
   tar_name = 'src.tar.bz2'
   package_url = '{0}/{1}/src/{2}/{3}'.format(CHROMIUMCONTENT_SRC_URL,
                                          PLATFORM_KEY, src_version, tar_name)
   try:
     print('Trying to download ' + package_url)
-    filesystem.download_and_extract(SOURCE_ROOT, package_url)
+    filesystem.download_and_extract(SOURCE_ROOT, package_url, verbose)
     os.environ['CHROMIUM_BUILDTOOLS_PATH'] = os.path.join(SRC_DIR, 'buildtools')
   except urllib2.URLError as err:
     print('Could not download {0}, syncing from git'.format(package_url))
