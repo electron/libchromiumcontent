@@ -53,11 +53,11 @@ def download_and_extract(destination, url):
       done = 0
       last_length = 0
       while True:
-        chunk = u.read(1024)
+        chunk = u.read(1024*1024)
         done += len(chunk)
         if not len(chunk):
           break
-        percent = '{0:.2f}%%'.format(round(float(done) / float(total), 4) * 100)
+        percent = '{0:.2f}%'.format(round(float(done) / float(total), 4) * 100)
         ratio = '(' + byte_to_mb(done) + '/' + byte_to_mb(total) + ')'
         line = '-> ' + percent + ' ' + ratio
         sys.stderr.write(line.ljust(last_length) + '\r')
