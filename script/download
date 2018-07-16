@@ -52,7 +52,8 @@ def main():
                          args.force, args.verbose)
       if (args.static and
           not os.path.exists(os.path.join(args.path, 'static_library'))):
-        download(args.path, base_url, commit, STATIC_LIBRARY_FILENAME)
+        download(args.path, base_url, commit, STATIC_LIBRARY_FILENAME,
+                 args.verbose)
       generate_filenames_gypi(os.path.join(args.path, 'filenames.gypi'),
                               os.path.join(args.path, 'src'),
                               os.path.join(args.path, 'shared_library'),
