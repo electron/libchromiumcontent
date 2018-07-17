@@ -1,7 +1,7 @@
-diff --git a/third_party/WebKit/Source/core/frame/WebLocalFrameImpl.cpp b/third_party/WebKit/Source/core/frame/WebLocalFrameImpl.cpp
+diff --git a/third_party/blink/renderer/core/frame/web_local_frame_impl.cc b/third_party/blink/renderer/core/frame/web_local_frame_impl.cc
 index a93834fbe86e..937b7f335693 100644
---- a/third_party/WebKit/Source/core/frame/WebLocalFrameImpl.cpp
-+++ b/third_party/WebKit/Source/core/frame/WebLocalFrameImpl.cpp
+--- a/third_party/blink/renderer/core/frame/web_local_frame_impl.cc
++++ b/third_party/blink/renderer/core/frame/web_local_frame_impl.cc
 @@ -843,6 +843,13 @@ v8::Local<v8::Object> WebLocalFrameImpl::GlobalProxy() const {
    return MainWorldScriptContext()->Global();
  }
@@ -16,10 +16,10 @@ index a93834fbe86e..937b7f335693 100644
  bool WebFrame::ScriptCanAccess(WebFrame* target) {
    return BindingSecurity::ShouldAllowAccessToFrame(
        CurrentDOMWindow(V8PerIsolateData::MainThreadIsolate()),
-diff --git a/third_party/WebKit/Source/core/frame/WebLocalFrameImpl.h b/third_party/WebKit/Source/core/frame/WebLocalFrameImpl.h
+diff --git a/third_party/blink/renderer/core/frame/web_local_frame_impl.h b/third_party/blink/renderer/core/frame/web_local_frame_impl.h
 index d66499296ff8..bfea68983fda 100644
---- a/third_party/WebKit/Source/core/frame/WebLocalFrameImpl.h
-+++ b/third_party/WebKit/Source/core/frame/WebLocalFrameImpl.h
+--- a/third_party/blink/renderer/core/frame/web_local_frame_impl.h
++++ b/third_party/blink/renderer/core/frame/web_local_frame_impl.h
 @@ -142,6 +142,8 @@ class CORE_EXPORT WebLocalFrameImpl final
        int argc,
        v8::Local<v8::Value> argv[]) override;
@@ -29,10 +29,10 @@ index d66499296ff8..bfea68983fda 100644
    v8::Local<v8::Object> GlobalProxy() const override;
    void Reload(WebFrameLoadType) override;
    void ReloadWithOverrideURL(const WebURL& override_url,
-diff --git a/third_party/WebKit/public/web/WebLocalFrame.h b/third_party/WebKit/public/web/WebLocalFrame.h
+diff --git a/third_party/blink/public/web/web_local_frame.h b/third_party/blink/public/web/web_local_frame.h
 index ad0fa84f9511..69f96587b1f1 100644
---- a/third_party/WebKit/public/web/WebLocalFrame.h
-+++ b/third_party/WebKit/public/web/WebLocalFrame.h
+--- a/third_party/blink/public/web/web_local_frame.h
++++ b/third_party/blink/public/web/web_local_frame.h
 @@ -404,6 +404,9 @@ class WebLocalFrame : public WebFrame {
    // be calling this API.
    virtual v8::Local<v8::Context> MainWorldScriptContext() const = 0;
