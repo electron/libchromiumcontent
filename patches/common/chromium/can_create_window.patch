@@ -54,17 +54,17 @@ index 25841d376bcd..df41213f4c49 100644
    if (!can_create_window) {
      std::move(callback).Run(mojom::CreateNewWindowStatus::kIgnore, nullptr);
 diff --git a/content/common/frame.mojom b/content/common/frame.mojom
-index e5fbf20747e0..f0d8af2f119b 100644
+index 99ec7e8d7995..26a4040fba97 100644
 --- a/content/common/frame.mojom
 +++ b/content/common/frame.mojom
-@@ -9,6 +9,8 @@ import "content/common/service_worker/controller_service_worker.mojom";
- import "content/common/url_loader_factory_bundle.mojom";
- import "content/public/common/resource_type.mojom";
+@@ -11,6 +11,8 @@ import "content/public/common/resource_type.mojom";
+ import "content/public/common/resource_load_info.mojom";
+ import "content/public/common/transferrable_url_loader.mojom";
  import "content/public/common/window_container_type.mojom";
 +import "mojo/common/file_path.mojom";
 +import "mojo/common/time.mojom";
- import "mojo/common/unguessable_token.mojom";
  import "mojo/public/mojom/base/string16.mojom";
+ import "mojo/public/mojom/base/unguessable_token.mojom";
  import "services/network/public/mojom/url_loader.mojom";
 @@ -146,6 +148,24 @@ interface FrameFactory {
    CreateFrame(int32 frame_routing_id, Frame& frame);
@@ -116,13 +116,13 @@ index 37e2d88e28e9..6c366435ddd8 100644
      bool opener_suppressed,
      bool* no_javascript_access) {
 diff --git a/content/public/browser/content_browser_client.h b/content/public/browser/content_browser_client.h
-index 5373ee07b5cd..746760e8596c 100644
+index 63cb3851db0a..4a96c8851df0 100644
 --- a/content/public/browser/content_browser_client.h
 +++ b/content/public/browser/content_browser_client.h
-@@ -150,6 +150,7 @@ class RenderProcessHost;
+@@ -151,6 +151,7 @@ class RenderFrameHost;
+ class RenderProcessHost;
  class RenderViewHost;
  class ResourceContext;
- class ResourceDispatcherHostLoginDelegate;
 +class ResourceRequestBody;
  class SiteInstance;
  class SpeechRecognitionManagerDelegate;
