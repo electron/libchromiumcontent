@@ -339,3 +339,10 @@ patches:
   file: gtk_visibility.patch
   description: |
     Allow electron and brightray to depend on GTK in the GN build.
+-
+  owners: marshallofsound
+  file: scroll_bounce.patch
+  description: /
+    https://chromium-review.googlesource.com/c/chromium/src/+/585365
+    Reverts chromium change in the above CR to allow us to override the rubber
+    banding value per-window

@@ -1,0 +1,15 @@
+diff --git a/content/browser/theme_helper_mac.mm b/content/browser/theme_helper_mac.mm
+index 50a8828bc62a..702c357e4d61 100644
+--- a/content/browser/theme_helper_mac.mm
++++ b/content/browser/theme_helper_mac.mm
+@@ -54,9 +54,8 @@ void FillScrollbarThemeParams(
+       ThemeHelperMac::GetPreferredScrollerStyle();
+   params->button_placement = GetButtonPlacement();
+
+-  id rubber_band_value = [defaults objectForKey:@"NSScrollViewRubberbanding"];
+   params->scroll_view_rubber_banding =
+-      rubber_band_value ? [rubber_band_value boolValue] : YES;
++      [defaults boolForKey:@"NSScrollViewRubberbanding"];
+ }
+
+ void SendSystemColorsChangedMessage(content::mojom::Renderer* renderer) {
