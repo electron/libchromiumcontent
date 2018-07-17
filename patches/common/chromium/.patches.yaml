@@ -339,3 +339,9 @@ patches:
   file: gtk_visibility.patch
   description: |
     Allow electron and brightray to depend on GTK in the GN build.
+-
+  owners: nornagon
+  file: sysroot.patch
+  description: |
+    Make chrome's install-sysroot scripts point to our custom sysroot builds,
+    which include extra deps that Electron needs (e.g. libnotify)
