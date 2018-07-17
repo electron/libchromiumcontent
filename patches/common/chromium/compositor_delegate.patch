@@ -1,8 +1,8 @@
 diff --git a/content/browser/compositor/gpu_process_transport_factory.cc b/content/browser/compositor/gpu_process_transport_factory.cc
-index 45bf6b1b4618..f023beabaa65 100644
+index 7b9fc4114c52..bdbbf93f6f0d 100644
 --- a/content/browser/compositor/gpu_process_transport_factory.cc
 +++ b/content/browser/compositor/gpu_process_transport_factory.cc
-@@ -491,9 +491,19 @@ void GpuProcessTransportFactory::EstablishedGpuChannel(
+@@ -495,9 +495,19 @@ void GpuProcessTransportFactory::EstablishedGpuChannel(
          // surfaces as they are not following the correct mode.
          DisableGpuCompositing(compositor.get());
        }
@@ -18,9 +18,9 @@ index 45bf6b1b4618..f023beabaa65 100644
 +
        display_output_surface =
            std::make_unique<SoftwareBrowserCompositorOutputSurface>(
--              CreateSoftwareOutputDevice(compositor->widget()), vsync_callback,
-+              std::move(output_device), vsync_callback,
-               compositor->task_runner());
+-              CreateSoftwareOutputDevice(compositor->widget()),
++              std::move(output_device),
+               std::move(vsync_callback), compositor->task_runner());
      } else {
        DCHECK(context_provider);
 diff --git a/ui/compositor/compositor.h b/ui/compositor/compositor.h
