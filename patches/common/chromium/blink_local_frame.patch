@@ -1,7 +1,7 @@
-diff --git a/third_party/WebKit/Source/core/frame/LocalFrame.cpp b/third_party/WebKit/Source/core/frame/LocalFrame.cpp
+diff --git a/third_party/blink/renderer/core/frame/local_frame.cc b/third_party/blink/renderer/core/frame/local_frame.cc
 index 97a5393d40b4..04f88dd2ea15 100644
---- a/third_party/WebKit/Source/core/frame/LocalFrame.cpp
-+++ b/third_party/WebKit/Source/core/frame/LocalFrame.cpp
+--- a/third_party/blink/renderer/core/frame/local_frame.cc
++++ b/third_party/blink/renderer/core/frame/local_frame.cc
 @@ -303,10 +303,6 @@ void LocalFrame::Detach(FrameDetachType type) {
    }
    CHECK(!view_ || !view_->IsAttached());
