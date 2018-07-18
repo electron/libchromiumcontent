@@ -61,8 +61,8 @@ index 99ec7e8d7995..26a4040fba97 100644
  import "content/public/common/resource_load_info.mojom";
  import "content/public/common/transferrable_url_loader.mojom";
  import "content/public/common/window_container_type.mojom";
-+import "mojo/common/file_path.mojom";
-+import "mojo/common/time.mojom";
++import "mojo/public/mojom/base/file_path.mojom";
++import "mojo/public/mojom/base/time.mojom";
  import "mojo/public/mojom/base/string16.mojom";
  import "mojo/public/mojom/base/unguessable_token.mojom";
  import "services/network/public/mojom/url_loader.mojom";
@@ -74,9 +74,9 @@ index 99ec7e8d7995..26a4040fba97 100644
 +  int32 type;
 +  int64 length;
 +  string bytes;
-+  mojo.common.mojom.FilePath path;
++  mojo_base.mojom.FilePath path;
 +  int64 offset;
-+  mojo.common.mojom.Time expected_modification_time;
++  mojo_base.mojom.Time expected_modification_time;
 +  url.mojom.Url filesystem_url;
 +  string blob_uuid;
 +};
