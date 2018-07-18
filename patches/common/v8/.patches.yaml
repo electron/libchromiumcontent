@@ -42,7 +42,3 @@ patches:
   owners: alexeykuzmin
   file: backport_23652c5f.patch
   description: Node 10.2.0 needs it.
--
-  owners: alexeykuzmin
-  file: backport_b49206d.patch
-  description: Node 10.2.0 needs it.
