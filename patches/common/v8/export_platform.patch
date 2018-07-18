@@ -1,17 +1,16 @@
 diff --git a/include/v8-platform.h b/include/v8-platform.h
-index f814543e66..45bdf53162 100644
+index ddc200abab..046de4e257 100644
 --- a/include/v8-platform.h
 +++ b/include/v8-platform.h
-@@ -10,6 +10,8 @@
+@@ -11,6 +11,7 @@
  #include <memory>
  #include <string>
  
 +#include "v8.h"
-+
- namespace v8 {
+ #include "v8config.h"  // NOLINT(build/include)
  
- class Isolate;
-@@ -297,7 +299,7 @@ class Platform {
+ namespace v8 {
+@@ -465,7 +466,7 @@ class Platform {
     * since epoch. Useful for implementing |CurrentClockTimeMillis| if
     * nothing special needed.
     */
