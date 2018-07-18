@@ -28,8 +28,8 @@ group("targets") {
       "//net:net_with_v8",
       "//third_party/libyuv",
       "//third_party/webrtc/modules/desktop_capture",
+      "//third_party/widevine/cdm",
       "//third_party/widevine/cdm:headers",
-      "//third_party/widevine/cdm:widevinecdmadapter",
       "//tools/v8_context_snapshot",
       "//ui/content_accelerators",
       "//ui/display",
@@ -466,7 +466,7 @@ static_library("pepper_flash") {
     "//chrome/renderer/pepper/pepper_shared_memory_message_filter.h",
   ]
   deps = [
-    "//media:media_features",
+    "//media:media_buildflags",
     "//ppapi/host",
     "//ppapi/proxy",
     "//ppapi/proxy:ipc",
@@ -474,7 +474,7 @@ static_library("pepper_flash") {
     "//services/device/public/mojom",
     "//skia",
     "//third_party/adobe/flash:flapper_version_h",
-    "//third_party/WebKit/public:blink",
+    "//third_party/blink/public:blink",
   ]
   if (is_mac) {
     sources += [
