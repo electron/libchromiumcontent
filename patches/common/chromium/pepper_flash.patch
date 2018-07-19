@@ -1,34 +1,3 @@
-diff --git a/chrome/browser/renderer_host/pepper/chrome_browser_pepper_host_factory.cc b/chrome/browser/renderer_host/pepper/chrome_browser_pepper_host_factory.cc
-index a5ea92f28784..5fd8f4525f83 100644
---- a/chrome/browser/renderer_host/pepper/chrome_browser_pepper_host_factory.cc
-+++ b/chrome/browser/renderer_host/pepper/chrome_browser_pepper_host_factory.cc
-@@ -10,8 +10,10 @@
- #include "chrome/browser/renderer_host/pepper/pepper_flash_clipboard_message_filter.h"
- #include "chrome/browser/renderer_host/pepper/pepper_flash_drm_host.h"
- #include "chrome/browser/renderer_host/pepper/pepper_isolated_file_system_message_filter.h"
-+#if 0
- #include "chrome/browser/renderer_host/pepper/pepper_output_protection_message_filter.h"
- #include "chrome/browser/renderer_host/pepper/pepper_platform_verification_message_filter.h"
-+#endif
- #include "content/public/browser/browser_ppapi_host.h"
- #include "ppapi/host/message_filter_host.h"
- #include "ppapi/host/ppapi_host.h"
-@@ -51,6 +53,7 @@ ChromeBrowserPepperHostFactory::CreateResourceHost(
-         return std::unique_ptr<ResourceHost>(new MessageFilterHost(
-             host_->GetPpapiHost(), instance, resource, broker_filter));
-       }
-+#if 0
-       case PpapiHostMsg_PlatformVerification_Create::ID: {
-         scoped_refptr<ResourceMessageFilter> pv_filter(
-             new PepperPlatformVerificationMessageFilter(host_, instance));
-@@ -64,6 +67,7 @@ ChromeBrowserPepperHostFactory::CreateResourceHost(
-             new MessageFilterHost(host_->GetPpapiHost(), instance, resource,
-                                   output_protection_filter));
-       }
-+#endif
-     }
-   }
- 
 diff --git a/chrome/browser/renderer_host/pepper/pepper_broker_message_filter.cc b/chrome/browser/renderer_host/pepper/pepper_broker_message_filter.cc
 index f4f1741a8ecf..103238cdd53f 100644
 --- a/chrome/browser/renderer_host/pepper/pepper_broker_message_filter.cc
@@ -260,7 +229,7 @@ index faa83c9d32e5..bbae9c21b59a 100644
  
    base::WeakPtrFactory<PepperFlashDRMHost> weak_factory_;
 diff --git a/chrome/browser/renderer_host/pepper/pepper_isolated_file_system_message_filter.cc b/chrome/browser/renderer_host/pepper/pepper_isolated_file_system_message_filter.cc
-index 40dde88bf86b..3fe0c6d9b816 100644
+index 5599a2d3d62f..532c7290cc36 100644
 --- a/chrome/browser/renderer_host/pepper/pepper_isolated_file_system_message_filter.cc
 +++ b/chrome/browser/renderer_host/pepper/pepper_isolated_file_system_message_filter.cc
 @@ -7,16 +7,20 @@
@@ -279,7 +248,7 @@ index 40dde88bf86b..3fe0c6d9b816 100644
  #include "content/public/browser/child_process_security_policy.h"
  #include "content/public/browser/render_view_host.h"
 +#if 0
- #include "extensions/features/features.h"
+ #include "extensions/buildflags/buildflags.h"
 +#endif
  #include "ppapi/c/pp_errors.h"
  #include "ppapi/host/dispatch_host_message.h"
@@ -333,17 +302,33 @@ index 40dde88bf86b..3fe0c6d9b816 100644
  
  int32_t PepperIsolatedFileSystemMessageFilter::OnOpenFileSystem(
      ppapi::host::HostMessageContext* context,
-@@ -140,7 +148,7 @@ int32_t PepperIsolatedFileSystemMessageFilter::OnOpenFileSystem(
+@@ -128,7 +136,7 @@ int32_t PepperIsolatedFileSystemMessageFilter::OnOpenFileSystem(
+     case PP_ISOLATEDFILESYSTEMTYPE_PRIVATE_INVALID:
+       break;
+     case PP_ISOLATEDFILESYSTEMTYPE_PRIVATE_CRX:
+-       return OpenCrxFileSystem(context);
++       return PP_ERROR_NOTSUPPORTED;
+     case PP_ISOLATEDFILESYSTEMTYPE_PRIVATE_PLUGINPRIVATE:
+       return OpenPluginPrivateFileSystem(context);
+   }
+@@ -138,6 +146,7 @@ int32_t PepperIsolatedFileSystemMessageFilter::OnOpenFileSystem(
+   return PP_ERROR_FAILED;
+ }
  
++#if 0
  int32_t PepperIsolatedFileSystemMessageFilter::OpenCrxFileSystem(
      ppapi::host::HostMessageContext* context) {
--#if BUILDFLAG(ENABLE_EXTENSIONS)
-+#if 0
-   Profile* profile = GetProfile();
-   const extensions::ExtensionSet* extension_set = NULL;
-   if (profile) {
+ #if BUILDFLAG(ENABLE_EXTENSIONS)
+@@ -176,6 +185,7 @@ int32_t PepperIsolatedFileSystemMessageFilter::OpenCrxFileSystem(
+   return PP_ERROR_NOTSUPPORTED;
+ #endif
+ }
++#endif
+ 
+ int32_t PepperIsolatedFileSystemMessageFilter::OpenPluginPrivateFileSystem(
+     ppapi::host::HostMessageContext* context) {
 diff --git a/chrome/browser/renderer_host/pepper/pepper_isolated_file_system_message_filter.h b/chrome/browser/renderer_host/pepper/pepper_isolated_file_system_message_filter.h
-index ffbc2d93ca7c..bc6413de31d2 100644
+index ca7f87b973e6..f73b596ce78e 100644
 --- a/chrome/browser/renderer_host/pepper/pepper_isolated_file_system_message_filter.h
 +++ b/chrome/browser/renderer_host/pepper/pepper_isolated_file_system_message_filter.h
 @@ -19,7 +19,9 @@
@@ -356,7 +341,7 @@ index ffbc2d93ca7c..bc6413de31d2 100644
  
  namespace content {
  class BrowserPpapiHost;
-@@ -55,12 +57,14 @@ class PepperIsolatedFileSystemMessageFilter
+@@ -53,16 +55,20 @@ class PepperIsolatedFileSystemMessageFilter
  
    ~PepperIsolatedFileSystemMessageFilter() override;
  
@@ -371,7 +356,13 @@ index ffbc2d93ca7c..bc6413de31d2 100644
  
    int32_t OnOpenFileSystem(ppapi::host::HostMessageContext* context,
                             PP_IsolatedFileSystemType_Private type);
-@@ -75,8 +79,10 @@ class PepperIsolatedFileSystemMessageFilter
++#if 0
+   int32_t OpenCrxFileSystem(ppapi::host::HostMessageContext* context);
++#endif
+   int32_t OpenPluginPrivateFileSystem(ppapi::host::HostMessageContext* context);
+ 
+   const int render_process_id_;
+@@ -73,8 +79,10 @@ class PepperIsolatedFileSystemMessageFilter
    // Not owned by this object.
    ppapi::host::PpapiHost* ppapi_host_;
  
@@ -383,10 +374,10 @@ index ffbc2d93ca7c..bc6413de31d2 100644
    DISALLOW_COPY_AND_ASSIGN(PepperIsolatedFileSystemMessageFilter);
  };
 diff --git a/chrome/renderer/pepper/chrome_renderer_pepper_host_factory.cc b/chrome/renderer/pepper/chrome_renderer_pepper_host_factory.cc
-index 611d2b865e6c..e589cb395e6f 100644
+index d63e90b6c507..c98a7bd07ddd 100644
 --- a/chrome/renderer/pepper/chrome_renderer_pepper_host_factory.cc
 +++ b/chrome/renderer/pepper/chrome_renderer_pepper_host_factory.cc
-@@ -11,8 +11,10 @@
+@@ -10,8 +10,10 @@
  #include "chrome/renderer/pepper/pepper_flash_fullscreen_host.h"
  #include "chrome/renderer/pepper/pepper_flash_menu_host.h"
  #include "chrome/renderer/pepper/pepper_flash_renderer_host.h"
@@ -397,15 +388,15 @@ index 611d2b865e6c..e589cb395e6f 100644
  #include "content/public/renderer/renderer_ppapi_host.h"
  #include "ppapi/host/ppapi_host.h"
  #include "ppapi/host/resource_host.h"
-@@ -87,6 +89,7 @@ ChromeRendererPepperHostFactory::CreateResourceHost(
+@@ -86,6 +88,7 @@ ChromeRendererPepperHostFactory::CreateResourceHost(
      }
    }
  
 +#if 0
    if (host_->GetPpapiHost()->permissions().HasPermission(
-           ppapi::PERMISSION_PRIVATE)) {
+           ppapi::PERMISSION_PDF)) {
      switch (message.type()) {
-@@ -105,6 +108,7 @@ ChromeRendererPepperHostFactory::CreateResourceHost(
+@@ -104,6 +107,7 @@ ChromeRendererPepperHostFactory::CreateResourceHost(
        return std::make_unique<PepperUMAHost>(host_, instance, resource);
      }
    }
