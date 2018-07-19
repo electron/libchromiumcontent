@@ -1,0 +1,120 @@
+diff --git a/skia/config/SkUserConfig.h b/skia/config/SkUserConfig.h
+index 3c162342dfca..698de07ab059 100644
+--- a/skia/config/SkUserConfig.h
++++ b/skia/config/SkUserConfig.h
+@@ -216,6 +216,10 @@ SK_API void SkDebugf_FileLine(const char* file, int line, bool fatal,
+ #define SK_SUPPORT_LEGACY_TILED_BITMAPS
+ #endif
+ 
++#ifndef SK_SUPPORT_LEGACY_SAFESIZE64
++#define SK_SUPPORT_LEGACY_SAFESIZE64
++#endif
++
+ ///////////////////////// Imported from BUILD.gn and skia_common.gypi
+ 
+ /* In some places Skia can use static initializers for global initialization,
+diff --git a/third_party/WebKit/Source/platform/fonts/FontCustomPlatformData.cpp b/third_party/WebKit/Source/platform/fonts/FontCustomPlatformData.cpp
+index d3613078e154..32f839af378f 100644
+--- a/third_party/WebKit/Source/platform/fonts/FontCustomPlatformData.cpp
++++ b/third_party/WebKit/Source/platform/fonts/FontCustomPlatformData.cpp
+@@ -88,21 +88,21 @@ FontPlatformData FontCustomPlatformData::GetFontPlatformData(
+ #else
+     sk_sp<SkFontMgr> fm(SkFontMgr::RefDefault());
+ #endif
+-    Vector<SkFontMgr::FontParameters::Axis, 0> axes;
++    Vector<SkFontArguments::Axis, 0> axes;
+ 
+     if (variation_settings && variation_settings->size() < UINT16_MAX) {
+       axes.ReserveCapacity(variation_settings->size());
+       for (size_t i = 0; i < variation_settings->size(); ++i) {
+-        SkFontMgr::FontParameters::Axis axis = {
++        SkFontArguments::Axis axis = {
+             AtomicStringToFourByteTag(variation_settings->at(i).Tag()),
+             SkFloatToScalar(variation_settings->at(i).Value())};
+         axes.push_back(axis);
+       }
+     }
+ 
+-    sk_sp<SkTypeface> sk_variation_font(fm->createFromStream(
++    sk_sp<SkTypeface> sk_variation_font(fm->makeFromStream(
+         base_typeface_->openStream(nullptr)->duplicate(),
+-        SkFontMgr::FontParameters().setAxes(axes.data(), axes.size())));
++        SkFontArguments().setAxes(axes.data(), axes.size())));
+ 
+     if (sk_variation_font) {
+       return_typeface = sk_variation_font;
+diff --git a/third_party/WebKit/Source/platform/fonts/WebFontDecoder.cpp b/third_party/WebKit/Source/platform/fonts/WebFontDecoder.cpp
+index ed953ea2140e..8ba341f50d39 100644
+--- a/third_party/WebKit/Source/platform/fonts/WebFontDecoder.cpp
++++ b/third_party/WebKit/Source/platform/fonts/WebFontDecoder.cpp
+@@ -215,12 +215,13 @@ sk_sp<SkTypeface> WebFontDecoder::Decode(SharedBuffer* buffer) {
+                              decoded_length);
+ 
+   sk_sp<SkData> sk_data = SkData::MakeWithCopy(output.get(), decoded_length);
+-  SkMemoryStream* stream = new SkMemoryStream(sk_data);
++  std::unique_ptr<SkStreamAsset> stream(new SkMemoryStream(sk_data));
+ #if defined(OS_WIN)
+   sk_sp<SkTypeface> typeface(
+-      FontCache::GetFontCache()->FontManager()->createFromStream(stream));
++      FontCache::GetFontCache()->FontManager()->makeFromStream(
++          std::move(stream)));
+ #else
+-  sk_sp<SkTypeface> typeface = SkTypeface::MakeFromStream(stream);
++  sk_sp<SkTypeface> typeface = SkTypeface::MakeFromStream(stream.release());
+ #endif
+   if (!typeface) {
+     SetErrorString("Not a valid font data");
+diff --git a/third_party/WebKit/Source/platform/fonts/mac/FontPlatformDataMac.mm b/third_party/WebKit/Source/platform/fonts/mac/FontPlatformDataMac.mm
+index e30cd8f842cf..36129f39e631 100644
+--- a/third_party/WebKit/Source/platform/fonts/mac/FontPlatformDataMac.mm
++++ b/third_party/WebKit/Source/platform/fonts/mac/FontPlatformDataMac.mm
+@@ -182,7 +182,7 @@ static CTFontDescriptorRef CascadeToLastResortFontDescriptor() {
+   }
+ 
+   if (variation_settings && variation_settings->size() < UINT16_MAX) {
+-    SkFontMgr::FontParameters::Axis axes[variation_settings->size()];
++    SkFontArguments::Axis axes[variation_settings->size()];
+     for (size_t i = 0; i < variation_settings->size(); ++i) {
+       AtomicString feature_tag = variation_settings->at(i).Tag();
+       axes[i] = {AtomicStringToFourByteTag(feature_tag),
+@@ -191,9 +191,9 @@ static CTFontDescriptorRef CascadeToLastResortFontDescriptor() {
+     sk_sp<SkFontMgr> fm(SkFontMgr::RefDefault());
+     // TODO crbug.com/670246: Refactor this to a future Skia API that acccepts
+     // axis parameters on system fonts directly.
+-    typeface_ = sk_sp<SkTypeface>(fm->createFromStream(
++    typeface_ = fm->makeFromStream(
+         typeface_->openStream(nullptr)->duplicate(),
+-        SkFontMgr::FontParameters().setAxes(axes, variation_settings->size())));
++        SkFontArguments().setAxes(axes, variation_settings->size()));
+   }
+ }
+ 
+diff --git a/third_party/WebKit/Source/platform/fonts/skia/FontCacheSkia.cpp b/third_party/WebKit/Source/platform/fonts/skia/FontCacheSkia.cpp
+index bf47c7babe79..2dba039dd247 100644
+--- a/third_party/WebKit/Source/platform/fonts/skia/FontCacheSkia.cpp
++++ b/third_party/WebKit/Source/platform/fonts/skia/FontCacheSkia.cpp
+@@ -271,8 +271,7 @@ sk_sp<SkTypeface> FontCache::CreateTypeface(
+   // FIXME: Use m_fontManager, matchFamilyStyle instead of
+   // legacyCreateTypeface on all platforms.
+   sk_sp<SkFontMgr> fm(SkFontMgr::RefDefault());
+-  return sk_sp<SkTypeface>(
+-      fm->legacyCreateTypeface(name.data(), font_description.SkiaFontStyle()));
++  return fm->legacyMakeTypeface(name.data(), font_description.SkiaFontStyle());
+ }
+ 
+ #if !defined(OS_WIN)
+diff --git a/ui/gfx/font_list.cc b/ui/gfx/font_list.cc
+index 118f10e3dfc7..6888867d9b26 100644
+--- a/ui/gfx/font_list.cc
++++ b/ui/gfx/font_list.cc
+@@ -25,9 +25,7 @@ bool g_default_impl_initialized = false;
+ 
+ bool IsFontFamilyAvailable(const std::string& family, SkFontMgr* fontManager) {
+ #if defined(OS_LINUX)
+-  sk_sp<SkTypeface> typeface(
+-      fontManager->legacyCreateTypeface(family.c_str(), SkFontStyle()));
+-  return typeface;
++  return fontManager->legacyMakeTypeface(family.c_str(), SkFontStyle());
+ #else
+   sk_sp<SkFontStyleSet> set(fontManager->matchFamily(family.c_str()));
+   return set && set->count();
