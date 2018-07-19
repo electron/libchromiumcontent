@@ -253,14 +253,14 @@ patches:
   description: |
       v8_context_snapshot_generator is a build time executable.
       The patch adds the config.
--
-  owners: torycl
-  file: crashpad-disabled-windows.patch
-  description: |
-      On Windows Electron does not link Crashpad. This causes linking
-      errors with Chromium where it is enabled by default.
-      This patch will disable Crashpad in Chromium using fallback
-      mechanism which uses Breakpad.
+# -
+  # owners: torycl
+  # file: crashpad-disabled-windows.patch
+  # description: |
+      # On Windows Electron does not link Crashpad. This causes linking
+      # errors with Chromium where it is enabled by default.
+      # This patch will disable Crashpad in Chromium using fallback
+      # mechanism which uses Breakpad.
 -
   owners: nornagon
   file: boringssl_build_gn.patch
