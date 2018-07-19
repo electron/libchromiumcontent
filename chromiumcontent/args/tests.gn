@@ -1,6 +1,7 @@
 root_extra_deps = [ "//libchromiumcontent/chromiumcontent:chromiumcontent_tests" ]
 is_debug = false
 is_electron_build = true
+is_mas_build = getenv("MAS_BUILD") != ""
 is_component_build = true
 dcheck_always_on = true
 symbol_level = 1
