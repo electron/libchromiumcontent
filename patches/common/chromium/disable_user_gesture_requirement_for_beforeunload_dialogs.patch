@@ -1,7 +1,7 @@
-diff --git a/third_party/WebKit/Source/core/dom/Document.cpp b/third_party/WebKit/Source/core/dom/Document.cpp
+diff --git a/third_party/blink/renderer/core/dom/document.cc b/third_party/blink/renderer/core/dom/document.cc
 index a39067db8c52..4a0d69dc3fb5 100644
---- a/third_party/WebKit/Source/core/dom/Document.cpp
-+++ b/third_party/WebKit/Source/core/dom/Document.cpp
+--- a/third_party/blink/renderer/core/dom/document.cc
++++ b/third_party/blink/renderer/core/dom/document.cc
 @@ -3239,7 +3239,9 @@ bool Document::DispatchBeforeUnloadEvent(ChromeClient& chrome_client,
          "Blocked attempt to show a 'beforeunload' confirmation panel for a "
          "frame that never had a user gesture since its load. "
