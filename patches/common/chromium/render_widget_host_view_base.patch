@@ -19,15 +19,16 @@ index 09a37c1a2c70..ff8c2db3fdae 100644
      const blink::WebMouseEvent& event,
      const ui::LatencyInfo& latency) {
 diff --git a/content/browser/renderer_host/render_widget_host_view_base.h b/content/browser/renderer_host/render_widget_host_view_base.h
-index 17c07af5e63b..746ed0c9231a 100644
+index 8e391207a8a7..d3637c82aba9 100644
 --- a/content/browser/renderer_host/render_widget_host_view_base.h
 +++ b/content/browser/renderer_host/render_widget_host_view_base.h
-@@ -21,7 +21,9 @@
- #include "components/viz/common/quads/compositor_frame.h"
+@@ -21,8 +21,10 @@
+ #include "components/viz/common/surfaces/scoped_surface_id_allocator.h"
  #include "components/viz/common/surfaces/surface_id.h"
  #include "content/browser/renderer_host/event_with_latency_info.h"
 +#include "content/browser/web_contents/web_contents_view.h"
  #include "content/common/content_export.h"
+ #include "content/public/browser/render_frame_metadata_provider.h"
 +#include "content/public/browser/render_widget_host.h"
  #include "content/public/browser/render_widget_host_view.h"
  #include "content/public/common/input_event_ack_state.h"
