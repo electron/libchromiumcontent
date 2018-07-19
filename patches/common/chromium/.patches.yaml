@@ -256,12 +256,6 @@ patches:
     can be found at https://github.com/electron/electron/issues/1821
 -
   author: Aleksei Kuzmin <alkuzmin@microsoft.com>
-  file: exclude_next_version_mini_installer_from_deps.patch
-  description: |
-      It breaks ninja files generation for the "shared_library" configuration.
-      Probably won't be needed on the next Chromium upgrade (after 66).
--
-  author: Aleksei Kuzmin <alkuzmin@microsoft.com>
   file: allow_chromiumcontent_to_depend_on_device_service.patch
   description: By default we cannot depend on it, but we want to use it.
 -
