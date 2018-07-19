@@ -15,10 +15,10 @@ index 0affacaa0294..0c321d51364d 100644
  
    attributes.fail_if_major_perf_caveat =
        web_attributes.fail_if_major_performance_caveat;
-diff --git a/third_party/WebKit/Source/core/html/canvas/CanvasContextCreationAttributesCore.h b/third_party/WebKit/Source/core/html/canvas/CanvasContextCreationAttributesCore.h
+diff --git a/third_party/blink/renderer/core/html/canvas/canvas_context_creation_attributes_core.h b/third_party/blink/renderer/core/html/canvas/canvas_context_creation_attributes_core.h
 index ca4543a10e69..a1f5e5c9f906 100644
---- a/third_party/WebKit/Source/core/html/canvas/CanvasContextCreationAttributesCore.h
-+++ b/third_party/WebKit/Source/core/html/canvas/CanvasContextCreationAttributesCore.h
+--- a/third_party/blink/renderer/core/html/canvas/canvas_context_creation_attributes_core.h
++++ b/third_party/blink/renderer/core/html/canvas/canvas_context_creation_attributes_core.h
 @@ -30,6 +30,7 @@ class CORE_EXPORT CanvasContextCreationAttributesCore {
    String pixel_format = "8-8-8-8";
    bool premultiplied_alpha = true;
@@ -27,10 +27,10 @@ index ca4543a10e69..a1f5e5c9f906 100644
    bool stencil = false;
  
    // This attribute is of type XRDevice, defined in modules/xr/XRDevice.h
-diff --git a/third_party/WebKit/Source/modules/canvas/htmlcanvas/CanvasContextCreationAttributesModule.idl b/third_party/WebKit/Source/modules/canvas/htmlcanvas/CanvasContextCreationAttributesModule.idl
+diff --git a/third_party/blink/renderer/modules/canvas/htmlcanvas/canvas_context_creation_attributes_module.idl b/third_party/blink/renderer/modules/canvas/htmlcanvas/canvas_context_creation_attributes_module.idl
 index 7419bb20d316..5b04af00fab4 100644
---- a/third_party/WebKit/Source/modules/canvas/htmlcanvas/CanvasContextCreationAttributesModule.idl
-+++ b/third_party/WebKit/Source/modules/canvas/htmlcanvas/CanvasContextCreationAttributesModule.idl
+--- a/third_party/blink/renderer/modules/canvas/htmlcanvas/canvas_context_creation_attributes_module.idl
++++ b/third_party/blink/renderer/modules/canvas/htmlcanvas/canvas_context_creation_attributes_module.idl
 @@ -28,6 +28,12 @@ enum CanvasPixelFormat {
      "float16",
  };
@@ -44,18 +44,18 @@ index 7419bb20d316..5b04af00fab4 100644
  [PermissiveDictionaryConversion]
  dictionary CanvasContextCreationAttributesModule {
      // This is an experimental feature, but it is not hidden behind a flag in
-@@ -47,6 +53,7 @@ dictionary CanvasContextCreationAttributesModule {
+@@ -47,6 +47,7 @@ dictionary CanvasContextCreationAttributesModule {
      boolean antialias = true;
      boolean premultipliedAlpha = true;
      boolean preserveDrawingBuffer = false;
 +    CanvasPowerPreference powerPreference = "default";
      boolean failIfMajorPerformanceCaveat = false;
-     [RuntimeEnabled=WebXR] XRDevice compatibleXRDevice = null;
+     [OriginTrialEnabled=WebXR] XRDevice compatibleXRDevice = null;
  };
-diff --git a/third_party/WebKit/Source/modules/webgl/WebGLContextAttributeHelpers.cpp b/third_party/WebKit/Source/modules/webgl/WebGLContextAttributeHelpers.cpp
+diff --git a/third_party/blink/renderer/modules/webgl/webgl_context_attribute_helpers.cc b/third_party/blink/renderer/modules/webgl/webgl_context_attribute_helpers.cc
 index 332fa9fb0547..e8fae4b01c39 100644
---- a/third_party/WebKit/Source/modules/webgl/WebGLContextAttributeHelpers.cpp
-+++ b/third_party/WebKit/Source/modules/webgl/WebGLContextAttributeHelpers.cpp
+--- a/third_party/blink/renderer/modules/webgl/webgl_context_attribute_helpers.cc
++++ b/third_party/blink/renderer/modules/webgl/webgl_context_attribute_helpers.cc
 @@ -18,6 +18,7 @@ WebGLContextAttributes ToWebGLContextAttributes(
    result.setAntialias(attrs.antialias);
    result.setPremultipliedAlpha(attrs.premultiplied_alpha);
@@ -64,18 +64,18 @@ index 332fa9fb0547..e8fae4b01c39 100644
    result.setFailIfMajorPerformanceCaveat(
        attrs.fail_if_major_performance_caveat);
    result.setCompatibleXRDevice(
-@@ -30,6 +31,7 @@ Platform::ContextAttributes ToPlatformContextAttributes(
+@@ -30,6 +30,7 @@ Platform::ContextAttributes ToPlatformContextAttributes(
      unsigned web_gl_version,
      bool support_own_offscreen_surface) {
    Platform::ContextAttributes result;
 +  result.prefer_integrated_gpu = attrs.power_preference == "low-power";
    result.fail_if_major_performance_caveat =
        attrs.fail_if_major_performance_caveat;
-   result.web_gl_version = web_gl_version;
-diff --git a/third_party/WebKit/Source/modules/webgl/WebGLContextAttributes.idl b/third_party/WebKit/Source/modules/webgl/WebGLContextAttributes.idl
+   result.context_type = web_gl_version == 2 ? Platform::kWebGL2ContextType
+diff --git a/third_party/blink/renderer/modules/webgl/webgl_context_attributes.idl b/third_party/blink/renderer/modules/webgl/webgl_context_attributes.idl
 index 180673be9bd0..0af29cbc9402 100644
---- a/third_party/WebKit/Source/modules/webgl/WebGLContextAttributes.idl
-+++ b/third_party/WebKit/Source/modules/webgl/WebGLContextAttributes.idl
+--- a/third_party/blink/renderer/modules/webgl/webgl_context_attributes.idl
++++ b/third_party/blink/renderer/modules/webgl/webgl_context_attributes.idl
 @@ -26,6 +26,12 @@
  
  // https://www.khronos.org/registry/webgl/specs/latest/1.0/#5.2
@@ -89,23 +89,23 @@ index 180673be9bd0..0af29cbc9402 100644
  dictionary WebGLContextAttributes {
      boolean alpha = true;
      boolean depth = true;
-@@ -33,6 +39,7 @@ dictionary WebGLContextAttributes {
+@@ -33,6 +33,7 @@ dictionary WebGLContextAttributes {
      boolean antialias = true;
      boolean premultipliedAlpha = true;
      boolean preserveDrawingBuffer = false;
 +    WebGLPowerPreference powerPreference = "default";
      boolean failIfMajorPerformanceCaveat = false;
-     [RuntimeEnabled=WebXR] XRDevice compatibleXRDevice = null;
+     [OriginTrialEnabled=WebXR] XRDevice compatibleXRDevice = null;
  };
-diff --git a/third_party/WebKit/public/platform/Platform.h b/third_party/WebKit/public/platform/Platform.h
-index 2cd7334..98ecb84 100644
---- a/third_party/WebKit/public/platform/Platform.h
-+++ b/third_party/WebKit/public/platform/Platform.h
-@@ -466,6 +466,7 @@ class BLINK_PLATFORM_EXPORT Platform {
-   // GPU ----------------------------------------------------------------
-   //
+diff --git a/third_party/blink/public/platform/platform.h b/third_party/blink/public/platform/platform.h
+index d4948345246e..bc277ba6aa5f 100644
+--- a/third_party/blink/public/platform/platform.h
++++ b/third_party/blink/public/platform/platform.h
+@@ -522,6 +522,7 @@ class BLINK_PLATFORM_EXPORT Platform {
+     kGLES3ContextType,   // GLES 3.0 context
+   };
    struct ContextAttributes {
 +    bool prefer_integrated_gpu = false;
      bool fail_if_major_performance_caveat = false;
-     unsigned web_gl_version = 0;
+     ContextType context_type = kGLES2ContextType;
      // Offscreen contexts usually share a surface for the default frame buffer
