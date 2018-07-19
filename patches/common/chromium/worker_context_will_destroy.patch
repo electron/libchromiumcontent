@@ -43,10 +43,10 @@ index e8a4578009d1..e9ba4e7f391f 100644
  
    // Set the PlatformEventObserverBase in |platform_event_observers_| associated
    // with |type| to |observer|. If there was already an observer associated to
-diff --git a/third_party/WebKit/Source/core/workers/WorkerThread.cpp b/third_party/WebKit/Source/core/workers/WorkerThread.cpp
+diff --git a/third_party/blink/renderer/core/workers/worker_thread.cc b/third_party/blink/renderer/core/workers/worker_thread.cc
 index a522ba4dbdf7..6991078b36f5 100644
---- a/third_party/WebKit/Source/core/workers/WorkerThread.cpp
-+++ b/third_party/WebKit/Source/core/workers/WorkerThread.cpp
+--- a/third_party/blink/renderer/core/workers/worker_thread.cc
++++ b/third_party/blink/renderer/core/workers/worker_thread.cc
 @@ -481,6 +481,12 @@ void WorkerThread::PrepareForShutdownOnWorkerThread() {
        SetExitCode(ExitCode::kGracefullyTerminated);
    }
@@ -60,10 +60,10 @@ index a522ba4dbdf7..6991078b36f5 100644
    inspector_task_runner_->Dispose();
    GetWorkerReportingProxy().WillDestroyWorkerGlobalScope();
    probe::AllAsyncTasksCanceled(GlobalScope());
-diff --git a/third_party/WebKit/public/platform/Platform.h b/third_party/WebKit/public/platform/Platform.h
+diff --git a/third_party/blink/public/platform/platform.h b/third_party/blink/public/platform/platform.h
 index 98ecb84..0779d4a 100644
---- a/third_party/WebKit/public/platform/Platform.h
-+++ b/third_party/WebKit/public/platform/Platform.h
+--- a/third_party/blink/public/platform/platform.h
++++ b/third_party/blink/public/platform/platform.h
 @@ -596,6 +596,7 @@ class BLINK_PLATFORM_EXPORT Platform {
    virtual void DidStartWorkerThread() {}
    virtual void WillStopWorkerThread() {}
