@@ -1,15 +1,15 @@
-diff --git a/third_party/WebKit/public/platform/WebDisplayItemList.h b/third_party/WebKit/public/platform/WebDisplayItemList.h
-index 82af75c3727e..548eefc0fae5 100644
---- a/third_party/WebKit/public/platform/WebDisplayItemList.h
-+++ b/third_party/WebKit/public/platform/WebDisplayItemList.h
+diff --git a/third_party/blink/public/platform/web_display_item_list.h b/third_party/blink/public/platform/web_display_item_list.h
+index 31a3f6d8d5f4..0b2a13230fbd 100644
+--- a/third_party/blink/public/platform/web_display_item_list.h
++++ b/third_party/blink/public/platform/web_display_item_list.h
 @@ -6,6 +6,7 @@
- #define WebDisplayItemList_h
+ #define THIRD_PARTY_BLINK_PUBLIC_PLATFORM_WEB_DISPLAY_ITEM_LIST_H_
  
- #include "WebBlendMode.h"
-+#include "WebCommon.h"
- #include "WebFloatPoint.h"
- #include "WebFloatRect.h"
- #include "WebRect.h"
+ #include "third_party/blink/public/platform/web_blend_mode.h"
++#include "third_party/blink/public/platform/web_common.h"
+ #include "third_party/blink/public/platform/web_float_point.h"
+ #include "third_party/blink/public/platform/web_float_rect.h"
+ #include "third_party/blink/public/platform/web_rect.h"
 @@ -33,7 +34,7 @@ namespace blink {
  // 'drawing' items) and operations to be performed when rendering this content
  // (stored in 'clip', 'transform', 'filter', etc...). For more details see:
