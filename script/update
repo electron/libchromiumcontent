@@ -41,7 +41,9 @@ solutions = [
     "managed": False,
     "name": "src",
     "deps_file": ".DEPS.git",
-    "custom_deps": {{}},
+    "custom_deps": {{
+        "src/third_party/skia": "https://skia.googlesource.com/skia.git@dbae7001c9805fb0a4b18fd0cbc889941cb39db4",
+    }},
   }},
 ]
 {cache_dir_line}
