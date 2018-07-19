@@ -1,8 +1,8 @@
 diff --git a/BUILD.gn b/BUILD.gn
-index 6ebb34b68d..9d17fc30c5 100755
+index 5439b39693..6783292c3b 100755
 --- a/BUILD.gn
 +++ b/BUILD.gn
-@@ -420,6 +420,10 @@ if (is_component_ffmpeg) {
+@@ -393,6 +393,10 @@ if (is_component_ffmpeg) {
      # So we can append below and assume they're defined.
      ldflags = []
  
@@ -10,6 +10,6 @@ index 6ebb34b68d..9d17fc30c5 100755
 +      ldflags += [ "-Wl,-install_name,@rpath/libffmpeg.dylib" ]
 +    }
 +
-     if (is_posix && !is_mac) {
+     if (is_fuchsia || (is_posix && !is_mac)) {
        # Fixes warnings PIC relocation when building as component.
        ldflags += [
