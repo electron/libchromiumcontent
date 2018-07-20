@@ -64,11 +64,6 @@ if (target_os == "win") {
   use_allocator_shim = false
 }
 
-# FIXME(alexeykuzmin): We should use clang starting Ch67.
-if (target_os == "win") {
-  is_clang = false
-}
-
 # Configuration for mips64el
 if (target_cpu == "mips64el") {
   is_clang = false
