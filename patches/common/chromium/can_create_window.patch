@@ -137,10 +137,10 @@ index 63cb3851db0a..4a96c8851df0 100644
        bool opener_suppressed,
        bool* no_javascript_access);
 diff --git a/content/renderer/render_view_impl.cc b/content/renderer/render_view_impl.cc
-index a9b91cdcc86d..4168990971e4 100644
+index 7a866ded50f1..f019ce3b24bb 100644
 --- a/content/renderer/render_view_impl.cc
 +++ b/content/renderer/render_view_impl.cc
-@@ -80,6 +80,7 @@
+@@ -79,6 +79,7 @@
  #include "content/renderer/input/input_handler_manager.h"
  #include "content/renderer/internal_document_state_data.h"
  #include "content/renderer/loader/request_extra_data.h"
@@ -148,7 +148,7 @@ index a9b91cdcc86d..4168990971e4 100644
  #include "content/renderer/media/audio_device_factory.h"
  #include "content/renderer/media/stream/media_stream_device_observer.h"
  #include "content/renderer/media/video_capture_impl_manager.h"
-@@ -1285,6 +1286,45 @@ WebView* RenderViewImpl::CreateView(WebLocalFrame* creator,
+@@ -1258,6 +1259,46 @@ WebView* RenderViewImpl::CreateView(WebLocalFrame* creator,
    }
    params->features = ConvertWebWindowFeaturesToMojoWindowFeatures(features);
  
@@ -179,6 +179,7 @@ index a9b91cdcc86d..4168990971e4 100644
 +          ptr->length = element.length();
 +          break;
 +        }
++        case network::DataElement::TYPE_CHUNKED_DATA_PIPE:
 +        case network::DataElement::TYPE_RAW_FILE:
 +        case network::DataElement::TYPE_DATA_PIPE:
 +        case network::DataElement::TYPE_UNKNOWN:
