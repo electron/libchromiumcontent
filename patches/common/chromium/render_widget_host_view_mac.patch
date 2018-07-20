@@ -16,7 +16,7 @@ index 6a161f0f36c6..349bc78976ad 100644
    bool opaque = SkColorGetA(color) == SK_AlphaOPAQUE;
 +  if (opaque) {
 +    bool wantsTransparent = ui::GpuSwitchingManager::UseTransparent() ||
-+                            ([cocoa_view_ window] && ![[cocoa_view_ window] isOpaque]);
++                            ([cocoa_view() window] && ![[cocoa_view() window] isOpaque]);
 +    if (wantsTransparent)
 +      opaque = NO;
 +  }
