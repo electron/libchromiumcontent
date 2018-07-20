@@ -3,10 +3,14 @@ is_component_build = false
 is_mas_build = getenv("MAS_BUILD") != ""
 is_debug = false
 enable_nacl = false
-enable_widevine = true
 proprietary_codecs = false
 is_component_ffmpeg = true
 ffmpeg_branding = "Chromium"
+
+# As of Chromium 67.0.3396.99 widevine is only supported on Mac and Windows.
+if (target_os != "linux") {
+  enable_widevine = true
+}
 
 # Use the system provided standard library on platforms other than Linux.
 if (target_os != "linux") {
