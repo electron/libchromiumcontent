@@ -19,11 +19,7 @@ SRC_DIR = os.path.join(SOURCE_ROOT, SRC)
 def main():
   args = parse_args()
 
-  folders = [PATCHES_COMMON_DIR]
-  if args.target_arch == 'mips64el':
-    folders.append(PATCHES_MIPS64EL_DIR)
-
-  for folder in folders:
+  for folder in args.folders:
     error = apply_patches_for_dir(folder)
     if error:
       sys.stderr.write(error + '\n')
@@ -52,7 +48,14 @@ def parse_args():
   parser.add_argument('-t', '--target_arch',
                       help='Target architecture')
 
-  return parser.parse_args()
+  parser.add_argument('-f', '--folder', dest='folders', help='Apply patches from this folder', nargs='*', default=[])
+
+  args = parser.parse_args()
+  if not args.folders:
+    args.folders.append(PATCHES_COMMON_DIR)
+    if args.target_arch == 'mips64el':
+      args.folders.append(PATCHES_MIPS64EL_DIR)
+  return args
 
 
 if __name__ == '__main__':
