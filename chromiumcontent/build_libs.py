@@ -290,37 +290,36 @@ with open(args.out, 'w') as out:
 
     gen_list(
         out,
-        "obj_webkit",
+        "obj_blink",
         [
-            "third_party/WebKit/common",
-            "third_party/WebKit/public",
-            "third_party/WebKit/Source/controller",
-            "third_party/WebKit/Source/platform",
-            "third_party/WebKit/Source/web",
+            "third_party/blink/common",
+            "third_party/blink/public",
+            "third_party/blink/renderer/controller",
+            "third_party/blink/renderer/platform",
         ],
         [
-            "third_party/WebKit/Source/platform/character_data_generator"
+            "third_party/blink/renderer/platform/character_data_generator"
         ])
 
     gen_list(
         out,
-        "obj_webkitcore",
+        "obj_blinkcore",
         [
-            "third_party/WebKit/Source/core",
+            "third_party/blink/renderer/core",
         ])
 
     gen_list(
         out,
-        "obj_webkitbindings",
+        "obj_blinkbindings",
         [
-            "third_party/WebKit/Source/bindings",
+            "third_party/blink/renderer/bindings",
         ])
 
     gen_list(
         out,
-        "obj_webkitmodules",
+        "obj_blinkmodules",
         [
-            "third_party/WebKit/Source/modules",
+            "third_party/blink/renderer/modules",
         ])
 
     gen_list(

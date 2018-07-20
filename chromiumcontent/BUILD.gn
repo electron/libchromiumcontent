@@ -251,10 +251,10 @@ if (is_electron_build && !is_component_build) {
         ":skia",
         ":angle",
         ":pdfium",
-        ":webkit",
-        ":webkitcore",
-        ":webkitbindings",
-        ":webkitmodules",
+        ":blink",
+        ":blinkcore",
+        ":blinkbindings",
+        ":blinkmodules",
         ":webrtc",
         ":v8",
         ":v8base",
@@ -321,24 +321,24 @@ if (is_electron_build && !is_component_build) {
       sources = obj_pdfium
     }
 
-    static_library("webkit") {
+    static_library("blink") {
       complete_static_lib = true
-      sources = obj_webkit
+      sources = obj_blink
     }
 
-    static_library("webkitbindings") {
+    static_library("blinkbindings") {
       complete_static_lib = true
-      sources = obj_webkitbindings
+      sources = obj_blinkbindings
     }
 
-    static_library("webkitcore") {
+    static_library("blinkcore") {
       complete_static_lib = true
-      sources = obj_webkitcore
+      sources = obj_blinkcore
     }
 
-    static_library("webkitmodules") {
+    static_library("blinkmodules") {
       complete_static_lib = true
-      sources = obj_webkitmodules
+      sources = obj_blinkmodules
     }
 
     static_library("webrtc") {
