@@ -1,5 +1,6 @@
 root_extra_deps = [ "//v8:v8_maybe_snapshot" ]
 is_electron_build = true
+is_mas_build = getenv("MAS_BUILD") != ""
 is_component_build = false
 is_debug = false
 enable_linux_installer = false
