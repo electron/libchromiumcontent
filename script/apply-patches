@@ -11,7 +11,6 @@ from lib.patches import PatchesConfig
 SOURCE_ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 PATCHES_DIR = os.path.join(SOURCE_ROOT, 'patches')
 PATCHES_COMMON_DIR = os.path.join(PATCHES_DIR, 'common')
-PATCHES_MAS_DIR = os.path.join(PATCHES_DIR, 'mas')
 PATCHES_MIPS64EL_DIR = os.path.join(PATCHES_DIR, 'mips64el')
 SRC = 'src'
 SRC_DIR = os.path.join(SOURCE_ROOT, SRC)
@@ -21,8 +20,6 @@ def main():
   args = parse_args()
 
   folders = [PATCHES_COMMON_DIR]
-  if os.environ.has_key('MAS_BUILD'):
-    folders.append(PATCHES_MAS_DIR)
   if args.target_arch == 'mips64el':
     folders.append(PATCHES_MIPS64EL_DIR)
 

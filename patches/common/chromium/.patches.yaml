@@ -345,3 +345,15 @@ patches:
   description: |
     Make chrome's install-sysroot scripts point to our custom sysroot builds,
     which include extra deps that Electron needs (e.g. libnotify)
+-
+  owners: zcbenz
+  file: mas_blink_no_private_api.patch
+  description: |
+    Guard usages in chromium code of private Mac APIs by MAS_BUILD, so they can
+    be excluded for people who want to submit their apps to the Mac App store.
+-
+  owners: zcbenz
+  file: mas_no_private_api.patch
+  description: |
+    Guard usages in blink of private Mac APIs by MAS_BUILD, so they can be
+    excluded for people who want to submit their apps to the Mac App store.

@@ -1,6 +1,7 @@
 root_extra_deps = [ "//libchromiumcontent/chromiumcontent" ]
 is_electron_build = true
 is_component_build = false
+is_mas_build = getenv("MAS_BUILD") != ""
 is_official_build = true
 symbol_level = 2
 enable_nacl = false

@@ -1,5 +1,6 @@
 root_extra_deps = [ "//libchromiumcontent/chromiumcontent" ]
 is_component_build = false
+is_mas_build = getenv("MAS_BUILD") != ""
 is_debug = false
 enable_nacl = false
 enable_widevine = true
