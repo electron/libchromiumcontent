@@ -273,13 +273,13 @@ index 09123af..69d6b92 100644
  
  void BluetoothAdapterMac::RemovePairingDelegateInternal(
 diff --git a/media/audio/BUILD.gn b/media/audio/BUILD.gn
-index 10d786f..2d96723 100644
+index 35e67c9c00d0..e6ea6cc7e567 100644
 --- a/media/audio/BUILD.gn
 +++ b/media/audio/BUILD.gn
-@@ -184,8 +184,8 @@ source_set("audio") {
-       "mac/audio_low_latency_input_mac.h",
-       "mac/audio_manager_mac.cc",
+@@ -186,8 +186,8 @@ source_set("audio") {
        "mac/audio_manager_mac.h",
+       "mac/core_audio_util_mac.cc",
+       "mac/core_audio_util_mac.h",
 -      "mac/coreaudio_dispatch_override.cc",
 -      "mac/coreaudio_dispatch_override.h",
 +      # "mac/coreaudio_dispatch_override.cc",
@@ -432,24 +432,3 @@ index 3c6e9903d7df..ddc9061c64d1 100644
  
  // The NSView that hosts the composited CALayer drawing the UI. It fills the
  // window but is not hittable so that accessibility hit tests always go to the
-@@ -128,7 +130,9 @@ using NSViewComparatorValue = __kindof NSView*;
- 
- const CGFloat kMavericksMenuOpacity = 251.0 / 255.0;
- const CGFloat kYosemiteMenuOpacity = 177.0 / 255.0;
-+#ifndef MAS_BUILD
- const int kYosemiteMenuBlur = 80;
-+#endif
- 
- // Margin at edge and corners of the window that trigger resizing. These match
- // actual Cocoa resize margins.
-@@ -1470,8 +1474,10 @@ void BridgedNativeWidget::AddCompositorSuperview() {
-     // solid background, but make the CALayer transparent.
-     if (base::mac::IsAtLeastOS10_10()) {
-       [background_layer setOpacity:kYosemiteMenuOpacity];
-+#ifndef MAS_BUILD
-       CGSSetWindowBackgroundBlurRadius(
-           _CGSDefaultConnection(), [window_ windowNumber], kYosemiteMenuBlur);
-+#endif
-       // The blur effect does not occur with a fully transparent (or fully
-       // layer-backed) window. Setting a window background will use square
-       // corners, so ask the contentView to draw one instead.
