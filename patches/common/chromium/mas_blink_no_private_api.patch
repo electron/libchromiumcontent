@@ -1,7 +1,7 @@
-diff --git a/third_party/WebKit/Source/core/paint/ThemePainterMac.mm b/third_party/WebKit/Source/core/paint/ThemePainterMac.mm
+diff --git a/third_party/blink/renderer/core/paint/theme_painter_mac.mm b/third_party/blink/renderer/core/paint/theme_painter_mac.mm
 index 65e6437c22a6..3b726d196427 100644
---- a/third_party/WebKit/Source/core/paint/ThemePainterMac.mm
-+++ b/third_party/WebKit/Source/core/paint/ThemePainterMac.mm
+--- a/third_party/blink/renderer/core/paint/theme_painter_mac.mm
++++ b/third_party/blink/renderer/core/paint/theme_painter_mac.mm
 @@ -43,6 +43,7 @@
  
  // The methods in this file are specific to the Mac OS X platform.
@@ -44,10 +44,10 @@ index 65e6437c22a6..3b726d196427 100644
    return false;
  }
  
-diff --git a/third_party/WebKit/Source/platform/mac/KillRingMac.mm b/third_party/WebKit/Source/platform/mac/KillRingMac.mm
+diff --git a/third_party/blink/renderer/platform/mac/kill_ring_mac.mm b/third_party/blink/renderer/platform/mac/kill_ring_mac.mm
 index acf60f09fdb9..6376120a954f 100644
---- a/third_party/WebKit/Source/platform/mac/KillRingMac.mm
-+++ b/third_party/WebKit/Source/platform/mac/KillRingMac.mm
+--- a/third_party/blink/renderer/platform/mac/kill_ring_mac.mm
++++ b/third_party/blink/renderer/platform/mac/kill_ring_mac.mm
 @@ -27,6 +27,7 @@
  
  namespace blink {
