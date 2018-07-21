@@ -26,3 +26,4 @@ index 8a7d0d8710b4..beb55792af6d 100644
 +    // CHECK(n <= length_);
      length_ -= n;
    }
+
