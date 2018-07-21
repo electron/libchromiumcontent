@@ -311,3 +311,9 @@ patches:
   description: |
     Make chrome's install-sysroot scripts point to our custom sysroot builds,
     which include extra deps that Electron needs (e.g. libnotify)
+-
+  owners: marshallofsound
+  file: string_piece_check_disable.patch
+  description: |
+    Disables some static checks on constexpr's in the string_piece helper to
+    avoid incompatibilities with node's CHECK macro
