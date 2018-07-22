@@ -143,6 +143,7 @@ with open(args.out, 'w') as out:
         out,
         "obj_components",
         [
+            "components/appdu",
             "components/autofill/core/common",
             "components/bitmap_uploader",
             "components/cbor",
