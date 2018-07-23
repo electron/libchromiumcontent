@@ -1,0 +1,148 @@
+diff --git a/content/browser/loader/resource_dispatcher_host_impl.cc b/content/browser/loader/resource_dispatcher_host_impl.cc
+index 0c57d2076981..52da54cc171b 100644
+--- a/content/browser/loader/resource_dispatcher_host_impl.cc
++++ b/content/browser/loader/resource_dispatcher_host_impl.cc
+@@ -564,7 +564,6 @@ ResourceDispatcherHostImpl::CreateLoginDelegate(
+     return nullptr;
+ 
+   net::URLRequest* request = loader->request();
+-
+   ResourceRequestInfoImpl* resource_request_info =
+       ResourceRequestInfoImpl::ForRequest(request);
+   DCHECK(resource_request_info);
+@@ -575,7 +574,7 @@ ResourceDispatcherHostImpl::CreateLoginDelegate(
+   ResourceDispatcherHostLoginDelegate* login_delegate =
+       GetContentClient()->browser()->CreateLoginDelegate(
+           auth_info, resource_request_info->GetWebContentsGetterForRequest(),
+-          is_main_frame, url, resource_request_info->first_auth_attempt(),
++          request->method(), request->referrer(), is_main_frame, url, resource_request_info->first_auth_attempt(),
+           base::Bind(&ResourceDispatcherHostImpl::RunAuthRequiredCallback,
+                      base::Unretained(this), request));
+ 
+diff --git a/content/browser/network_service_client.cc b/content/browser/network_service_client.cc
+index bcb2ec416db5..4825a0cc8403 100644
+--- a/content/browser/network_service_client.cc
++++ b/content/browser/network_service_client.cc
+@@ -157,12 +157,16 @@ class LoginHandlerDelegate {
+   LoginHandlerDelegate(
+       network::mojom::NetworkServiceClient::OnAuthRequiredCallback callback,
+       ResourceRequestInfo::WebContentsGetter web_contents_getter,
++      const std::string& request_method,
++      const std::string& referrer,
+       scoped_refptr<net::AuthChallengeInfo> auth_info,
+       bool is_main_frame,
+       const GURL& url,
+       bool first_auth_attempt)
+       : callback_(std::move(callback)),
+         auth_info_(auth_info),
++        request_method_(request_method),
++        referrer_(referrer),
+         is_main_frame_(is_main_frame),
+         url_(url),
+         first_auth_attempt_(first_auth_attempt),
+@@ -176,8 +180,8 @@ class LoginHandlerDelegate {
+  private:
+   void CreateLoginDelegate() {
+     login_delegate_ = GetContentClient()->browser()->CreateLoginDelegate(
+-        auth_info_.get(), web_contents_getter_, is_main_frame_, url_,
+-        first_auth_attempt_,
++        auth_info_.get(), web_contents_getter_, request_method_, referrer_, is_main_frame_,
++        url_, first_auth_attempt_,
+         base::Bind(&LoginHandlerDelegate::RunAuthRequiredCallback,
+                    base::Unretained(this)));
+ 
+@@ -203,6 +207,8 @@ class LoginHandlerDelegate {
+ 
+   network::mojom::NetworkServiceClient::OnAuthRequiredCallback callback_;
+   scoped_refptr<net::AuthChallengeInfo> auth_info_;
++  std::string request_method_;
++  std::string referrer_;
+   bool is_main_frame_;
+   GURL url_;
+   bool first_auth_attempt_;
+@@ -221,6 +227,8 @@ NetworkServiceClient::~NetworkServiceClient() = default;
+ void NetworkServiceClient::OnAuthRequired(
+     uint32_t process_id,
+     uint32_t routing_id,
++    const std::string& request_method,
++    const std::string& referrer,
+     const GURL& url,
+     bool first_auth_attempt,
+     const scoped_refptr<net::AuthChallengeInfo>& auth_info,
+@@ -240,8 +248,8 @@ void NetworkServiceClient::OnAuthRequired(
+           ? RenderFrameHost::FromID(process_id, routing_id)
+           : FrameTreeNode::GloballyFindByID(routing_id)->current_frame_host();
+   bool is_main_frame = !rfh->GetParent();
+-  new LoginHandlerDelegate(std::move(callback), web_contents_getter, auth_info,
+-                           is_main_frame, url,
++  new LoginHandlerDelegate(std::move(callback), web_contents_getter,
++                           request_method, referrer, auth_info, is_main_frame, url,
+                            first_auth_attempt);  // deletes self
+ }
+ 
+diff --git a/content/browser/network_service_client.h b/content/browser/network_service_client.h
+index 59665e92d705..268ec7850663 100644
+--- a/content/browser/network_service_client.h
++++ b/content/browser/network_service_client.h
+@@ -22,6 +22,8 @@ class NetworkServiceClient : public network::mojom::NetworkServiceClient {
+   void OnAuthRequired(
+       uint32_t process_id,
+       uint32_t routing_id,
++      const std::string& request_method,
++      const std::string& referrer,
+       const GURL& url,
+       bool first_auth_attempt,
+       const scoped_refptr<net::AuthChallengeInfo>& auth_info,
+diff --git a/content/public/browser/content_browser_client.cc b/content/public/browser/content_browser_client.cc
+index 37e2d88e28e9..f0c994a0b6d4 100644
+--- a/content/public/browser/content_browser_client.cc
++++ b/content/public/browser/content_browser_client.cc
+@@ -680,6 +680,8 @@ ContentBrowserClient::CreateClientCertStore(ResourceContext* resource_context) {
+ ResourceDispatcherHostLoginDelegate* ContentBrowserClient::CreateLoginDelegate(
+     net::AuthChallengeInfo* auth_info,
+     content::ResourceRequestInfo::WebContentsGetter web_contents_getter,
++    const std::string& request_method,
++    const std::string& referrer,
+     bool is_main_frame,
+     const GURL& url,
+     bool first_auth_attempt,
+diff --git a/content/public/browser/content_browser_client.h b/content/public/browser/content_browser_client.h
+index 5373ee07b5cd..0fe5a5c61473 100644
+--- a/content/public/browser/content_browser_client.h
++++ b/content/public/browser/content_browser_client.h
+@@ -1108,6 +1108,8 @@ class CONTENT_EXPORT ContentBrowserClient {
+   virtual ResourceDispatcherHostLoginDelegate* CreateLoginDelegate(
+       net::AuthChallengeInfo* auth_info,
+       content::ResourceRequestInfo::WebContentsGetter web_contents_getter,
++      const std::string& request_method,
++      const std::string& referrer,
+       bool is_main_frame,
+       const GURL& url,
+       bool first_auth_attempt,
+diff --git a/services/network/public/mojom/network_service.mojom b/services/network/public/mojom/network_service.mojom
+index 95fe60b1fd52..7166527a0f73 100644
+--- a/services/network/public/mojom/network_service.mojom
++++ b/services/network/public/mojom/network_service.mojom
+@@ -194,6 +194,8 @@ interface NetworkServiceClient {
+   // needs to be called.
+   OnAuthRequired(uint32 process_id,
+                  uint32 routing_id,
++                 string request_method,
++                 string referrer,
+                  url.mojom.Url url,
+                  bool first_auth_attempt,
+                  AuthChallengeInfo auth_info) => (AuthCredentials? credentials);
+diff --git a/services/network/url_loader.cc b/services/network/url_loader.cc
+index 208e7e240b27..f43beaa252b6 100644
+--- a/services/network/url_loader.cc
++++ b/services/network/url_loader.cc
+@@ -443,7 +443,8 @@ void URLLoader::OnAuthRequired(net::URLRequest* unused,
+   }
+ 
+   network_service_client_->OnAuthRequired(
+-      process_id_, render_frame_id_, url_request_->url(), first_auth_attempt_,
++      process_id_, render_frame_id_, url_request_->method(),
++      url_request_->referrer(), url_request_->url(), first_auth_attempt_,
+       auth_info,
+       base::BindOnce(&URLLoader::OnAuthRequiredResponse,
+                      weak_ptr_factory_.GetWeakPtr()));
