@@ -83,6 +83,7 @@ BINARIES = {
 
 BINARIES_SHARED_LIBRARY = {
   'darwin': [
+    os.path.join('obj', 'base', 'libbase_static.a'),
     os.path.join('obj', 'components', 'cdm', 'renderer', 'librenderer.a'),
     os.path.join('obj', 'net', 'libhttp_server.a'),
     os.path.join('obj', 'third_party', 'webrtc', 'rtc_base', 'librtc_base.a'),
@@ -104,6 +105,7 @@ BINARIES_SHARED_LIBRARY = {
     os.path.join('obj', 'third_party', 'pdfium', 'libpwl.a'),
   ],
   'linux': [
+    os.path.join('obj', 'base', 'libbase_static.a'),
     os.path.join('obj', 'components', 'cdm', 'renderer', 'librenderer.a'),
     os.path.join('obj', 'net', 'libhttp_server.a'),
     os.path.join('obj', 'third_party', 'webrtc', 'rtc_base', 'librtc_base.a'),
