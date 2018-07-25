@@ -357,3 +357,9 @@ patches:
   description: |
     Guard usages in blink of private Mac APIs by MAS_BUILD, so they can be
     excluded for people who want to submit their apps to the Mac App store.
+-
+  owners: nitsakh
+  file: login_delegate.patch
+  description: |
+    Pass in referrer and request method details to support the login handler
+    API in electron.
