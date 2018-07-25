@@ -1,19 +1,20 @@
 diff --git a/chrome/BUILD.gn b/chrome/BUILD.gn
-index fbcf20c..78789a9 100644
+index fbcf20c..d2173e2 100644
 --- a/chrome/BUILD.gn
 +++ b/chrome/BUILD.gn
-@@ -1656,6 +1656,10 @@ if (is_chrome_branded && !is_android) {
+@@ -1656,6 +1656,11 @@ if (is_chrome_branded && !is_android) {
    }
  }
  
 +if (is_electron_gn_build) {
 +  group("packed_resources") {
++    public_deps = [ "//electron:packed_resources" ]
 +  }
 +} else {
  chrome_paks("packed_resources") {
    if (is_mac) {
      output_dir = "$root_gen_dir/repack"
-@@ -1677,6 +1681,7 @@ chrome_paks("packed_resources") {
+@@ -1677,6 +1682,7 @@ chrome_paks("packed_resources") {
      ]
    }
  }
