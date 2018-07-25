@@ -357,3 +357,11 @@ patches:
   description: |
     Guard usages in blink of private Mac APIs by MAS_BUILD, so they can be
     excluded for people who want to submit their apps to the Mac App store.
+-
+  owners: nornagon
+  file: resource_file_conflict.patch
+  description: |
+    Resolve conflict between //chrome's .pak files and //electron's. The paths
+    that chrome code hardcodes require that we generate resources at these
+    paths, but GN throws errors if there are multiple targets that generate the
+    same files.
