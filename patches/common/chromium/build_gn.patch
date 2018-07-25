@@ -73,7 +73,7 @@ index 1f6bc13e087f..4630045ff554 100644
  # what each value does.
  config("default_crt") {
 -  if (is_component_build) {
-+  if (is_component_build || is_electron_build) {
++  if (is_component_build || (is_electron_build && !is_electron_gn_build)) {
      # Component mode: dynamic CRT. Since the library is shared, it requires
      # exceptions or will give errors about things not matching, so keep
      # exceptions on.
