@@ -370,3 +370,9 @@ patches:
   file: scroll_bounce_flag.patch
   description: |
     Patch to make scrollBounce option work.
+-
+  owners: poiru
+  file: backport_d65792a.patch
+  description: |
+    https://chromium-review.googlesource.com/c/chromium/src/+/1105698
+    Fixes https://github.com/electron/electron/issues/13256
