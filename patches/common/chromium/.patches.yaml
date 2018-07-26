@@ -365,3 +365,8 @@ patches:
     that chrome code hardcodes require that we generate resources at these
     paths, but GN throws errors if there are multiple targets that generate the
     same files.
+-
+  owners: zcbenz
+  file: scroll_bounce_flag.patch
+  description: |
+    Patch to make scrollBounce option work.
