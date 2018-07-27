@@ -1,0 +1,8 @@
+repo: src
+patches:
+-
+  owners: nornagon
+  file: http_status.patch
+  description: |
+    Accept all HTTP codes in [200, 300) as successful, instead of just 200.
+    For example HockeyApp responds with 202.
