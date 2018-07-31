@@ -1,0 +1,59 @@
+diff --git a/third_party/WebKit/Source/platform/graphics/gpu/DrawingBuffer.cpp b/third_party/WebKit/Source/platform/graphics/gpu/DrawingBuffer.cpp
+index e7ba3d60992c..a8646231f4b2 100644
+--- a/third_party/WebKit/Source/platform/graphics/gpu/DrawingBuffer.cpp
++++ b/third_party/WebKit/Source/platform/graphics/gpu/DrawingBuffer.cpp
+@@ -387,7 +387,19 @@ bool DrawingBuffer::FinishPrepareTextureMailboxGpu(
+ #if defined(OS_MACOSX)
+     gl_->DescheduleUntilFinishedCHROMIUM();
+ #endif
+-    gl_->Flush();
++    // It's critical to order the execution of this context's work relative
++    // to other contexts, in particular the compositor. Previously this
++    // used to be a Flush, and there was a bug that we didn't flush before
++    // InsertFenceSyncCHROMIUM, above. On some platforms this caused
++    // incorrect rendering with complex WebGL content that wasn't always
++    // properly flushed to the driver. There is now a basic assumption that
++    // there are implicit flushes between contexts at the lowest level.
++    //
++    // Note also that theoretically this should be ShallowFlushCHROMIUM,
++    // but as we are moving toward using unverified sync tokens everywhere,
++    // and this code is working, we would rather not incur two synchronous
++    // IPCs here (which that would imply).
++    gl_->OrderingBarrierCHROMIUM();
+     gl_->GenSyncTokenCHROMIUM(
+         fence_sync, color_buffer_for_mailbox->produce_sync_token.GetData());
+   }
+diff --git a/ui/gl/gl_context_cgl.cc b/ui/gl/gl_context_cgl.cc
+index 06e5e73b93a8..390cdb37ef40 100644
+--- a/ui/gl/gl_context_cgl.cc
++++ b/ui/gl/gl_context_cgl.cc
+@@ -239,6 +239,16 @@ bool GLContextCGL::MakeCurrent(GLSurface* surface) {
+   if (IsCurrent(surface))
+     return true;
+
++  // It's likely we're going to switch OpenGL contexts at this point.
++  // Before doing so, if there is a current context, flush it. There
++  // are many implicit assumptions of flush ordering between contexts
++  // at higher levels, and if a flush isn't performed, OpenGL commands
++  // may be issued in unexpected orders, causing flickering and other
++  // artifacts.
++  if (CGLGetCurrentContext() != nullptr) {
++    glFlush();
++  }
++
+   ScopedReleaseCurrent release_current;
+   TRACE_EVENT0("gpu", "GLContextCGL::MakeCurrent");
+
+@@ -267,6 +277,12 @@ void GLContextCGL::ReleaseCurrent(GLSurface* surface) {
+   if (!IsCurrent(surface))
+     return;
+
++  // Before releasing the current context, flush it. This ensures that
++  // all commands issued by higher levels will be seen by the OpenGL
++  // implementation, which is assumed throughout the code. See comment
++  // in MakeCurrent, above.
++  glFlush();
++
+   SetCurrent(nullptr);
+   CGLSetCurrentContext(nullptr);
+ }
