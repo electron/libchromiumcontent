@@ -1,0 +1,60 @@
+diff --git a/third_party/WebKit/Source/platform/graphics/gpu/DrawingBuffer.cpp b/third_party/WebKit/Source/platform/graphics/gpu/DrawingBuffer.cpp
+index 1285a081c1a94..c701d48575160 100644
+--- a/third_party/WebKit/Source/platform/graphics/gpu/DrawingBuffer.cpp
++++ b/third_party/WebKit/Source/platform/graphics/gpu/DrawingBuffer.cpp
+@@ -394,9 +394,6 @@ bool DrawingBuffer::FinishPrepareTextureMailboxGpu(
+         color_buffer_for_mailbox->parameters.target,
+         color_buffer_for_mailbox->mailbox.name);
+     const GLuint64 fence_sync = gl_->InsertFenceSyncCHROMIUM();
+-#if defined(OS_MACOSX)
+-    gl_->DescheduleUntilFinishedCHROMIUM();
+-#endif
+     // It's critical to order the execution of this context's work relative
+     // to other contexts, in particular the compositor. Previously this
+     // used to be a Flush, and there was a bug that we didn't flush before
+@@ -404,14 +401,15 @@ bool DrawingBuffer::FinishPrepareTextureMailboxGpu(
+     // incorrect rendering with complex WebGL content that wasn't always
+     // properly flushed to the driver. There is now a basic assumption that
+     // there are implicit flushes between contexts at the lowest level.
+-    //
+-    // Note also that theoretically this should be ShallowFlushCHROMIUM,
+-    // but as we are moving toward using unverified sync tokens everywhere,
+-    // and this code is working, we would rather not incur two synchronous
+-    // IPCs here (which that would imply).
+     gl_->OrderingBarrierCHROMIUM();
+-    gl_->GenSyncTokenCHROMIUM(
++    gl_->GenUnverifiedSyncTokenCHROMIUM(
+         fence_sync, color_buffer_for_mailbox->produce_sync_token.GetData());
++#if defined(OS_MACOSX)
++    // Needed for GPU back-pressure on macOS. Used to be in the middle
++    // of the commands above; try to move it to the bottom to allow
++    // them to be treated atomically.
++    gl_->DescheduleUntilFinishedCHROMIUM();
++#endif
+   }
+ 
+   // Populate the output mailbox and callback.
+@@ -757,8 +755,9 @@ bool DrawingBuffer::CopyToPlatformTexture(gpu::gles2::GLES2Interface* gl,
+     gl_->ProduceTextureDirectCHROMIUM(back_color_buffer_->texture_id, target,
+                                       mailbox.name);
+     const GLuint64 fence_sync = gl_->InsertFenceSyncCHROMIUM();
+-    gl_->Flush();
+-    gl_->GenSyncTokenCHROMIUM(fence_sync, produce_sync_token.GetData());
++    gl_->OrderingBarrierCHROMIUM();
++    gl_->GenUnverifiedSyncTokenCHROMIUM(fence_sync,
++                                        produce_sync_token.GetData());
+   }
+ 
+   if (!produce_sync_token.HasData()) {
+@@ -788,9 +787,9 @@ bool DrawingBuffer::CopyToPlatformTexture(gpu::gles2::GLES2Interface* gl,
+ 
+   const GLuint64 fence_sync = gl->InsertFenceSyncCHROMIUM();
+ 
+-  gl->Flush();
++  gl->OrderingBarrierCHROMIUM();
+   gpu::SyncToken sync_token;
+-  gl->GenSyncTokenCHROMIUM(fence_sync, sync_token.GetData());
++  gl->GenUnverifiedSyncTokenCHROMIUM(fence_sync, sync_token.GetData());
+   gl_->WaitSyncTokenCHROMIUM(sync_token.GetData());
+ 
+   return true;
