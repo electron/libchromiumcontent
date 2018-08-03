@@ -312,3 +312,9 @@ patches:
   description: |
     https://chromium-review.googlesource.com/c/chromium/src/+/1105698
     Fixes https://github.com/electron/electron/issues/13256
+-
+  owners: zcbenz
+  file: webview_reattach.patch
+  description: |
+    Backports https://chromium-review.googlesource.com/c/chromium/src/+/1161391
+    Fixes webview not working after renderer process restarted.
