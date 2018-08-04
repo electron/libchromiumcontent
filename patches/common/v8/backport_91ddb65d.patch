@@ -1,11 +1,11 @@
 diff --git a/src/bootstrapper.cc b/src/bootstrapper.cc
-index 0eec2c6d09..8b272d0576 100644
+index 43c7527de98..2138b9c73d7 100644
 --- a/src/bootstrapper.cc
 +++ b/src/bootstrapper.cc
-@@ -1587,6 +1587,50 @@ void Genesis::InitializeGlobal(Handle<JSGlobalObject> global_object,
+@@ -1584,6 +1584,50 @@ void Genesis::InitializeGlobal(Handle<JSGlobalObject> global_object,
      native_context()->set_async_iterator_value_unwrap_shared_fun(*info);
    }
-
+ 
 +  {  // --- A s y n c G e n e r a t o r ---
 +    Handle<JSFunction> await_caught =
 +        SimpleCreateFunction(isolate, factory->empty_string(),
@@ -53,10 +53,10 @@ index 0eec2c6d09..8b272d0576 100644
    {  // --- A r r a y ---
      Handle<JSFunction> array_function = InstallFunction(
          global, "Array", JS_ARRAY_TYPE, JSArray::kSize, 0,
-@@ -4025,6 +4069,34 @@ void Bootstrapper::ExportFromRuntime(Isolate* isolate,
+@@ -3998,6 +4042,34 @@ void Bootstrapper::ExportFromRuntime(Isolate* isolate,
      JSFunction::SetPrototype(async_function_constructor,
                               async_function_prototype);
-
+ 
 +    {
 +      Handle<JSFunction> function =
 +          SimpleCreateFunction(isolate, factory->empty_string(),
@@ -89,13 +89,13 @@ index 0eec2c6d09..8b272d0576 100644
        Handle<JSFunction> function =
            SimpleCreateFunction(isolate, factory->empty_string(),
 diff --git a/src/builtins/builtins-async-function-gen.cc b/src/builtins/builtins-async-function-gen.cc
-index 0db53c687e..0d0e34ee0d 100644
+index 0db53c687e6..0d0e34ee0da 100644
 --- a/src/builtins/builtins-async-function-gen.cc
 +++ b/src/builtins/builtins-async-function-gen.cc
 @@ -21,18 +21,37 @@ class AsyncFunctionBuiltinsAssembler : public AsyncBuiltinsAssembler {
                            Node* const awaited, Node* const outer_promise,
                            const bool is_predicted_as_caught);
-
+ 
 -  void AsyncFunctionAwaitResume(Node* const context, Node* const argument,
 -                                Node* const generator,
 -                                JSGeneratorObject::ResumeMode resume_mode);
@@ -103,7 +103,7 @@ index 0db53c687e..0d0e34ee0d 100644
 +      Node* const context, Node* const sent_value,
 +      JSGeneratorObject::ResumeMode resume_mode);
  };
-
+ 
 -void AsyncFunctionBuiltinsAssembler::AsyncFunctionAwaitResume(
 -    Node* const context, Node* const argument, Node* const generator,
 +namespace {
@@ -124,7 +124,7 @@ index 0db53c687e..0d0e34ee0d 100644
 -  CSA_ASSERT(this, IsJSGeneratorObject(generator));
    DCHECK(resume_mode == JSGeneratorObject::kNext ||
           resume_mode == JSGeneratorObject::kThrow);
-
+ 
 +  Node* const generator =
 +      LoadContextElement(context, AwaitContext::kGeneratorSlot);
 +  CSA_SLOW_ASSERT(this, HasInstanceType(generator, JS_GENERATOR_OBJECT_TYPE));
@@ -137,7 +137,7 @@ index 0db53c687e..0d0e34ee0d 100644
    CSA_SLOW_ASSERT(
        this,
 @@ -47,23 +66,31 @@ void AsyncFunctionBuiltinsAssembler::AsyncFunctionAwaitResume(
-
+ 
    // Resume the {receiver} using our trampoline.
    Callable callable = CodeFactory::ResumeGenerator(isolate());
 -  TailCallStub(callable, context, argument, generator);
@@ -148,7 +148,7 @@ index 0db53c687e..0d0e34ee0d 100644
 +  // whole chain of intermediate Promises alive by returning the return value
 +  // of ResumeGenerator, as that would create a memory leak.
  }
-
+ 
 -TF_BUILTIN(AsyncFunctionAwaitFulfill, AsyncFunctionBuiltinsAssembler) {
 -  Node* const argument = Parameter(Descriptor::kArgument);
 -  Node* const generator = Parameter(Descriptor::kGenerator);
@@ -163,7 +163,7 @@ index 0db53c687e..0d0e34ee0d 100644
 +                                  JSGeneratorObject::kThrow);
 +  Return(UndefinedConstant());
  }
-
+ 
 -TF_BUILTIN(AsyncFunctionAwaitReject, AsyncFunctionBuiltinsAssembler) {
 -  Node* const argument = Parameter(Descriptor::kArgument);
 -  Node* const generator = Parameter(Descriptor::kGenerator);
@@ -177,7 +177,7 @@ index 0db53c687e..0d0e34ee0d 100644
 +  AsyncFunctionAwaitResumeClosure(context, sentValue, JSGeneratorObject::kNext);
 +  Return(UndefinedConstant());
  }
-
+ 
  // ES#abstract-ops-async-function-await
 @@ -78,12 +105,25 @@ TF_BUILTIN(AsyncFunctionAwaitReject, AsyncFunctionBuiltinsAssembler) {
  void AsyncFunctionBuiltinsAssembler::AsyncFunctionAwait(
@@ -208,7 +208,7 @@ index 0db53c687e..0d0e34ee0d 100644
 +        init_closure_context, Context::ASYNC_FUNCTION_AWAIT_RESOLVE_SHARED_FUN,
 +        Context::ASYNC_FUNCTION_AWAIT_REJECT_SHARED_FUN,
 +        is_predicted_as_caught);
-
+ 
    // Return outer promise to avoid adding an load of the outer promise before
    // suspending in BytecodeGenerator.
 @@ -93,28 +133,30 @@ void AsyncFunctionBuiltinsAssembler::AsyncFunctionAwait(
@@ -221,14 +221,14 @@ index 0db53c687e..0d0e34ee0d 100644
 +  Node* const awaited = Parameter(Descriptor::kAwaited);
    Node* const outer_promise = Parameter(Descriptor::kOuterPromise);
    Node* const context = Parameter(Descriptor::kContext);
-
+ 
    static const bool kIsPredictedAsCaught = true;
-
+ 
 -  AsyncFunctionAwait(context, generator, value, outer_promise,
 +  AsyncFunctionAwait(context, generator, awaited, outer_promise,
                       kIsPredictedAsCaught);
  }
-
+ 
  // Called by the parser from the desugaring of 'await' when catch
  // prediction indicates no locally surrounding catch block.
  TF_BUILTIN(AsyncFunctionAwaitUncaught, AsyncFunctionBuiltinsAssembler) {
@@ -238,22 +238,22 @@ index 0db53c687e..0d0e34ee0d 100644
 +  Node* const awaited = Parameter(Descriptor::kAwaited);
    Node* const outer_promise = Parameter(Descriptor::kOuterPromise);
    Node* const context = Parameter(Descriptor::kContext);
-
+ 
    static const bool kIsPredictedAsCaught = false;
-
+ 
 -  AsyncFunctionAwait(context, generator, value, outer_promise,
 +  AsyncFunctionAwait(context, generator, awaited, outer_promise,
                       kIsPredictedAsCaught);
  }
-
+ 
 diff --git a/src/builtins/builtins-async-gen.cc b/src/builtins/builtins-async-gen.cc
-index 073c96a2e0..ba0226d7b3 100644
+index 073c96a2e09..ba0226d7b3a 100644
 --- a/src/builtins/builtins-async-gen.cc
 +++ b/src/builtins/builtins-async-gen.cc
 @@ -13,58 +13,6 @@ namespace internal {
-
+ 
  using compiler::Node;
-
+ 
 -void AsyncBuiltinsAssembler::Await(Node* context, Node* generator, Node* value,
 -                                   Node* outer_promise,
 -                                   Builtins::Name fulfill_builtin,
@@ -310,9 +310,9 @@ index 073c96a2e0..ba0226d7b3 100644
  // Describe fields of Context associated with the AsyncIterator unwrap closure.
  class ValueUnwrapContext {
 @@ -74,6 +22,161 @@ class ValueUnwrapContext {
-
+ 
  }  // namespace
-
+ 
 +Node* AsyncBuiltinsAssembler::Await(
 +    Node* context, Node* generator, Node* value, Node* outer_promise,
 +    int context_length, const ContextInitializer& init_closure_context,
@@ -472,12 +472,12 @@ index 073c96a2e0..ba0226d7b3 100644
                                                    Node* done) {
    Node* const map = LoadContextElement(
 diff --git a/src/builtins/builtins-async-gen.h b/src/builtins/builtins-async-gen.h
-index 70f68a498b..45d7c8689a 100644
+index 70f68a498b7..45d7c8689a9 100644
 --- a/src/builtins/builtins-async-gen.h
 +++ b/src/builtins/builtins-async-gen.h
 @@ -16,23 +16,48 @@ class AsyncBuiltinsAssembler : public PromiseBuiltinsAssembler {
        : PromiseBuiltinsAssembler(state) {}
-
+ 
   protected:
 -  void Await(Node* context, Node* generator, Node* value, Node* outer_promise,
 -             Builtins::Name fulfill_builtin, Builtins::Name reject_builtin,
@@ -517,11 +517,11 @@ index 70f68a498b..45d7c8689a 100644
 +                 on_reject_context_index,
 +                 BooleanConstant(is_predicted_as_caught));
 +  }
-
+ 
    // Return a new built-in function object as defined in
    // Async Iterator Value Unwrap Functions
    Node* CreateUnwrapClosure(Node* const native_context, Node* const done);
-
+ 
   private:
 +  void InitializeNativeClosure(Node* context, Node* native_context,
 +                               Node* function, Node* context_index);
@@ -531,10 +531,10 @@ index 70f68a498b..45d7c8689a 100644
 -                                    Node* reject_handler, Node* promise,
 -                                    Node* context);
  };
-
+ 
  }  // namespace internal
 diff --git a/src/builtins/builtins-async-generator-gen.cc b/src/builtins/builtins-async-generator-gen.cc
-index 290252da62..dd6c644196 100644
+index 290252da624..dd6c6441964 100644
 --- a/src/builtins/builtins-async-generator-gen.cc
 +++ b/src/builtins/builtins-async-generator-gen.cc
 @@ -140,8 +140,8 @@ class AsyncGeneratorBuiltinsAssembler : public AsyncBuiltinsAssembler {
@@ -547,11 +547,11 @@ index 290252da62..dd6c644196 100644
 +      Node* context, Node* value,
        JSAsyncGeneratorObject::ResumeMode resume_mode);
  };
-
+ 
 @@ -219,9 +219,11 @@ Node* AsyncGeneratorBuiltinsAssembler::AllocateAsyncGeneratorRequest(
    return request;
  }
-
+ 
 -void AsyncGeneratorBuiltinsAssembler::AsyncGeneratorAwaitResume(
 -    Node* context, Node* generator, Node* argument,
 +void AsyncGeneratorBuiltinsAssembler::AsyncGeneratorAwaitResumeClosure(
@@ -560,19 +560,19 @@ index 290252da62..dd6c644196 100644
 +  Node* const generator =
 +      LoadContextElement(context, AwaitContext::kGeneratorSlot);
    CSA_SLOW_ASSERT(this, TaggedIsAsyncGenerator(generator));
-
+ 
    SetGeneratorNotAwaiting(generator);
 @@ -233,30 +235,36 @@ void AsyncGeneratorBuiltinsAssembler::AsyncGeneratorAwaitResume(
                                   JSGeneratorObject::kResumeModeOffset,
                                   SmiConstant(resume_mode));
-
+ 
 -  CallStub(CodeFactory::ResumeGenerator(isolate()), context, argument,
 -           generator);
 +  CallStub(CodeFactory::ResumeGenerator(isolate()), context, value, generator);
-
+ 
    TailCallBuiltin(Builtins::kAsyncGeneratorResumeNext, context, generator);
  }
-
+ 
  template <typename Descriptor>
  void AsyncGeneratorBuiltinsAssembler::AsyncGeneratorAwait(bool is_catchable) {
 -  Node* const generator = Parameter(Descriptor::kGenerator);
@@ -581,12 +581,12 @@ index 290252da62..dd6c644196 100644
 +  Node* generator = Parameter(Descriptor::kGenerator);
 +  Node* value = Parameter(Descriptor::kAwaited);
 +  Node* context = Parameter(Descriptor::kContext);
-
+ 
    CSA_SLOW_ASSERT(this, TaggedIsAsyncGenerator(generator));
-
+ 
    Node* const request = LoadFirstAsyncGeneratorRequestFromQueue(generator);
    CSA_ASSERT(this, IsNotUndefined(request));
-
+ 
 +  ContextInitializer init_closure_context = [&](Node* context) {
 +    StoreContextElementNoWriteBarrier(context, AwaitContext::kGeneratorSlot,
 +                                      generator);
@@ -594,7 +594,7 @@ index 290252da62..dd6c644196 100644
 +
    Node* outer_promise =
        LoadObjectField(request, AsyncGeneratorRequest::kPromiseOffset);
-
+ 
 +  const int resolve_index = Context::ASYNC_GENERATOR_AWAIT_RESOLVE_SHARED_FUN;
 +  const int reject_index = Context::ASYNC_GENERATOR_AWAIT_REJECT_SHARED_FUN;
 +
@@ -606,11 +606,11 @@ index 290252da62..dd6c644196 100644
 +        init_closure_context, resolve_index, reject_index, is_catchable);
    Return(UndefinedConstant());
  }
-
+ 
 @@ -367,20 +375,18 @@ TF_BUILTIN(AsyncGeneratorPrototypeThrow, AsyncGeneratorBuiltinsAssembler) {
                          "[AsyncGenerator].prototype.throw");
  }
-
+ 
 -TF_BUILTIN(AsyncGeneratorAwaitFulfill, AsyncGeneratorBuiltinsAssembler) {
 -  Node* const generator = Parameter(Descriptor::kGenerator);
 -  Node* const argument = Parameter(Descriptor::kArgument);
@@ -623,7 +623,7 @@ index 290252da62..dd6c644196 100644
 +  AsyncGeneratorAwaitResumeClosure(context, value,
 +                                   JSAsyncGeneratorObject::kNext);
  }
-
+ 
 -TF_BUILTIN(AsyncGeneratorAwaitReject, AsyncGeneratorBuiltinsAssembler) {
 -  Node* const generator = Parameter(Descriptor::kGenerator);
 -  Node* const argument = Parameter(Descriptor::kArgument);
@@ -636,12 +636,12 @@ index 290252da62..dd6c644196 100644
 +  AsyncGeneratorAwaitResumeClosure(context, value,
 +                                   JSAsyncGeneratorObject::kThrow);
  }
-
+ 
  TF_BUILTIN(AsyncGeneratorAwaitUncaught, AsyncGeneratorBuiltinsAssembler) {
 @@ -518,34 +524,11 @@ TF_BUILTIN(AsyncGeneratorResolve, AsyncGeneratorBuiltinsAssembler) {
                                     done);
    }
-
+ 
 -  // We know that {iter_result} itself doesn't have any "then" property and
 -  // we also know that the [[Prototype]] of {iter_result} is the intrinsic
 -  // %ObjectPrototype%. So we can skip the [[Resolve]] logic here completely
@@ -668,24 +668,24 @@ index 290252da62..dd6c644196 100644
 -  }
 +  // Perform Call(promiseCapability.[[Resolve]], undefined, «iteratorResult»).
 +  CallBuiltin(Builtins::kResolvePromise, context, promise, iter_result);
-
+ 
    // Per spec, AsyncGeneratorResolve() returns undefined. However, for the
    // benefit of %TraceExit(), return the Promise.
 -  BIND(&return_promise);
    Return(promise);
  }
-
+ 
 @@ -571,54 +554,31 @@ TF_BUILTIN(AsyncGeneratorYield, AsyncGeneratorBuiltinsAssembler) {
    Node* const request = LoadFirstAsyncGeneratorRequestFromQueue(generator);
    Node* const outer_promise = LoadPromiseFromAsyncGeneratorRequest(request);
-
+ 
 -  // Mark the generator as "awaiting".
 -  SetGeneratorAwaiting(generator);
 +  ContextInitializer init_closure_context = [&](Node* context) {
 +    StoreContextElementNoWriteBarrier(context, AwaitContext::kGeneratorSlot,
 +                                      generator);
 +  };
-
+ 
 -  // We can skip the creation of a temporary promise and the whole
 -  // [[Resolve]] logic if we already know that the {value} that's
 -  // being yielded is a primitive, as in that case we would immediately
@@ -707,7 +707,7 @@ index 290252da62..dd6c644196 100644
 -  }
 +  const int on_resolve = Context::ASYNC_GENERATOR_YIELD_RESOLVE_SHARED_FUN;
 +  const int on_reject = Context::ASYNC_GENERATOR_AWAIT_REJECT_SHARED_FUN;
-
+ 
 -  BIND(&if_primitive);
 -  {
 -    // For primitive {value}s we can skip the allocation of the temporary
@@ -726,7 +726,7 @@ index 290252da62..dd6c644196 100644
 +        init_closure_context, on_resolve, on_reject, is_caught);
 +  Return(UndefinedConstant());
  }
-
+ 
 -TF_BUILTIN(AsyncGeneratorYieldFulfill, AsyncGeneratorBuiltinsAssembler) {
 +TF_BUILTIN(AsyncGeneratorYieldResolveClosure, AsyncGeneratorBuiltinsAssembler) {
    Node* const context = Parameter(Descriptor::kContext);
@@ -735,15 +735,15 @@ index 290252da62..dd6c644196 100644
 +  Node* const value = Parameter(Descriptor::kValue);
 +  Node* const generator =
 +      LoadContextElement(context, AwaitContext::kGeneratorSlot);
-
+ 
    SetGeneratorNotAwaiting(generator);
-
+ 
    // Per proposal-async-iteration/#sec-asyncgeneratoryield step 9
    // Return ! AsyncGeneratorResolve(_F_.[[Generator]], _value_, *false*).
 -  CallBuiltin(Builtins::kAsyncGeneratorResolve, context, generator, argument,
 +  CallBuiltin(Builtins::kAsyncGeneratorResolve, context, generator, value,
                FalseConstant());
-
+ 
    TailCallBuiltin(Builtins::kAsyncGeneratorResumeNext, context, generator);
 @@ -644,33 +604,39 @@ TF_BUILTIN(AsyncGeneratorReturn, AsyncGeneratorBuiltinsAssembler) {
    Node* const generator = Parameter(Descriptor::kGenerator);
@@ -753,7 +753,7 @@ index 290252da62..dd6c644196 100644
    Node* const req = LoadFirstAsyncGeneratorRequestFromQueue(generator);
 -  Node* const outer_promise = LoadPromiseFromAsyncGeneratorRequest(req);
    CSA_ASSERT(this, IsNotUndefined(req));
-
+ 
 -  Label if_closed(this, Label::kDeferred), if_not_closed(this), done(this);
 +  Label perform_await(this);
 +  VARIABLE(var_on_resolve, MachineType::PointerRepresentation(),
@@ -772,7 +772,7 @@ index 290252da62..dd6c644196 100644
 +  var_on_reject.Bind(
 +      IntPtrConstant(Context::ASYNC_GENERATOR_AWAIT_REJECT_SHARED_FUN));
 +  Goto(&perform_await);
-
+ 
 -  BIND(&if_closed);
 -  {
 -    Await(context, generator, value, outer_promise,
@@ -781,7 +781,7 @@ index 290252da62..dd6c644196 100644
 -    Goto(&done);
 -  }
 +  BIND(&perform_await);
-
+ 
 -  BIND(&if_not_closed);
 -  {
 -    Await(context, generator, value, outer_promise,
@@ -800,11 +800,11 @@ index 290252da62..dd6c644196 100644
 +  Await(context, generator, value, outer_promise, AwaitContext::kLength,
 +        init_closure_context, var_on_resolve.value(), var_on_reject.value(),
 +        is_caught);
-
+ 
 -  BIND(&done);
    Return(UndefinedConstant());
  }
-
+ 
 @@ -678,44 +644,47 @@ TF_BUILTIN(AsyncGeneratorReturn, AsyncGeneratorBuiltinsAssembler) {
  // Resume the generator with "return" resume_mode, and finally perform
  // AsyncGeneratorResumeNext. Per
@@ -820,7 +820,7 @@ index 290252da62..dd6c644196 100644
 +  Node* const value = Parameter(Descriptor::kValue);
 +  AsyncGeneratorAwaitResumeClosure(context, value, JSGeneratorObject::kReturn);
  }
-
+ 
  // On-resolve closure for Await in AsyncGeneratorReturn
  // Perform AsyncGeneratorResolve({awaited_value}, true) and finally perform
  // AsyncGeneratorResumeNext.
@@ -833,19 +833,19 @@ index 290252da62..dd6c644196 100644
 +  Node* const value = Parameter(Descriptor::kValue);
 +  Node* const generator =
 +      LoadContextElement(context, AwaitContext::kGeneratorSlot);
-
+ 
    SetGeneratorNotAwaiting(generator);
-
+ 
    // https://tc39.github.io/proposal-async-iteration/
    //    #async-generator-resume-next-return-processor-fulfilled step 2:
    //  Return ! AsyncGeneratorResolve(_F_.[[Generator]], _value_, *true*).
 -  CallBuiltin(Builtins::kAsyncGeneratorResolve, context, generator, argument,
 +  CallBuiltin(Builtins::kAsyncGeneratorResolve, context, generator, value,
                TrueConstant());
-
+ 
    TailCallBuiltin(Builtins::kAsyncGeneratorResumeNext, context, generator);
  }
-
+ 
 -TF_BUILTIN(AsyncGeneratorReturnClosedReject, AsyncGeneratorBuiltinsAssembler) {
 -  Node* const generator = Parameter(Descriptor::kGenerator);
 -  Node* const argument = Parameter(Descriptor::kArgument);
@@ -855,22 +855,22 @@ index 290252da62..dd6c644196 100644
 +  Node* const value = Parameter(Descriptor::kValue);
 +  Node* const generator =
 +      LoadContextElement(context, AwaitContext::kGeneratorSlot);
-
+ 
    SetGeneratorNotAwaiting(generator);
-
+ 
    // https://tc39.github.io/proposal-async-iteration/
    //    #async-generator-resume-next-return-processor-rejected step 2:
    // Return ! AsyncGeneratorReject(_F_.[[Generator]], _reason_).
 -  CallBuiltin(Builtins::kAsyncGeneratorReject, context, generator, argument);
 +  CallBuiltin(Builtins::kAsyncGeneratorReject, context, generator, value);
-
+ 
    TailCallBuiltin(Builtins::kAsyncGeneratorResumeNext, context, generator);
  }
 diff --git a/src/builtins/builtins-definitions.h b/src/builtins/builtins-definitions.h
-index d0ef062903..7daaa69f8d 100644
+index 0f60dfd97e8..5f06abeceb0 100644
 --- a/src/builtins/builtins-definitions.h
 +++ b/src/builtins/builtins-definitions.h
-@@ -375,10 +375,10 @@ namespace internal {
+@@ -381,10 +381,10 @@ namespace internal {
    CPP(ArrayBufferPrototypeSlice)                                               \
                                                                                 \
    /* AsyncFunction */                                                          \
@@ -885,7 +885,7 @@ index d0ef062903..7daaa69f8d 100644
    TFJ(AsyncFunctionPromiseCreate, 0)                                           \
    TFJ(AsyncFunctionPromiseRelease, 1, kPromise)                                \
                                                                                 \
-@@ -835,8 +835,8 @@ namespace internal {
+@@ -838,8 +838,8 @@ namespace internal {
    /* ES #sec-promise.prototype.catch */                                        \
    TFJ(PromisePrototypeCatch, 1, kOnRejected)                                   \
    /* ES #sec-promisereactionjob */                                             \
@@ -932,7 +932,7 @@ index d0ef062903..7daaa69f8d 100644
    /* Async-from-Sync Iterator */                                               \
                                                                                 \
    /* %AsyncFromSyncIteratorPrototype% */                                       \
-@@ -1311,7 +1311,11 @@ namespace internal {
+@@ -1284,7 +1284,11 @@ namespace internal {
    V(AsyncFromSyncIteratorPrototypeNext)              \
    V(AsyncFromSyncIteratorPrototypeReturn)            \
    V(AsyncFromSyncIteratorPrototypeThrow)             \
@@ -945,20 +945,20 @@ index d0ef062903..7daaa69f8d 100644
    V(PromiseConstructor)                              \
    V(PromiseConstructorLazyDeoptContinuation)         \
 diff --git a/src/builtins/builtins-internal-gen.cc b/src/builtins/builtins-internal-gen.cc
-index 5c3842761e..c1bf7df2ec 100644
+index e1f4aea4052..4e533ad1c4c 100644
 --- a/src/builtins/builtins-internal-gen.cc
 +++ b/src/builtins/builtins-internal-gen.cc
 @@ -669,7 +669,7 @@ class InternalBuiltinsAssembler : public CodeStubAssembler {
    void LeaveMicrotaskContext();
-
+ 
    void RunPromiseHook(Runtime::FunctionId id, TNode<Context> context,
 -                      SloppyTNode<HeapObject> payload);
 +                      SloppyTNode<HeapObject> promise_or_capability);
-
+ 
    TNode<Object> GetPendingException() {
      auto ref = ExternalReference(kPendingExceptionAddress, isolate());
 @@ -790,12 +790,20 @@ void InternalBuiltinsAssembler::LeaveMicrotaskContext() {
-
+ 
  void InternalBuiltinsAssembler::RunPromiseHook(
      Runtime::FunctionId id, TNode<Context> context,
 -    SloppyTNode<HeapObject> payload) {
@@ -988,23 +988,23 @@ index 5c3842761e..c1bf7df2ec 100644
 -            LoadObjectField(microtask, PromiseReactionJobTask::kPayloadOffset);
 +        Node* const promise_or_capability = LoadObjectField(
 +            microtask, PromiseReactionJobTask::kPromiseOrCapabilityOffset);
-
+ 
          // Run the promise before/debug hook if enabled.
 -        RunPromiseHook(Runtime::kPromiseHookBefore, microtask_context, payload);
 +        RunPromiseHook(Runtime::kPromiseHookBefore, microtask_context,
 +                       promise_or_capability);
-
+ 
          Node* const result =
              CallBuiltin(Builtins::kPromiseFulfillReactionJob, microtask_context,
 -                        argument, handler, payload);
 +                        argument, handler, promise_or_capability);
          GotoIfException(result, &if_exception, &var_exception);
-
+ 
          // Run the promise after/debug hook if enabled.
 -        RunPromiseHook(Runtime::kPromiseHookAfter, microtask_context, payload);
 +        RunPromiseHook(Runtime::kPromiseHookAfter, microtask_context,
 +                       promise_or_capability);
-
+ 
          LeaveMicrotaskContext();
          SetCurrentContext(current_context);
 @@ -1041,19 +1051,21 @@ TF_BUILTIN(RunMicrotasks, InternalBuiltinsAssembler) {
@@ -1015,33 +1015,33 @@ index 5c3842761e..c1bf7df2ec 100644
 -            LoadObjectField(microtask, PromiseReactionJobTask::kPayloadOffset);
 +        Node* const promise_or_capability = LoadObjectField(
 +            microtask, PromiseReactionJobTask::kPromiseOrCapabilityOffset);
-
+ 
          // Run the promise before/debug hook if enabled.
 -        RunPromiseHook(Runtime::kPromiseHookBefore, microtask_context, payload);
 +        RunPromiseHook(Runtime::kPromiseHookBefore, microtask_context,
 +                       promise_or_capability);
-
+ 
          Node* const result =
              CallBuiltin(Builtins::kPromiseRejectReactionJob, microtask_context,
 -                        argument, handler, payload);
 +                        argument, handler, promise_or_capability);
          GotoIfException(result, &if_exception, &var_exception);
-
+ 
          // Run the promise after/debug hook if enabled.
 -        RunPromiseHook(Runtime::kPromiseHookAfter, microtask_context, payload);
 +        RunPromiseHook(Runtime::kPromiseHookAfter, microtask_context,
 +                       promise_or_capability);
-
+ 
          LeaveMicrotaskContext();
          SetCurrentContext(current_context);
 diff --git a/src/builtins/builtins-promise-gen.cc b/src/builtins/builtins-promise-gen.cc
-index dd38dbc543..868b45a831 100644
+index dd38dbc5435..868b45a8316 100644
 --- a/src/builtins/builtins-promise-gen.cc
 +++ b/src/builtins/builtins-promise-gen.cc
 @@ -391,15 +391,15 @@ TF_BUILTIN(PerformPromiseThen, PromiseBuiltinsAssembler) {
    Return(result_promise);
  }
-
+ 
 -Node* PromiseBuiltinsAssembler::AllocatePromiseReaction(Node* next,
 -                                                        Node* payload,
 -                                                        Node* fulfill_handler,
@@ -1062,7 +1062,7 @@ index dd38dbc543..868b45a831 100644
    StoreObjectFieldNoWriteBarrier(
 @@ -408,7 +408,8 @@ Node* PromiseBuiltinsAssembler::AllocatePromiseReaction(Node* next,
  }
-
+ 
  Node* PromiseBuiltinsAssembler::AllocatePromiseReactionJobTask(
 -    Node* map, Node* context, Node* argument, Node* handler, Node* payload) {
 +    Node* map, Node* context, Node* argument, Node* handler,
@@ -1079,7 +1079,7 @@ index dd38dbc543..868b45a831 100644
 +      promise_or_capability);
    return microtask;
  }
-
+ 
  Node* PromiseBuiltinsAssembler::AllocatePromiseReactionJobTask(
      Heap::RootListIndex map_root_index, Node* context, Node* argument,
 -    Node* handler, Node* payload) {
@@ -1091,7 +1091,7 @@ index dd38dbc543..868b45a831 100644
 -                                        payload);
 +                                        promise_or_capability);
  }
-
+ 
  Node* PromiseBuiltinsAssembler::AllocatePromiseResolveThenableJobTask(
 @@ -502,8 +504,8 @@ Node* PromiseBuiltinsAssembler::TriggerPromiseReactions(
                           context);
@@ -1116,7 +1116,7 @@ index dd38dbc543..868b45a831 100644
        CallBuiltin(Builtins::kEnqueueMicrotask, NoContextConstant(), current);
        Goto(&loop);
 @@ -1118,28 +1120,20 @@ TF_BUILTIN(PromiseResolveThenableJob, PromiseBuiltinsAssembler) {
-
+ 
  // ES #sec-promisereactionjob
  void PromiseBuiltinsAssembler::PromiseReactionJob(Node* context, Node* argument,
 -                                                  Node* handler, Node* payload,
@@ -1131,7 +1131,7 @@ index dd38dbc543..868b45a831 100644
 +  CSA_ASSERT(this, TaggedIsNotSmi(promise_or_capability));
 +  CSA_ASSERT(this, Word32Or(IsJSPromise(promise_or_capability),
 +                            IsPromiseCapability(promise_or_capability)));
-
+ 
    VARIABLE(var_handler_result, MachineRepresentation::kTagged, argument);
 -  Label if_handler_callable(this), if_fulfill(this), if_reject(this),
 -      if_code_handler(this);
@@ -1151,7 +1151,7 @@ index dd38dbc543..868b45a831 100644
 +  Branch(IsUndefined(handler),
 +         type == PromiseReaction::kFulfill ? &if_fulfill : &if_reject,
 +         &if_handler_callable);
-
+ 
    BIND(&if_handler_callable);
    {
 @@ -1155,22 +1149,24 @@ void PromiseBuiltinsAssembler::PromiseReactionJob(Node* context, Node* argument,
@@ -1161,7 +1161,7 @@ index dd38dbc543..868b45a831 100644
 -    Branch(IsPromiseCapability(payload), &if_promise_capability, &if_promise);
 +    Branch(IsPromiseCapability(promise_or_capability), &if_promise_capability,
 +           &if_promise);
-
+ 
      BIND(&if_promise);
      {
        // For fast native promises we can skip the indirection
@@ -1171,7 +1171,7 @@ index dd38dbc543..868b45a831 100644
 +      TailCallBuiltin(Builtins::kResolvePromise, context, promise_or_capability,
 +                      value);
      }
-
+ 
      BIND(&if_promise_capability);
      {
        // In the general case we need to call the (user provided)
@@ -1190,7 +1190,7 @@ index dd38dbc543..868b45a831 100644
 -    Branch(IsPromiseCapability(payload), &if_promise_capability, &if_promise);
 +    Branch(IsPromiseCapability(promise_or_capability), &if_promise_capability,
 +           &if_promise);
-
+ 
      BIND(&if_promise);
      {
        // For fast native promises we can skip the indirection
@@ -1201,7 +1201,7 @@ index dd38dbc543..868b45a831 100644
 +      TailCallBuiltin(Builtins::kRejectPromise, context, promise_or_capability,
 +                      reason, FalseConstant());
      }
-
+ 
      BIND(&if_promise_capability);
 @@ -1201,8 +1198,8 @@ void PromiseBuiltinsAssembler::PromiseReactionJob(Node* context, Node* argument,
        Label if_exception(this, Label::kDeferred);
@@ -1223,7 +1223,7 @@ index dd38dbc543..868b45a831 100644
 +                    promise_or_capability);
    }
  }
-
+ 
 @@ -1228,9 +1226,10 @@ TF_BUILTIN(PromiseFulfillReactionJob, PromiseBuiltinsAssembler) {
    Node* const context = Parameter(Descriptor::kContext);
    Node* const value = Parameter(Descriptor::kValue);
@@ -1231,12 +1231,12 @@ index dd38dbc543..868b45a831 100644
 -  Node* const payload = Parameter(Descriptor::kPayload);
 +  Node* const promise_or_capability =
 +      Parameter(Descriptor::kPromiseOrCapability);
-
+ 
 -  PromiseReactionJob(context, value, handler, payload,
 +  PromiseReactionJob(context, value, handler, promise_or_capability,
                       PromiseReaction::kFulfill);
  }
-
+ 
 @@ -1239,9 +1238,10 @@ TF_BUILTIN(PromiseRejectReactionJob, PromiseBuiltinsAssembler) {
    Node* const context = Parameter(Descriptor::kContext);
    Node* const reason = Parameter(Descriptor::kReason);
@@ -1244,21 +1244,21 @@ index dd38dbc543..868b45a831 100644
 -  Node* const payload = Parameter(Descriptor::kPayload);
 +  Node* const promise_or_capability =
 +      Parameter(Descriptor::kPromiseOrCapability);
-
+ 
 -  PromiseReactionJob(context, reason, handler, payload,
 +  PromiseReactionJob(context, reason, handler, promise_or_capability,
                       PromiseReaction::kReject);
  }
-
+ 
 @@ -1717,23 +1717,21 @@ TF_BUILTIN(ResolvePromise, PromiseBuiltinsAssembler) {
-
+ 
    // 7. If Type(resolution) is not Object, then
    GotoIf(TaggedIsSmi(resolution), &if_fulfill);
 -  Node* const resolution_map = LoadMap(resolution);
 -  GotoIfNot(IsJSReceiverMap(resolution_map), &if_fulfill);
 +  Node* const result_map = LoadMap(resolution);
 +  GotoIfNot(IsJSReceiverMap(result_map), &if_fulfill);
-
+ 
    // We can skip the "then" lookup on {resolution} if its [[Prototype]]
    // is the (initial) Promise.prototype and the Promise#then protector
    // is intact, as that guards the lookup path for the "then" property
@@ -1275,7 +1275,7 @@ index dd38dbc543..868b45a831 100644
 -         &if_fast, &if_slow);
 +  BranchIfPromiseThenLookupChainIntact(native_context, result_map, &if_fast,
 +                                       &if_slow);
-
+ 
 +  // Resolution is a native promise and if it's already resolved or
 +  // rejected, shortcircuit the resolution procedure by directly
 +  // reusing the value from the promise.
@@ -1285,7 +1285,7 @@ index dd38dbc543..868b45a831 100644
 @@ -1742,21 +1740,6 @@ TF_BUILTIN(ResolvePromise, PromiseBuiltinsAssembler) {
      Goto(&do_enqueue);
    }
-
+ 
 -  BIND(&if_generic);
 -  {
 -    // We can skip the lookup of "then" if the {resolution} is a (newly
@@ -1305,17 +1305,17 @@ index dd38dbc543..868b45a831 100644
    {
      // 8. Let then be Get(resolution, "then").
 diff --git a/src/builtins/builtins-promise-gen.h b/src/builtins/builtins-promise-gen.h
-index f21d86a141..694cea28c0 100644
+index f21d86a141a..694cea28c06 100644
 --- a/src/builtins/builtins-promise-gen.h
 +++ b/src/builtins/builtins-promise-gen.h
 @@ -85,14 +85,16 @@ class PromiseBuiltinsAssembler : public CodeStubAssembler {
    Node* AllocateAndSetJSPromise(Node* context, v8::Promise::PromiseState status,
                                  Node* result);
-
+ 
 -  Node* AllocatePromiseReaction(Node* next, Node* payload,
 +  Node* AllocatePromiseReaction(Node* next, Node* promise_or_capability,
                                  Node* fulfill_handler, Node* reject_handler);
-
+ 
    Node* AllocatePromiseReactionJobTask(Heap::RootListIndex map_root_index,
                                         Node* context, Node* argument,
 -                                       Node* handler, Node* payload);
@@ -1330,16 +1330,41 @@ index f21d86a141..694cea28c0 100644
                                                Node* context);
 @@ -192,7 +194,8 @@ class PromiseBuiltinsAssembler : public CodeStubAssembler {
    Node* PromiseStatus(Node* promise);
-
+ 
    void PromiseReactionJob(Node* context, Node* argument, Node* handler,
 -                          Node* payload, PromiseReaction::Type type);
 +                          Node* promise_or_capability,
 +                          PromiseReaction::Type type);
-
+ 
    Node* IsPromiseStatus(Node* actual, v8::Promise::PromiseState expected);
    void PromiseSetStatus(Node* promise, v8::Promise::PromiseState status);
+diff --git a/src/builtins/builtins.cc b/src/builtins/builtins.cc
+index c348248fffb..7e6a0459a7d 100644
+--- a/src/builtins/builtins.cc
++++ b/src/builtins/builtins.cc
+@@ -364,17 +364,12 @@ bool Builtins::IsIsolateIndependent(int index) {
+     case kAsyncFromSyncIteratorPrototypeNext:
+     case kAsyncFromSyncIteratorPrototypeReturn:
+     case kAsyncFromSyncIteratorPrototypeThrow:
+-    case kAsyncFunctionAwaitFulfill:
+-    case kAsyncFunctionAwaitReject:
++    case kAsyncFunctionAwaitCaught:
+     case kAsyncFunctionPromiseCreate:
+     case kAsyncFunctionPromiseRelease:
+-    case kAsyncGeneratorAwaitFulfill:
+-    case kAsyncGeneratorAwaitReject:
+     case kAsyncGeneratorResumeNext:
+-    case kAsyncGeneratorReturnClosedFulfill:
+-    case kAsyncGeneratorReturnClosedReject:
+-    case kAsyncGeneratorReturnFulfill:
+-    case kAsyncGeneratorYieldFulfill:
++    case kAsyncGeneratorReturnClosedRejectClosure:
++    case kAsyncGeneratorReturn:
+     case kAsyncIteratorValueUnwrap:
+     case kBitwiseNot:
+     case kBooleanPrototypeToString:
 diff --git a/src/compiler/js-intrinsic-lowering.cc b/src/compiler/js-intrinsic-lowering.cc
-index c570a1f8dd..d9742e47d9 100644
+index c570a1f8ddc..d9742e47d9f 100644
 --- a/src/compiler/js-intrinsic-lowering.cc
 +++ b/src/compiler/js-intrinsic-lowering.cc
 @@ -41,14 +41,6 @@ Reduction JSIntrinsicLowering::Reduce(Node* node) {
@@ -1360,7 +1385,7 @@ index c570a1f8dd..d9742e47d9 100644
 @@ -185,33 +177,6 @@ Reduction JSIntrinsicLowering::ReduceGeneratorGetInputOrDebugPos(Node* node) {
    return Change(node, op, generator, effect, control);
  }
-
+ 
 -Reduction JSIntrinsicLowering::ReduceAsyncFunctionAwaitCaught(Node* node) {
 -  return Change(
 -      node,
@@ -1392,7 +1417,7 @@ index c570a1f8dd..d9742e47d9 100644
    return Change(
        node, Builtins::CallableFor(isolate(), Builtins::kAsyncGeneratorReject),
 diff --git a/src/compiler/js-intrinsic-lowering.h b/src/compiler/js-intrinsic-lowering.h
-index fb745986a6..18fe1248c7 100644
+index fb745986a60..18fe1248c7a 100644
 --- a/src/compiler/js-intrinsic-lowering.h
 +++ b/src/compiler/js-intrinsic-lowering.h
 @@ -45,10 +45,6 @@ class V8_EXPORT_PRIVATE JSIntrinsicLowering final
@@ -1407,13 +1432,13 @@ index fb745986a6..18fe1248c7 100644
    Reduction ReduceAsyncGeneratorResolve(Node* node);
    Reduction ReduceAsyncGeneratorYield(Node* node);
 diff --git a/src/contexts.h b/src/contexts.h
-index 4cfbb29f06..763f30f193 100644
+index 6fc6f2d1c32..fcfeccdc44e 100644
 --- a/src/contexts.h
 +++ b/src/contexts.h
 @@ -32,37 +32,44 @@ enum ContextLookupFlags {
  // must always be allocated via Heap::AllocateContext() or
  // Factory::NewContext.
-
+ 
 -#define NATIVE_CONTEXT_INTRINSIC_FUNCTIONS(V)                           \
 -  V(ASYNC_FUNCTION_PROMISE_CREATE_INDEX, JSFunction,                    \
 -    async_function_promise_create)                                      \
@@ -1483,10 +1508,10 @@ index 4cfbb29f06..763f30f193 100644
 +  V(PROMISE_THEN_INDEX, JSFunction, promise_then)                           \
 +  V(ASYNC_GENERATOR_AWAIT_CAUGHT, JSFunction, async_generator_await_caught) \
 +  V(ASYNC_GENERATOR_AWAIT_UNCAUGHT, JSFunction, async_generator_await_uncaught)
-
+ 
  #define NATIVE_CONTEXT_IMPORTED_FIELDS(V)                                 \
    V(ARRAY_POP_INDEX, JSFunction, array_pop)                               \
-@@ -114,11 +123,27 @@ enum ContextLookupFlags {
+@@ -116,11 +123,27 @@ enum ContextLookupFlags {
    V(ARRAY_BUFFER_NOINIT_FUN_INDEX, JSFunction, array_buffer_noinit_fun)        \
    V(ARRAY_FUNCTION_INDEX, JSFunction, array_function)                          \
    V(ASYNC_FROM_SYNC_ITERATOR_MAP_INDEX, Map, async_from_sync_iterator_map)     \
@@ -1515,7 +1540,7 @@ index 4cfbb29f06..763f30f193 100644
    V(BIGINT_FUNCTION_INDEX, JSFunction, bigint_function)                        \
    V(BIGINT64_ARRAY_FUN_INDEX, JSFunction, bigint64_array_fun)                  \
 diff --git a/src/heap-symbols.h b/src/heap-symbols.h
-index a6f80f4175..df4923c06a 100644
+index 82ecd766575..c15aa9ba138 100644
 --- a/src/heap-symbols.h
 +++ b/src/heap-symbols.h
 @@ -237,7 +237,6 @@
@@ -1527,21 +1552,21 @@ index a6f80f4175..df4923c06a 100644
    V(home_object_symbol)                \
    V(intl_initialized_marker_symbol)    \
 diff --git a/src/interface-descriptors.h b/src/interface-descriptors.h
-index e31abca1b0..3f047098b1 100644
+index 61da0c3f4ea..8375ea11971 100644
 --- a/src/interface-descriptors.h
 +++ b/src/interface-descriptors.h
-@@ -79,7 +79,6 @@ class PlatformInterfaceDescriptor;
+@@ -81,7 +81,6 @@ class PlatformInterfaceDescriptor;
    V(FrameDropperTrampoline)           \
    V(WasmRuntimeCall)                  \
    V(RunMicrotasks)                    \
 -  V(PromiseReactionHandler)           \
    BUILTIN_LIST_TFS(V)
-
+ 
  class V8_EXPORT_PRIVATE CallInterfaceDescriptorData {
-@@ -868,13 +867,6 @@ class RunMicrotasksDescriptor final : public CallInterfaceDescriptor {
+@@ -889,13 +888,6 @@ class RunMicrotasksDescriptor final : public CallInterfaceDescriptor {
                               0)
  };
-
+ 
 -class PromiseReactionHandlerDescriptor final : public CallInterfaceDescriptor {
 - public:
 -  DEFINE_PARAMETERS(kArgument, kGenerator)
@@ -1553,13 +1578,13 @@ index e31abca1b0..3f047098b1 100644
    class Name##Descriptor : public CallInterfaceDescriptor {               \
     public:                                                                \
 diff --git a/src/interpreter/bytecode-generator.cc b/src/interpreter/bytecode-generator.cc
-index 5a2248edf1..5f8ebb5896 100644
+index 29ad2c2a82f..744c6614f7a 100644
 --- a/src/interpreter/bytecode-generator.cc
 +++ b/src/interpreter/bytecode-generator.cc
-@@ -3251,20 +3251,22 @@ void BytecodeGenerator::BuildAwait(Expression* await_expr) {
+@@ -3239,20 +3239,22 @@ void BytecodeGenerator::BuildAwait(Expression* await_expr) {
      // Await(operand) and suspend.
      RegisterAllocationScope register_scope(this);
-
+ 
 -    Runtime::FunctionId id;
 +    int await_builtin_context_index;
      RegisterList args;
@@ -1586,23 +1611,23 @@ index 5a2248edf1..5f8ebb5896 100644
        args = register_allocator()->NewRegisterList(3);
        builder()
            ->MoveRegister(generator_object(), args[0])
-@@ -3277,7 +3279,7 @@ void BytecodeGenerator::BuildAwait(Expression* await_expr) {
+@@ -3265,7 +3267,7 @@ void BytecodeGenerator::BuildAwait(Expression* await_expr) {
        builder()->StoreAccumulatorInRegister(args[2]);
      }
-
+ 
 -    builder()->CallRuntime(id, args);
 +    builder()->CallJSRuntime(await_builtin_context_index, args);
    }
-
+ 
    BuildSuspendPoint(await_expr);
 diff --git a/src/interpreter/interpreter-intrinsics-generator.cc b/src/interpreter/interpreter-intrinsics-generator.cc
-index 675a8bcccc..0480dec6cc 100644
+index 675a8bcccc7..0480dec6cc6 100644
 --- a/src/interpreter/interpreter-intrinsics-generator.cc
 +++ b/src/interpreter/interpreter-intrinsics-generator.cc
 @@ -402,30 +402,6 @@ Node* IntrinsicsGenerator::GetImportMetaObject(
    return return_value.value();
  }
-
+ 
 -Node* IntrinsicsGenerator::AsyncFunctionAwaitCaught(
 -    const InterpreterAssembler::RegListNodePair& args, Node* context) {
 -  return IntrinsicAsBuiltinCall(args, context,
@@ -1631,7 +1656,7 @@ index 675a8bcccc..0480dec6cc 100644
      const InterpreterAssembler::RegListNodePair& args, Node* context) {
    return IntrinsicAsBuiltinCall(args, context, Builtins::kAsyncGeneratorReject);
 diff --git a/src/interpreter/interpreter-intrinsics.h b/src/interpreter/interpreter-intrinsics.h
-index 6cdfec2d04..3016183c0b 100644
+index 6cdfec2d04f..3016183c0b9 100644
 --- a/src/interpreter/interpreter-intrinsics.h
 +++ b/src/interpreter/interpreter-intrinsics.h
 @@ -14,10 +14,6 @@ namespace interpreter {
@@ -1646,20 +1671,20 @@ index 6cdfec2d04..3016183c0b 100644
    V(AsyncGeneratorResolve, async_generator_resolve, 3)                \
    V(AsyncGeneratorYield, async_generator_yield, 3)                    \
 diff --git a/src/isolate.cc b/src/isolate.cc
-index 8254e60a19..c97ece3ba4 100644
+index adb30b12ace..2c4e22726d7 100644
 --- a/src/isolate.cc
 +++ b/src/isolate.cc
-@@ -2059,7 +2059,6 @@ void Isolate::PopPromise() {
+@@ -2048,7 +2048,6 @@ void Isolate::PopPromise() {
  }
-
+ 
  namespace {
 -
  bool InternalPromiseHasUserDefinedRejectHandler(Isolate* isolate,
                                                  Handle<JSPromise> promise);
-
-@@ -2106,27 +2105,29 @@ bool InternalPromiseHasUserDefinedRejectHandler(Isolate* isolate,
+ 
+@@ -2095,27 +2094,29 @@ bool InternalPromiseHasUserDefinedRejectHandler(Isolate* isolate,
    }
-
+ 
    if (promise->status() == Promise::kPending) {
 -    Handle<Object> current(promise->reactions(), isolate);
 -    while (!current->IsSmi()) {
@@ -1705,14 +1730,14 @@ index 8254e60a19..c97ece3ba4 100644
 +      current = handle(reaction->next(), isolate);
      }
    }
-
+ 
 diff --git a/src/isolate.h b/src/isolate.h
-index 7c0153f74a..929403e134 100644
+index 75b447f1629..82d33033737 100644
 --- a/src/isolate.h
 +++ b/src/isolate.h
-@@ -1104,10 +1104,7 @@ class Isolate : private HiddenFactory {
+@@ -1096,10 +1096,7 @@ class Isolate {
    bool IsPromiseResolveLookupChainIntact();
-
+ 
    // Make sure a lookup of "then" on any JSPromise whose [[Prototype]] is the
 -  // initial %PromisePrototype% yields the initial method. In addition this
 -  // protector also guards the negative lookup of "then" on the intrinsic
@@ -1721,9 +1746,9 @@ index 7c0153f74a..929403e134 100644
 +  // initial %PromisePrototype% yields the initial method.
    bool IsPromiseThenLookupChainIntact();
    bool IsPromiseThenLookupChainIntact(Handle<JSReceiver> receiver);
-
+ 
 diff --git a/src/lookup.cc b/src/lookup.cc
-index 2050114994..a4cca33d6c 100644
+index 20501149947..a4cca33d6c3 100644
 --- a/src/lookup.cc
 +++ b/src/lookup.cc
 @@ -364,14 +364,7 @@ void LookupIterator::InternalUpdateProtector() {
@@ -1742,10 +1767,10 @@ index 2050114994..a4cca33d6c 100644
        isolate_->InvalidatePromiseThenProtector();
      }
 diff --git a/src/objects-debug.cc b/src/objects-debug.cc
-index ba33edb3ab..e12fc75230 100644
+index c735cc0813c..086078bb251 100644
 --- a/src/objects-debug.cc
 +++ b/src/objects-debug.cc
-@@ -1224,13 +1224,10 @@ void PromiseReactionJobTask::PromiseReactionJobTaskVerify() {
+@@ -1172,13 +1172,10 @@ void PromiseReactionJobTask::PromiseReactionJobTaskVerify() {
    VerifyHeapPointer(context());
    CHECK(context()->IsContext());
    VerifyHeapPointer(handler());
@@ -1761,9 +1786,9 @@ index ba33edb3ab..e12fc75230 100644
 +  CHECK(promise_or_capability()->IsJSPromise() ||
 +        promise_or_capability()->IsPromiseCapability());
  }
-
+ 
  void PromiseFulfillReactionJobTask::PromiseFulfillReactionJobTaskVerify() {
-@@ -1272,18 +1269,14 @@ void PromiseReaction::PromiseReactionVerify() {
+@@ -1220,18 +1217,14 @@ void PromiseReaction::PromiseReactionVerify() {
    VerifyPointer(next());
    CHECK(next()->IsSmi() || next()->IsPromiseReaction());
    VerifyHeapPointer(reject_handler());
@@ -1787,13 +1812,26 @@ index ba33edb3ab..e12fc75230 100644
 +  CHECK(promise_or_capability()->IsJSPromise() ||
 +        promise_or_capability()->IsPromiseCapability());
  }
-
+ 
  void JSPromise::JSPromiseVerify() {
+diff --git a/src/objects-inl.h b/src/objects-inl.h
+index bda031e0637..297e9fc836d 100644
+--- a/src/objects-inl.h
++++ b/src/objects-inl.h
+@@ -2278,7 +2278,7 @@ ACCESSORS(JSGlobalProxy, native_context, Object, kNativeContextOffset)
+ ACCESSORS(AccessorInfo, name, Name, kNameOffset)
+ SMI_ACCESSORS(AccessorInfo, flags, kFlagsOffset)
+ ACCESSORS(AccessorInfo, expected_receiver_type, Object,
+-          kExpectedReceiverTypeOffset)
++           kExpectedReceiverTypeOffset)
+ 
+ ACCESSORS_CHECKED2(AccessorInfo, getter, Object, kGetterOffset, true,
+                    Foreign::IsNormalized(value))
 diff --git a/src/objects-printer.cc b/src/objects-printer.cc
-index 5c14eb7828..99eafbb83f 100644
+index 942b9de0ba2..8d20279b2f1 100644
 --- a/src/objects-printer.cc
 +++ b/src/objects-printer.cc
-@@ -1472,7 +1472,7 @@ void PromiseFulfillReactionJobTask::PromiseFulfillReactionJobTaskPrint(
+@@ -1441,7 +1441,7 @@ void PromiseFulfillReactionJobTask::PromiseFulfillReactionJobTaskPrint(
    os << "\n - argument: " << Brief(argument());
    os << "\n - context: " << Brief(context());
    os << "\n - handler: " << Brief(handler());
@@ -1801,8 +1839,8 @@ index 5c14eb7828..99eafbb83f 100644
 +  os << "\n - promise_or_capability: " << Brief(promise_or_capability());
    os << "\n";
  }
-
-@@ -1482,7 +1482,7 @@ void PromiseRejectReactionJobTask::PromiseRejectReactionJobTaskPrint(
+ 
+@@ -1451,7 +1451,7 @@ void PromiseRejectReactionJobTask::PromiseRejectReactionJobTaskPrint(
    os << "\n - argument: " << Brief(argument());
    os << "\n - context: " << Brief(context());
    os << "\n - handler: " << Brief(handler());
@@ -1810,8 +1848,8 @@ index 5c14eb7828..99eafbb83f 100644
 +  os << "\n - promise_or_capability: " << Brief(promise_or_capability());
    os << "\n";
  }
-
-@@ -1509,7 +1509,7 @@ void PromiseReaction::PromiseReactionPrint(std::ostream& os) {  // NOLINT
+ 
+@@ -1478,7 +1478,7 @@ void PromiseReaction::PromiseReactionPrint(std::ostream& os) {  // NOLINT
    os << "\n - next: " << Brief(next());
    os << "\n - reject_handler: " << Brief(reject_handler());
    os << "\n - fulfill_handler: " << Brief(fulfill_handler());
@@ -1819,15 +1857,15 @@ index 5c14eb7828..99eafbb83f 100644
 +  os << "\n - promise_or_capability: " << Brief(promise_or_capability());
    os << "\n";
  }
-
+ 
 diff --git a/src/objects.cc b/src/objects.cc
-index d21f59c412..16c5c5b294 100644
+index 8057cb837b1..6565910fd3f 100644
 --- a/src/objects.cc
 +++ b/src/objects.cc
-@@ -16118,27 +16118,6 @@ MaybeHandle<Object> JSPromise::Resolve(Handle<JSPromise> promise,
+@@ -16054,27 +16054,6 @@ MaybeHandle<Object> JSPromise::Resolve(Handle<JSPromise> promise,
    return isolate->factory()->undefined_value();
  }
-
+ 
 -// static
 -MaybeHandle<JSPromise> JSPromise::From(Handle<HeapObject> object) {
 -  Isolate* const isolate = object->GetIsolate();
@@ -1852,7 +1890,7 @@ index d21f59c412..16c5c5b294 100644
  // static
  Handle<Object> JSPromise::TriggerPromiseReactions(Isolate* isolate,
                                                    Handle<Object> reactions,
-@@ -16178,8 +16157,8 @@ Handle<Object> JSPromise::TriggerPromiseReactions(Isolate* isolate,
+@@ -16114,8 +16093,8 @@ Handle<Object> JSPromise::TriggerPromiseReactions(Isolate* isolate,
            *isolate->native_context());
        STATIC_ASSERT(PromiseReaction::kFulfillHandlerOffset ==
                      PromiseFulfillReactionJobTask::kHandlerOffset);
@@ -1863,7 +1901,7 @@ index d21f59c412..16c5c5b294 100644
      } else {
        DisallowHeapAllocation no_gc;
        HeapObject* handler = reaction->reject_handler();
-@@ -16189,8 +16168,8 @@ Handle<Object> JSPromise::TriggerPromiseReactions(Isolate* isolate,
+@@ -16125,8 +16104,8 @@ Handle<Object> JSPromise::TriggerPromiseReactions(Isolate* isolate,
        Handle<PromiseRejectReactionJobTask>::cast(task)->set_context(
            *isolate->native_context());
        Handle<PromiseRejectReactionJobTask>::cast(task)->set_handler(handler);
@@ -1872,16 +1910,16 @@ index d21f59c412..16c5c5b294 100644
 +      STATIC_ASSERT(PromiseReaction::kPromiseOrCapabilityOffset ==
 +                    PromiseRejectReactionJobTask::kPromiseOrCapabilityOffset);
      }
-
+ 
      isolate->EnqueueMicrotask(Handle<PromiseReactionJobTask>::cast(task));
 diff --git a/src/objects/js-promise.h b/src/objects/js-promise.h
-index 20a0a90131..434bae8933 100644
+index 20a0a90131a..434bae89338 100644
 --- a/src/objects/js-promise.h
 +++ b/src/objects/js-promise.h
 @@ -59,12 +59,6 @@ class JSPromise : public JSObject {
    V8_WARN_UNUSED_RESULT static MaybeHandle<Object> Resolve(
        Handle<JSPromise> promise, Handle<Object> resolution);
-
+ 
 -  // This is a helper that extracts the JSPromise from the input
 -  // {object}, which is used as a payload for PromiseReaction and
 -  // PromiseReactionJobTask.
@@ -1889,10 +1927,10 @@ index 20a0a90131..434bae8933 100644
 -      Handle<HeapObject> object);
 -
    DECL_CAST(JSPromise)
-
+ 
    // Dispatched behavior.
 diff --git a/src/objects/promise-inl.h b/src/objects/promise-inl.h
-index 4283f0aa19..f9fb6110f3 100644
+index 4283f0aa194..f9fb6110f34 100644
 --- a/src/objects/promise-inl.h
 +++ b/src/objects/promise-inl.h
 @@ -23,7 +23,8 @@ CAST_ACCESSOR(PromiseResolveThenableJobTask)
@@ -1902,7 +1940,7 @@ index 4283f0aa19..f9fb6110f3 100644
 -ACCESSORS(PromiseReaction, payload, HeapObject, kPayloadOffset)
 +ACCESSORS(PromiseReaction, promise_or_capability, HeapObject,
 +          kPromiseOrCapabilityOffset)
-
+ 
  ACCESSORS(PromiseResolveThenableJobTask, context, Context, kContextOffset)
  ACCESSORS(PromiseResolveThenableJobTask, promise_to_resolve, JSPromise,
 @@ -34,7 +35,8 @@ ACCESSORS(PromiseResolveThenableJobTask, thenable, JSReceiver, kThenableOffset)
@@ -1912,11 +1950,11 @@ index 4283f0aa19..f9fb6110f3 100644
 -ACCESSORS(PromiseReactionJobTask, payload, HeapObject, kPayloadOffset);
 +ACCESSORS(PromiseReactionJobTask, promise_or_capability, HeapObject,
 +          kPromiseOrCapabilityOffset);
-
+ 
  ACCESSORS(PromiseCapability, promise, HeapObject, kPromiseOffset)
  ACCESSORS(PromiseCapability, resolve, Object, kResolveOffset)
 diff --git a/src/objects/promise.h b/src/objects/promise.h
-index 36ef4afe1d..5ff5dac6f3 100644
+index 36ef4afe1d6..5ff5dac6f37 100644
 --- a/src/objects/promise.h
 +++ b/src/objects/promise.h
 @@ -26,16 +26,15 @@ class PromiseReactionJobTask : public Microtask {
@@ -1929,7 +1967,7 @@ index 36ef4afe1d..5ff5dac6f3 100644
 -  DECL_ACCESSORS(payload, HeapObject)
 +  // [promise_or_capability]: Either a JSPromise or a PromiseCapability.
 +  DECL_ACCESSORS(promise_or_capability, HeapObject)
-
+ 
    static const int kArgumentOffset = Microtask::kHeaderSize;
    static const int kContextOffset = kArgumentOffset + kPointerSize;
    static const int kHandlerOffset = kContextOffset + kPointerSize;
@@ -1937,7 +1975,7 @@ index 36ef4afe1d..5ff5dac6f3 100644
 -  static const int kSize = kPayloadOffset + kPointerSize;
 +  static const int kPromiseOrCapabilityOffset = kHandlerOffset + kPointerSize;
 +  static const int kSize = kPromiseOrCapabilityOffset + kPointerSize;
-
+ 
    // Dispatched behavior.
    DECL_CAST(PromiseReactionJobTask)
 @@ -121,10 +120,9 @@ class PromiseCapability : public Struct {
@@ -1956,7 +1994,7 @@ index 36ef4afe1d..5ff5dac6f3 100644
  // the default handlers (in case they are undefined) in the proper context.
 @@ -138,18 +136,16 @@ class PromiseReaction : public Struct {
    enum Type { kFulfill, kReject };
-
+ 
    DECL_ACCESSORS(next, Object)
 -  // [reject_handler]: This is either a Code object, a Callable or Undefined.
    DECL_ACCESSORS(reject_handler, HeapObject)
@@ -1965,7 +2003,7 @@ index 36ef4afe1d..5ff5dac6f3 100644
 -  // [payload]: Usually a JSPromise or a PromiseCapability.
 -  DECL_ACCESSORS(payload, HeapObject)
 +  DECL_ACCESSORS(promise_or_capability, HeapObject)
-
+ 
    static const int kNextOffset = Struct::kHeaderSize;
    static const int kRejectHandlerOffset = kNextOffset + kPointerSize;
    static const int kFulfillHandlerOffset = kRejectHandlerOffset + kPointerSize;
@@ -1974,17 +2012,17 @@ index 36ef4afe1d..5ff5dac6f3 100644
 +  static const int kPromiseOrCapabilityOffset =
 +      kFulfillHandlerOffset + kPointerSize;
 +  static const int kSize = kPromiseOrCapabilityOffset + kPointerSize;
-
+ 
    // Dispatched behavior.
    DECL_CAST(PromiseReaction)
 diff --git a/src/runtime/runtime-generator.cc b/src/runtime/runtime-generator.cc
-index e69d334042..3c7c808c30 100644
+index e69d3340426..3c7c808c30b 100644
 --- a/src/runtime/runtime-generator.cc
 +++ b/src/runtime/runtime-generator.cc
 @@ -70,30 +70,6 @@ RUNTIME_FUNCTION(Runtime_GeneratorGetInputOrDebugPos) {
    UNREACHABLE();
  }
-
+ 
 -RUNTIME_FUNCTION(Runtime_AsyncFunctionAwaitCaught) {
 -  // Runtime call is implemented in InterpreterIntrinsics and lowered in
 -  // JSIntrinsicLowering
@@ -2013,7 +2051,7 @@ index e69d334042..3c7c808c30 100644
    // Runtime call is implemented in InterpreterIntrinsics and lowered in
    // JSIntrinsicLowering
 diff --git a/src/runtime/runtime-promise.cc b/src/runtime/runtime-promise.cc
-index b2a7e8bae1..f5b9db3c02 100644
+index b2a7e8bae1b..f5b9db3c028 100644
 --- a/src/runtime/runtime-promise.cc
 +++ b/src/runtime/runtime-promise.cc
 @@ -114,14 +114,13 @@ RUNTIME_FUNCTION(Runtime_PromiseHookInit) {
@@ -2061,12 +2099,12 @@ index b2a7e8bae1..f5b9db3c02 100644
    return isolate->heap()->undefined_value();
  }
 diff --git a/src/runtime/runtime.h b/src/runtime/runtime.h
-index b7ef0d0af1..846e82782c 100644
+index 48a63d500da..37ce74e8250 100644
 --- a/src/runtime/runtime.h
 +++ b/src/runtime/runtime.h
-@@ -224,10 +224,6 @@ namespace internal {
+@@ -222,10 +222,6 @@ namespace internal {
    F(SetNativeFlag, 1, 1)
-
+ 
  #define FOR_EACH_INTRINSIC_GENERATOR(F)       \
 -  F(AsyncFunctionAwaitCaught, 3, 1)           \
 -  F(AsyncFunctionAwaitUncaught, 3, 1)         \
@@ -2076,7 +2114,7 @@ index b7ef0d0af1..846e82782c 100644
    F(AsyncGeneratorReject, 2, 1)               \
    F(AsyncGeneratorResolve, 3, 1)              \
 diff --git a/test/cctest/interpreter/bytecode_expectations/AsyncGenerators.golden b/test/cctest/interpreter/bytecode_expectations/AsyncGenerators.golden
-index 6d63516b77..8c3c29f71f 100644
+index df6b3723586..2b4eb6b2cc5 100644
 --- a/test/cctest/interpreter/bytecode_expectations/AsyncGenerators.golden
 +++ b/test/cctest/interpreter/bytecode_expectations/AsyncGenerators.golden
 @@ -39,7 +39,7 @@ bytecodes: [
@@ -2088,7 +2126,7 @@ index 6d63516b77..8c3c29f71f 100644
                  B(SuspendGenerator), R(0), R(0), U8(5), U8(1),
                  B(ResumeGenerator), R(0), R(0), U8(5),
                  B(Star), R(5),
-@@ -164,7 +164,7 @@ bytecodes: [
+@@ -166,7 +166,7 @@ bytecodes: [
                  B(LdaUndefined),
                  B(Star), R(6),
                  B(Mov), R(0), R(5),
@@ -2097,7 +2135,7 @@ index 6d63516b77..8c3c29f71f 100644
                  B(SuspendGenerator), R(0), R(0), U8(5), U8(2),
                  B(ResumeGenerator), R(0), R(0), U8(5),
                  B(Star), R(5),
-@@ -399,7 +399,7 @@ bytecodes: [
+@@ -404,7 +404,7 @@ bytecodes: [
                  B(LdaUndefined),
                  B(Star), R(16),
                  B(Mov), R(2), R(15),
@@ -2106,7 +2144,7 @@ index 6d63516b77..8c3c29f71f 100644
                  B(SuspendGenerator), R(2), R(0), U8(15), U8(2),
                  B(ResumeGenerator), R(2), R(0), U8(15),
                  B(Star), R(15),
-@@ -573,7 +573,7 @@ bytecodes: [
+@@ -580,7 +580,7 @@ bytecodes: [
                  B(Jump), U8(2),
                  B(Star), R(13),
                  B(Mov), R(0), R(12),
@@ -2115,7 +2153,7 @@ index 6d63516b77..8c3c29f71f 100644
    /*   49 E> */ B(SuspendGenerator), R(0), R(0), U8(12), U8(1),
                  B(ResumeGenerator), R(0), R(0), U8(12),
                  B(Star), R(12),
-@@ -591,7 +591,7 @@ bytecodes: [
+@@ -598,7 +598,7 @@ bytecodes: [
                  B(CallRuntime), U16(Runtime::kThrowThrowMethodMissing), R(0), U8(0),
                  B(Star), R(13),
                  B(Mov), R(0), R(12),
@@ -2124,7 +2162,7 @@ index 6d63516b77..8c3c29f71f 100644
    /*   49 E> */ B(SuspendGenerator), R(0), R(0), U8(12), U8(2),
                  B(ResumeGenerator), R(0), R(0), U8(12),
                  B(Star), R(12),
-@@ -632,7 +632,7 @@ bytecodes: [
+@@ -639,7 +639,7 @@ bytecodes: [
                  B(LdaUndefined),
                  B(Star), R(6),
                  B(Mov), R(0), R(5),
@@ -2134,7 +2172,7 @@ index 6d63516b77..8c3c29f71f 100644
                  B(ResumeGenerator), R(0), R(0), U8(5),
                  B(Star), R(5),
 diff --git a/test/cctest/interpreter/bytecode_expectations/ForAwaitOf.golden b/test/cctest/interpreter/bytecode_expectations/ForAwaitOf.golden
-index 867e09d6ca..47bcb4aa32 100644
+index 95400dacf80..4d36315f027 100644
 --- a/test/cctest/interpreter/bytecode_expectations/ForAwaitOf.golden
 +++ b/test/cctest/interpreter/bytecode_expectations/ForAwaitOf.golden
 @@ -53,7 +53,7 @@ bytecodes: [
@@ -2146,7 +2184,7 @@ index 867e09d6ca..47bcb4aa32 100644
    /*   40 E> */ B(SuspendGenerator), R(2), R(0), U8(20), U8(0),
                  B(ResumeGenerator), R(2), R(0), U8(20),
                  B(Star), R(20),
-@@ -136,7 +136,7 @@ bytecodes: [
+@@ -137,7 +137,7 @@ bytecodes: [
                  B(Star), R(21),
                  B(Mov), R(2), R(20),
                  B(Mov), R(11), R(22),
@@ -2155,7 +2193,7 @@ index 867e09d6ca..47bcb4aa32 100644
                  B(SuspendGenerator), R(2), R(0), U8(20), U8(1),
                  B(ResumeGenerator), R(2), R(0), U8(20),
                  B(Star), R(20),
-@@ -159,7 +159,7 @@ bytecodes: [
+@@ -160,7 +160,7 @@ bytecodes: [
                  B(Star), R(20),
                  B(Mov), R(2), R(19),
                  B(Mov), R(11), R(21),
@@ -2164,7 +2202,7 @@ index 867e09d6ca..47bcb4aa32 100644
                  B(SuspendGenerator), R(2), R(0), U8(19), U8(2),
                  B(ResumeGenerator), R(2), R(0), U8(19),
                  B(Star), R(19),
-@@ -303,7 +303,7 @@ bytecodes: [
+@@ -306,7 +306,7 @@ bytecodes: [
                  B(Star), R(21),
                  B(Mov), R(2), R(20),
                  B(Mov), R(11), R(22),
@@ -2173,7 +2211,7 @@ index 867e09d6ca..47bcb4aa32 100644
    /*   40 E> */ B(SuspendGenerator), R(2), R(0), U8(20), U8(0),
                  B(ResumeGenerator), R(2), R(0), U8(20),
                  B(Star), R(20),
-@@ -387,7 +387,7 @@ bytecodes: [
+@@ -391,7 +391,7 @@ bytecodes: [
                  B(Star), R(21),
                  B(Mov), R(2), R(20),
                  B(Mov), R(11), R(22),
@@ -2182,7 +2220,7 @@ index 867e09d6ca..47bcb4aa32 100644
                  B(SuspendGenerator), R(2), R(0), U8(20), U8(1),
                  B(ResumeGenerator), R(2), R(0), U8(20),
                  B(Star), R(20),
-@@ -410,7 +410,7 @@ bytecodes: [
+@@ -414,7 +414,7 @@ bytecodes: [
                  B(Star), R(20),
                  B(Mov), R(2), R(19),
                  B(Mov), R(11), R(21),
@@ -2191,7 +2229,7 @@ index 867e09d6ca..47bcb4aa32 100644
                  B(SuspendGenerator), R(2), R(0), U8(19), U8(2),
                  B(ResumeGenerator), R(2), R(0), U8(19),
                  B(Star), R(19),
-@@ -569,7 +569,7 @@ bytecodes: [
+@@ -575,7 +575,7 @@ bytecodes: [
                  B(Star), R(21),
                  B(Mov), R(2), R(20),
                  B(Mov), R(11), R(22),
@@ -2200,7 +2238,7 @@ index 867e09d6ca..47bcb4aa32 100644
    /*   40 E> */ B(SuspendGenerator), R(2), R(0), U8(20), U8(0),
                  B(ResumeGenerator), R(2), R(0), U8(20),
                  B(Star), R(20),
-@@ -660,7 +660,7 @@ bytecodes: [
+@@ -667,7 +667,7 @@ bytecodes: [
                  B(Star), R(21),
                  B(Mov), R(2), R(20),
                  B(Mov), R(11), R(22),
@@ -2209,7 +2247,7 @@ index 867e09d6ca..47bcb4aa32 100644
                  B(SuspendGenerator), R(2), R(0), U8(20), U8(1),
                  B(ResumeGenerator), R(2), R(0), U8(20),
                  B(Star), R(20),
-@@ -683,7 +683,7 @@ bytecodes: [
+@@ -690,7 +690,7 @@ bytecodes: [
                  B(Star), R(20),
                  B(Mov), R(2), R(19),
                  B(Mov), R(11), R(21),
@@ -2219,10 +2257,10 @@ index 867e09d6ca..47bcb4aa32 100644
                  B(ResumeGenerator), R(2), R(0), U8(19),
                  B(Star), R(19),
 diff --git a/test/cctest/interpreter/bytecode_expectations/ForOfLoop.golden b/test/cctest/interpreter/bytecode_expectations/ForOfLoop.golden
-index 882f61943a..ed0ef4048e 100644
+index 1a0155da79c..f92076e6e65 100644
 --- a/test/cctest/interpreter/bytecode_expectations/ForOfLoop.golden
 +++ b/test/cctest/interpreter/bytecode_expectations/ForOfLoop.golden
-@@ -1182,7 +1182,7 @@ bytecodes: [
+@@ -1196,7 +1196,7 @@ bytecodes: [
    /*   45 S> */ B(Mov), R(2), R(21),
                  B(Mov), R(0), R(22),
                  B(Mov), R(11), R(23),
@@ -2232,10 +2270,10 @@ index 882f61943a..ed0ef4048e 100644
                  B(ResumeGenerator), R(2), R(0), U8(21),
                  B(Star), R(21),
 diff --git a/test/cctest/interpreter/bytecode_expectations/StandardForLoop.golden b/test/cctest/interpreter/bytecode_expectations/StandardForLoop.golden
-index 8be761df37..226fa55039 100644
+index 80609db7b80..7edf446ce33 100644
 --- a/test/cctest/interpreter/bytecode_expectations/StandardForLoop.golden
 +++ b/test/cctest/interpreter/bytecode_expectations/StandardForLoop.golden
-@@ -489,7 +489,7 @@ bytecodes: [
+@@ -493,7 +493,7 @@ bytecodes: [
    /*   52 S> */ B(Mov), R(1), R(7),
                  B(Mov), R(0), R(8),
                  B(Mov), R(2), R(9),
@@ -2245,13 +2283,13 @@ index 8be761df37..226fa55039 100644
                  B(ResumeGenerator), R(1), R(0), U8(7),
                  B(Star), R(7),
 diff --git a/test/cctest/test-api.cc b/test/cctest/test-api.cc
-index b1d2aced5e..0cc24b1cbd 100644
+index 2f552a9d9d9..8b93944d933 100644
 --- a/test/cctest/test-api.cc
 +++ b/test/cctest/test-api.cc
-@@ -18432,12 +18432,6 @@ TEST(PromiseHook) {
+@@ -18358,12 +18358,6 @@ TEST(PromiseHook) {
    CHECK_EQ(v8::Promise::kFulfilled, GetPromise("p")->State());
    CHECK_EQ(9, promise_hook_data->promise_hook_count);
-
+ 
 -  promise_hook_data->Reset();
 -  source = "(async() => await p)();\n";
 -
@@ -2262,10 +2300,10 @@ index b1d2aced5e..0cc24b1cbd 100644
    isolate->SetPromiseHook(nullptr);
  }
 diff --git a/tools/v8heapconst.py b/tools/v8heapconst.py
-index 3fa1889848..da284eb927 100644
+index 1e57ce64a9e..e3b29f82042 100644
 --- a/tools/v8heapconst.py
 +++ b/tools/v8heapconst.py
-@@ -263,12 +263,12 @@ KNOWN_MAPS = {
+@@ -263,12 +263,12 @@
    ("MAP_SPACE", 0x04511): (173, "Tuple2Map"),
    ("MAP_SPACE", 0x04569): (171, "ScriptMap"),
    ("MAP_SPACE", 0x045c1): (163, "InterceptorInfoMap"),
@@ -2284,3 +2322,9 @@ index 3fa1889848..da284eb927 100644
    ("MAP_SPACE", 0x04829): (159, "AsyncGeneratorRequestMap"),
    ("MAP_SPACE", 0x04881): (160, "ContextExtensionMap"),
    ("MAP_SPACE", 0x048d9): (161, "DebugInfoMap"),
+@@ -366,4 +366,4 @@
+   "NATIVE",
+ )
+ 
+-# This set of constants is generated from a shipping build.
++# This set of constants is generated from a non-shipping build.
