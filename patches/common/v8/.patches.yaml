@@ -42,3 +42,35 @@ patches:
   author: Aleksei Kuzmin <alkuzmin@microsoft.com>
   file: backport_23652c5f.patch
   description: Node 10.2.0 needs it.
+-
+  owners: codebytere
+  file: backport_91ddb65d.patch
+  description: Node 10.6.0 needs it.
+-
+  owners: codebytere
+  file: cherry-pick_6989b3f6d7.patch
+  description: Node 10.6.0 needs it.
+-
+  owners: codebytere
+  file: cherry-pick_a440efb27f.patch
+  description: Node 10.6.0 needs it.
+-
+  owners: codebytere
+  file: cherry-pick_5dd3395.patch
+  description: Node 10.6.0 needs it.
+-
+  owners: codebytere
+  file: backport_aa6ce3e.patch
+  description: Node 10.6.0 needs it.
+-
+  owners: codebytere
+  file: cherry-pick_b20faff.patch
+  description: Node 10.6.0 needs it.
+-
+  owners: codebytere
+  file: cherry-pick_acc336c.patch
+  description: Node 10.6.0 needs it.
+-
+  owners: codebytere
+  file: cherry-pick_70c4340.patch
+  description: Node 10.6.0 needs it.
