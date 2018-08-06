@@ -1,0 +1,386 @@
+From 7ea48785038f2b757a498136c4bc0900d69f483e Mon Sep 17 00:00:00 2001
+From: Leonard Grey <lgrey@chromium.org>
+Date: Wed, 13 Sep 2017 20:08:54 +0000
+Subject: [Mac] Remove AppNap code
+
+We've decided to go with the alternate (direct via Mach task policy)
+backgrounding method.
+
+Bug: 679417
+Change-Id: Ie7566857f3c36b8e6674f06cf3b1128a46fa314a
+Reviewed-on: https://chromium-review.googlesource.com/663406
+Reviewed-by: Greg Kerr <kerrnel@chromium.org>
+Reviewed-by: Mark Mentovai <mark@chromium.org>
+Reviewed-by: Avi Drissman <avi@chromium.org>
+Commit-Queue: Leonard Grey <lgrey@chromium.org>
+Cr-Commit-Position: refs/heads/master@{#501728}
+---
+ base/process/process.h                        |  3 -
+ base/process/process_mac.cc                   | 14 +---
+ chrome/app/helper-Info.plist                  |  2 -
+ content/child/child_thread_impl.cc            | 15 ----
+ content/child/child_thread_impl.h             |  8 ---
+ content/common/BUILD.gn                       |  2 -
+ content/common/mac/app_nap_activity.h         | 49 -------------
+ content/common/mac/app_nap_activity.mm        | 71 -------------------
+ .../common/mac/app_nap_activity_unittest.mm   | 38 ----------
+ content/renderer/render_thread_impl.cc        |  6 --
+ content/test/BUILD.gn                         |  1 -
+ 11 files changed, 1 insertion(+), 208 deletions(-)
+ delete mode 100644 content/common/mac/app_nap_activity.h
+ delete mode 100644 content/common/mac/app_nap_activity.mm
+ delete mode 100644 content/common/mac/app_nap_activity_unittest.mm
+
+diff --git a/base/process/process.h b/base/process/process.h
+index 9902fafdca51..8979dd4ab56d 100644
+--- a/base/process/process.h
++++ b/base/process/process.h
+@@ -139,9 +139,6 @@ class BASE_EXPORT Process {
+   // Returns true if the priority was changed, false otherwise. If
+   // |port_provider| is null, this is a no-op and it returns false.
+   bool SetProcessBackgrounded(PortProvider* port_provider, bool value);
+-
+-  // Returns |true| if helper processes should participate in AppNap.
+-  static bool IsAppNapEnabled();
+ #else
+   // A process is backgrounded when it's priority is lower than normal.
+   // Return true if this process is backgrounded, false otherwise.
+diff --git a/base/process/process_mac.cc b/base/process/process_mac.cc
+index bc045cd72aa7..f83fbb9991e9 100644
+--- a/base/process/process_mac.cc
++++ b/base/process/process_mac.cc
+@@ -8,27 +8,15 @@
+ 
+ #include "base/feature_list.h"
+ #include "base/mac/mach_logging.h"
+-#include "base/metrics/field_trial_params.h"
+ 
+ namespace base {
+ 
+-namespace {
+-const char kAppNapFeatureParamName[] = "app_nap";
+-}
+-
+ // Enables backgrounding hidden renderers on Mac.
+ const Feature kMacAllowBackgroundingProcesses{"MacAllowBackgroundingProcesses",
+                                               FEATURE_DISABLED_BY_DEFAULT};
+ 
+-bool Process::IsAppNapEnabled() {
+-  return !base::GetFieldTrialParamValueByFeature(
+-              kMacAllowBackgroundingProcesses, kAppNapFeatureParamName)
+-              .empty();
+-}
+-
+ bool Process::CanBackgroundProcesses() {
+-  return FeatureList::IsEnabled(kMacAllowBackgroundingProcesses) &&
+-         !IsAppNapEnabled();
++  return FeatureList::IsEnabled(kMacAllowBackgroundingProcesses);
+ }
+ 
+ bool Process::IsProcessBackgrounded(PortProvider* port_provider) const {
+diff --git a/chrome/app/helper-Info.plist b/chrome/app/helper-Info.plist
+index e2d8ebd946cc..e210c3536e68 100644
+--- a/chrome/app/helper-Info.plist
++++ b/chrome/app/helper-Info.plist
+@@ -26,7 +26,5 @@
+ 	<string>1</string>
+ 	<key>NSSupportsAutomaticGraphicsSwitching</key>
+ 	<true/>
+-	<key>NSSupportsAppNap</key>
+-	<true/>
+ </dict>
+ </plist>
+diff --git a/content/child/child_thread_impl.cc b/content/child/child_thread_impl.cc
+index a943ec63b969..9cde7dfd124e 100644
+--- a/content/child/child_thread_impl.cc
++++ b/content/child/child_thread_impl.cc
+@@ -81,8 +81,6 @@
+ 
+ #if defined(OS_MACOSX)
+ #include "base/allocator/allocator_interception_mac.h"
+-#include "base/process/process.h"
+-#include "content/common/mac/app_nap_activity.h"
+ #endif
+ 
+ using tracked_objects::ThreadData;
+@@ -567,10 +565,6 @@ void ChildThreadImpl::Init(const Options& options) {
+           switches::kEnableHeapProfiling)) {
+     base::allocator::PeriodicallyShimNewMallocZones();
+   }
+-  if (base::Process::IsAppNapEnabled()) {
+-    app_nap_activity_.reset(new AppNapActivity());
+-    app_nap_activity_->Begin();
+-  };
+ #endif
+ 
+   message_loop_->task_runner()->PostDelayedTask(
+@@ -777,15 +771,6 @@ void ChildThreadImpl::OnProcessBackgrounded(bool backgrounded) {
+   if (backgrounded)
+     timer_slack = base::TIMER_SLACK_MAXIMUM;
+   base::MessageLoop::current()->SetTimerSlack(timer_slack);
+-#if defined(OS_MACOSX)
+-  if (base::Process::IsAppNapEnabled()) {
+-    if (backgrounded) {
+-      app_nap_activity_->End();
+-    } else {
+-      app_nap_activity_->Begin();
+-    }
+-  }
+-#endif  // defined(OS_MACOSX)
+ }
+ 
+ void ChildThreadImpl::OnProcessPurgeAndSuspend() {
+diff --git a/content/child/child_thread_impl.h b/content/child/child_thread_impl.h
+index 9c4fc2075aaa..bd3db4a8e038 100644
+--- a/content/child/child_thread_impl.h
++++ b/content/child/child_thread_impl.h
+@@ -60,10 +60,6 @@ class QuotaMessageFilter;
+ class ResourceDispatcher;
+ class ThreadSafeSender;
+ 
+-#if defined(OS_MACOSX)
+-class AppNapActivity;
+-#endif
+-
+ // The main thread of a child process derives from this class.
+ class CONTENT_EXPORT ChildThreadImpl
+     : public IPC::Listener,
+@@ -293,10 +289,6 @@ class CONTENT_EXPORT ChildThreadImpl
+ 
+   scoped_refptr<base::SingleThreadTaskRunner> browser_process_io_runner_;
+ 
+-#if defined(OS_MACOSX)
+-  std::unique_ptr<AppNapActivity> app_nap_activity_;
+-#endif  // defined(OS_MACOSX)
+-
+   std::unique_ptr<variations::ChildProcessFieldTrialSyncer> field_trial_syncer_;
+ 
+   std::unique_ptr<base::WeakPtrFactory<ChildThreadImpl>>
+diff --git a/content/common/BUILD.gn b/content/common/BUILD.gn
+index 4cce85325cf0..c192848bf15b 100644
+--- a/content/common/BUILD.gn
++++ b/content/common/BUILD.gn
+@@ -209,8 +209,6 @@ source_set("common") {
+     "layer_tree_settings_factory.h",
+     "loader_util.cc",
+     "loader_util.h",
+-    "mac/app_nap_activity.h",
+-    "mac/app_nap_activity.mm",
+     "mac/attributed_string_coder.h",
+     "mac/attributed_string_coder.mm",
+     "mac/font_descriptor.h",
+diff --git a/content/common/mac/app_nap_activity.h b/content/common/mac/app_nap_activity.h
+deleted file mode 100644
+index c2896e8390c2..000000000000
+--- a/content/common/mac/app_nap_activity.h
++++ /dev/null
+@@ -1,49 +0,0 @@
+-// Copyright 2017 The Chromium Authors. All rights reserved.
+-// Use of this source code is governed by a BSD-style license that can be
+-// found in the LICENSE file.
+-
+-#ifndef CONTENT_COMMON_MAC_APP_NAP_ACTIVITY_H
+-#define CONTENT_COMMON_MAC_APP_NAP_ACTIVITY_H
+-
+-#include <memory>
+-
+-#include "base/macros.h"
+-#include "content/common/content_export.h"
+-
+-namespace content {
+-
+-// Can't import scoped_nsobject here, so wrap it.
+-struct AssertionWrapper;
+-
+-// A wrapper around the macOS "activity" system, which is required to
+-// make renderers eligible for AppNap.
+-//
+-// When doing work, processes are expected to begin an activity, receiving
+-// an opaque token called an "assertion". On finishing, they end the activity.
+-// When a process has no outstanding assertions, it becomes eligible for
+-// AppNap.
+-class CONTENT_EXPORT AppNapActivity {
+- public:
+-  AppNapActivity();
+-  ~AppNapActivity();
+-
+-  // Because there's no NSApplication in renderers, do some housekeeping
+-  // to become eligible for App Nap.
+-  static void InitializeAppNapSupport();
+-
+-  // Begin an activity and store the provided token.
+-  void Begin();
+-
+-  // End the activity represented by |assertion_|.
+-  void End();
+-
+- private:
+-  // An opaque token provided by the OS on beginning an activity.
+-  std::unique_ptr<AssertionWrapper> assertion_;
+-
+-  DISALLOW_COPY_AND_ASSIGN(AppNapActivity);
+-};
+-
+-}  // namespace content
+-
+-#endif  // CONTENT_COMMON_MAC_APP_NAP_ACTIVITY_H
+diff --git a/content/common/mac/app_nap_activity.mm b/content/common/mac/app_nap_activity.mm
+deleted file mode 100644
+index 4fa7b581e375..000000000000
+--- a/content/common/mac/app_nap_activity.mm
++++ /dev/null
+@@ -1,71 +0,0 @@
+-// Copyright 2017 The Chromium Authors. All rights reserved.
+-// Use of this source code is governed by a BSD-style license that can be
+-// found in the LICENSE file.
+-
+-#include "content/common/mac/app_nap_activity.h"
+-
+-#import <Foundation/Foundation.h>
+-
+-#include "base/mac/scoped_nsobject.h"
+-
+-extern "C" {
+-void __CFRunLoopSetOptionsReason(uint64_t options,
+-                                 NSString* reason,
+-                                 int unused);
+-}
+-
+-namespace content {
+-
+-namespace {
+-
+-NSString* const kActivityReason = @"Process foregrounded";
+-const NSActivityOptions kActivityOptions =
+-    (NSActivityUserInitiatedAllowingIdleSystemSleep |
+-     NSActivityLatencyCritical) &
+-    ~(NSActivitySuddenTerminationDisabled |
+-      NSActivityAutomaticTerminationDisabled);
+-
+-}  // namespace
+-
+-struct AssertionWrapper {
+-  base::scoped_nsobject<id> obj;
+-};
+-
+-AppNapActivity::AppNapActivity() {
+-  assertion_.reset(new AssertionWrapper());
+-};
+-
+-AppNapActivity::~AppNapActivity() {
+-  DCHECK(!assertion_->obj.get());
+-};
+-
+-void AppNapActivity::InitializeAppNapSupport() {
+-  // Reason strings are the same as
+-  // what macOS sends in the corresponding call.
+-  // |options| (argument 1) are magic numbers as found in the
+-  // callsites mentioned above.
+-  //
+-  // Normally happens during launch services check-in. (HIToolbox)
+-  __CFRunLoopSetOptionsReason(
+-      1, @"Finished checking in as application - waiting for events", 0);
+-  // Normally happens in a dispatch_once in the NSApplication event loop.
+-  // (CoreFoundation).
+-  __CFRunLoopSetOptionsReason(
+-      0x3b000000, @"Finished delay after app launch and bundle check", 0);
+-}
+-
+-void AppNapActivity::Begin() {
+-  DCHECK(!assertion_->obj.get());
+-  id assertion =
+-      [[NSProcessInfo processInfo] beginActivityWithOptions:kActivityOptions
+-                                                     reason:kActivityReason];
+-  assertion_->obj.reset([assertion retain]);
+-}
+-
+-void AppNapActivity::End() {
+-  id assertion = assertion_->obj.autorelease();
+-  DCHECK(assertion);
+-  [[NSProcessInfo processInfo] endActivity:assertion];
+-}
+-
+-}  // namespace content
+diff --git a/content/common/mac/app_nap_activity_unittest.mm b/content/common/mac/app_nap_activity_unittest.mm
+deleted file mode 100644
+index b6c367396ef2..000000000000
+--- a/content/common/mac/app_nap_activity_unittest.mm
++++ /dev/null
+@@ -1,38 +0,0 @@
+-// Copyright 2017 The Chromium Authors. All rights reserved.
+-// Use of this source code is governed by a BSD-style license that can be
+-// found in the LICENSE file.
+-
+-#include "content/common/mac/app_nap_activity.h"
+-
+-#include "testing/gtest_mac.h"
+-#include "testing/platform_test.h"
+-#import "third_party/ocmock/OCMock/OCMock.h"
+-#include "third_party/ocmock/gtest_support.h"
+-
+-class AppNapActivityTest : public PlatformTest {};
+-
+-TEST_F(AppNapActivityTest, StoresAssertion) {
+-  const NSActivityOptions expectedOptions =
+-      (NSActivityUserInitiatedAllowingIdleSystemSleep |
+-       NSActivityLatencyCritical) &
+-      ~(NSActivitySuddenTerminationDisabled |
+-        NSActivityAutomaticTerminationDisabled);
+-  id processInfoMock =
+-      [OCMockObject partialMockForObject:[NSProcessInfo processInfo]];
+-  id assertion = @"An activity assertion";
+-  [[[processInfoMock expect] andReturn:assertion]
+-      beginActivityWithOptions:expectedOptions
+-                        reason:OCMOCK_ANY];
+-
+-  content::AppNapActivity activity;
+-  activity.Begin();
+-
+-  EXPECT_OCMOCK_VERIFY(processInfoMock);
+-
+-  [[processInfoMock expect] endActivity:assertion];
+-
+-  activity.End();
+-
+-  EXPECT_OCMOCK_VERIFY(processInfoMock);
+-  [processInfoMock stopMocking];
+-}
+diff --git a/content/renderer/render_thread_impl.cc b/content/renderer/render_thread_impl.cc
+index c26bd138973c..6a4b49d66182 100644
+--- a/content/renderer/render_thread_impl.cc
++++ b/content/renderer/render_thread_impl.cc
+@@ -189,8 +189,6 @@
+ 
+ #if defined(OS_MACOSX)
+ #include "base/mac/mac_util.h"
+-#include "base/process/process.h"
+-#include "content/common/mac/app_nap_activity.h"
+ #include "content/renderer/theme_helper_mac.h"
+ #include "content/renderer/webscrollbarbehavior_impl_mac.h"
+ #endif
+@@ -811,10 +809,6 @@ void RenderThreadImpl::Init(
+   Boolean value = CFPreferencesGetAppBooleanValue(
+       key, kCFPreferencesCurrentApplication, &key_exists);
+   is_elastic_overscroll_enabled_ = !key_exists || value;
+-
+-  if (base::Process::IsAppNapEnabled()) {
+-    AppNapActivity::InitializeAppNapSupport();
+-  }
+ #else
+   is_elastic_overscroll_enabled_ = false;
+ #endif
+diff --git a/content/test/BUILD.gn b/content/test/BUILD.gn
+index e75f145b9d6c..62e76560f9d7 100644
+--- a/content/test/BUILD.gn
++++ b/content/test/BUILD.gn
+@@ -1399,7 +1399,6 @@ test("content_unittests") {
+     "../common/input/input_param_traits_unittest.cc",
+     "../common/input/touch_event_stream_validator_unittest.cc",
+     "../common/inter_process_time_ticks_converter_unittest.cc",
+-    "../common/mac/app_nap_activity_unittest.mm",
+     "../common/mac/attributed_string_coder_unittest.mm",
+     "../common/mac/font_descriptor_unittest.mm",
+     "../common/manifest_util_unittest.cc",
+-- 
+2.17.0
+
