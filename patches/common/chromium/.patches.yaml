@@ -328,3 +328,8 @@ patches:
   file: mas-cgdisplayusesforcetogray.patch
   description: |
     Removes usage of the CGDisplayUsesForceToGray private API.
+-
+  owners: nornagon
+  file: mas-audiodeviceduck.patch
+  description: |
+    Removes usage of the AudioDeviceDuck private API.
