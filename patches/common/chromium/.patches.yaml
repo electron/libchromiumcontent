@@ -318,3 +318,24 @@ patches:
   description: |
     Backports https://chromium-review.googlesource.com/c/chromium/src/+/1161391
     Fixes webview not working after renderer process restarted.
+-
+  owners: nornagon
+  file: mas-cfisobjc.patch
+  description: |
+    Removes usage of the _CFIsObjC private API.
+-
+  owners: nornagon
+  file: mas-cgdisplayusesforcetogray.patch
+  description: |
+    Removes usage of the CGDisplayUsesForceToGray private API.
+-
+  owners: nornagon
+  file: mas-audiodeviceduck.patch
+  description: |
+    Removes usage of the AudioDeviceDuck private API.
+-
+  owners: nornagon
+  file: mas-lssetapplicationlaunchservicesserverconnectionstatus.patch
+  description: |
+    Removes usage of the _LSSetApplicationLaunchServicesServerConnectionStatus
+    private API.
