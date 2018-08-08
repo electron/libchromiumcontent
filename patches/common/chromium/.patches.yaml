@@ -403,3 +403,8 @@ patches:
   description: |
     Removes usage of the _LSSetApplicationLaunchServicesServerConnectionStatus
     private API.
+-
+  owners: marshallofsound
+  file: v8_context_snapshot_disable.patch
+  description: |
+      Disable v8 context snapshots
