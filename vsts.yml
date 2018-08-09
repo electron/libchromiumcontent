@@ -46,7 +46,11 @@ phases:
   - bash: |
      echo "===Create $COMPONENT distribution for $TARGET_ARCH===" > >(tee -a buildlog.txt) 2> >(tee -a buildlog.txt >&2)
      script/create-dist -t $TARGET_ARCH -c $COMPONENT > >(tee -a buildlog.txt) 2> >(tee -a buildlog.txt >&2)
-     mv libchromiumcontent* s3files
+     if [ "${COMPONENT}" == "shared_library" ]; then
+       mv libchromiumcontent.zip s3files
+     else
+       mv libchromiumcontent-static.zip s3files
+     fi
      mv buildlog.txt s3files
     name: Create_distribution
 
@@ -64,7 +68,7 @@ phases:
 
   - task: mspremier.PostBuildCleanup.PostBuildCleanup-task.PostBuildCleanup@3
     condition: always()
-    
+
 - phase: Skip_libchromiumcontent_PR_build
   condition: and(eq(variables['System.PullRequest.IsFork'], 'False'), eq(variables['Build.Reason'], 'PullRequest'))
   steps:
