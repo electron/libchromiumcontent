@@ -8,15 +8,15 @@ Subject: [PATCH] Handle everything not in [200, 300) as error. For example
 (cherry picked from commit 1875fddc7e671b14d8b54068301d9648d12e9dc2)
 (cherry picked from commit 670fb453b0c3d6ae0a0d5923f68df02464337617)
 ---
- util/net/http_transport_libcurl.cc | 2 +-
- util/net/http_transport_mac.mm     | 2 +-
- util/net/http_transport_win.cc     | 2 +-
+ third_party/crashpad/crashpad/util/net/http_transport_libcurl.cc | 2 +-
+ third_party/crashpad/crashpad/util/net/http_transport_mac.mm     | 2 +-
+ third_party/crashpad/crashpad/util/net/http_transport_win.cc     | 2 +-
  3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/util/net/http_transport_libcurl.cc b/util/net/http_transport_libcurl.cc
+diff --git a/third_party/crashpad/crashpad/util/net/http_transport_libcurl.cc b/third_party/crashpad/crashpad/util/net/http_transport_libcurl.cc
 index c16a593..0e262b0 100644
---- a/util/net/http_transport_libcurl.cc
-+++ b/util/net/http_transport_libcurl.cc
+--- a/third_party/crashpad/crashpad/util/net/http_transport_libcurl.cc
++++ b/third_party/crashpad/crashpad/util/net/http_transport_libcurl.cc
 @@ -338,7 +338,7 @@ bool HTTPTransportLibcurl::ExecuteSynchronously(std::string* response_body) {
      return false;
    }
@@ -26,10 +26,10 @@ index c16a593..0e262b0 100644
      LOG(ERROR) << base::StringPrintf("HTTP status %ld", status);
      return false;
    }
-diff --git a/util/net/http_transport_mac.mm b/util/net/http_transport_mac.mm
+diff --git a/third_party/crashpad/crashpad/util/net/http_transport_mac.mm b/third_party/crashpad/crashpad/util/net/http_transport_mac.mm
 index 8d5f78c..a6434c2 100644
---- a/util/net/http_transport_mac.mm
-+++ b/util/net/http_transport_mac.mm
+--- a/third_party/crashpad/crashpad/util/net/http_transport_mac.mm
++++ b/third_party/crashpad/crashpad/util/net/http_transport_mac.mm
 @@ -293,7 +293,7 @@ static void Unschedule(CFReadStreamRef stream,
        return false;
      }
@@ -39,10 +39,10 @@ index 8d5f78c..a6434c2 100644
        LOG(ERROR) << base::StringPrintf("HTTP status %ld",
                                         implicit_cast<long>(http_status));
        return false;
-diff --git a/util/net/http_transport_win.cc b/util/net/http_transport_win.cc
+diff --git a/third_party/crashpad/crashpad/util/net/http_transport_win.cc b/third_party/crashpad/crashpad/util/net/http_transport_win.cc
 index 18d343c..40c3061 100644
---- a/util/net/http_transport_win.cc
-+++ b/util/net/http_transport_win.cc
+--- a/third_party/crashpad/crashpad/util/net/http_transport_win.cc
++++ b/third_party/crashpad/crashpad/util/net/http_transport_win.cc
 @@ -375,7 +375,7 @@ bool HTTPTransportWin::ExecuteSynchronously(std::string* response_body) {
      return false;
    }

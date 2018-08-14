@@ -1,4 +1,4 @@
-repo: src/third_party/crashpad/crashpad
+repo: src
 patches:
 -
   owners: nornagon
