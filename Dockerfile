@@ -12,7 +12,7 @@ ADD script/docker-install-build-deps.sh /setup/install-build-deps.sh
 RUN apt-get update && apt-get -y --force-yes install lsb-release locales
 RUN /setup/install-build-deps.sh --syms --no-prompt --no-chromeos-fonts
 
-RUN apt-get install -y python-setuptools
+RUN apt-get install -y python-setuptools vim-nox nano
 RUN easy_install -U pip
 RUN pip install -U crcmod
 
