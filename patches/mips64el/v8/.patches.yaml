@@ -1,6 +1,6 @@
 repo: src/v8
 patches:
 -
-  author: Cheng Zhao <zcbenz@gmail.com>
+  owners: zcbenz
   file: Fix-v8-loongson-page-size.patch
   description: null

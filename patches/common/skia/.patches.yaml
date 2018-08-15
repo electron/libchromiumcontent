@@ -1,6 +1,6 @@
 repo: src/third_party/skia
 patches:
 -
-  author: Ales Pergl <alpergl@microsoft.com>
+  owners: alespergl
   file: dcheck.patch
   description: null
