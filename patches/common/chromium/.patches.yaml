@@ -407,3 +407,8 @@ patches:
   file: windows_cc_wrapper.patch
   description: |
     Allow use of cc_wrapper (eg sccache).
+_ 
+  owners: codebytere
+  file: enable_osr_components.patch
+  description: |
+    Add MouseWheelPhaseHandler for OSR.
