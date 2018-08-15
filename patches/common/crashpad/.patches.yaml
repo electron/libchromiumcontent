@@ -1,7 +1,7 @@
-repo: src
+repo: src/third_party/crashpad/crashpad
 patches:
 -
-  author: Jeremy Apthorp <nornagon@nornagon.net>
+  owners: nornagon
   file: http_status.patch
   description: |
     Accept all HTTP codes in [200, 300) as successful, instead of just 200.

@@ -1,46 +1,22 @@
 import os
 import sys
 
-import git
 from config import VENDOR_DIR
 
 PYYAML_LIB_DIR = os.path.join(VENDOR_DIR, 'pyyaml', 'lib')
 sys.path.append(PYYAML_LIB_DIR)
 import yaml
 
+from git import apply as git_apply
+
 
 class Patch:
-  def __init__(self, file_path, repo_path, paths_prefix=None, author='Anonymous <anonymous@electronjs.org>', description=None):
-    self.author = author
-    self.description = description
+  def __init__(self, file_path, repo_path):
     self.file_path = file_path
-    self.paths_prefix = paths_prefix
     self.repo_path = repo_path
 
-  def apply(self, reverse=False, commit=False):
-    # Add the change to index only if we're going to commit it later.
-    patch_applied = git.apply(self.repo_path, self.file_path, directory=self.paths_prefix, index=commit, reverse=reverse)
-
-    if not patch_applied:
-      return False
-
-    if commit:
-      message = self.__get_commit_message(reverse)
-      patch_committed = git.commit(self.repo_path, author=self.author, message=message)
-      return patch_committed
-
-    return True
-
-  def __get_commit_message(self, reverse):
-    message = self.description
-
-    if message is None:
-      message = os.path.basename(self.file_path)
-
-    if reverse:
-      message = 'Revert: ' + message
-
-    return message
+  def apply(self, reverse=False):
+    return git_apply(self.repo_path, self.file_path, reverse=reverse)
 
   def reverse(self):
     return self.apply(reverse=True)
@@ -56,12 +32,12 @@ class PatchesList:
   def __len__(self):
     return len(self.patches)
 
-  def apply(self, reverse=False, stop_on_error=True, commit=False):
+  def apply(self, reverse=False, stop_on_error=True):
     all_patches_applied = True
     failed_patches = []
 
     for patch in self.patches:
-      applied_successfully = patch.apply(reverse=reverse, commit=commit)
+      applied_successfully = patch.apply(reverse=reverse)
 
       if not applied_successfully:
         all_patches_applied = False
@@ -98,44 +74,25 @@ class PatchesConfig:
 
     return contents
 
-  def __create_patch(self, raw_data, base_directory, repo_path, paths_prefix):
-    author = raw_data['author']
-    if author is None:  # Shouldn't actually happen.
-      author = 'Anonymous <anonymous@electronjs.org>'
-
+  def __create_patch(self, raw_data, base_directory, repo_path):
     relative_file_path = raw_data['file']
     absolute_file_path = os.path.join(base_directory, relative_file_path)
 
-    # Use a patch file path as a commit summary
-    # and optional description as a commit body.
-    description = relative_file_path
-    if raw_data['description'] is not None:
-      description += '\n\n' + raw_data['description']
-
-    return Patch(absolute_file_path, repo_path, paths_prefix=paths_prefix, author=author, description=description)
+    return Patch(absolute_file_path, repo_path)
 
   def get_patches_list(self):
     config_contents = self.__parse()
     if config_contents is None:
       return None
 
-    project_root = git.get_repo_root(self.path)
-    assert(project_root)
-
-    relative_repo_path = os.path.normpath(config_contents['repo'])
-    absolute_repo_path = os.path.join(project_root, relative_repo_path)
-
-    # If the 'repo' path is not really a git repository,
-    # then use that path as a prefix for patched files.
-    paths_prefix = None
-    if not git.is_repo_root(absolute_repo_path):
-      absolute_repo_path = project_root
-      paths_prefix = relative_repo_path
+    repo_path = config_contents['repo']
+    if sys.platform == 'win32':
+      repo_path = repo_path.replace('/', '\\')
 
     patches_data = config_contents['patches']
     base_directory = os.path.dirname(self.path)
 
-    patches = [self.__create_patch(data, base_directory, absolute_repo_path, paths_prefix) for data in patches_data]
+    patches = [self.__create_patch(data, base_directory, repo_path) for data in patches_data]
     patches_list = PatchesList(patches)
 
     return patches_list
