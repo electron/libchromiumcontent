@@ -408,7 +408,7 @@ patches:
   description: |
     Allow use of cc_wrapper (eg sccache).
 _ 
-  owners: codebytere
+  author: Shelley Vohr <shelley.vohr@gmail.com>
   file: enable_osr_components.patch
   description: |
     Add MouseWheelPhaseHandler for OSR.
