@@ -1,10 +1,10 @@
 repo: src/third_party/icu
 patches:
 -
-  owners: alespergl
+  author: Ales Pergl <alpergl@microsoft.com>
   file: build_gn.patch
   description: null
 -
-  owners: zcbenz
+  author: Cheng Zhao <zcbenz@gmail.com>
   file: no_inline_default_constructor.patch
   description: null
