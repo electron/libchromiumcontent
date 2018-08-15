@@ -1,6 +1,6 @@
 repo: src/third_party/angle
 patches:
 -
-  owners: alespergl
+  author: Ales Pergl <alpergl@microsoft.com>
   file: dcheck.patch
   description: null
