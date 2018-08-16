@@ -50,6 +50,8 @@ class Patch:
 
 
 class PatchesList:
+  """A list of Patch objects with a couple of utility methods."""
+
   def __init__(self, patches):
     self.patches = patches
 
@@ -73,18 +75,20 @@ class PatchesList:
 
     return (all_patches_applied, failed_patches)
 
-  def reverse(self, stop_on_error=True):
-    return self.apply(reverse=True, stop_on_error=stop_on_error)
+  def reverse(self, stop_on_error=True, commit=False):
+    return self.apply(reverse=True, stop_on_error=stop_on_error, commit=commit)
 
 
 class PatchesConfig:
   @staticmethod
-  def from_directory(dir_path, config_name='.patches.yaml'):
+  def from_directory(dir_path, project_root, config_name='.patches.yaml'):
     config_path = os.path.join(dir_path, config_name)
-    return PatchesConfig(config_path)
+    return PatchesConfig(config_path, project_root)
 
-  def __init__(self, config_path):
+  def __init__(self, config_path, project_root):
     self.path = config_path
+    self.patches_list = None
+    self.project_root = project_root
 
   def __parse(self):
     contents = None
@@ -114,28 +118,34 @@ class PatchesConfig:
 
     return Patch(absolute_file_path, repo_path, paths_prefix=paths_prefix, author=author, description=description)
 
-  def get_patches_list(self):
+  def __create_patches_list(self):
     config_contents = self.__parse()
     if config_contents is None:
       return None
 
-    project_root = git.get_repo_root(self.path)
-    assert(project_root)
-
     relative_repo_path = os.path.normpath(config_contents['repo'])
-    absolute_repo_path = os.path.join(project_root, relative_repo_path)
+    absolute_repo_path = os.path.join(self.project_root, relative_repo_path)
 
     # If the 'repo' path is not really a git repository,
     # then use that path as a prefix for patched files.
     paths_prefix = None
     if not git.is_repo_root(absolute_repo_path):
-      absolute_repo_path = project_root
+      assert(git.is_repo_root(self.project_root))
+      absolute_repo_path = self.project_root
       paths_prefix = relative_repo_path
 
     patches_data = config_contents['patches']
-    base_directory = os.path.dirname(self.path)
+    base_directory = os.path.abspath(os.path.dirname(self.path))
 
     patches = [self.__create_patch(data, base_directory, absolute_repo_path, paths_prefix) for data in patches_data]
     patches_list = PatchesList(patches)
+    return patches_list
+
+  def get_patches_list(self):
+    if self.patches_list is not None:
+      return self.patches_list
+
+    patches_list = self.__create_patches_list()
+    self.patches_list = patches_list
 
     return patches_list

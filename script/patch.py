@@ -11,6 +11,7 @@ import os
 import subprocess
 import sys
 
+import lib.git as git
 from lib.patches import Patch, PatchesList, PatchesConfig
 
 
@@ -20,11 +21,12 @@ def main():
   directory = args.directory
   force = args.force
   patches = args.patch
+  project_root = args.project_root
   repo = args.repo
   reverse = args.reverse
 
   if directory:
-    (success, failed_patches) = apply_patches_from_directory(directory, force, reverse)
+    (success, failed_patches) = apply_patches_from_directory(directory, project_root, force, reverse)
   else:
     (success, failed_patches) = apply_patches(repo, patches, force, reverse)
 
@@ -44,8 +46,8 @@ def apply_patches(repo_path, patches_paths, force=False, reverse=False):
   return patches_list.apply(reverse=reverse, stop_on_error=stop_on_error)
 
 
-def apply_patches_from_directory(directory, force=False, reverse=False):
-  config = PatchesConfig.from_directory(directory)
+def apply_patches_from_directory(directory, project_root, force=False, reverse=False):
+  config = PatchesConfig.from_directory(directory, project_root=project_root)
   patches_list = config.get_patches_list()
 
   # Notify user if we didn't find any patch files.
@@ -62,6 +64,8 @@ def parse_args():
   parser = argparse.ArgumentParser(description='Apply patches to a git repo')
   parser.add_argument('-f', '--force', default=False, action='store_true',
                       help='Do not stop on the first failed patch.')
+  parser.add_argument('--project-root', required=False, default=git.get_repo_root(os.path.abspath(__file__)),
+                      help='Parent folder to resolve repos relative paths against')
   parser.add_argument('-R', '--reverse', default=False, action='store_true', help='Apply patches in reverse.')
   parser.add_argument('-r', '--repo', help='Path to a repository root folder.')
 
