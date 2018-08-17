@@ -1,0 +1,21 @@
+diff --git a/content/browser/renderer_host/input/mouse_wheel_phase_handler.h b/content/browser/renderer_host/input/mouse_wheel_phase_handler.h
+index 2d3771ab800b..16113fe46174 100644
+--- a/content/browser/renderer_host/input/mouse_wheel_phase_handler.h
++++ b/content/browser/renderer_host/input/mouse_wheel_phase_handler.h
+@@ -7,6 +7,7 @@
+ 
+ #include "base/timer/timer.h"
+ #include "content/browser/renderer_host/render_widget_host_delegate.h"
++#include "content/common/content_export.h"
+ #include "content/public/common/input_event_ack_state.h"
+ #include "third_party/WebKit/public/platform/WebMouseWheelEvent.h"
+ 
+@@ -50,7 +51,7 @@ enum class FirstScrollUpdateAckState {
+   kNotConsumed,
+ };
+ 
+-class MouseWheelPhaseHandler {
++class CONTENT_EXPORT MouseWheelPhaseHandler {
+  public:
+   MouseWheelPhaseHandler(RenderWidgetHostImpl* const host,
+                          RenderWidgetHostViewBase* const host_view);
