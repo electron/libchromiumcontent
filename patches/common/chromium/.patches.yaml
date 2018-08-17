@@ -407,7 +407,7 @@ patches:
   file: windows_cc_wrapper.patch
   description: |
     Allow use of cc_wrapper (eg sccache).
-_ 
+-
   author: Shelley Vohr <shelley.vohr@gmail.com>
   file: enable_osr_components.patch
   description: |
