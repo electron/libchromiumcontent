@@ -402,3 +402,8 @@ patches:
   file: allow_webview_file_url.patch
   description: |
     Allow webview to load non-web URLs.
+-
+  author: John Kleinschmidt <jkleinsc@github.com>
+  file: windows_cc_wrapper.patch
+  description: |
+    Allow use of cc_wrapper (eg sccache).
