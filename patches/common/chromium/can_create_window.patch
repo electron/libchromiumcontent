@@ -215,7 +215,7 @@ index 2eaee37ec780..9994df95a798 100644
      WindowOpenDisposition disposition,
      const blink::mojom::WindowFeatures& features,
 +    const std::vector<std::string>& additional_features,
-+    const scoped_refptr<ResourceRequestBody>& body,
++    const scoped_refptr<network::ResourceRequestBody>& body,
      bool user_gesture,
      bool opener_suppressed,
      bool* no_javascript_access) {
@@ -228,7 +228,7 @@ index 62b637bc80ce..1a9a06ce4bf6 100644
                         WindowOpenDisposition disposition,
                         const blink::mojom::WindowFeatures& features,
 +                       const std::vector<std::string>& additional_features,
-+                       const scoped_refptr<ResourceRequestBody>& body,
++                       const scoped_refptr<network::ResourceRequestBody>& body,
                         bool user_gesture,
                         bool opener_suppressed,
                         bool* no_javascript_access) override;
