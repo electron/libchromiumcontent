@@ -1,5 +1,5 @@
 diff --git a/content/browser/renderer_host/input/mouse_wheel_phase_handler.h b/content/browser/renderer_host/input/mouse_wheel_phase_handler.h
-index 2d3771ab800b..16113fe46174 100644
+index 4f7c03d62930..25b74d9b5236 100644
 --- a/content/browser/renderer_host/input/mouse_wheel_phase_handler.h
 +++ b/content/browser/renderer_host/input/mouse_wheel_phase_handler.h
 @@ -7,6 +7,7 @@
@@ -8,14 +8,14 @@ index 2d3771ab800b..16113fe46174 100644
  #include "content/browser/renderer_host/render_widget_host_delegate.h"
 +#include "content/common/content_export.h"
  #include "content/public/common/input_event_ack_state.h"
- #include "third_party/WebKit/public/platform/WebMouseWheelEvent.h"
+ #include "third_party/blink/public/platform/web_mouse_wheel_event.h"
  
-@@ -50,7 +51,7 @@ enum class FirstScrollUpdateAckState {
-   kNotConsumed,
- };
- 
+@@ -55,7 +56,7 @@ enum class FirstScrollUpdateAckState {
+ // The MouseWheelPhaseHandler is responsible for adding the proper phase to
+ // wheel events. Phase information is necessary for wheel scrolling since it
+ // shows the start and end of a scrolling sequence.
 -class MouseWheelPhaseHandler {
 +class CONTENT_EXPORT MouseWheelPhaseHandler {
   public:
-   MouseWheelPhaseHandler(RenderWidgetHostImpl* const host,
-                          RenderWidgetHostViewBase* const host_view);
+   MouseWheelPhaseHandler(RenderWidgetHostViewBase* const host_view);
+   ~MouseWheelPhaseHandler() {}
