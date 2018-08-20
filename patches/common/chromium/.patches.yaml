@@ -412,3 +412,9 @@ patches:
   file: enable_osr_components.patch
   description: |
     Add MouseWheelPhaseHandler for OSR.
+-
+  author: Zac Walker <zac.walker@microsoft.com>
+  file: ignore_rc_check.patch
+  description: |
+    Dont compare RC.exe and RC.py output.
+    FIXME: It has to be reverted once the script is fixed.
