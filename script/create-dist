@@ -85,6 +85,7 @@ BINARIES_SHARED_LIBRARY = {
   'darwin': [
     os.path.join('obj', 'base', 'libbase_static.a'),
     os.path.join('obj', 'components', 'cdm', 'renderer', 'librenderer.a'),
+    os.path.join('obj', 'net', 'libextras.a'),
     os.path.join('obj', 'net', 'libhttp_server.a'),
     os.path.join('obj', 'third_party', 'webrtc', 'rtc_base', 'librtc_base.a'),
     os.path.join('obj', 'third_party', 'webrtc', 'rtc_base', 'librtc_base_generic.a'),
@@ -107,6 +108,7 @@ BINARIES_SHARED_LIBRARY = {
   'linux': [
     os.path.join('obj', 'base', 'libbase_static.a'),
     os.path.join('obj', 'components', 'cdm', 'renderer', 'librenderer.a'),
+    os.path.join('obj', 'net', 'libextras.a'),
     os.path.join('obj', 'net', 'libhttp_server.a'),
     os.path.join('obj', 'third_party', 'webrtc', 'rtc_base', 'librtc_base.a'),
     os.path.join('obj', 'third_party', 'webrtc', 'rtc_base', 'librtc_base_generic.a'),
@@ -133,6 +135,8 @@ BINARIES_SHARED_LIBRARY = {
     os.path.join('obj', 'base', 'win', 'pe_image.lib'),
     os.path.join('obj', 'components', 'cdm', 'renderer', 'renderer_cc.pdb'),
     os.path.join('obj', 'components', 'cdm', 'renderer', 'renderer.lib'),
+    os.path.join('obj', 'net', 'extras_cc.pdb'),
+    os.path.join('obj', 'net', 'extras.lib'),
     os.path.join('obj', 'net', 'http_server_cc.pdb'),
     os.path.join('obj', 'net', 'http_server.lib'),
     os.path.join('obj', 'pdf', 'pdf_cc.pdb'),
