@@ -35,7 +35,7 @@ index dab26bdea361..8f32802a1750 100644
  
 +void* ArrayBufferContents::Realloc(void* data, size_t size) {
 +  return Partitions::ArrayBufferPartition()->Realloc(data, size,
-+    WTF_HEAP_PROFILER_TYPE_NAME(ArrayBufferContents));
++      WTF_HEAP_PROFILER_TYPE_NAME(ArrayBufferContents));
 +}
 +
  void ArrayBufferContents::FreeMemory(void* data) {
