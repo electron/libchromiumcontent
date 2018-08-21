@@ -26,7 +26,7 @@ class Patch:
 
     if commit:
       message = self.__get_commit_message(reverse)
-      patch_committed = git.commit(self.repo_path, author=self.author, message=message)
+      patch_committed = git.prepare_commit(self.repo_path, author=self.author, message=message)
       return patch_committed
 
     return True
@@ -72,6 +72,8 @@ class PatchesList:
       should_stop_now = not applied_successfully and stop_on_error
       if should_stop_now:
         break
+
+    all_patches_applied = git.finalize_commits() and all_patches_applied
 
     return (all_patches_applied, failed_patches)
 
