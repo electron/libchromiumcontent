@@ -392,6 +392,13 @@ patches:
     Dont compare RC.exe and RC.py output.
     FIXME: It has to be reverted once the script is fixed.
 -
+  author: Aleksei Kuzmin <alkuzmin@microsoft.com>
+  file: enable_widevine.patch
+  description: |
+    Turns `enable_widevine` flag on by default on Mac and Windows.
+    Electron needs that flag to be enabled on those paltforms,
+    but there's no way to conditionally set it during a `gn gen` call.
+-
   author: deepak1556 <hop2deep@gmail.com>
   file: content_browser_manifest.patch
   description: |
