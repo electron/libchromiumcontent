@@ -429,3 +429,9 @@ patches:
   description: |
     Dont compare RC.exe and RC.py output.
     FIXME: It has to be reverted once the script is fixed.
+-
+  author: deepak1556 <hop2deep@gmail.com>
+  file: content_browser_manifest.patch
+  description: |
+    Allow content_browser service to access GeolocationControl
+    interface from device service.
