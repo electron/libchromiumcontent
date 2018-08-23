@@ -349,3 +349,9 @@ patches:
   file: enable_osr_components.patch
   description: |
     Add MouseWheelPhaseHandler for OSR.
+-
+  owners: deepak1556
+  file: content_browser_manifest.patch
+  description: |
+    Allow content_browser service to access GeolocationControl
+    interface from device service.
