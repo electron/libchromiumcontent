@@ -34,6 +34,7 @@ patches:
       base/memory/weak_ptr.cc
       base/process/kill_win.cc
       components/viz/service/display/program_binding.h
+      components/viz/service/display_embedder/server_shared_bitmap_manager.cc
       content/browser/frame_host/navigation_controller_impl.cc
       content/browser/frame_host/render_frame_host_impl.cc
       content/browser/renderer_host/render_widget_host_view_mac.mm
