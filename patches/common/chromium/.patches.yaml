@@ -425,3 +425,9 @@ patches:
   description: |
     Allow content_browser service to access GeolocationControl
     interface from device service.
+-
+  author: deepak1556 <hop2deep@gmail.com>
+  file: vmware_gpu_acceleration.patch
+  description: |
+    Re-enable GPU acceleration for recent VMWare drivers.
+    Backports https://chromium-review.googlesource.com/952778
