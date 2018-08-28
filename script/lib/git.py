@@ -78,6 +78,13 @@ def get_head_commit(repo):
     return subprocess.check_output(args).strip()
 
 
+def reset(repo):
+  args = ['git', 'reset']
+
+  with scoped_cwd(repo):
+    subprocess.check_call(args)
+
+
 def commit(repo, author, message):
   """ Commit whatever in the index is now."""
 
