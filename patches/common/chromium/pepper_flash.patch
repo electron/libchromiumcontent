@@ -29,6 +29,28 @@ index a5ea92f28784..5fd8f4525f83 100644
      }
    }
  
+diff --git a/chrome/browser/renderer_host/pepper/chrome_browser_pepper_host_factory.h b/chrome/browser/renderer_host/pepper/chrome_browser_pepper_host_factory.h
+index 735da93c3cab..533f53fbc423 100644
+--- a/chrome/browser/renderer_host/pepper/chrome_browser_pepper_host_factory.h
++++ b/chrome/browser/renderer_host/pepper/chrome_browser_pepper_host_factory.h
+@@ -5,6 +5,7 @@
+ #ifndef CHROME_BROWSER_RENDERER_HOST_PEPPER_CHROME_BROWSER_PEPPER_HOST_FACTORY_H_
+ #define CHROME_BROWSER_RENDERER_HOST_PEPPER_CHROME_BROWSER_PEPPER_HOST_FACTORY_H_
+ 
++#include "base/component_export.h"
+ #include "base/macros.h"
+ #include "ppapi/host/host_factory.h"
+ 
+@@ -12,7 +13,8 @@ namespace content {
+ class BrowserPpapiHost;
+ }  // namespace content
+ 
+-class ChromeBrowserPepperHostFactory : public ppapi::host::HostFactory {
++class COMPONENT_EXPORT(PEPPER_FLASH) ChromeBrowserPepperHostFactory
++    : public ppapi::host::HostFactory {
+  public:
+   // Non-owning pointer to the filter must outlive this class.
+   explicit ChromeBrowserPepperHostFactory(content::BrowserPpapiHost* host);
 diff --git a/chrome/browser/renderer_host/pepper/pepper_broker_message_filter.cc b/chrome/browser/renderer_host/pepper/pepper_broker_message_filter.cc
 index f4f1741a8ecf..103238cdd53f 100644
 --- a/chrome/browser/renderer_host/pepper/pepper_broker_message_filter.cc
@@ -449,3 +471,23 @@ index 66a532e2cb41..e776d0e96c4a 100644
 +#endif
 +  return PP_ERROR_FAILED;
  }
+diff --git a/chrome/renderer/pepper/pepper_helper.h b/chrome/renderer/pepper/pepper_helper.h
+index e021c964da3d..e035f0fb9e2b 100644
+--- a/chrome/renderer/pepper/pepper_helper.h
++++ b/chrome/renderer/pepper/pepper_helper.h
+@@ -6,12 +6,14 @@
+ #define CHROME_RENDERER_PEPPER_PEPPER_HELPER_H_
+ 
+ #include "base/compiler_specific.h"
++#include "base/component_export.h"
+ #include "base/macros.h"
+ #include "content/public/renderer/render_frame_observer.h"
+ 
+ // This class listens for Pepper creation events from the RenderFrame and
+ // attaches the parts required for Chrome-specific plugin support.
+-class PepperHelper : public content::RenderFrameObserver {
++class COMPONENT_EXPORT(PEPPER_FLASH) PepperHelper
++    : public content::RenderFrameObserver {
+  public:
+   explicit PepperHelper(content::RenderFrame* render_frame);
+   ~PepperHelper() override;
