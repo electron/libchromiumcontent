@@ -51,3 +51,8 @@ if (target_cpu == "mips64el") {
   target_sysroot = "//build/linux/debian_jessie_mips64-sysroot"
   system_libdir = "lib64"
 }
+
+# Build with basic printing support.
+enable_basic_printing = true
+enable_print_preview = false
+pdf_enable_xfa = enable_basic_printing
