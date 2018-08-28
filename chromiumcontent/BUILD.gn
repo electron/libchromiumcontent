@@ -434,7 +434,8 @@ if (is_electron_build && !is_component_build) {
 
 }
 
-static_library("pepper_flash") {
+component("pepper_flash") {
+  defines = [ "IS_PEPPER_FLASH_IMPL" ]
   sources = [
     "//chrome/browser/renderer_host/pepper/chrome_browser_pepper_host_factory.cc",
     "//chrome/browser/renderer_host/pepper/chrome_browser_pepper_host_factory.h",
@@ -466,6 +467,8 @@ static_library("pepper_flash") {
     "//chrome/renderer/pepper/pepper_shared_memory_message_filter.h",
   ]
   deps = [
+    "//content/public/browser",
+    "//content/public/renderer",
     "//media:media_features",
     "//ppapi/host",
     "//ppapi/proxy",
@@ -474,7 +477,7 @@ static_library("pepper_flash") {
     "//services/device/public/mojom",
     "//skia",
     "//third_party/adobe/flash:flapper_version_h",
-    "//third_party/WebKit/public:blink",
+    "//ui/base",
   ]
   if (is_mac) {
     sources += [

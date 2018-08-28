@@ -26,9 +26,11 @@ STATIC_LIBRARY_SUFFIX = {
 
 EXCLUDE_SHARED_LIBRARIES = {
   'darwin': [
+    'libpepper_flash.dylib',
     'libwidevinecdm.dylib',
   ],
   'linux': [
+    'libpepper_flash.so',
     'libwidevinecdm.so',
     'libwidevinecdmadapter.so',
   ],
@@ -36,6 +38,7 @@ EXCLUDE_SHARED_LIBRARIES = {
     'd3dcompiler_47.dll',
     'libEGL.dll',
     'libGLESv2.dll',
+    'pepper_flash.dll',
     'widevinecdm.dll',
     'widevinecdmadapter.dll',
   ],
