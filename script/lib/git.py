@@ -78,53 +78,21 @@ def get_head_commit(repo):
     return subprocess.check_output(args).strip()
 
 
-commits = {}
-
-def prepare_commit(repo, author, message):
-  global commits
+def commit(repo, author, message):
   """ Commit whatever in the index is now."""
 
-  if repo not in commits:
-    commits[repo] = []
-    
-  commits[repo].append((author, message))
-
-  return True
-
-def finalize_commits():
-  global commits
-  print('\n\nfinalizing commits')
   # Let's setup committer info so git won't complain about it being missing.
   # TODO: Is there a better way to set committer's name and email?
   env = os.environ.copy()
   env['GIT_COMMITTER_NAME'] = 'Anonymous Committer'
   env['GIT_COMMITTER_EMAIL'] = 'anonymous@electronjs.org'
 
-  committed_successfully = True
+  args = ['git', 'commit',
+          '--author', author,
+          '--message', message
+          ]
 
-  for repo in commits:
-    details = commits[repo]
-    # Skip the commit when nothing to commit
-    if len(details) == 0:
-      continue
-
-    # Reset the list of commits for next time
-    commits[repo] = []
-    generated_message = 'Applied ' + str(len(details)) + ' Electron Patches\n\n'
-
-    for item in details:
-      generated_message += 'Author: ' + item[0] + '\n' + 'Message: ' + item[1] + '\n\n'
-
-    args = ['git', 'commit',
-            '--author', 'Electron Build Process <build@electronjs.org>',
-            '--message', generated_message,
-            '-n'
-            ]
-
-    with scoped_cwd(repo):
-      return_code = subprocess.call(args, env=env)
-      if not (return_code == 0):
-        print('failed to commit', repo)
-      committed_successfully = (return_code == 0) and committed_successfully
-
-  return committed_successfully
+  with scoped_cwd(repo):
+    return_code = subprocess.call(args, env=env)
+    committed_successfully = (return_code == 0)
+    return committed_successfully
