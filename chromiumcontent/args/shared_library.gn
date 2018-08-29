@@ -11,6 +11,13 @@ proprietary_codecs = true
 is_component_ffmpeg = true
 ffmpeg_branding = "Chrome"
 
+# This may be guarded behind is_chrome_branded alongside
+# proprietary_codecs https://webrtc-review.googlesource.com/c/src/+/36321,
+# explicitly override here to build OpenH264 encoder/FFmpeg decoder.
+# The initialization of the decoder depends on whether ffmpeg has
+# been built with H.264 support.
+rtc_use_h264 = true
+
 # Use the system provided standard library on platforms other than Linux.
 if (target_os != "linux") {
   use_custom_libcxx = false
