@@ -5,7 +5,7 @@ index f84934bfd712..63bce16a9d06 100644
 @@ -43,6 +43,10 @@ void* ArrayBufferAllocator::AllocateUninitialized(size_t length) {
    return malloc(length);
  }
-
+ 
 +void* ArrayBufferAllocator::Realloc(void* data, size_t length) {
 +  return realloc(data, length);
 +}
@@ -23,8 +23,8 @@ index 2aef366ac819..c037808a9bb3 100644
    void* AllocateUninitialized(size_t length) override;
 +  void* Realloc(void* data, size_t length) override;
    void Free(void* data, size_t length) override;
-
-   GIN_EXPORT static ArrayBufferAllocator* SharedInstance();
+ 
+    GIN_EXPORT static ArrayBufferAllocator* SharedInstance();
 diff --git a/third_party/WebKit/Source/platform/wtf/typed_arrays/ArrayBufferContents.cpp b/third_party/WebKit/Source/platform/wtf/typed_arrays/ArrayBufferContents.cpp
 index dab26bdea361..8f32802a1750 100644
 --- a/third_party/WebKit/Source/platform/wtf/typed_arrays/ArrayBufferContents.cpp
