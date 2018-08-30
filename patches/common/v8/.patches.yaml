@@ -1,6 +1,17 @@
 repo: src/v8
 patches:
 -
+  author: Shelley Vohr <shelley.vohr@gmail.com>
+  file: add_realloc.patch
+  description: |
+    Blink overrides ArrayBuffer's allocator with its own one, while Node simply
+    uses malloc and free, so we need to use v8's allocator in Node. As part of the
+    10.6.0 upgrade, we needed to make SerializerDelegate accept an allocator
+    argument in its constructor, and override ReallocateBufferMemory and
+    FreeBufferMemory to use the allocator. We cannot simply allocate and then memcpy
+    when we override ReallocateBufferMemory, so we therefore need to implement
+    Realloc on the v8 side.
+-
   author: Ales Pergl <alpergl@microsoft.com>
   file: build_gn.patch
   description: null
