@@ -17,16 +17,17 @@ class Patch:
     self.paths_prefix = paths_prefix
     self.repo_path = repo_path
 
-  def apply(self, reverse=False, commit=False):
+  def apply(self, reverse=False, commit=False, index=False):
     # Add the change to index only if we're going to commit it later.
-    patch_applied = git.apply(self.repo_path, self.file_path, directory=self.paths_prefix, index=commit, reverse=reverse)
+    add_to_index = index or commit
+    patch_applied = git.apply(self.repo_path, self.file_path, directory=self.paths_prefix, index=add_to_index, reverse=reverse)
 
     if not patch_applied:
       return False
 
     if commit:
       message = self.__get_commit_message(reverse)
-      patch_committed = git.prepare_commit(self.repo_path, author=self.author, message=message)
+      patch_committed = git.commit(self.repo_path, author=self.author, message=message)
       return patch_committed
 
     return True
@@ -50,9 +51,11 @@ class Patch:
 
 
 class PatchesList:
-  """A list of Patch objects with a couple of utility methods."""
+  """A list of patches for a specific git repo."""
 
-  def __init__(self, patches):
+  def __init__(self, repo_path, patches):
+    # TODO(alexeykuzmin): Make sure that all patches have the same repo_path.
+    self.repo_path = repo_path
     self.patches = patches
 
   def __len__(self):
@@ -63,7 +66,12 @@ class PatchesList:
     failed_patches = []
 
     for patch in self.patches:
-      applied_successfully = patch.apply(reverse=reverse, commit=commit)
+      # Even if `commit` is True we're not going to commit
+      # individual patches, it takes too much time in the Chromium repo.
+      # Applying all commits takes about 10 minutes (!) on a fast dev machine.
+      # Instead of it we are going only to add all changes to the index
+      # and commit them all at once later.
+      applied_successfully = patch.apply(reverse=reverse, index=commit, commit=False)
 
       if not applied_successfully:
         all_patches_applied = False
@@ -73,7 +81,13 @@ class PatchesList:
       if should_stop_now:
         break
 
-    all_patches_applied = git.finalize_commits() and all_patches_applied
+    if commit and not all_patches_applied:
+      git.reset(self.repo_path)
+
+    if commit and all_patches_applied:
+      author = 'Electron Build Process <build@electronjs.org>'
+      message = 'Apply Electron patches'
+      git.commit(self.repo_path, author=author, message=message)
 
     return (all_patches_applied, failed_patches)
 
@@ -140,7 +154,7 @@ class PatchesConfig:
     base_directory = os.path.abspath(os.path.dirname(self.path))
 
     patches = [self.__create_patch(data, base_directory, absolute_repo_path, paths_prefix) for data in patches_data]
-    patches_list = PatchesList(patches)
+    patches_list = PatchesList(repo_path=absolute_repo_path, patches=patches)
     return patches_list
 
   def get_patches_list(self):

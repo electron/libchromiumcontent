@@ -40,8 +40,9 @@ def main():
 
 
 def apply_patches(repo_path, patches_paths, force=False, reverse=False):
-  patches = [Patch(os.path.abspath(patch_path), os.path.abspath(repo_path)) for patch_path in patches_paths]
-  patches_list = PatchesList(patches)
+  absolute_repo_path = os.path.abspath(repo_path)
+  patches = [Patch(os.path.abspath(patch_path), absolute_repo_path) for patch_path in patches_paths]
+  patches_list = PatchesList(repo_path=absolute_repo_path, patches=patches)
   stop_on_error = not force
   return patches_list.apply(reverse=reverse, stop_on_error=stop_on_error)
 
