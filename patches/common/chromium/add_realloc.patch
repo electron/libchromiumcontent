@@ -25,10 +25,10 @@ index 2aef366ac819..c037808a9bb3 100644
    void Free(void* data, size_t length) override;
 
    GIN_EXPORT static ArrayBufferAllocator* SharedInstance();
-diff --git a/third_party/WebKit/Source/platform/wtf/typed_arrays/ArrayBufferContents.cpp b/third_party/WebKit/Source/platform/wtf/typed_arrays/ArrayBufferContents.cpp
-index dab26bdea361..8f32802a1750 100644
---- a/third_party/WebKit/Source/platform/wtf/typed_arrays/ArrayBufferContents.cpp
-+++ b/third_party/WebKit/Source/platform/wtf/typed_arrays/ArrayBufferContents.cpp
+diff --git a/third_party/blink/renderer/platform/wtf/typed_arrays/array_buffer_contents.cc b/third_party/blink/renderer/platform/wtf/typed_arrays/array_buffer_contents.cc
+index 053babce1051..e33d6d4ceb5a 100644
+--- a/third_party/blink/renderer/platform/wtf/typed_arrays/array_buffer_contents.cc
++++ b/third_party/blink/renderer/platform/wtf/typed_arrays/array_buffer_contents.cc
 @@ -121,6 +121,11 @@ void* ArrayBufferContents::AllocateMemoryOrNull(size_t size,
    return AllocateMemoryWithFlags(size, policy, base::PartitionAllocReturnNull);
  }
@@ -41,10 +41,10 @@ index dab26bdea361..8f32802a1750 100644
  void ArrayBufferContents::FreeMemory(void* data) {
    Partitions::ArrayBufferPartition()->Free(data);
  }
-diff --git a/third_party/WebKit/Source/platform/wtf/typed_arrays/ArrayBufferContents.h b/third_party/WebKit/Source/platform/wtf/typed_arrays/ArrayBufferContents.h
-index de63006a4bd5..4bc6c848192a 100644
---- a/third_party/WebKit/Source/platform/wtf/typed_arrays/ArrayBufferContents.h
-+++ b/third_party/WebKit/Source/platform/wtf/typed_arrays/ArrayBufferContents.h
+diff --git a/third_party/blink/renderer/platform/wtf/typed_arrays/array_buffer_contents.h b/third_party/blink/renderer/platform/wtf/typed_arrays/array_buffer_contents.h
+index 809229caa872..6248ad32d6b0 100644
+--- a/third_party/blink/renderer/platform/wtf/typed_arrays/array_buffer_contents.h
++++ b/third_party/blink/renderer/platform/wtf/typed_arrays/array_buffer_contents.h
 @@ -178,6 +178,7 @@ class WTF_EXPORT ArrayBufferContents {
    void CopyTo(ArrayBufferContents& other);
  
@@ -53,11 +53,11 @@ index de63006a4bd5..4bc6c848192a 100644
    static void FreeMemory(void*);
    static DataHandle CreateDataHandle(size_t, InitializationPolicy);
    static void Initialize(
-diff --git a/third_party/WebKit/Source/bindings/core/v8/V8Initializer.cpp b/third_party/WebKit/Source/bindings/core/v8/V8Initializer.cpp
-index ff61ebc2306b..a8361a56c7d1 100644
---- a/third_party/WebKit/Source/bindings/core/v8/V8Initializer.cpp
-+++ b/third_party/WebKit/Source/bindings/core/v8/V8Initializer.cpp
-@@ -557,6 +557,10 @@ class ArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
+diff --git a/third_party/blink/renderer/bindings/core/v8/v8_initializer.cc b/third_party/blink/renderer/bindings/core/v8/v8_initializer.cc
+index cf2762ede559..f065b5ebafb8 100644
+--- a/third_party/blink/renderer/bindings/core/v8/v8_initializer.cc
++++ b/third_party/blink/renderer/bindings/core/v8/v8_initializer.cc
+@@ -555,6 +555,10 @@ class ArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
          size, WTF::ArrayBufferContents::kDontInitialize);
    }
  
