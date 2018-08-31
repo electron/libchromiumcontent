@@ -53,11 +53,11 @@ index 809229caa872..6248ad32d6b0 100644
    static void FreeMemory(void*);
    static DataHandle CreateDataHandle(size_t, InitializationPolicy);
    static void Initialize(
-diff --git a/third_party/WebKit/Source/bindings/core/v8/V8Initializer.cpp b/third_party/WebKit/Source/bindings/core/v8/V8Initializer.cpp
-index ff61ebc2306b..a8361a56c7d1 100644
---- a/third_party/WebKit/Source/bindings/core/v8/V8Initializer.cpp
-+++ b/third_party/WebKit/Source/bindings/core/v8/V8Initializer.cpp
-@@ -557,6 +557,10 @@ class ArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
+diff --git a/third_party/blink/renderer/bindings/core/v8/v8_initializer.cc b/third_party/blink/renderer/bindings/core/v8/v8_initializer.cc
+index cf2762ede559..f065b5ebafb8 100644
+--- a/third_party/blink/renderer/bindings/core/v8/v8_initializer.cc
++++ b/third_party/blink/renderer/bindings/core/v8/v8_initializer.cc
+@@ -555,6 +555,10 @@ class ArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
          size, WTF::ArrayBufferContents::kDontInitialize);
    }
  
