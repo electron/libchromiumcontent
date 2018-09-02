@@ -6,6 +6,7 @@ is_official_build = true
 symbol_level = 2
 enable_nacl = false
 enable_widevine = true
+enable_cdm_host_verification = false
 proprietary_codecs = true
 is_component_ffmpeg = true
 ffmpeg_branding = "Chrome"

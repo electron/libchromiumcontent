@@ -2,6 +2,7 @@ import("//build/config/c++/c++.gni")
 import("//build/config/features.gni")
 import("//build/split_static_library.gni")
 import("//libchromiumcontent/chromiumcontent/config/features.gni")
+import("//third_party/widevine/cdm/widevine.gni")
 
 group("targets") {
   deps = []
@@ -11,7 +12,6 @@ group("targets") {
   if (is_electron_build) {
     deps += [
       "//components/prefs",
-      "//components/cdm/renderer",
       "//components/cookie_config",
       "//components/security_state/content",
       "//components/security_state/core",
@@ -28,8 +28,6 @@ group("targets") {
       "//net:net_with_v8",
       "//third_party/libyuv",
       "//third_party/webrtc/modules/desktop_capture",
-      "//third_party/widevine/cdm:headers",
-      "//third_party/widevine/cdm:widevinecdmadapter",
       "//tools/v8_context_snapshot",
       "//ui/content_accelerators",
       "//ui/display",
@@ -45,6 +43,10 @@ group("targets") {
 
     if (enable_pepper_flash) {
       deps += [ ":pepper_flash" ]
+    }
+
+    if (enable_widevine) {
+      deps += [ ":cdm_support" ]
     }
 
     if (is_component_build) {
@@ -485,4 +487,22 @@ component("pepper_flash") {
       "//chrome/browser/renderer_host/pepper/monitor_finder_mac.mm",
     ]
   }
+}
+
+static_library("cdm_support") {
+  sources = [
+    "//chrome/common/widevine_cdm_constants.cc",
+    "//chrome/common/widevine_cdm_constants.h",
+    "//chrome/renderer/media/chrome_key_systems.cc",
+    "//chrome/renderer/media/chrome_key_systems.h",
+    "//chrome/renderer/media/chrome_key_systems_provider.cc",
+    "//chrome/renderer/media/chrome_key_systems_provider.h",
+  ]
+  public_deps = [
+    "//media",
+  ]
+  deps = [
+    "//components/cdm/renderer",
+    "//third_party/widevine/cdm:headers",
+  ]
 }

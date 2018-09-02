@@ -7,6 +7,7 @@ symbol_level = 2
 use_allocator = "none"    # on Linux this defaults to "tcmalloc", but tcmalloc deadlocks when Electron CI tests are run inside Docker
 enable_nacl = false
 enable_widevine = true
+enable_cdm_host_verification = false
 proprietary_codecs = true
 is_component_ffmpeg = true
 ffmpeg_branding = "Chrome"
