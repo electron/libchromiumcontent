@@ -417,12 +417,6 @@ patches:
     interface from device service.
 -
   author: deepak1556 <hop2deep@gmail.com>
-  file: vmware_gpu_acceleration.patch
-  description: |
-    Re-enable GPU acceleration for recent VMWare drivers.
-    Backports https://chromium-review.googlesource.com/952778
--
-  author: deepak1556 <hop2deep@gmail.com>
   file: chrome_key_systems.patch
   description: |
     Disable persiste licence support check for widevine cdm,
