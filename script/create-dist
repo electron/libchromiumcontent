@@ -242,6 +242,8 @@ INCLUDE_DIRS = [
   'cc',
   'chrome/browser/renderer_host/pepper',
   'chrome/browser/ui/libgtkui',
+  'chrome/common',
+  'chrome/renderer/media',
   'chrome/renderer/pepper',
   'components/cdm',
   'components/component_updater',
@@ -582,6 +584,12 @@ def copy_generated_sources(target_arch, component, ninja):
                  relative_to=os.path.join(output_dir, 'gen'),
                  destination=os.path.join(target_dir, 'gen'),
                  ninja=ninja)
+  if component == 'static_library' or component == 'shared_library':
+    # Copy widevine cdm generated header.
+    copy_source_file(os.path.join(output_dir, 'gen', 'widevine_cdm_version.h'),
+                     relative_to=os.path.join(output_dir, 'gen'),
+                     destination=os.path.join(target_dir, 'gen'),
+                     ninja=ninja)
 
 def copy_locales(target_arch, component, ninja):
   output_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
@@ -625,7 +633,6 @@ def copy_headers(relative_path, relative_to, destination, ninja):
       if os.path.splitext(filename)[1] != '.h':
         continue
       copy_source_file(os.path.join(dirpath, filename), relative_to=relative_to, destination=destination, ninja=ninja)
-
 
 def copy_source_file(absolute_path, relative_to, destination, ninja):
   relative_path = os.path.relpath(absolute_path, start=relative_to)
