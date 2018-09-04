@@ -4,3 +4,9 @@ patches:
   author: Jeremy Apthorp <nornagon@nornagon.net>
   file: 0001-Implement-legacy-OCSP-APIs-for-libssl.patch
   description: see patch header
+-
+  author: Aleksei Kuzmin <alkuzmin@microsoft.com>
+  file: implement-SSL_get_tlsext_status_type.patch
+  description: |
+    BoringSSL doesn't implement `SSL_get_tlsext_status_type()`,
+    but Node.js expects it to be present cause OpenSSL has it.
