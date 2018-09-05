@@ -448,3 +448,12 @@ patches:
   description: |
     Disable persiste licence support check for widevine cdm,
     as its not supported in the current version of chrome.
+-
+  author: Samuel Attard <samuel.r.attard@gmail.com>
+  file: blink_initialization_order.patch
+  description: |
+    Backport of https://chromium-review.googlesource.com/c/chromium/src/+/1030530
+    to fix the order of V8 and Blink initialization.  Also fixes order
+    of DidCreateScriptContext notification with initialization of window globals
+    to fix electron/electron#13787.  The backport landed in Chromium 67 but the
+    DidCreateScriptContext re-ordering needs to be upstreamed or kept indefinitely

@@ -1,0 +1,37 @@
+diff --git a/third_party/WebKit/Source/bindings/core/v8/LocalWindowProxy.cpp b/third_party/WebKit/Source/bindings/core/v8/LocalWindowProxy.cpp
+index 33d958fb31ae..47efe62650aa 100644
+--- a/third_party/WebKit/Source/bindings/core/v8/LocalWindowProxy.cpp
++++ b/third_party/WebKit/Source/bindings/core/v8/LocalWindowProxy.cpp
+@@ -170,11 +170,11 @@ void LocalWindowProxy::Initialize() {
+                  GetFrame()->IsMainFrame());
+     MainThreadDebugger::Instance()->ContextCreated(script_state_.get(),
+                                                    GetFrame(), origin);
++
++    InstallConditionalFeatures();
+     GetFrame()->Client()->DidCreateScriptContext(context, world_->GetWorldId());
+   }
+ 
+-  InstallConditionalFeatures();
+-
+   if (World().IsMainWorld()) {
+     GetFrame()->Loader().DispatchDidClearWindowObjectInMainWorld();
+   }
+diff --git a/third_party/WebKit/Source/controller/BlinkInitializer.cpp b/third_party/WebKit/Source/controller/BlinkInitializer.cpp
+index bcb85bad6605..ef4da3e40a02 100644
+--- a/third_party/WebKit/Source/controller/BlinkInitializer.cpp
++++ b/third_party/WebKit/Source/controller/BlinkInitializer.cpp
+@@ -102,11 +102,12 @@ void Initialize(Platform* platform, service_manager::BinderRegistry* registry) {
+ #endif  // !defined(ARCH_CPU_X86_64) && !defined(ARCH_CPU_ARM64) &&
+         // defined(OS_WIN)
+ 
++  // BlinkInitializer::Initialize() must be called before InitializeMainThread
++  GetBlinkInitializer().Initialize();
++
+   V8Initializer::InitializeMainThread(
+       V8ContextSnapshotExternalReferences::GetTable());
+ 
+-  GetBlinkInitializer().Initialize();
+-
+   GetBlinkInitializer().RegisterInterfaces(*registry);
+ 
+   // currentThread is null if we are running on a thread without a message loop.
