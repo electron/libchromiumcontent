@@ -450,7 +450,7 @@ patches:
     as its not supported in the current version of chrome.
 -
   author: Charles Kerr <charles@charleskerr.com>
-  file: allow-nested-error-trackers.patch
+  file: allow_nested_error_trackers.patch
   description: |
     Only one X11ErrorTracker should exist at a time, but upstream has a bug
     where two can exist if running in headless mode -- 
