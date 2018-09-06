@@ -449,6 +449,25 @@ patches:
     Disable persiste licence support check for widevine cdm,
     as its not supported in the current version of chrome.
 -
+  author: Charles Kerr <charles@charleskerr.com>
+  file: allow_nested_error_trackers.patch
+  description: |
+    Only one X11ErrorTracker should exist at a time, but upstream has a bug
+    where two can exist if running in headless mode -- 
+      ui::(anonymous namespace)::SupportsEWMH() [inner tracker is created]
+      ui::WmSupportsHint()
+      ui::IsX11WindowFullScreen()
+      ui::ScreensaverWindowFinder::IsScreensaverWindow()
+      ui::ScreensaverWindowFinder::ShouldStopIterating()
+      ui::EnumerateTopLevelWindows()
+      ui::ScreensaverWindowFinder::ScreensaverWindowExists() [outer tracker created]
+      ui::CheckIdleStateIsLocked()
+      ui::CalculateIdleState()
+    Removal of either tracker could have side-effects in some code paths,
+    so this is probably better handled upstream. This patch tries to do the
+    least harm in the interim by removing the check that prevents more than
+    one tracker from existing at a time.
+-
   author: Samuel Attard <samuel.r.attard@gmail.com>
   file: blink_initialization_order.patch
   description: |
