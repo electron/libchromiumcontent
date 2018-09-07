@@ -389,3 +389,12 @@ patches:
     of DidCreateScriptContext notification with initialization of window globals
     to fix electron/electron#13787.  The backport landed in Chromium 67 but the
     DidCreateScriptContext re-ordering needs to be upstreamed or kept indefinitely
+-
+  author: zcbenz <zcbenz@gmail.com>
+  file: disable_detach_webview_frame.patch
+  description: |
+    Don't detach the frame for webview, we will manage the WebContents
+    manually.
+    This is part of the fixes for https://github.com/electron/electron/issues/14211.
+    We should revisit this bug after upgrading to newer versions of Chrome,
+    this patch was introduced in Chrome 66.
