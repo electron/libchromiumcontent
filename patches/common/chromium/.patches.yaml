@@ -485,3 +485,8 @@ patches:
     This is part of the fixes for https://github.com/electron/electron/issues/14211.
     We should revisit this bug after upgrading to newer versions of Chrome,
     this patch was introduced in Chrome 66.
+-
+  author: deepak1556 <hop2deep@gmail.com>
+  file: ssl_security_state_tab_helper.patch
+  description: |
+    Allows populating security tab info for devtools in Electron.
