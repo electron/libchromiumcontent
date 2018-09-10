@@ -463,3 +463,10 @@ patches:
   file: ssl_security_state_tab_helper.patch
   description: |
     Allows populating security tab info for devtools in Electron.
+-
+  author: Jeremy Apthorp <jeremya@chromium.org>
+  file: leveldb_ssize_t.patch
+  description: |
+    Fix conflict between leveldb & node's definition of ssize_t on
+    Windows by preventing leveldb from re-defining the type if it's
+    already defined.
