@@ -458,3 +458,10 @@ patches:
     This is part of the fixes for https://github.com/electron/electron/issues/14211.
     We should revisit this bug after upgrading to newer versions of Chrome,
     this patch was introduced in Chrome 66.
+-
+  author: Jeremy Apthorp <jeremya@chromium.org>
+  file: leveldb_ssize_t.patch
+  description: |
+    Fix conflict between leveldb & node's definition of ssize_t on
+    Windows by preventing leveldb from re-defining the type if it's
+    already defined.
