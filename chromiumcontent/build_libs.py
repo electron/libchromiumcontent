@@ -143,10 +143,12 @@ with open(args.out, 'w') as out:
         out,
         "obj_components",
         [
+            "components/apdu",
             "components/autofill/core/common",
             "components/bitmap_uploader",
             "components/cbor",
             "components/cdm",
+            "components/certificate_transparency",
             "components/cookie_config",
             "components/crash/core/common",
             "components/device_event_log",
@@ -154,8 +156,6 @@ with open(args.out, 'w') as out:
             "components/display_compositor",
             "components/download",
             "components/filename_generation",
-            "components/filesystem",
-            "components/leveldb",
             "components/leveldb_proto",
             "components/link_header_util",
             "components/memory_coordinator",
@@ -177,10 +177,13 @@ with open(args.out, 'w') as out:
             "components/scheduler/common",
             "components/scheduler/scheduler",
             "components/security_state",
+            "components/services/filesystem",
+            "components/services/leveldb",
             "components/tracing/proto",
             "components/tracing/startup_tracing",
             "components/tracing/tracing",
             "components/url_formatter",
+            "components/url_matcher",
             "components/variations",
             "components/vector_icons",
             "components/viz/client",
@@ -290,37 +293,36 @@ with open(args.out, 'w') as out:
 
     gen_list(
         out,
-        "obj_webkit",
+        "obj_blink",
         [
-            "third_party/WebKit/common",
-            "third_party/WebKit/public",
-            "third_party/WebKit/Source/controller",
-            "third_party/WebKit/Source/platform",
-            "third_party/WebKit/Source/web",
+            "third_party/blink/common",
+            "third_party/blink/public",
+            "third_party/blink/renderer/controller",
+            "third_party/blink/renderer/platform",
         ],
         [
-            "third_party/WebKit/Source/platform/character_data_generator"
+            "third_party/blink/renderer/platform/character_data_generator"
         ])
 
     gen_list(
         out,
-        "obj_webkitcore",
+        "obj_blinkcore",
         [
-            "third_party/WebKit/Source/core",
+            "third_party/blink/renderer/core",
         ])
 
     gen_list(
         out,
-        "obj_webkitbindings",
+        "obj_blinkbindings",
         [
-            "third_party/WebKit/Source/bindings",
+            "third_party/blink/renderer/bindings",
         ])
 
     gen_list(
         out,
-        "obj_webkitmodules",
+        "obj_blinkmodules",
         [
-            "third_party/WebKit/Source/modules",
+            "third_party/blink/renderer/modules",
         ])
 
     gen_list(

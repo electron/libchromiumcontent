@@ -39,10 +39,6 @@ patches:
     Disable unit test windows build warning
 -
   author: Aleksei Kuzmin <alkuzmin@microsoft.com>
-  file: backport_b767cde1e7.patch
-  description: Node 10.0.0 needs it.
--
-  author: Aleksei Kuzmin <alkuzmin@microsoft.com>
   file: backport_39d546a.patch
   description: Node 10.0.0 needs it.
 -
@@ -58,16 +54,34 @@ patches:
   file: backport_23652c5f.patch
   description: Node 10.2.0 needs it.
 -
-  author: Aleksei Kuzmin <alkuzmin@microsoft.com>
-  file: backport_b49206d.patch
-  description: Node 10.2.0 needs it.
+  author: Shelley Vohr <shelley.vohr@gmail.com>
+  file: backport_91ddb65d.patch
+  description: Node 10.6.0 needs it.
 -
-  author: Nitish Sakhawalkar <nitsakh@icloud.com>
-  file: backport_50206308.patch
-  description: |
-    Part (1/2) of backporting the array splice perf regression caused in ch66
+  author: Shelley Vohr <shelley.vohr@gmail.com>
+  file: cherry-pick_6989b3f6d7.patch
+  description: Node 10.6.0 needs it.
 -
-  author: Nitish Sakhawalkar <nitsakh@icloud.com>
-  file: backport_2eb23a17.patch
-  description: |
-    Part (2/2) of backporting the array splice perf regression caused in ch66
+  author: Shelley Vohr <shelley.vohr@gmail.com>
+  file: cherry-pick_a440efb27f.patch
+  description: Node 10.6.0 needs it.
+-
+  author: Shelley Vohr <shelley.vohr@gmail.com>
+  file: cherry-pick_5dd3395.patch
+  description: Node 10.6.0 needs it.
+-
+  author: Shelley Vohr <shelley.vohr@gmail.com>
+  file: backport_aa6ce3e.patch
+  description: Node 10.6.0 needs it.
+-
+  author: Shelley Vohr <shelley.vohr@gmail.com>
+  file: cherry-pick_b20faff.patch
+  description: Node 10.6.0 needs it.
+-
+  author: Shelley Vohr <shelley.vohr@gmail.com>
+  file: cherry-pick_acc336c.patch
+  description: Node 10.6.0 needs it.
+-
+  author: Shelley Vohr <shelley.vohr@gmail.com>
+  file: cherry-pick_70c4340.patch
+  description: Node 10.6.0 needs it.

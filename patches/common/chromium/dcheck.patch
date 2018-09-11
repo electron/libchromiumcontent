@@ -107,20 +107,20 @@ index 346765edaef9..a30e87bfcda6 100644
  
    if (render_frame_created_) {
      if (!frame_bindings_control_)
-diff --git a/content/browser/renderer_host/render_widget_host_view_mac.mm b/content/browser/renderer_host/render_widget_host_view_mac.mm
-index 79e4cc1a0479..19ba3236477e 100644
---- a/content/browser/renderer_host/render_widget_host_view_mac.mm
-+++ b/content/browser/renderer_host/render_widget_host_view_mac.mm
-@@ -2093,8 +2104,8 @@ - (void)keyEvent:(NSEvent*)theEvent wasKeyEquivalent:(BOOL)equiv {
+diff --git a/content/browser/renderer_host/render_widget_host_view_cocoa.mm b/content/browser/renderer_host/render_widget_host_view_cocoa.mm
+index 8ee84cdafbde..c7ad6fa8c75f 100644
+--- a/content/browser/renderer_host/render_widget_host_view_cocoa.mm
++++ b/content/browser/renderer_host/render_widget_host_view_cocoa.mm
+@@ -618,8 +618,8 @@ void ExtractUnderlines(NSAttributedString* string,
    if (EventIsReservedBySystem(theEvent))
      return;
  
--  DCHECK([theEvent type] != NSKeyDown ||
--         !equiv == !([theEvent modifierFlags] & NSCommandKeyMask));
-+  //DCHECK([theEvent type] != NSKeyDown ||
-+  //       !equiv == !([theEvent modifierFlags] & NSCommandKeyMask));
+-  DCHECK(eventType != NSKeyDown ||
+-         !equiv == !(modifierFlags & NSCommandKeyMask));
++  // DCHECK(eventType != NSKeyDown ||
++  //       !equiv == !(modifierFlags & NSCommandKeyMask));
  
-   if ([theEvent type] == NSFlagsChanged) {
+   if (eventType == NSFlagsChanged) {
      // Ignore NSFlagsChanged events from the NumLock and Fn keys as
 diff --git a/ppapi/host/ppapi_host.cc b/ppapi/host/ppapi_host.cc
 index f3c68fab3de6..b8609daf3ef9 100644
@@ -135,13 +135,13 @@ index f3c68fab3de6..b8609daf3ef9 100644
      return;
    }
  
-diff --git a/third_party/WebKit/Source/core/loader/BUILD.gn b/third_party/WebKit/Source/core/loader/BUILD.gn
-index 4da843f7f712..f07f24a07ef2 100644
---- a/third_party/WebKit/Source/core/loader/BUILD.gn
-+++ b/third_party/WebKit/Source/core/loader/BUILD.gn
-@@ -136,4 +136,11 @@ blink_core_sources("loader") {
+diff --git a/third_party/blink/renderer/core/loader/BUILD.gn b/third_party/blink/renderer/core/loader/BUILD.gn
+index 82f6e8bc9d33..ccad95d61a4a 100644
+--- a/third_party/blink/renderer/core/loader/BUILD.gn
++++ b/third_party/blink/renderer/core/loader/BUILD.gn
+@@ -129,4 +129,11 @@ blink_core_sources("loader") {
    public_deps = [
-     "//third_party/WebKit/Source/platform",
+     "//third_party/blink/renderer/platform",
    ]
 +
 +  if (is_electron_build) {
@@ -151,10 +151,10 @@ index 4da843f7f712..f07f24a07ef2 100644
 +    defines += [ "ELECTRON_NO_DCHECK" ]
 +  }
  }
-diff --git a/third_party/WebKit/Source/core/dom/Node.cpp b/third_party/WebKit/Source/core/dom/Node.cpp
+diff --git a/third_party/blink/renderer/core/dom/node.cc b/third_party/blink/renderer/core/dom/node.cc
 index 922a2561bcef..e31fa34f98ea 100644
---- a/third_party/WebKit/Source/core/dom/Node.cpp
-+++ b/third_party/WebKit/Source/core/dom/Node.cpp
+--- a/third_party/blink/renderer/core/dom/node.cc
++++ b/third_party/blink/renderer/core/dom/node.cc
 @@ -2435,7 +2435,7 @@ StaticNodeList* Node::getDestinationInsertionPoints() {
  
  HTMLSlotElement* Node::AssignedSlot() const {
@@ -164,11 +164,11 @@ index 922a2561bcef..e31fa34f98ea 100644
    if (ShadowRoot* root = V1ShadowRootOfParent())
      return root->AssignedSlotFor(*this);
    return nullptr;
-diff --git a/third_party/WebKit/Source/platform/wtf/text/StringImpl.h b/third_party/WebKit/Source/platform/wtf/text/StringImpl.h
-index d3f0bccaee19..f58019d00e93 100644
---- a/third_party/WebKit/Source/platform/wtf/text/StringImpl.h
-+++ b/third_party/WebKit/Source/platform/wtf/text/StringImpl.h
-@@ -254,21 +254,21 @@ class WTF_EXPORT StringImpl {
+diff --git a/third_party/blink/renderer/platform/wtf/text/string_impl.h b/third_party/blink/renderer/platform/wtf/text/string_impl.h
+index 158d81ca9ba2..1b6aafecadef 100644
+--- a/third_party/blink/renderer/platform/wtf/text/string_impl.h
++++ b/third_party/blink/renderer/platform/wtf/text/string_impl.h
+@@ -258,21 +258,21 @@ class WTF_EXPORT StringImpl {
    }
  
    ALWAYS_INLINE bool HasOneRef() const {
@@ -238,17 +238,17 @@ index 674b0e9a909c..a1bff6e40f56 100644
       DCHECK(*base_computed_style_ == *computed_style);
   #endif
 diff --git a/base/process/process_metrics_win.cc b/base/process/process_metrics_win.cc
-index 61f0bf4ad06f..259783ad67a1 100644
+index faabdbf63a2a..ba56e4cd994c 100644
 --- a/base/process/process_metrics_win.cc
 +++ b/base/process/process_metrics_win.cc
-@@ -326,10 +326,9 @@ bool ProcessMetrics::GetIOCounters(IoCounters* io_counters) const {
+@@ -179,10 +179,9 @@ bool ProcessMetrics::GetIOCounters(IoCounters* io_counters) const {
  ProcessMetrics::ProcessMetrics(ProcessHandle process) : last_system_time_(0) {
    if (process) {
-     HANDLE duplicate_handle;
+     HANDLE duplicate_handle = INVALID_HANDLE_VALUE;
 -    BOOL result = ::DuplicateHandle(::GetCurrentProcess(), process,
 -                                    ::GetCurrentProcess(), &duplicate_handle,
 -                                    PROCESS_QUERY_INFORMATION, FALSE, 0);
--    DCHECK(result);
+-    DPCHECK(result);
 +    ::DuplicateHandle(::GetCurrentProcess(), process,
 +                      ::GetCurrentProcess(), &duplicate_handle,
 +                      PROCESS_QUERY_INFORMATION, FALSE, 0);
