@@ -1,0 +1,56 @@
+diff --git a/net/proxy/dhcp_proxy_script_fetcher_win.cc b/net/proxy/dhcp_proxy_script_fetcher_win.cc
+index 8685084dc67f..722a16fed200 100644
+--- a/net/proxy/dhcp_proxy_script_fetcher_win.cc
++++ b/net/proxy/dhcp_proxy_script_fetcher_win.cc
+@@ -50,6 +50,33 @@ const int kMaxWaitAfterFirstResultMs = 400;
+ 
+ namespace net {
+ 
++namespace {
++
++// Returns true if |adapter| should be considered when probing for WPAD via
++// DHCP.
++bool IsDhcpCapableAdapter(IP_ADAPTER_ADDRESSES* adapter) {
++  if (adapter->IfType == IF_TYPE_SOFTWARE_LOOPBACK)
++    return false;
++  if ((adapter->Flags & IP_ADAPTER_DHCP_ENABLED) == 0)
++    return false;
++
++  // Don't probe interfaces which are not up and ready to pass packets.
++  //
++  // This is a speculative fix for https://crbug.com/770201, in case calling
++  // dhcpsvc!DhcpRequestParams on interfaces that aren't ready yet blocks for
++  // a long time.
++  //
++  // Since ProxyResolutionService restarts WPAD probes in response to other
++  // network level changes, this will likely get called again once the
++  // interface is up.
++  if (adapter->OperStatus != IfOperStatusUp)
++    return false;
++
++  return true;
++}
++
++}  // namespace
++
+ DhcpProxyScriptFetcherWin::DhcpProxyScriptFetcherWin(
+     URLRequestContext* url_request_context)
+     : state_(STATE_START),
+@@ -369,13 +396,10 @@ bool DhcpProxyScriptFetcherWin::GetCandidateAdapterNames(
+ 
+   IP_ADAPTER_ADDRESSES* adapter = NULL;
+   for (adapter = adapters.get(); adapter; adapter = adapter->Next) {
+-    if (adapter->IfType == IF_TYPE_SOFTWARE_LOOPBACK)
+-      continue;
+-    if ((adapter->Flags & IP_ADAPTER_DHCP_ENABLED) == 0)
+-      continue;
+-
+-    DCHECK(adapter->AdapterName);
+-    adapter_names->insert(adapter->AdapterName);
++    if (IsDhcpCapableAdapter(adapter)) {
++      DCHECK(adapter->AdapterName);
++      adapter_names->insert(adapter->AdapterName);
++    }
+   }
+ 
+   return true;
