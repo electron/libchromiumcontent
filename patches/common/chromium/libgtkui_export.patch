@@ -1,0 +1,21 @@
+diff --git a/chrome/browser/ui/libgtkui/gtk_util.h b/chrome/browser/ui/libgtkui/gtk_util.h
+index 665ec57..4ccb088 100644
+--- a/chrome/browser/ui/libgtkui/gtk_util.h
++++ b/chrome/browser/ui/libgtkui/gtk_util.h
+@@ -11,6 +11,7 @@
+ #include "ui/base/glib/scoped_gobject.h"
+ #include "ui/native_theme/native_theme.h"
+ #include "ui/views/window/frame_buttons.h"
++#include "chrome/browser/ui/libgtkui/libgtkui_export.h"
+ 
+ namespace aura {
+ class Window;
+@@ -190,7 +190,7 @@ void RenderBackground(const gfx::Size& size,
+ // Renders a background from the style context created by
+ // GetStyleContextFromCss(|css_selector|) into a 24x24 bitmap and
+ // returns the average color.
+-SkColor GetBgColor(const std::string& css_selector);
++LIBGTKUI_EXPORT SkColor GetBgColor(const std::string& css_selector);
+ 
+ // Renders the border from the style context created by
+ // GetStyleContextFromCss(|css_selector|) into a 24x24 bitmap and
