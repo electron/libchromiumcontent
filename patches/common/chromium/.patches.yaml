@@ -398,3 +398,8 @@ patches:
     This is part of the fixes for https://github.com/electron/electron/issues/14211.
     We should revisit this bug after upgrading to newer versions of Chrome,
     this patch was introduced in Chrome 66.
+-
+  author: Shelley Vohr <shelley.vohr@gmail.com>
+  file: libgtkui_export.patch
+  description: |
+    Export libgtkui symbols for the GN component build.
