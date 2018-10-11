@@ -403,3 +403,12 @@ patches:
   file: libgtkui_export.patch
   description: |
     Export libgtkui symbols for the GN component build.
+-
+  author: zcbenz <zcbenz@gmail.com>
+  file: web_preferences.patch
+  description: |
+    Add a node_integration field to WebPreferences so we can determine whether
+    a frame has node integration in renderer process.
+
+    This is required by the nativeWindowOpen option, which put multiple main
+    frames in one renderer process.
