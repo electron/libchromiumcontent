@@ -1,0 +1,26 @@
+diff --git a/content/public/common/common_param_traits_macros.h b/content/public/common/common_param_traits_macros.h
+index 6b1fa1c..474eaa0 100644
+--- a/content/public/common/common_param_traits_macros.h
++++ b/content/public/common/common_param_traits_macros.h
+@@ -191,6 +191,7 @@ IPC_STRUCT_TRAITS_BEGIN(content::WebPreferences)
+   IPC_STRUCT_TRAITS_MEMBER(animation_policy)
+   IPC_STRUCT_TRAITS_MEMBER(user_gesture_required_for_presentation)
+   IPC_STRUCT_TRAITS_MEMBER(text_track_margin_percentage)
++  IPC_STRUCT_TRAITS_MEMBER(node_integration)
+   IPC_STRUCT_TRAITS_MEMBER(save_previous_document_resources)
+ #if defined(OS_ANDROID)
+   IPC_STRUCT_TRAITS_MEMBER(text_autosizing_enabled)
+diff --git a/content/public/common/web_preferences.h b/content/public/common/web_preferences.h
+index 43606a7..d20b433 100644
+--- a/content/public/common/web_preferences.h
++++ b/content/public/common/web_preferences.h
+@@ -210,6 +210,9 @@ struct CONTENT_EXPORT WebPreferences {
+   // Cues will not be placed in this margin area.
+   float text_track_margin_percentage;
+ 
++  // Electron: Whether the frame has node integration.
++  bool node_integration = false;
++
+   bool immersive_mode_enabled;
+ 
+ #if defined(OS_ANDROID)
