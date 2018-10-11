@@ -1,0 +1,26 @@
+diff --git a/content/public/common/common_param_traits_macros.h b/content/public/common/common_param_traits_macros.h
+index 41bd254..2b888d2 100644
+--- a/content/public/common/common_param_traits_macros.h
++++ b/content/public/common/common_param_traits_macros.h
+@@ -213,6 +213,7 @@ IPC_STRUCT_TRAITS_BEGIN(content::WebPreferences)
+   IPC_STRUCT_TRAITS_MEMBER(animation_policy)
+   IPC_STRUCT_TRAITS_MEMBER(user_gesture_required_for_presentation)
+   IPC_STRUCT_TRAITS_MEMBER(text_track_margin_percentage)
++  IPC_STRUCT_TRAITS_MEMBER(node_integration)
+ #if defined(OS_ANDROID)
+   IPC_STRUCT_TRAITS_MEMBER(text_autosizing_enabled)
+   IPC_STRUCT_TRAITS_MEMBER(font_scale_factor)
+diff --git a/content/public/common/web_preferences.h b/content/public/common/web_preferences.h
+index 5c97e2d..675e350 100644
+--- a/content/public/common/web_preferences.h
++++ b/content/public/common/web_preferences.h
+@@ -216,6 +216,9 @@ struct CONTENT_EXPORT WebPreferences {
+ 
+   bool page_popups_suppressed;
+ 
++  // Electron: Whether the frame has node integration.
++  bool node_integration = false;
++
+ #if defined(OS_ANDROID)
+   bool text_autosizing_enabled;
+   float font_scale_factor;
