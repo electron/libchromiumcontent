@@ -60,3 +60,9 @@ patches:
   file: backport_2eb23a17.patch
   description: |
     Part (2/2) of backporting the array splice perf regression caused in ch66
+-
+  owners: marshallofsound
+  file: promise_all_closure.patch
+  description: |
+    Backports a fix for Promise.all closures.
+    Refs - https://chromium-review.googlesource.com/c/v8/v8/+/957090
