@@ -67,9 +67,17 @@ BINARIES = {
   ],
   'darwin': [
     'libffmpeg.dylib',
+    'libicui18n.dylib',
+    'libicuuc.dylib',
+    'libv8.dylib',
+    'v8_context_snapshot_generator',
   ],
   'linux': [
     'libffmpeg.so',
+    'libicui18n.so',
+    'libicuuc.so',
+    'libv8.so',
+    'v8_context_snapshot_generator',
   ],
   'win32': [
     'd3dcompiler_47.dll',
@@ -77,7 +85,11 @@ BINARIES = {
     'ffmpeg.dll.lib',
     'libEGL.dll',
     'libGLESv2.dll',
+    'libicui18n.dll',
+    'libicuuc.dll',
+    'libv8.dll',
     os.path.join('gen', 'ui', 'resources', 'ui_unscaled_resources.rc'),
+    'v8_context_snapshot_generator.exe',
   ],
 }
 
