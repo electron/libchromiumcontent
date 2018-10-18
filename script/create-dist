@@ -67,17 +67,9 @@ BINARIES = {
   ],
   'darwin': [
     'libffmpeg.dylib',
-    'libicui18n.dylib',
-    'libicuuc.dylib',
-    'libv8.dylib',
-    'v8_context_snapshot_generator',
   ],
   'linux': [
     'libffmpeg.so',
-    'libicui18n.so',
-    'libicuuc.so',
-    'libv8.so',
-    'v8_context_snapshot_generator',
   ],
   'win32': [
     'd3dcompiler_47.dll',
@@ -85,10 +77,27 @@ BINARIES = {
     'ffmpeg.dll.lib',
     'libEGL.dll',
     'libGLESv2.dll',
-    'libicui18n.dll',
-    'libicuuc.dll',
-    'libv8.dll',
     os.path.join('gen', 'ui', 'resources', 'ui_unscaled_resources.rc'),
+  ],
+}
+
+V8_SNAPSHOT_BINARIES = {
+  'darwin': [
+    'libicui18n.dylib',
+    'libicuuc.dylib',
+    'libv8.dylib',
+    'v8_context_snapshot_generator',
+  ],
+  'linux': [
+    'libicui18n.so',
+    'libicuuc.so',
+    'libv8.so',
+    'v8_context_snapshot_generator',
+  ],
+  'win32': [
+    'icui18n.dll',
+    'icuuc.dll',
+    'v8.dll',
     'v8_context_snapshot_generator.exe',
   ],
 }
@@ -496,6 +505,16 @@ def copy_binaries(target_arch, component, create_debug_archive,
   binaries = BINARIES['all'] + BINARIES[TARGET_PLATFORM]
   if component == 'shared_library':
     binaries += BINARIES_SHARED_LIBRARY[TARGET_PLATFORM]
+  elif component == 'static_library':
+    if 'arm' in target_arch:
+      if target_arch == 'arm':
+        binary_prefix = 'clang_x86_v8_arm/'
+      elif target_arch == 'arm64':
+        binary_prefix = 'clang_x64_v8_arm64/
+      for binary in V8_SNAPSHOT_BINARIES[TARGET_PLATFORM]:
+        binaries.append(binary_prefix + binary)      
+    else:
+      binaries += V8_SNAPSHOT_BINARIES[TARGET_PLATFORM]
   for binary in binaries:
     copy_with_blacklist(target_arch, os.path.join(output_dir, binary), target_dir, ninja)
 

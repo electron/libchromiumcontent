@@ -3,7 +3,7 @@ resources:
 phases:
 - phase: Build_libchromiumcontent
   condition: or(eq(variables['System.PullRequest.IsFork'], 'True'), ne(variables['Build.Reason'], 'PullRequest'))
-  queue:    
+  queue:
     timeoutInMinutes: 180
   steps:
   - bash: |
@@ -120,6 +120,3 @@ phases:
       filesAcl: 'public-read'
       logRequest: true
       logResponse: true
-
-  - task: mspremier.PostBuildCleanup.PostBuildCleanup-task.PostBuildCleanup@3
-    condition: always()
