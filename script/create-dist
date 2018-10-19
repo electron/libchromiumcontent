@@ -510,9 +510,9 @@ def copy_binaries(target_arch, component, create_debug_archive,
       if target_arch == 'arm':
         binary_prefix = 'clang_x86_v8_arm/'
       elif target_arch == 'arm64':
-        binary_prefix = 'clang_x64_v8_arm64/
+        binary_prefix = 'clang_x64_v8_arm64/'
       for binary in V8_SNAPSHOT_BINARIES[TARGET_PLATFORM]:
-        binaries.append(binary_prefix + binary)      
+        binaries.append(binary_prefix + binary)
     else:
       binaries += V8_SNAPSHOT_BINARIES[TARGET_PLATFORM]
   for binary in binaries:
