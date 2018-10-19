@@ -1,6 +1,7 @@
 import("//build/config/c++/c++.gni")
 import("//build/config/features.gni")
 import("//build/split_static_library.gni")
+import("//v8/snapshot_toolchain.gni")
 
 group("targets") {
   deps = []
