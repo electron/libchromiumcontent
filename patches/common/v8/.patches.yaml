@@ -67,6 +67,6 @@ patches:
     Backports a fix for Promise.all closures.
     Refs - https://chromium-review.googlesource.com/c/v8/v8/+/957090
 -
-  author: Shelley Vohr <shelley.vohr@gmail.com>
-  file: expose_mksnapshot.patch
-  description: Needed in order to build mksnapshot on arm.
+  author: jkleinsc
+  file: native_mksnapshot.patch
+  description: Needed in order to build mksnapshot on arm and arm64.

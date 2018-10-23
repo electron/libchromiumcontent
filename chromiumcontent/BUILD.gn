@@ -430,7 +430,7 @@ if (is_electron_build && !is_component_build) {
 
   group("native_mksnapshot") {
     deps = [
-      "//v8:mksnapshot($v8_snapshot_toolchain)",
+      "//v8:v8_maybe_snapshot",
       "//tools/v8_context_snapshot:v8_context_snapshot_generator"
     ]
   }
