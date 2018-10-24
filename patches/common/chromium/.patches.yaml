@@ -412,3 +412,10 @@ patches:
 
     This is required by the nativeWindowOpen option, which put multiple main
     frames in one renderer process.
+-
+  author: deepak1556 <hop2deep@gmail.com>
+  file: proxy_resolution_win_http.patch
+  description: |
+    Backport https://chromium-review.googlesource.com/c/chromium/src/+/1143093
+    Fixes proxy resolution from pac file with ws(s) requests when using platform
+    proxy resolvers on windows and macOS.
