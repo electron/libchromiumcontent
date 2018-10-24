@@ -499,9 +499,8 @@ def copy_binaries(target_arch, component, create_debug_archive,
 
   if component == 'native_mksnapshot':
     ninja.copy(os.path.join(output_dir, 'mksnapshot'), target_dir)
+    ninja.copy(os.path.join(output_dir, 'v8_context_snapshot_generator'), target_dir)
     copy_dir('gen', relative_to=output_dir, destination=target_dir, ninja=ninja)
-    for binary in V8_SNAPSHOT_BINARIES[TARGET_PLATFORM]:
-      ninja.copy(os.path.join(output_dir, binary), target_dir)
     return
 
   binaries = BINARIES['all'] + BINARIES[TARGET_PLATFORM]
