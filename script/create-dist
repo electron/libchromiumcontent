@@ -507,12 +507,10 @@ def copy_binaries(target_arch, component, create_debug_archive,
 
   if component == 'shared_library':
     binaries += BINARIES_SHARED_LIBRARY[TARGET_PLATFORM]
-    for binary in get_snapshot_binaries(target_arch):
-      ninja.copy(os.path.join(output_dir, binary), os.path.join(target_dir, 'mksnapshot'))
-  elif componet == 'static_library':
-    binaries += get_snapshot_binaries(target_arch)
   for binary in binaries:
     copy_with_blacklist(target_arch, os.path.join(output_dir, binary), target_dir, ninja)
+  for binary in get_snapshot_binaries(target_arch):
+    ninja.copy(os.path.join(output_dir, binary), os.path.join(target_dir, 'snapshot_gen'))
 
   # Copy all static libraries from chromiumcontent
   for library in glob.glob(os.path.join(output_dir, 'obj', 'libchromiumcontent', 'chromiumcontent', '*.' + STATIC_LIBRARY_SUFFIX)):
