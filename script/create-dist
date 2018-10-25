@@ -504,9 +504,13 @@ def copy_binaries(target_arch, component, create_debug_archive,
     return
 
   binaries = BINARIES['all'] + BINARIES[TARGET_PLATFORM]
-  binaries += get_snapshot_binaries(target_arch)
+
   if component == 'shared_library':
     binaries += BINARIES_SHARED_LIBRARY[TARGET_PLATFORM]
+    for binary in get_snapshot_binaries(target_arch):
+      ninja.copy(os.path.join(output_dir, binary), os.path.join(target_dir, 'mksnapshot'))
+  elif componet == 'static_library':
+    binaries += get_snapshot_binaries(target_arch)
   for binary in binaries:
     copy_with_blacklist(target_arch, os.path.join(output_dir, binary), target_dir, ninja)
 
@@ -599,6 +603,11 @@ def strip_binaries(create_debug_archive, keep_debug_symbols, component,
     if component == 'shared_library':
       for library in glob.glob(os.path.join(target_dir, match)):
         run_strip(target_arch, library, create_debug_archive)
+      for library in glob.glob(os.path.join(target_dir, 'mksnapshot', match)):
+        if ('arm' in target_arch):
+          run_strip('x86', library, False)
+        else:
+          run_strip(target_arch, library, False)
       # move .debug files into a separate directory
       debug_dir = os.path.join(os.path.dirname(target_dir), '.debug')
       filesystem.mkdir_p(debug_dir)
