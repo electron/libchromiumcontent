@@ -504,18 +504,9 @@ def copy_binaries(target_arch, component, create_debug_archive,
     return
 
   binaries = BINARIES['all'] + BINARIES[TARGET_PLATFORM]
+  binaries += get_snapshot_binaries(target_arch)
   if component == 'shared_library':
     binaries += BINARIES_SHARED_LIBRARY[TARGET_PLATFORM]
-  elif component == 'static_library':
-    if 'arm' in target_arch:
-      if target_arch == 'arm':
-        binary_prefix = 'clang_x86_v8_arm/'
-      elif target_arch == 'arm64':
-        binary_prefix = 'clang_x64_v8_arm64/'
-      for binary in V8_SNAPSHOT_BINARIES[TARGET_PLATFORM]:
-        binaries.append(binary_prefix + binary)
-    else:
-      binaries += V8_SNAPSHOT_BINARIES[TARGET_PLATFORM]
   for binary in binaries:
     copy_with_blacklist(target_arch, os.path.join(output_dir, binary), target_dir, ninja)
 
@@ -563,22 +554,33 @@ def copy_binaries(target_arch, component, create_debug_archive,
   # Copy chromedriver and mksnapshot
   # Take them from the "ffmpeg" config, where they are built with all
   # dependencies statically linked.
-  if component == 'static_library':
-    if TARGET_PLATFORM == "win32":
-      binaries = [ 'chromedriver.exe', 'mksnapshot.exe' ]
-    elif target_arch == 'arm':
-      binaries = [ 'chromedriver', 'clang_x86_v8_arm/mksnapshot' ]
-    elif target_arch == 'arm64':
-      binaries = [ 'chromedriver', 'clang_x64_v8_arm64/mksnapshot' ]
-    elif target_arch == 'mips64el':
-      binaries = [ 'chromedriver', 'clang_x64_v8_mips64el/mksnapshot' ]
-    else:
-      binaries = [ 'chromedriver', 'mksnapshot' ]
+  if TARGET_PLATFORM == "win32":
+    binaries = [ 'chromedriver.exe', 'mksnapshot.exe' ]
+  elif target_arch == 'arm':
+    binaries = [ 'chromedriver', 'clang_x86_v8_arm/mksnapshot' ]
+  elif target_arch == 'arm64':
+    binaries = [ 'chromedriver', 'clang_x64_v8_arm64/mksnapshot' ]
+  elif target_arch == 'mips64el':
+    binaries = [ 'chromedriver', 'clang_x64_v8_mips64el/mksnapshot' ]
+  else:
+    binaries = [ 'chromedriver', 'mksnapshot' ]
 
-    ffmpeg_output_dir = get_output_dir(SOURCE_ROOT, target_arch, 'ffmpeg')
-    for binary in binaries:
-      ninja.copy(os.path.join(ffmpeg_output_dir, binary), target_dir)
+  ffmpeg_output_dir = get_output_dir(SOURCE_ROOT, target_arch, 'ffmpeg')
+  for binary in binaries:
+    ninja.copy(os.path.join(ffmpeg_output_dir, binary), target_dir)
 
+def get_snapshot_binaries(target_arch):
+  binaries = []
+  if 'arm' in target_arch:
+   if target_arch == 'arm':
+     binary_prefix = 'clang_x86_v8_arm/'
+   elif target_arch == 'arm64':
+     binary_prefix = 'clang_x64_v8_arm64/'
+   for binary in V8_SNAPSHOT_BINARIES[TARGET_PLATFORM]:
+     binaries.append(binary_prefix + binary)
+  else:
+   binaries += V8_SNAPSHOT_BINARIES[TARGET_PLATFORM]
+  return binaries
 
 def strip_binaries(create_debug_archive, keep_debug_symbols, component,
                    target_dir, target_arch):
