@@ -81,6 +81,27 @@ BINARIES = {
   ],
 }
 
+V8_SNAPSHOT_BINARIES = {
+  'darwin': [
+    'libicui18n.dylib',
+    'libicuuc.dylib',
+    'libv8.dylib',
+    'v8_context_snapshot_generator',
+  ],
+  'linux': [
+    'libicui18n.so',
+    'libicuuc.so',
+    'libv8.so',
+    'v8_context_snapshot_generator',
+  ],
+  'win32': [
+    'icui18n.dll',
+    'icuuc.dll',
+    'v8.dll',
+    'v8_context_snapshot_generator.exe',
+  ],
+}
+
 BINARIES_SHARED_LIBRARY = {
   'darwin': [
     os.path.join('obj', 'base', 'libbase_static.a'),
@@ -478,14 +499,18 @@ def copy_binaries(target_arch, component, create_debug_archive,
 
   if component == 'native_mksnapshot':
     ninja.copy(os.path.join(output_dir, 'mksnapshot'), target_dir)
+    ninja.copy(os.path.join(output_dir, 'v8_context_snapshot_generator'), target_dir)
     copy_dir('gen', relative_to=output_dir, destination=target_dir, ninja=ninja)
     return
 
   binaries = BINARIES['all'] + BINARIES[TARGET_PLATFORM]
+
   if component == 'shared_library':
     binaries += BINARIES_SHARED_LIBRARY[TARGET_PLATFORM]
   for binary in binaries:
     copy_with_blacklist(target_arch, os.path.join(output_dir, binary), target_dir, ninja)
+  for binary in get_snapshot_binaries(target_arch):
+    ninja.copy(os.path.join(output_dir, binary), os.path.join(target_dir, 'snapshot_gen'))
 
   # Copy all static libraries from chromiumcontent
   for library in glob.glob(os.path.join(output_dir, 'obj', 'libchromiumcontent', 'chromiumcontent', '*.' + STATIC_LIBRARY_SUFFIX)):
@@ -531,22 +556,33 @@ def copy_binaries(target_arch, component, create_debug_archive,
   # Copy chromedriver and mksnapshot
   # Take them from the "ffmpeg" config, where they are built with all
   # dependencies statically linked.
-  if component == 'static_library':
-    if TARGET_PLATFORM == "win32":
-      binaries = [ 'chromedriver.exe', 'mksnapshot.exe' ]
-    elif target_arch == 'arm':
-      binaries = [ 'chromedriver', 'clang_x86_v8_arm/mksnapshot' ]
-    elif target_arch == 'arm64':
-      binaries = [ 'chromedriver', 'clang_x64_v8_arm64/mksnapshot' ]
-    elif target_arch == 'mips64el':
-      binaries = [ 'chromedriver', 'clang_x64_v8_mips64el/mksnapshot' ]
-    else:
-      binaries = [ 'chromedriver', 'mksnapshot' ]
+  if TARGET_PLATFORM == "win32":
+    binaries = [ 'chromedriver.exe', 'mksnapshot.exe' ]
+  elif target_arch == 'arm':
+    binaries = [ 'chromedriver', 'clang_x86_v8_arm/mksnapshot' ]
+  elif target_arch == 'arm64':
+    binaries = [ 'chromedriver', 'clang_x64_v8_arm64/mksnapshot' ]
+  elif target_arch == 'mips64el':
+    binaries = [ 'chromedriver', 'clang_x64_v8_mips64el/mksnapshot' ]
+  else:
+    binaries = [ 'chromedriver', 'mksnapshot' ]
 
-    ffmpeg_output_dir = get_output_dir(SOURCE_ROOT, target_arch, 'ffmpeg')
-    for binary in binaries:
-      ninja.copy(os.path.join(ffmpeg_output_dir, binary), target_dir)
+  ffmpeg_output_dir = get_output_dir(SOURCE_ROOT, target_arch, 'ffmpeg')
+  for binary in binaries:
+    ninja.copy(os.path.join(ffmpeg_output_dir, binary), target_dir)
 
+def get_snapshot_binaries(target_arch):
+  binaries = []
+  if 'arm' in target_arch:
+   if target_arch == 'arm':
+     binary_prefix = 'clang_x86_v8_arm/'
+   elif target_arch == 'arm64':
+     binary_prefix = 'clang_x64_v8_arm64/'
+   for binary in V8_SNAPSHOT_BINARIES[TARGET_PLATFORM]:
+     binaries.append(binary_prefix + binary)
+  else:
+   binaries += V8_SNAPSHOT_BINARIES[TARGET_PLATFORM]
+  return binaries
 
 def strip_binaries(create_debug_archive, keep_debug_symbols, component,
                    target_dir, target_arch):
@@ -565,6 +601,11 @@ def strip_binaries(create_debug_archive, keep_debug_symbols, component,
     if component == 'shared_library':
       for library in glob.glob(os.path.join(target_dir, match)):
         run_strip(target_arch, library, create_debug_archive)
+      for library in glob.glob(os.path.join(target_dir, 'mksnapshot', match)):
+        if ('arm' in target_arch):
+          run_strip('x86', library, False)
+        else:
+          run_strip(target_arch, library, False)
       # move .debug files into a separate directory
       debug_dir = os.path.join(os.path.dirname(target_dir), '.debug')
       filesystem.mkdir_p(debug_dir)

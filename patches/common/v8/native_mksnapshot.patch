@@ -1,0 +1,25 @@
+diff --git a/BUILD.gn b/BUILD.gn
+index 72a19b2..4900a09 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -1009,9 +1009,19 @@ if (v8_use_external_startup_data) {
+     ]
+     public_deps = [
+       ":natives_blob",
+-      ":run_mksnapshot",
+     ]
+ 
++    if (v8_snapshot_toolchain == "//build/toolchain/linux:clang_arm" ||
++        v8_snapshot_toolchain == "//build/toolchain/linux:clang_arm64") {
++      public_deps += [
++        ":mksnapshot($v8_snapshot_toolchain)",
++      ]
++    } else {
++      public_deps += [
++        ":run_mksnapshot",
++      ]
++    }
++    
+     sources = [
+       "src/setup-isolate-deserialize.cc",
+       "src/snapshot/natives-external.cc",

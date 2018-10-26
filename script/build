@@ -48,7 +48,7 @@ def main():
     if component == 'tests':
       target = 'libchromiumcontent/chromiumcontent:chromiumcontent_tests'
     if component == 'native_mksnapshot':
-      target = 'v8:mksnapshot'
+      target = 'libchromiumcontent/chromiumcontent:native_mksnapshot'
     run_ninja(os.path.relpath(out_dir), target=target, env=env)
 
     if component == 'static_library':
