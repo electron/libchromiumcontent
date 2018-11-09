@@ -50,7 +50,7 @@ phases:
      mv buildlog.txt s3files
     name: Create_distribution
 
-  - task: AmazonWebServices.aws-vsts-tools.S3Upload.S3Upload@1
+  - task: S3Upload@1
     inputs:
       awsCredentials: 'Libchromium Content S3'
       regionName: 'us-east-1'
