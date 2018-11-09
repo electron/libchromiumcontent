@@ -419,3 +419,9 @@ patches:
     Backport https://chromium-review.googlesource.com/c/chromium/src/+/1143093
     Fixes proxy resolution from pac file with ws(s) requests when using platform
     proxy resolvers on windows and macOS.
+-
+  owners: alexeykuzmin
+  file: backport_6c41b439b.patch
+  description: |
+    Backports http://crrev.com/6c41b439b9e299354f86b91426ff0f7196c13f90
+    SQLitePersistentCookieStore: recover from uniqueness violation on V9->V10 migration
