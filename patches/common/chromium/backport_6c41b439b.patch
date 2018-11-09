@@ -1,0 +1,37 @@
+6c41b439b9e299354f86b91426ff0f7196c13f90
+diff --git a/net/extras/sqlite/sqlite_persistent_cookie_store.cc b/net/extras/sqlite/sqlite_persistent_cookie_store.cc
+index 7313ddfac9da..1fb9bec2ea75 100644
+--- a/net/extras/sqlite/sqlite_persistent_cookie_store.cc
++++ b/net/extras/sqlite/sqlite_persistent_cookie_store.cc
+@@ -1178,26 +1178,18 @@ bool SQLitePersistentCookieStore::Backend::EnsureDatabaseVersion() {
+       return false;
+     }
+     // If any cookies violate the new uniqueness constraints (no two
+-    // cookies with the same (name, domain, path)) erase the cookie store.
+-    // That "shouldn't happen", which means probably not too many users'
+-    // cookie stores will have it.
+-    // The choice to drop rather than pick one of the cookies randomly is
+-    // because it is expected that servers will be able to deal with a known
+-    // state (no cookies == first visit), and there may be cookie values they
+-    // may not be able to deal with.
++    // cookies with the same (name, domain, path)), pick the newer version,
++    // since that's what CookieMonster would do anyway.
+     if (!db_->Execute(
+-            "INSERT OR FAIL INTO cookies "
++            "INSERT OR REPLACE INTO cookies "
+             "(creation_utc, host_key, name, value, path, expires_utc, "
+             "is_secure, is_httponly, last_access_utc, has_expires, "
+             "is_persistent, priority, encrypted_value, firstpartyonly) "
+             "SELECT creation_utc, host_key, name, value, path, expires_utc, "
+             "       secure, httponly, last_access_utc, has_expires, "
+             "       persistent, priority, encrypted_value, firstpartyonly "
+-            "FROM cookies_old")) {
+-      // The old database had duplicate cookies in a way that violates
+-      // the spec.  Treat that as DB corruption and start with a clean slate.
+-      if (!db_->Execute("DELETE FROM COOKIES;"))
+-        return false;
++            "FROM cookies_old ORDER BY creation_utc ASC")) {
++      return false;
+     }
+     if (!db_->Execute("DROP TABLE cookies_old"))
+       return false;
