@@ -15,3 +15,51 @@ index 0a6b0176a982..35a1c3c11a58 100644
  
    (*map_type)[key] = value;
    ResetKeyIterator();
+diff --git a/content/common/dom_storage/dom_storage_types.h b/content/common/dom_storage/dom_storage_types.h
+index e87afe5b8ee0..ad749e43b9c0 100644
+--- a/content/common/dom_storage/dom_storage_types.h
++++ b/content/common/dom_storage/dom_storage_types.h
+@@ -21,6 +21,7 @@ typedef std::map<base::string16, base::NullableString16> DOMStorageValuesMap;
+ 
+ // The quota for each storage area.
+ // This value is enforced in renderer processes and the browser process.
++// Note: Electron's dom_storage_map.patch disables enforcement of this restriction.
+ const size_t kPerStorageAreaQuota = 10 * 1024 * 1024;
+ 
+ // In the browser process we allow some overage to
+diff --git a/content/renderer/dom_storage/dom_storage_cached_area.cc b/content/renderer/dom_storage/dom_storage_cached_area.cc
+index 805470f059a2..15c0911166a7 100644
+--- a/content/renderer/dom_storage/dom_storage_cached_area.cc
++++ b/content/renderer/dom_storage/dom_storage_cached_area.cc
+@@ -51,11 +51,13 @@ bool DOMStorageCachedArea::SetItem(int connection_id,
+                                    const base::string16& key,
+                                    const base::string16& value,
+                                    const GURL& page_url) {
++#if 0  // Disable localStorage size limit for Electron.
+   // A quick check to reject obviously overbudget items to avoid
+   // the priming the cache.
+   if ((key.length() + value.length()) * sizeof(base::char16) >
+       kPerStorageAreaQuota)
+     return false;
++#endif
+ 
+   PrimeIfNeeded(connection_id);
+   base::NullableString16 old_value;
+diff --git a/content/renderer/dom_storage/local_storage_cached_area.cc b/content/renderer/dom_storage/local_storage_cached_area.cc
+index 22f1a9c93758..4f12ea626b75 100644
+--- a/content/renderer/dom_storage/local_storage_cached_area.cc
++++ b/content/renderer/dom_storage/local_storage_cached_area.cc
+@@ -131,11 +131,13 @@ bool LocalStorageCachedArea::SetItem(const base::string16& key,
+                                      const base::string16& value,
+                                      const GURL& page_url,
+                                      const std::string& storage_area_id) {
++#if 0  // Disable localStorage size limit for Electron.
+   // A quick check to reject obviously overbudget items to avoid priming the
+   // cache.
+   if ((key.length() + value.length()) * sizeof(base::char16) >
+       kPerStorageAreaQuota)
+     return false;
++#endif
+ 
+   EnsureLoaded();
+   bool result = false;
