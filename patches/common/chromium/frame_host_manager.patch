@@ -99,23 +99,6 @@ index 6f16deeb5f4f..15a69c12b7f4 100644
    return dest_site_instance;
  }
 
-diff --git a/content/browser/site_isolation_policy.cc b/content/browser/site_isolation_policy.cc
-index 97e9518f43b8..24d97dde74c4 100644
---- a/content/browser/site_isolation_policy.cc
-+++ b/content/browser/site_isolation_policy.cc
-@@ -36,10 +36,8 @@ bool SiteIsolationPolicy::UseDedicatedProcessesForAllSites() {
-     return false;
-   }
-
--  // The feature needs to be checked last, because checking the feature
--  // activates the field trial and assigns the client either to a control or an
--  // experiment group.
--  return base::FeatureList::IsEnabled(features::kSitePerProcess);
-+  // Electron: enable site isolation by default.
-+  return true;
- }
-
- // static
 diff --git a/content/public/browser/content_browser_client.cc b/content/public/browser/content_browser_client.cc
 index 6c366435ddd8..ad67e985455d 100644
 --- a/content/public/browser/content_browser_client.cc
