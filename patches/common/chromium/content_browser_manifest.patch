@@ -1,5 +1,17 @@
+diff --git a/content/public/app/BUILD.gn b/content/public/app/BUILD.gn
+index cbf8c652d41d..6a6864027bc6 100644
+--- a/content/public/app/BUILD.gn
++++ b/content/public/app/BUILD.gn
+@@ -190,6 +190,7 @@ service_manifest("packaged_services_manifest") {
+     "//services/device:manifest",
+     "//services/metrics:manifest",
+     "//services/network:manifest",
++    "//services/proxy_resolver:proxy_resolver_manifest",
+     "//services/resource_coordinator:manifest",
+     "//services/shape_detection:manifest",
+     "//services/tracing:manifest",
 diff --git a/content/public/app/mojo/content_browser_manifest.json b/content/public/app/mojo/content_browser_manifest.json
-index 5a217fa9b741..8fd1b39ea6ca 100644
+index 5a217fa9b741..c49edf5afcec 100644
 --- a/content/public/app/mojo/content_browser_manifest.json
 +++ b/content/public/app/mojo/content_browser_manifest.json
 @@ -82,6 +82,7 @@
@@ -10,3 +22,11 @@ index 5a217fa9b741..8fd1b39ea6ca 100644
            "device:hid",
            "device:input_service",
            "device:nfc",
+@@ -98,6 +99,7 @@
+           "url_loader"
+         ],
+         "patch_service": [ "patch_file" ],
++        "proxy_resolver": [ "factory" ],
+         "resource_coordinator": [
+           "coordination_unit",
+           "coordination_unit_introspector",

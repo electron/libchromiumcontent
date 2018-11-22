@@ -1,0 +1,74 @@
+diff --git a/chrome/browser/net/proxy_config_monitor.cc b/chrome/browser/net/proxy_config_monitor.cc
+index a1acd465e78a..8c2c20610ae2 100644
+--- a/chrome/browser/net/proxy_config_monitor.cc
++++ b/chrome/browser/net/proxy_config_monitor.cc
+@@ -5,9 +5,13 @@
+ #include "chrome/browser/net/proxy_config_monitor.h"
+ 
+ #include "build/build_config.h"
++#if 0
+ #include "chrome/browser/browser_process.h"
++#endif
+ #include "chrome/browser/net/proxy_service_factory.h"
++#if 0
+ #include "chrome/browser/profiles/profile.h"
++#endif
+ #include "components/proxy_config/pref_proxy_config_tracker_impl.h"
+ #include "content/public/browser/browser_thread.h"
+ #include "mojo/public/cpp/bindings/associated_interface_ptr.h"
+@@ -16,6 +20,7 @@
+ #include "chrome/browser/chromeos/profiles/profile_helper.h"
+ #endif  // defined(OS_CHROMEOS)
+ 
++#if 0
+ ProxyConfigMonitor::ProxyConfigMonitor(Profile* profile) {
+   DCHECK_CURRENTLY_ON(content::BrowserThread::UI);
+   DCHECK(profile);
+@@ -41,13 +46,14 @@ ProxyConfigMonitor::ProxyConfigMonitor(Profile* profile) {
+ 
+   proxy_config_service_->AddObserver(this);
+ }
++#endif
+ 
+-ProxyConfigMonitor::ProxyConfigMonitor() {
++ProxyConfigMonitor::ProxyConfigMonitor(PrefService* local_prefs) {
+   DCHECK_CURRENTLY_ON(content::BrowserThread::UI);
+ 
+   pref_proxy_config_tracker_.reset(
+       ProxyServiceFactory::CreatePrefProxyConfigTrackerOfLocalState(
+-          g_browser_process->local_state()));
++          local_prefs));
+ 
+   proxy_config_service_ = ProxyServiceFactory::CreateProxyConfigService(
+       pref_proxy_config_tracker_.get());
+diff --git a/chrome/browser/net/proxy_config_monitor.h b/chrome/browser/net/proxy_config_monitor.h
+index d9339465be26..c61f5a760ddd 100644
+--- a/chrome/browser/net/proxy_config_monitor.h
++++ b/chrome/browser/net/proxy_config_monitor.h
+@@ -20,22 +20,25 @@ class ProxyConfig;
+ 
+ class Profile;
+ class PrefProxyConfigTracker;
++class PrefService;
+ 
+ // Tracks the ProxyConfig to use, and passes any updates to a NetworkContext's
+ // ProxyConfigClient.
+ class ProxyConfigMonitor : public net::ProxyConfigService::Observer,
+                            public network::mojom::ProxyConfigPollerClient {
+  public:
++#if 0
+   // Creates a ProxyConfigMonitor that gets proxy settings from |profile| and
+   // watches for changes. The created ProxyConfigMonitor must be destroyed
+   // before |profile|.
+   explicit ProxyConfigMonitor(Profile* profile);
++#endif
+ 
+   // Creates a ProxyConfigMonitor that gets proxy settings from the
+   // BrowserProcess's |local_state_|, for use with NetworkContexts not
+   // assocaited with a profile. Must be destroyed before the BrowserProcess's
+   // |local_state_|.
+-  ProxyConfigMonitor();
++  explicit ProxyConfigMonitor(PrefService* local_prefs);
+ 
+   ~ProxyConfigMonitor() override;
+ 
