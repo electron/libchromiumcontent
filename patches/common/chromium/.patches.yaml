@@ -425,3 +425,8 @@ patches:
   description: |
     Backports http://crrev.com/6c41b439b9e299354f86b91426ff0f7196c13f90
     SQLitePersistentCookieStore: recover from uniqueness violation on V9->V10 migration
+-
+  author: deepak1556 <hop2deep@gmail.com>
+  file: proxy_config_monitor.patch
+  description: |
+    Allows building //chrome proxy sources for Electron.
