@@ -425,3 +425,8 @@ patches:
   description: |
     Backports http://crrev.com/6c41b439b9e299354f86b91426ff0f7196c13f90
     SQLitePersistentCookieStore: recover from uniqueness violation on V9->V10 migration
+-
+  owners: zcbenz
+  file: fix_trackpad_scrolling.patch
+  description: |
+    Backport https://chromium-review.googlesource.com/c/chromium/src/+/1299342
