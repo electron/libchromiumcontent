@@ -228,6 +228,7 @@ with open(args.out, 'w') as out:
             "net/http_server",
             "net/net",
             "net/net_browser_services",
+            "net/net_utility_services",
             "net/net_with_v8",
             "net/proxy_resolution",
             "net/net_nqe_proto",

@@ -10,6 +10,7 @@ group("targets") {
   # "static_library" or "shared_library"
   if (is_electron_build) {
     deps += [
+      ":chrome",
       "//components/prefs",
       "//components/cdm/renderer",
       "//components/cookie_config",
@@ -45,7 +46,6 @@ group("targets") {
 
     if (is_component_build) {
       deps += [
-        ":chrome",
         ":desktop_capture",
         ":device_service",
         ":fx_agg",
@@ -175,11 +175,6 @@ if (is_electron_build && is_component_build) {
       deps = [ "//third_party/webrtc:webrtc_common" ]
   }
 
-  static_library("chrome") {
-    complete_static_lib = true
-    deps = [ ":chrome_lib" ]
-  }
-
   if (is_linux) {
     # The original libgtkui target is a shared library, so we must list
     # the object files instead of just depending on it.
@@ -269,7 +264,6 @@ if (is_electron_build && !is_component_build) {
     static_library("libchromiumcontent") {
       complete_static_lib = true
       sources = obj_libchromiumcontent
-      deps = [ ":chrome_lib" ]
     }
 
     static_library("base") {
@@ -443,7 +437,10 @@ if (is_electron_build && !is_component_build) {
   }
 }
 
-source_set("chrome_lib") {
+static_library("chrome") {
+  if (is_component_build) {
+    complete_static_lib = true
+  }
   sources = [
     "//chrome/browser/net/chrome_mojo_proxy_resolver_factory.cc",
     "//chrome/browser/net/chrome_mojo_proxy_resolver_factory.h",
@@ -460,6 +457,8 @@ source_set("chrome_lib") {
     "//chrome/common:buildflags",
     "//components/net_log",
     "//components/proxy_config",
+    "//net:net_browser_services",
+    "//net:net_utility_services",
     "//services/proxy_resolver:lib",
   ]
 }
