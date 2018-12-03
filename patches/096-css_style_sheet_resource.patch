@@ -1,0 +1,130 @@
+diff --git a/third_party/WebKit/Source/core/css/StyleSheetContents.cpp b/third_party/WebKit/Source/core/css/StyleSheetContents.cpp
+index 6043d90d22514db2bb9576a07a2fb093feb76b5e..b02064503fecb4d924d53f05a7c91eedecfddb43 100644
+--- a/third_party/WebKit/Source/core/css/StyleSheetContents.cpp
++++ b/third_party/WebKit/Source/core/css/StyleSheetContents.cpp
+@@ -361,7 +361,8 @@ void StyleSheetContents::ParseAuthorStyleSheet(
+       IsQuirksModeBehavior(parser_context_->Mode()) && is_same_origin_request
+           ? CSSStyleSheetResource::MIMETypeCheck::kLax
+           : CSSStyleSheetResource::MIMETypeCheck::kStrict;
+-  String sheet_text = cached_style_sheet->SheetText(mime_type_check);
++  String sheet_text =
++      cached_style_sheet->SheetText(parser_context_, mime_type_check);
+ 
+   const ResourceResponse& response = cached_style_sheet->GetResponse();
+   source_map_url_ = response.HttpHeaderField(HTTPNames::SourceMap);
+diff --git a/third_party/WebKit/Source/core/dom/ProcessingInstruction.cpp b/third_party/WebKit/Source/core/dom/ProcessingInstruction.cpp
+index d7f5c1fd13c8581042d6353a6914ea6c495aafba..5841ecc0cb983bad1b628d661c001c169d735f5d 100644
+--- a/third_party/WebKit/Source/core/dom/ProcessingInstruction.cpp
++++ b/third_party/WebKit/Source/core/dom/ProcessingInstruction.cpp
+@@ -220,7 +220,7 @@ void ProcessingInstruction::SetCSSStyleSheet(
+   // We don't need the cross-origin security check here because we are
+   // getting the sheet text in "strict" mode. This enforces a valid CSS MIME
+   // type.
+-  ParseStyleSheet(sheet->SheetText());
++  ParseStyleSheet(sheet->SheetText(parser_context));
+ }
+ 
+ void ProcessingInstruction::SetXSLStyleSheet(const String& href,
+diff --git a/third_party/WebKit/Source/core/html/parser/CSSPreloadScanner.cpp b/third_party/WebKit/Source/core/html/parser/CSSPreloadScanner.cpp
+index 3e94f9d42437d2257854a26b3bfdbad6ea84d818..1722a41f69bca3a73dce747242fbcde5a8a313e9 100644
+--- a/third_party/WebKit/Source/core/html/parser/CSSPreloadScanner.cpp
++++ b/third_party/WebKit/Source/core/html/parser/CSSPreloadScanner.cpp
+@@ -304,7 +304,7 @@ void CSSPreloaderResourceClient::ScanCSS(
+   // augmented to take care of this case without performing an additional
+   // copy.
+   double start_time = MonotonicallyIncreasingTimeMS();
+-  const String& chunk = resource->SheetText();
++  const String& chunk = resource->SheetText(nullptr);
+   if (chunk.IsNull())
+     return;
+   CSSPreloadScanner css_preload_scanner;
+diff --git a/third_party/WebKit/Source/core/inspector/InspectorPageAgent.cpp b/third_party/WebKit/Source/core/inspector/InspectorPageAgent.cpp
+index 337dbbb7094f996c26261b66637ccb83cb057511..71c73b4e1ddd6ae0770f3402e48a66ef3d14e072 100644
+--- a/third_party/WebKit/Source/core/inspector/InspectorPageAgent.cpp
++++ b/third_party/WebKit/Source/core/inspector/InspectorPageAgent.cpp
+@@ -268,7 +268,7 @@ bool InspectorPageAgent::CachedResourceContent(Resource* cached_resource,
+     case Resource::kCSSStyleSheet:
+       MaybeEncodeTextContent(
+           ToCSSStyleSheetResource(cached_resource)
+-              ->SheetText(CSSStyleSheetResource::MIMETypeCheck::kLax),
++              ->SheetText(nullptr, CSSStyleSheetResource::MIMETypeCheck::kLax),
+           cached_resource->ResourceBuffer(), result, base64_encoded);
+       return true;
+     case Resource::kScript:
+diff --git a/third_party/WebKit/Source/core/loader/resource/CSSStyleSheetResource.cpp b/third_party/WebKit/Source/core/loader/resource/CSSStyleSheetResource.cpp
+index 40ccea823e6cd723859bd5e39da7fe3c24483f28..e6c70e6d4964f3a7bbeb830bc565f89853afc219 100644
+--- a/third_party/WebKit/Source/core/loader/resource/CSSStyleSheetResource.cpp
++++ b/third_party/WebKit/Source/core/loader/resource/CSSStyleSheetResource.cpp
+@@ -36,6 +36,7 @@
+ #include "platform/loader/fetch/ResourceFetcher.h"
+ #include "platform/loader/fetch/ResourceLoaderOptions.h"
+ #include "platform/loader/fetch/TextResourceDecoderOptions.h"
++#include "platform/network/mime/MIMETypeRegistry.h"
+ #include "platform/weborigin/SecurityPolicy.h"
+ #include "platform/wtf/CurrentTime.h"
+ #include "platform/wtf/text/TextEncoding.h"
+@@ -123,8 +124,9 @@ void CSSStyleSheetResource::DidAddClient(ResourceClient* c) {
+ }
+ 
+ const String CSSStyleSheetResource::SheetText(
++    const CSSParserContext* parser_context,
+     MIMETypeCheck mime_type_check) const {
+-  if (!CanUseSheet(mime_type_check))
++  if (!CanUseSheet(parser_context, mime_type_check))
+     return String();
+ 
+   // Use cached decoded sheet text when available
+@@ -195,10 +197,29 @@ void CSSStyleSheetResource::DestroyDecodedDataForFailedRevalidation() {
+   DestroyDecodedDataIfPossible();
+ }
+ 
+-bool CSSStyleSheetResource::CanUseSheet(MIMETypeCheck mime_type_check) const {
++bool CSSStyleSheetResource::CanUseSheet(const CSSParserContext* parser_context,
++                                        MIMETypeCheck mime_type_check) const {
+   if (ErrorOccurred())
+     return false;
+ 
++  // For `file:` URLs, we may need to be a little more strict than the below.
++  // Though we'll likely change this in the future, for the moment we're going
++  // to enforce a file-extension requirement on stylesheets loaded from `file:`
++  // URLs and see how far it gets us.
++  KURL sheet_url = GetResponse().Url();
++  if (sheet_url.IsLocalFile()) {
++    // Grab |sheet_url|'s filename's extension (if present), and check whether
++    // or not it maps to a `text/css` MIME type:
++    String extension;
++    int last_dot = sheet_url.LastPathComponent().ReverseFind('.');
++    if (last_dot != -1)
++      extension = sheet_url.LastPathComponent().Substring(last_dot + 1);
++    if (!EqualIgnoringASCIICase(
++            MIMETypeRegistry::GetMIMETypeForExtension(extension), "text/css")) {
++      return false;
++    }
++  }
++
+   // This check exactly matches Firefox. Note that we grab the Content-Type
+   // header directly because we want to see what the value is BEFORE content
+   // sniffing. Firefox does this by setting a "type hint" on the channel. This
+diff --git a/third_party/WebKit/Source/core/loader/resource/CSSStyleSheetResource.h b/third_party/WebKit/Source/core/loader/resource/CSSStyleSheetResource.h
+index 52a117710b584cbaed26862b23044d486690919d..48a2e20888cc7bacb31ff583d5fc8607980870ab 100644
+--- a/third_party/WebKit/Source/core/loader/resource/CSSStyleSheetResource.h
++++ b/third_party/WebKit/Source/core/loader/resource/CSSStyleSheetResource.h
+@@ -52,7 +52,8 @@ class CORE_EXPORT CSSStyleSheetResource final : public StyleSheetResource {
+   ~CSSStyleSheetResource() override;
+   DECLARE_VIRTUAL_TRACE();
+ 
+-  const String SheetText(MIMETypeCheck = MIMETypeCheck::kStrict) const;
++  const String SheetText(const CSSParserContext*,
++                         MIMETypeCheck = MIMETypeCheck::kStrict) const;
+ 
+   void DidAddClient(ResourceClient*) override;
+ 
+@@ -79,7 +80,7 @@ class CORE_EXPORT CSSStyleSheetResource final : public StyleSheetResource {
+                         const ResourceLoaderOptions&,
+                         const TextResourceDecoderOptions&);
+ 
+-  bool CanUseSheet(MIMETypeCheck) const;
++  bool CanUseSheet(const CSSParserContext*, MIMETypeCheck) const;
+   void CheckNotify() override;
+ 
+   void SetParsedStyleSheetCache(StyleSheetContents*);
