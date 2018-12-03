@@ -430,3 +430,9 @@ patches:
   file: proxy_config_monitor.patch
   description: |
     Allows building //chrome proxy sources for Electron.
+-
+  author: deepak1556 <hop2deep@gmail.com>
+  file: network_context.patch
+  description: |
+    NetworkContext: Always create the CookieStore and ChannelIDStore
+    Backports crrev.com/c/1152083.

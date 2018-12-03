@@ -1,0 +1,109 @@
+diff --git a/services/network/network_context.cc b/services/network/network_context.cc
+index b681ac5f60ca66f7d5e3e0ad50eb2d6e784e096a..ebe10f496965b71798bb5119b7cd4dee006012a5 100644
+--- a/services/network/network_context.cc
++++ b/services/network/network_context.cc
+@@ -38,6 +38,7 @@
+ #include "net/ssl/default_channel_id_store.h"
+ #include "net/url_request/url_request_context.h"
+ #include "net/url_request/url_request_context_builder.h"
++#include "services/network/cookie_manager.h"
+ #include "services/network/http_server_properties_pref_delegate.h"
+ #include "services/network/ignore_errors_cert_verifier.h"
+ #include "services/network/network_service.h"
+@@ -256,12 +257,30 @@ URLRequestContextOwner NetworkContext::MakeURLRequestContext(
+   builder.set_accept_language("en-us,en");
+   builder.set_user_agent(network_context_params->user_agent);
+ 
+-  // The cookie configuration is in this method, which is only used by the
+-  // network process, and not ApplyContextParamsToBuilder which is used by the
+-  // browser as well. This is because this code path doesn't handle encryption
+-  // and other configuration done in QuotaPolicyCookieStore yet (and we still
+-  // have to figure out which of the latter needs to move to the network
+-  // process). TODO: http://crbug.com/789644
++  if (g_cert_verifier_for_testing) {
++    builder.SetCertVerifier(std::make_unique<WrappedTestingCertVerifier>());
++  } else {
++    std::unique_ptr<net::CertVerifier> cert_verifier =
++        net::CertVerifier::CreateDefault();
++    builder.SetCertVerifier(IgnoreErrorsCertVerifier::MaybeWrapCertVerifier(
++        *command_line, nullptr, std::move(cert_verifier)));
++  }
++
++  // |network_service_| may be nullptr in tests.
++  return ApplyContextParamsToBuilder(
++      &builder, network_context_params,
++      network_service_ ? network_service_->quic_disabled() : false,
++      network_service_ ? network_service_->net_log() : nullptr);
++}
++
++URLRequestContextOwner NetworkContext::ApplyContextParamsToBuilder(
++    URLRequestContextBuilderMojo* builder,
++    mojom::NetworkContextParams* network_context_params,
++    bool quic_disabled,
++    net::NetLog* net_log) {
++  if (net_log)
++    builder->set_net_log(net_log);
++
+   if (network_context_params->cookie_path) {
+     DCHECK(network_context_params->channel_id_path);
+     net::CookieCryptoDelegate* crypto_delegate = nullptr;
+@@ -295,37 +314,13 @@ URLRequestContextOwner NetworkContext::MakeURLRequestContext(
+       cookie_store->SetPersistSessionCookies(true);
+ 
+     cookie_store->SetChannelIDServiceID(channel_id_service->GetUniqueID());
+-    builder.SetCookieAndChannelIdStores(std::move(cookie_store),
+-                                        std::move(channel_id_service));
++    builder->SetCookieAndChannelIdStores(std::move(cookie_store),
++                                         std::move(channel_id_service));
+   } else {
+     DCHECK(!network_context_params->restore_old_session_cookies);
+     DCHECK(!network_context_params->persist_session_cookies);
+   }
+ 
+-  if (g_cert_verifier_for_testing) {
+-    builder.SetCertVerifier(std::make_unique<WrappedTestingCertVerifier>());
+-  } else {
+-    std::unique_ptr<net::CertVerifier> cert_verifier =
+-        net::CertVerifier::CreateDefault();
+-    builder.SetCertVerifier(IgnoreErrorsCertVerifier::MaybeWrapCertVerifier(
+-        *command_line, nullptr, std::move(cert_verifier)));
+-  }
+-
+-  // |network_service_| may be nullptr in tests.
+-  return ApplyContextParamsToBuilder(
+-      &builder, network_context_params,
+-      network_service_ ? network_service_->quic_disabled() : false,
+-      network_service_ ? network_service_->net_log() : nullptr);
+-}
+-
+-URLRequestContextOwner NetworkContext::ApplyContextParamsToBuilder(
+-    URLRequestContextBuilderMojo* builder,
+-    mojom::NetworkContextParams* network_context_params,
+-    bool quic_disabled,
+-    net::NetLog* net_log) {
+-  if (net_log)
+-    builder->set_net_log(net_log);
+-
+   builder->set_enable_brotli(network_context_params->enable_brotli);
+   if (network_context_params->context_name)
+     builder->set_name(*network_context_params->context_name);
+diff --git a/services/network/network_context.h b/services/network/network_context.h
+index b39c97b329684bf90e9ef0eaccbb4577b12db758..ef70d8585f41829d69425f8f35157d82fbff1f7f 100644
+--- a/services/network/network_context.h
++++ b/services/network/network_context.h
+@@ -16,7 +16,6 @@
+ #include "base/time/time.h"
+ #include "mojo/public/cpp/bindings/binding.h"
+ #include "mojo/public/cpp/bindings/strong_binding_set.h"
+-#include "services/network/cookie_manager.h"
+ #include "services/network/public/mojom/network_service.mojom.h"
+ #include "services/network/public/mojom/udp_socket.mojom.h"
+ #include "services/network/public/mojom/url_loader_factory.mojom.h"
+@@ -28,6 +27,7 @@ class URLRequestContext;
+ }  // namespace net
+ 
+ namespace network {
++class CookieManager;
+ class NetworkService;
+ class ResourceScheduler;
+ class ResourceSchedulerClient;
