@@ -436,3 +436,8 @@ patches:
   description: |
     NetworkContext: Always create the CookieStore and ChannelIDStore
     Backports crrev.com/c/1152083.
+-
+  owners: zcbenz
+  file: fix_trackpad_scrolling.patch
+  description: |
+    Backport https://chromium-review.googlesource.com/c/chromium/src/+/1299342
