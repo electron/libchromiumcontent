@@ -366,7 +366,7 @@ patches:
   file: allow_nested_error_trackers.patch
   description: |
     Only one X11ErrorTracker should exist at a time, but upstream has a bug
-    where two can exist if running in headless mode -- 
+    where two can exist if running in headless mode --
       ui::(anonymous namespace)::SupportsEWMH() [inner tracker is created]
       ui::WmSupportsHint()
       ui::IsX11WindowFullScreen()
@@ -430,3 +430,8 @@ patches:
   file: fix_trackpad_scrolling.patch
   description: |
     Backport https://chromium-review.googlesource.com/c/chromium/src/+/1299342
+-
+  owners: deepak1556
+  file: mac_fix_form_control_rendering_on_10_14_mojave.patch
+  description: |
+    Backport https://crrev.com/c/1106298/ and https://crrev.com/c/1130163/
