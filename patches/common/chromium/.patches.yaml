@@ -430,3 +430,8 @@ patches:
   file: fix_trackpad_scrolling.patch
   description: |
     Backport https://chromium-review.googlesource.com/c/chromium/src/+/1299342
+-
+  owners: deepak1556
+  file: devtools_support_loading_externally_generated_traces.patch
+  description: |
+    Backport https://chromium-review.googlesource.com/c/chromium/src/+/964932/    
