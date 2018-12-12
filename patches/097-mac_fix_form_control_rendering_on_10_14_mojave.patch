@@ -1,0 +1,80 @@
+diff --git a/content/common/common.sb b/content/common/common.sb
+index f8fe48b2c5b3..2354af61dc63 100644
+--- a/content/common/common.sb
++++ b/content/common/common.sb
+@@ -20,6 +20,7 @@
+ (define homedir-as-literal "USER_HOMEDIR_AS_LITERAL")
+ (define elcap-or-later "ELCAP_OR_LATER")
+ (define macos-1013 "MACOS_1013")
++(define os-version (string->number (param "OS_VERSION")))
+ 
+ ; Consumes a subpath and appends it to the user's homedir path.
+ (define (user-homedir-path subpath)
+diff --git a/content/common/sandbox_mac.mm b/content/common/sandbox_mac.mm
+index e9789fee555d..084e05e4c8e7 100644
+--- a/content/common/sandbox_mac.mm
++++ b/content/common/sandbox_mac.mm
+@@ -68,6 +68,21 @@ static_assert(arraysize(kDefaultSandboxTypeToResourceIDMapping) == \
+               size_t(SANDBOX_TYPE_AFTER_LAST_TYPE), \
+               "sandbox type to resource id mapping incorrect");
+ 
++// Produce the OS version as an integer "1010", etc. and pass that to the
++// profile. The profile converts the string back to a number and can do
++// comparison operations on OS version.
++std::string GetOSVersion() {
++  int32_t major_version, minor_version, bugfix_version;
++  base::SysInfo::OperatingSystemVersionNumbers(&major_version, &minor_version,
++                                               &bugfix_version);
++  base::CheckedNumeric<int32_t> os_version(major_version);
++  os_version *= 100;
++  os_version += minor_version;
++
++  int32_t final_os_version = os_version.ValueOrDie();
++  return std::to_string(final_os_version);
++}
++
+ }  // namespace
+ 
+ // Static variable declarations.
+@@ -287,6 +302,9 @@ bool Sandbox::EnableSandbox(int sandbox_type,
+   if (!compiler.InsertBooleanParam(kSandboxMacOS1013, macos_1013))
+     return false;
+ 
++  if (!compiler.InsertStringParam(kSandboxOSVersion, GetOSVersion()))
++    return false;
++
+   // Initialize sandbox.
+   std::string error_str;
+   bool success = compiler.CompileAndApplyProfile(&error_str);
+diff --git a/content/renderer/renderer.sb b/content/renderer/renderer.sb
+index fd54bf788241..a0654b23132a 100644
+--- a/content/renderer/renderer.sb
++++ b/content/renderer/renderer.sb
+@@ -12,6 +12,7 @@
+ (allow mach-lookup (global-name "com.apple.FontObjectsServer"))
+ (allow mach-lookup (global-name "com.apple.FontServer"))
+ (allow mach-lookup (global-name "com.apple.fonts"))
++(allow mach-lookup (global-name "com.apple.cvmsServ")) ; https://crbug.com/850021
+ (allow file-read* (extension "com.apple.app-sandbox.read")) ; https://crbug.com/662686
+ 
+ ; Allow read-only connection to launchservicesd. https://crbug.com/533537
+@@ -36,6 +37,19 @@
+   (path "/private/etc/localtime")
+   (subpath "/usr/share/zoneinfo"))
+ 
++; Reads of signed Mach-O blobs created by the CVMS server.
++; https://crbug.com/850021
++(if (>= os-version 1014)
++  (allow file-read*
++    (extension "com.apple.cvms.kernel")
++    (prefix "/private/tmp/cvmsCodeSignObj")
++    (subpath "/private/var/db/CVMS")))
++
++; Reads from /Library.
++; https://crbug.com/850021
++(allow file-read-data
++  (subpath "/Library/GPUBundles"))
++
+ (allow file-read-metadata (path "/private/etc"))
+ 
+ ; https://crbug.com/605840
