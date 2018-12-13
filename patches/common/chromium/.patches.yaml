@@ -435,3 +435,15 @@ patches:
   file: mac_fix_form_control_rendering_on_10_14_mojave.patch
   description: |
     Backport https://crrev.com/c/1106298/ and https://crrev.com/c/1130163/
+-
+  owners: deepak1556
+  file: sqlite_upgrade_from_3_22_to_3_26.patch
+  description: |
+    Upgrade //third_party/sqlite from 3.22 to 3.26.
+    Backport https://crrev.com/c/1357358/
+-
+  owners: deepak1556
+  file: sqlite_api_update_3_26.patch
+  description: |
+    Update sqlite api for 3.26 in //sql, //content/browser, //third_party/WebKit.
+    Backport https://crrev.com/c/1146280/ and https://crrev.com/c/1352694/
