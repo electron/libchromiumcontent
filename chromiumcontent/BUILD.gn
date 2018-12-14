@@ -394,6 +394,12 @@ if (is_electron_build && !is_component_build) {
     deps = [ ":targets" ]
   }
 
+  group("native_mksnapshot") {
+    deps = [
+      "//v8:v8_maybe_snapshot"
+    ]
+  }
+
 }
 
 # There are some executable targets whose products are ran during build.

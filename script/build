@@ -67,7 +67,7 @@ def main():
     out_dir = get_output_dir(SOURCE_ROOT, target_arch, component)
     target = 'chromiumcontent:chromiumcontent'
     if component == 'native_mksnapshot':
-      target = 'v8:mksnapshot'
+      target = 'chromiumcontent:native_mksnapshot'
     subprocess.check_call([NINJA, '-C', os.path.relpath(out_dir), target], env=env)
     if component == 'static_library':
       subenv = env.copy()
