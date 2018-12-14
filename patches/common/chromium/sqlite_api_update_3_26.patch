@@ -1,10 +1,15 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: deepak1556 <hop2deep@gmail.com>
-Date: Thu, 13 Dec 2018 17:46:09 +0530
-Subject: sqlite: Update api in //sql and //third_party/WebKit
+Date: Fri, 14 Dec 2018 23:25:33 +0530
+Subject: sqlite: Update api in //sql and //third_party/blink
 
 https://chromium-review.googlesource.com/c/chromium/src/+/1352694
-https://chromium-review.googlesource.com/c/chromium/src/+/1146280/
+https://chromium-review.googlesource.com/c/chromium/src/+/1146280
+https://chromium-review.googlesource.com/c/chromium/src/+/1357825
+https://chromium-review.googlesource.com/c/chromium/src/+/1343789
+https://chromium-review.googlesource.com/c/chromium/src/+/1146295
+https://chromium-review.googlesource.com/c/chromium/src/+/1146768
+https://chromium-review.googlesource.com/c/chromium/src/+/1362222
 
 diff --git a/content/browser/dom_storage/dom_storage_database.cc b/content/browser/dom_storage/dom_storage_database.cc
 index b260d7f3e461e0c68923c640964f7b4d972610fe..7d5b034d9af99f27272939e9e94417227a7e3c9a 100644
@@ -109,11 +114,387 @@ index 122b664682673bc49ba15630589d70b2e7d66ab3..e4587539ed1f0e5b5511fb078e87825b
    void Close();
    bool IsOpen() const { return db_.get() ? db_->is_open() : false; }
  
+diff --git a/sql/BUILD.gn b/sql/BUILD.gn
+index d2d3adef870dbc1c5c1feb24d1102a72b282d336..56f751c01021fc0bfe9906e0a229b4cbee99b5a9 100644
+--- a/sql/BUILD.gn
++++ b/sql/BUILD.gn
+@@ -15,6 +15,7 @@ component("sql") {
+     "init_status.h",
+     "initialization.cc",
+     "initialization.h",
++    "internal_api_token.h",
+     "meta_table.cc",
+     "meta_table.h",
+     "recovery.cc",
 diff --git a/sql/connection.cc b/sql/connection.cc
-index 4fd3d41f4b6cb4a65b8959a044f7219ca1956936..769539052ed537ca8a5f6b8bae6e43148bae43dd 100644
+index 4fd3d41f4b6cb4a65b8959a044f7219ca1956936..d1804390b0506c6ce179f0a809140dc0e32c58db 100644
 --- a/sql/connection.cc
 +++ b/sql/connection.cc
-@@ -1629,9 +1629,16 @@ bool Connection::OpenInternal(const std::string& file_name,
+@@ -52,12 +52,8 @@ const int kBusyTimeoutSeconds = 1;
+ 
+ class ScopedBusyTimeout {
+  public:
+-  explicit ScopedBusyTimeout(sqlite3* db)
+-      : db_(db) {
+-  }
+-  ~ScopedBusyTimeout() {
+-    sqlite3_busy_timeout(db_, 0);
+-  }
++  explicit ScopedBusyTimeout(sqlite3* db) : db_(db) {}
++  ~ScopedBusyTimeout() { sqlite3_busy_timeout(db_, 0); }
+ 
+   int SetTimeout(base::TimeDelta timeout) {
+     DCHECK_LT(timeout.InMilliseconds(), INT_MAX);
+@@ -77,8 +73,7 @@ class ScopedBusyTimeout {
+ // sqlite_master table (none of our code does this).
+ class ScopedWritableSchema {
+  public:
+-  explicit ScopedWritableSchema(sqlite3* db)
+-      : db_(db) {
++  explicit ScopedWritableSchema(sqlite3* db) : db_(db) {
+     sqlite3_exec(db_, "PRAGMA writable_schema=1", NULL, NULL, NULL);
+   }
+   ~ScopedWritableSchema() {
+@@ -147,7 +142,8 @@ int GetSqlite3File(sqlite3* db, sqlite3_file** file) {
+ 
+ // Convenience to get the sqlite3_file* and the size for the "main" database.
+ int GetSqlite3FileAndSize(sqlite3* db,
+-                          sqlite3_file** file, sqlite3_int64* db_size) {
++                          sqlite3_file** file,
++                          sqlite3_int64* db_size) {
+   int rc = GetSqlite3File(db, file);
+   if (rc != SQLITE_OK)
+     return rc;
+@@ -158,10 +154,8 @@ int GetSqlite3FileAndSize(sqlite3* db,
+ // This should match UMA_HISTOGRAM_MEDIUM_TIMES().
+ base::HistogramBase* GetMediumTimeHistogram(const std::string& name) {
+   return base::Histogram::FactoryTimeGet(
+-      name,
+-      base::TimeDelta::FromMilliseconds(10),
+-      base::TimeDelta::FromMinutes(3),
+-      50,
++      name, base::TimeDelta::FromMilliseconds(10),
++      base::TimeDelta::FromMinutes(3), 50,
+       base::HistogramBase::kUmaTargetedHistogramFlag);
+ }
+ 
+@@ -209,6 +203,21 @@ void Connection::ResetErrorExpecter() {
+   current_expecter_cb_ = NULL;
+ }
+ 
++// static
++base::FilePath Connection::JournalPath(const base::FilePath& db_path) {
++  return base::FilePath(db_path.value() + FILE_PATH_LITERAL("-journal"));
++}
++
++// static
++base::FilePath Connection::WriteAheadLogPath(const base::FilePath& db_path) {
++  return base::FilePath(db_path.value() + FILE_PATH_LITERAL("-wal"));
++}
++
++// static
++base::FilePath Connection::SharedMemoryFilePath(const base::FilePath& db_path) {
++  return base::FilePath(db_path.value() + FILE_PATH_LITERAL("-shm"));
++}
++
+ bool StatementID::operator<(const StatementID& other) const {
+   if (number_ != other.number_)
+     return number_ < other.number_;
+@@ -218,9 +227,7 @@ bool StatementID::operator<(const StatementID& other) const {
+ Connection::StatementRef::StatementRef(Connection* connection,
+                                        sqlite3_stmt* stmt,
+                                        bool was_valid)
+-    : connection_(connection),
+-      stmt_(stmt),
+-      was_valid_(was_valid) {
++    : connection_(connection), stmt_(stmt), was_valid_(was_valid) {
+   if (connection)
+     connection_->StatementRefCreated(this);
+ }
+@@ -252,12 +259,17 @@ void Connection::StatementRef::Close(bool forced) {
+   was_valid_ = was_valid_ && forced;
+ }
+ 
++static_assert(
++    Connection::kDefaultPageSize == SQLITE_DEFAULT_PAGE_SIZE,
++    "Connection::kDefaultPageSize must match the value configured into SQLite");
++
++constexpr int Connection::kDefaultPageSize;
++
+ Connection::Connection()
+     : db_(NULL),
+-      page_size_(0),
++      page_size_(kDefaultPageSize),
+       cache_size_(0),
+       exclusive_locking_(false),
+-      restrict_to_user_(false),
+       transaction_nesting_(0),
+       needs_rollback_(false),
+       in_memory_(false),
+@@ -271,8 +283,7 @@ Connection::Connection()
+       autocommit_time_histogram_(NULL),
+       update_time_histogram_(NULL),
+       query_time_histogram_(NULL),
+-      clock_(new TimeSource()) {
+-}
++      clock_(new TimeSource()) {}
+ 
+ Connection::~Connection() {
+   Close();
+@@ -317,8 +328,8 @@ void Connection::RecordQueryTime(const base::TimeDelta& delta) {
+     query_time_histogram_->AddTime(delta);
+ }
+ 
+-void Connection::RecordTimeAndChanges(
+-    const base::TimeDelta& delta, bool read_only) {
++void Connection::RecordTimeAndChanges(const base::TimeDelta& delta,
++                                      bool read_only) {
+   if (read_only) {
+     RecordQueryTime(delta);
+   } else {
+@@ -339,10 +350,9 @@ bool Connection::Open(const base::FilePath& path) {
+     if (base::GetFileSize(path, &size_64)) {
+       size_t sample = static_cast<size_t>(size_64 / 1024);
+       std::string full_histogram_name = "Sqlite.SizeKB." + histogram_tag_;
+-      base::HistogramBase* histogram =
+-          base::Histogram::FactoryGet(
+-              full_histogram_name, 1, 1000000, 50,
+-              base::HistogramBase::kUmaTargetedHistogramFlag);
++      base::HistogramBase* histogram = base::Histogram::FactoryGet(
++          full_histogram_name, 1, 1000000, 50,
++          base::HistogramBase::kUmaTargetedHistogramFlag);
+       if (histogram)
+         histogram->Add(sample);
+       UMA_HISTOGRAM_COUNTS("Sqlite.SizeKB", sample);
+@@ -433,9 +443,12 @@ void Connection::Preload() {
+     return;
+   }
+ 
++  // The constructor and set_page_size() ensure that page_size_ is never zero.
++  const int page_size = page_size_;
++  DCHECK(page_size);
++
+   // Use local settings if provided, otherwise use documented defaults.  The
+   // actual results could be fetching via PRAGMA calls.
+-  const int page_size = page_size_ ? page_size_ : 1024;
+   sqlite3_int64 preload_size = page_size * (cache_size_ ? cache_size_ : 2000);
+   if (preload_size < 1)
+     return;
+@@ -576,8 +589,7 @@ bool Connection::RegisterIntentToUpload() const {
+   // Put the collection of diagnostic data next to the databases.  In most
+   // cases, this is the profile directory, but safe-browsing stores a Cookies
+   // file in the directory above the profile directory.
+-  base::FilePath breadcrumb_path(
+-      db_path.DirName().Append(FILE_PATH_LITERAL("sqlite-diag")));
++  base::FilePath breadcrumb_path = db_path.DirName().AppendASCII("sqlite-diag");
+ 
+   // Lock against multiple updates to the diagnostics file.  This code should
+   // seldom be called in the first place, and when called it should seldom be
+@@ -663,8 +675,8 @@ std::string Connection::CollectErrorInfo(int error, Statement* stmt) const {
+   std::string debug_info;
+ 
+   // The error message from the failed operation.
+-  base::StringAppendF(&debug_info, "db error: %d/%s\n",
+-                      GetErrorCode(), GetErrorMessage());
++  base::StringAppendF(&debug_info, "db error: %d/%s\n", GetErrorCode(),
++                      GetErrorMessage());
+ 
+   // TODO(shess): |error| and |GetErrorCode()| should always be the same, but
+   // reading code does not entirely convince me.  Remove if they turn out to be
+@@ -672,8 +684,8 @@ std::string Connection::CollectErrorInfo(int error, Statement* stmt) const {
+   if (error != GetErrorCode())
+     base::StringAppendF(&debug_info, "reported error: %d\n", error);
+ 
+-  // System error information.  Interpretation of Windows errors is different
+-  // from posix.
++    // System error information.  Interpretation of Windows errors is different
++    // from posix.
+ #if defined(OS_WIN)
+   base::StringAppendF(&debug_info, "LastError: %d\n", GetLastErrno());
+ #elif defined(OS_POSIX)
+@@ -770,10 +782,8 @@ std::string Connection::CollectCorruptionInfo() {
+     const base::TimeTicks before = base::TimeTicks::Now();
+     FullIntegrityCheck(&messages);
+     base::StringAppendF(
+-        &debug_info,
+-        "integrity_check %" PRId64 " ms, %" PRIuS " records:\n",
+-        (base::TimeTicks::Now() - before).InMilliseconds(),
+-        messages.size());
++        &debug_info, "integrity_check %" PRId64 " ms, %" PRIuS " records:\n",
++        (base::TimeTicks::Now() - before).InMilliseconds(), messages.size());
+ 
+     // SQLite returns up to 100 messages by default, trim deeper to
+     // keep close to the 2000-character size limit for dumping.
+@@ -818,9 +828,8 @@ bool Connection::SetMmapAltStatus(int64_t status) {
+   // value, this construct should be safe from SQL injection, if the value
+   // becomes more complicated use "SELECT quote(?)" to generate a safe quoted
+   // value.
+-  const std::string createViewSql =
+-      base::StringPrintf("CREATE VIEW MmapStatus (value) AS SELECT %" PRId64,
+-                         status);
++  const std::string createViewSql = base::StringPrintf(
++      "CREATE VIEW MmapStatus (value) AS SELECT %" PRId64, status);
+   if (!Execute(createViewSql.c_str())) {
+     RollbackTransaction();
+     return false;
+@@ -1012,17 +1021,9 @@ bool Connection::Raze() {
+     return false;
+   }
+ 
+-  if (page_size_) {
+-    // Enforce SQLite restrictions on |page_size_|.
+-    DCHECK(!(page_size_ & (page_size_ - 1)))
+-        << " page_size_ " << page_size_ << " is not a power of two.";
+-    const int kSqliteMaxPageSize = 32768;  // from sqliteLimit.h
+-    DCHECK_LE(page_size_, kSqliteMaxPageSize);
+-    const std::string sql =
+-        base::StringPrintf("PRAGMA page_size=%d", page_size_);
+-    if (!null_db.Execute(sql.c_str()))
+-      return false;
+-  }
++  const std::string sql = base::StringPrintf("PRAGMA page_size=%d", page_size_);
++  if (!null_db.Execute(sql.c_str()))
++    return false;
+ 
+ #if defined(OS_ANDROID)
+   // Android compiles with SQLITE_DEFAULT_AUTOVACUUM.  Unfortunately,
+@@ -1158,8 +1159,8 @@ void Connection::Poison() {
+ bool Connection::Delete(const base::FilePath& path) {
+   base::AssertBlockingAllowed();
+ 
+-  base::FilePath journal_path(path.value() + FILE_PATH_LITERAL("-journal"));
+-  base::FilePath wal_path(path.value() + FILE_PATH_LITERAL("-wal"));
++  base::FilePath journal_path = Connection::JournalPath(path);
++  base::FilePath wal_path = Connection::WriteAheadLogPath(path);
+ 
+   std::string journal_str = AsUTF8ForSQL(journal_path);
+   std::string wal_str = AsUTF8ForSQL(wal_path);
+@@ -1183,16 +1184,13 @@ bool Connection::Delete(const base::FilePath& path) {
+   vfs->xDelete(vfs, path_str.c_str(), 0);
+ 
+   int journal_exists = 0;
+-  vfs->xAccess(vfs, journal_str.c_str(), SQLITE_ACCESS_EXISTS,
+-               &journal_exists);
++  vfs->xAccess(vfs, journal_str.c_str(), SQLITE_ACCESS_EXISTS, &journal_exists);
+ 
+   int wal_exists = 0;
+-  vfs->xAccess(vfs, wal_str.c_str(), SQLITE_ACCESS_EXISTS,
+-               &wal_exists);
++  vfs->xAccess(vfs, wal_str.c_str(), SQLITE_ACCESS_EXISTS, &wal_exists);
+ 
+   int path_exists = 0;
+-  vfs->xAccess(vfs, path_str.c_str(), SQLITE_ACCESS_EXISTS,
+-               &path_exists);
++  vfs->xAccess(vfs, path_str.c_str(), SQLITE_ACCESS_EXISTS, &path_exists);
+ 
+   return !journal_exists && !wal_exists && !path_exists;
+ }
+@@ -1278,7 +1276,8 @@ void Connection::RollbackAllTransactions() {
+ }
+ 
+ bool Connection::AttachDatabase(const base::FilePath& other_db_path,
+-                                const char* attachment_point) {
++                                const char* attachment_point,
++                                InternalApiToken) {
+   DCHECK(ValidAttachmentPoint(attachment_point));
+ 
+   Statement s(GetUniqueStatement("ATTACH DATABASE ? AS ?"));
+@@ -1291,7 +1290,8 @@ bool Connection::AttachDatabase(const base::FilePath& other_db_path,
+   return s.Run();
+ }
+ 
+-bool Connection::DetachDatabase(const char* attachment_point) {
++bool Connection::DetachDatabase(const char* attachment_point,
++                                InternalApiToken) {
+   DCHECK(ValidAttachmentPoint(attachment_point));
+ 
+   Statement s(GetUniqueStatement("DETACH DATABASE ?"));
+@@ -1313,8 +1313,8 @@ int Connection::ExecuteAndReturnErrorCode(const char* sql) {
+   RecordOneEvent(EVENT_EXECUTE);
+   int rc = SQLITE_OK;
+   while ((rc == SQLITE_OK) && *sql) {
+-    sqlite3_stmt *stmt = NULL;
+-    const char *leftover_sql;
++    sqlite3_stmt* stmt = NULL;
++    const char* leftover_sql;
+ 
+     const base::TimeTicks before = Now();
+     rc = sqlite3_prepare_v2(db_, sql, -1, &stmt, &leftover_sql);
+@@ -1426,10 +1426,11 @@ scoped_refptr<Connection::StatementRef> Connection::GetUniqueStatement(
+ }
+ 
+ scoped_refptr<Connection::StatementRef> Connection::GetStatementImpl(
+-    sql::Connection* tracking_db, const char* sql) const {
++    sql::Connection* tracking_db,
++    const char* sql) const {
+   AssertIOAllowed();
+   DCHECK(sql);
+-  DCHECK(!tracking_db || const_cast<Connection*>(tracking_db)==this);
++  DCHECK(!tracking_db || const_cast<Connection*>(tracking_db) == this);
+ 
+   // Return inactive statement.
+   if (!db_)
+@@ -1503,8 +1504,7 @@ bool Connection::DoesViewExist(const char* view_name) const {
+   return DoesSchemaItemExist(view_name, "view");
+ }
+ 
+-bool Connection::DoesSchemaItemExist(
+-    const char* name, const char* type) const {
++bool Connection::DoesSchemaItemExist(const char* name, const char* type) const {
+   const char* kSql =
+       "SELECT name FROM sqlite_master WHERE type=? AND name=? COLLATE NOCASE";
+   Statement statement(GetUntrackedStatement(kSql));
+@@ -1522,23 +1522,17 @@ bool Connection::DoesSchemaItemExist(
+ 
+ bool Connection::DoesColumnExist(const char* table_name,
+                                  const char* column_name) const {
+-  std::string sql("PRAGMA TABLE_INFO(");
+-  sql.append(table_name);
+-  sql.append(")");
+-
+-  Statement statement(GetUntrackedStatement(sql.c_str()));
+-
+-  // This can happen if the database is corrupt and the error is a test
+-  // expectation.
+-  if (!statement.is_valid())
+-    return false;
+-
+-  while (statement.Step()) {
+-    if (base::EqualsCaseInsensitiveASCII(statement.ColumnString(1),
+-                                         column_name))
+-      return true;
+-  }
+-  return false;
++  // sqlite3_table_column_metadata uses out-params to return column definition
++  // details, such as the column type and whether it allows NULL values.
++  // These
++  // aren't needed to compute the current method's result, so we pass in
++  // nullptr
++  // for all the out-params.
++  int error = sqlite3_table_column_metadata(
++      db_, "main", table_name, column_name, /* pzDataType= */ nullptr,
++      /* pzCollSeq= */ nullptr, /* pNotNull= */ nullptr,
++      /* pPrimaryKey= */ nullptr, /* pAutoinc= */ nullptr);
++  return error == SQLITE_OK;
+ }
+ 
+ int64_t Connection::GetLastInsertRowId() const {
+@@ -1594,11 +1588,9 @@ bool Connection::OpenInternal(const std::string& file_name,
+   // Setup the stats histograms immediately rather than allocating lazily.
+   // Connections which won't exercise all of these probably shouldn't exist.
+   if (!histogram_tag_.empty()) {
+-    stats_histogram_ =
+-        base::LinearHistogram::FactoryGet(
+-            "Sqlite.Stats." + histogram_tag_,
+-            1, EVENT_MAX_VALUE, EVENT_MAX_VALUE + 1,
+-            base::HistogramBase::kUmaTargetedHistogramFlag);
++    stats_histogram_ = base::LinearHistogram::FactoryGet(
++        "Sqlite.Stats." + histogram_tag_, 1, EVENT_MAX_VALUE,
++        EVENT_MAX_VALUE + 1, base::HistogramBase::kUmaTargetedHistogramFlag);
+ 
+     // The timer setup matches UMA_HISTOGRAM_MEDIUM_TIMES().  3 minutes is an
+     // unreasonable time for any single operation, so there is not much value to
+@@ -1629,9 +1621,16 @@ bool Connection::OpenInternal(const std::string& file_name,
    // Custom memory-mapping VFS which reads pages using regular I/O on first hit.
    sqlite3_vfs* vfs = VFSWrapper();
    const char* vfs_name = (vfs ? vfs->zName : nullptr);
@@ -133,6 +514,560 @@ index 4fd3d41f4b6cb4a65b8959a044f7219ca1956936..769539052ed537ca8a5f6b8bae6e4314
    if (err != SQLITE_OK) {
      // Extended error codes cannot be enabled until a handle is
      // available, fetch manually.
+@@ -1650,30 +1649,6 @@ bool Connection::OpenInternal(const std::string& file_name,
+     return false;
+   }
+ 
+-  // TODO(shess): OS_WIN support?
+-#if defined(OS_POSIX) && !defined(OS_FUCHSIA)
+-  if (restrict_to_user_) {
+-    DCHECK_NE(file_name, std::string(":memory"));
+-    base::FilePath file_path(file_name);
+-    int mode = 0;
+-    // TODO(shess): Arguably, failure to retrieve and change
+-    // permissions should be fatal if the file exists.
+-    if (base::GetPosixFilePermissions(file_path, &mode)) {
+-      mode &= base::FILE_PERMISSION_USER_MASK;
+-      base::SetPosixFilePermissions(file_path, mode);
+-
+-      // SQLite sets the permissions on these files from the main
+-      // database on create.  Set them here in case they already exist
+-      // at this point.  Failure to set these permissions should not
+-      // be fatal unless the file doesn't exist.
+-      base::FilePath journal_path(file_name + FILE_PATH_LITERAL("-journal"));
+-      base::FilePath wal_path(file_name + FILE_PATH_LITERAL("-wal"));
+-      base::SetPosixFilePermissions(journal_path, mode);
+-      base::SetPosixFilePermissions(wal_path, mode);
+-    }
+-  }
+-#endif  // defined(OS_POSIX) && !defined(OS_FUCHSIA)
+-
+   // SQLite uses a lookaside buffer to improve performance of small mallocs.
+   // Chromium already depends on small mallocs being efficient, so we disable
+   // this to avoid the extra memory overhead.
+@@ -1743,18 +1718,10 @@ bool Connection::OpenInternal(const std::string& file_name,
+   ignore_result(Execute("PRAGMA journal_mode = TRUNCATE"));
+ 
+   const base::TimeDelta kBusyTimeout =
+-    base::TimeDelta::FromSeconds(kBusyTimeoutSeconds);
+-
+-  if (page_size_ != 0) {
+-    // Enforce SQLite restrictions on |page_size_|.
+-    DCHECK(!(page_size_ & (page_size_ - 1)))
+-        << " page_size_ " << page_size_ << " is not a power of two.";
+-    const int kSqliteMaxPageSize = 32768;  // from sqliteLimit.h
+-    DCHECK_LE(page_size_, kSqliteMaxPageSize);
+-    const std::string sql =
+-        base::StringPrintf("PRAGMA page_size=%d", page_size_);
+-    ignore_result(ExecuteWithTimeout(sql.c_str(), kBusyTimeout));
+-  }
++      base::TimeDelta::FromSeconds(kBusyTimeoutSeconds);
++
++  const std::string sql = base::StringPrintf("PRAGMA page_size=%d", page_size_);
++  ignore_result(ExecuteWithTimeout(sql.c_str(), kBusyTimeout));
+ 
+   if (cache_size_ != 0) {
+     const std::string sql =
+@@ -1863,16 +1830,15 @@ void Connection::AddTaggedHistogram(const std::string& name,
+   // often enough for such caching to be crucial.  If it becomes an
+   // issue, the object could be cached alongside histogram_prefix_.
+   std::string full_histogram_name = name + "." + histogram_tag_;
+-  base::HistogramBase* histogram =
+-      base::SparseHistogram::FactoryGet(
+-          full_histogram_name,
+-          base::HistogramBase::kUmaTargetedHistogramFlag);
++  base::HistogramBase* histogram = base::SparseHistogram::FactoryGet(
++      full_histogram_name, base::HistogramBase::kUmaTargetedHistogramFlag);
+   if (histogram)
+     histogram->Add(sample);
+ }
+ 
+-int Connection::OnSqliteError(
+-    int err, sql::Statement *stmt, const char* sql) const {
++int Connection::OnSqliteError(int err,
++                              sql::Statement* stmt,
++                              const char* sql) const {
+   base::UmaHistogramSparse("Sqlite.Error", err);
+   AddTaggedHistogram("Sqlite.Error", err);
+ 
+@@ -1885,10 +1851,8 @@ int Connection::OnSqliteError(
+   std::string id = histogram_tag_;
+   if (id.empty())
+     id = DbPath().BaseName().AsUTF8Unsafe();
+-  LOG(ERROR) << id << " sqlite error " << err
+-             << ", errno " << GetLastErrno()
+-             << ": " << GetErrorMessage()
+-             << ", sql: " << sql;
++  LOG(ERROR) << id << " sqlite error " << err << ", errno " << GetLastErrno()
++             << ": " << GetErrorMessage() << ", sql: " << sql;
+ 
+   if (!error_callback_.is_null()) {
+     // Fire from a copy of the callback in case of reentry into
+@@ -1950,9 +1914,8 @@ std::string Connection::GetDiagnosticInfo(int extended_error,
+ }
+ 
+ // TODO(shess): Allow specifying maximum results (default 100 lines).
+-bool Connection::IntegrityCheckHelper(
+-    const char* pragma_sql,
+-    std::vector<std::string>* messages) {
++bool Connection::IntegrityCheckHelper(const char* pragma_sql,
++                                      std::vector<std::string>* messages) {
+   messages->clear();
+ 
+   // This has the side effect of setting SQLITE_RecoveryMode, which
+diff --git a/sql/connection.h b/sql/connection.h
+index 4d84bb81daee64c0263a56ce0b97e192698a54a2..4183fddfab451984db86fdc30fc58715c091b3c4 100644
+--- a/sql/connection.h
++++ b/sql/connection.h
+@@ -20,6 +20,7 @@
+ #include "base/memory/ref_counted.h"
+ #include "base/threading/thread_restrictions.h"
+ #include "base/time/time.h"
++#include "sql/internal_api_token.h"
+ #include "sql/sql_export.h"
+ 
+ struct sqlite3;
+@@ -31,12 +32,11 @@ class HistogramBase;
+ namespace trace_event {
+ class ProcessMemoryDump;
+ }
+-}
++}  // namespace base
+ 
+ namespace sql {
+ 
+ class ConnectionMemoryDumpProvider;
+-class Recovery;
+ class Statement;
+ 
+ // To allow some test classes to be friended.
+@@ -45,7 +45,12 @@ class ScopedCommitHook;
+ class ScopedErrorExpecter;
+ class ScopedScalarFunction;
+ class ScopedMockTimeSource;
+-}
++}  // namespace test
++
++// Exposes private Connection functionality to unit tests.
++//
++// This class is only defined in test targets.
++class ConnectionTestPeer;
+ 
+ // Uniquely identifies a statement. There are two modes of operation:
+ //
+@@ -66,16 +71,11 @@ class StatementID {
+  public:
+   // Creates a uniquely named statement with the given file ane line number.
+   // Normally you will use SQL_FROM_HERE instead of calling yourself.
+-  StatementID(const char* file, int line)
+-      : number_(line),
+-        str_(file) {
+-  }
++  StatementID(const char* file, int line) : number_(line), str_(file) {}
+ 
+   // Creates a uniquely named statement with the given user-defined name.
+   explicit StatementID(const char* unique_name)
+-      : number_(-1),
+-        str_(unique_name) {
+-  }
++      : number_(-1), str_(unique_name) {}
+ 
+   // This constructor is unimplemented and will generate a linker error if
+   // called. It is intended to try to catch people dynamically generating
+@@ -93,8 +93,6 @@ class StatementID {
+ 
+ #define SQL_FROM_HERE sql::StatementID(__FILE__, __LINE__)
+ 
+-class Connection;
+-
+ // Abstract the source of timing information for metrics (RecordCommitTime, etc)
+ // to allow testing control.
+ class SQL_EXPORT TimeSource {
+@@ -125,10 +123,17 @@ class SQL_EXPORT Connection {
+   // must be called before Init(), and will only have an effect on new
+   // databases.
+   //
+-  // From sqlite.org: "The page size must be a power of two greater than or
+-  // equal to 512 and less than or equal to SQLITE_MAX_PAGE_SIZE. The maximum
+-  // value for SQLITE_MAX_PAGE_SIZE is 32768."
+-  void set_page_size(int page_size) { page_size_ = page_size; }
++  // The page size must be a power of two between 512 and 65536 inclusive.
++  void set_page_size(int page_size) {
++    DCHECK_GE(page_size, 512);
++    DCHECK_LE(page_size, 65536);
++    DCHECK(!(page_size & (page_size - 1)));
++
++    page_size_ = page_size;
++  }
++
++  // The page size that will be used when creating a new database.
++  int page_size() const { return page_size_; }
+ 
+   // Sets the number of pages that will be cached in memory by sqlite. The
+   // total cache size in bytes will be page_size * cache_size. This must be
+@@ -147,12 +152,6 @@ class SQL_EXPORT Connection {
+   // This must be called before Open() to have an effect.
+   void set_exclusive_locking() { exclusive_locking_ = true; }
+ 
+-  // Call to cause Open() to restrict access permissions of the
+-  // database file to only the owner.
+-  // TODO(shess): Currently only supported on OS_POSIX, is a noop on
+-  // other platforms.
+-  void set_restrict_to_user() { restrict_to_user_ = true; }
+-
+   // Call to use alternative status-tracking for mmap.  Usually this is tracked
+   // in the meta table, but some databases have no meta table.
+   // TODO(shess): Maybe just have all databases use the alt option?
+@@ -170,12 +169,8 @@ class SQL_EXPORT Connection {
+   void set_error_callback(const ErrorCallback& callback) {
+     error_callback_ = callback;
+   }
+-  bool has_error_callback() const {
+-    return !error_callback_.is_null();
+-  }
+-  void reset_error_callback() {
+-    error_callback_.Reset();
+-  }
++  bool has_error_callback() const { return !error_callback_.is_null(); }
++  void reset_error_callback() { error_callback_.Reset(); }
+ 
+   // Set this to enable additional per-connection histogramming.  Must be called
+   // before Open().
+@@ -227,17 +222,15 @@ class SQL_EXPORT Connection {
+     EVENT_MMAP_SUCCESS_PARTIAL,      // Read but did not reach EOF.
+     EVENT_MMAP_SUCCESS_NO_PROGRESS,  // Read quota exhausted.
+ 
+-    EVENT_MMAP_STATUS_FAILURE_READ,  // Failure reading MmapStatus view.
+-    EVENT_MMAP_STATUS_FAILURE_UPDATE,// Failure updating MmapStatus view.
++    EVENT_MMAP_STATUS_FAILURE_READ,    // Failure reading MmapStatus view.
++    EVENT_MMAP_STATUS_FAILURE_UPDATE,  // Failure updating MmapStatus view.
+ 
+     // Leave this at the end.
+     // TODO(shess): |EVENT_MAX| causes compile fail on Windows.
+     EVENT_MAX_VALUE
+   };
+   void RecordEvent(Events event, size_t count);
+-  void RecordOneEvent(Events event) {
+-    RecordEvent(event, 1);
+-  }
++  void RecordOneEvent(Events event) { RecordEvent(event, 1); }
+ 
+   // Run "PRAGMA integrity_check" and post each line of
+   // results into |messages|.  Returns the success of running the
+@@ -386,22 +379,22 @@ class SQL_EXPORT Connection {
+ 
+   // Attached databases---------------------------------------------------------
+ 
+-  // SQLite supports attaching multiple database files to a single
+-  // handle.  Attach the database in |other_db_path| to the current
+-  // handle under |attachment_point|.  |attachment_point| should only
+-  // contain characters from [a-zA-Z0-9_].
++  // SQLite supports attaching multiple database files to a single connection.
+   //
+-  // Attaching a database while a transaction is open will have
+-  // platform-dependent results, as explained below.
++  // Attach the database in |other_db_path| to the current connection under
++  // |attachment_point|. |attachment_point| must only contain characters from
++  // [a-zA-Z0-9_].
+   //
+   // On the SQLite version shipped with Chrome (3.21+, Oct 2017), databases can
+   // be attached while a transaction is opened. However, these databases cannot
+-  // be detached until the transaction is committed or aborted. On iOS, the
+-  // built-in SQLite might not be older than 3.21. In that case, attaching a
+-  // database while a transaction is open results in a error.
++  // be detached until the transaction is committed or aborted.
++  //
++  // These APIs are only exposed for use in recovery. They are extremely subtle
++  // and are not useful for features built on top of //sql.
+   bool AttachDatabase(const base::FilePath& other_db_path,
+-                      const char* attachment_point);
+-  bool DetachDatabase(const char* attachment_point);
++                      const char* attachment_point,
++                      InternalApiToken);
++  bool DetachDatabase(const char* attachment_point, InternalApiToken);
+ 
+   // Statements ----------------------------------------------------------------
+ 
+@@ -471,6 +464,12 @@ class SQL_EXPORT Connection {
+   bool DoesViewExist(const char* table_name) const;
+ 
+   // Returns true if a column with the given name exists in the given table.
++  //
++  // Calling this method on a VIEW returns an unspecified result.
++  //
++  // This should only be used by migration code for legacy features that do not
++  // use MetaTable, and need an alternative way of figuring out the database's
++  // current version.
+   bool DoesColumnExist(const char* table_name, const char* column_name) const;
+ 
+   // Returns sqlite's internal ID for the last inserted row. Valid only
+@@ -512,10 +511,49 @@ class SQL_EXPORT Connection {
+   // crash server.
+   void ReportDiagnosticInfo(int extended_error, Statement* stmt);
+ 
+- private:
+-  // For recovery module.
+-  friend class Recovery;
++  // Computes the path of a database's rollback journal.
++  //
++  // The journal file is created at the beginning of the database's first
++  // transaction. The file may be removed and re-created between transactions,
++  // depending on whether the database is opened in exclusive mode, and on
++  // configuration options. The journal file does not exist when the database
++  // operates in WAL mode.
++  //
++  // This is intended for internal use and tests. To preserve our ability to
++  // iterate on our SQLite configuration, features must avoid relying on
++  // the existence of specific files.
++  static base::FilePath JournalPath(const base::FilePath& db_path);
++
++  // Computes the path of a database's write-ahead log (WAL).
++  //
++  // The WAL file exists while a database is opened in WAL mode.
++  //
++  // This is intended for internal use and tests. To preserve our ability to
++  // iterate on our SQLite configuration, features must avoid relying on
++  // the existence of specific files.
++  static base::FilePath WriteAheadLogPath(const base::FilePath& db_path);
+ 
++  // Computes the path of a database's shared memory (SHM) file.
++  //
++  // The SHM file is used to coordinate between multiple processes using the
++  // same database in WAL mode. Thus, this file only exists for databases
++  // using WAL and not opened in exclusive mode.
++  //
++  // This is intended for internal use and tests. To preserve our ability to
++  // iterate on our SQLite configuration, features must avoid relying on
++  // the existence of specific files.
++  static base::FilePath SharedMemoryFilePath(const base::FilePath& db_path);
++
++  // Default page size for newly created databases.
++  //
++  // Guaranteed to match SQLITE_DEFAULT_PAGE_SIZE.
++  static constexpr int kDefaultPageSize = 4096;
++
++  // Internal state accessed by other classes in //sql.
++  sqlite3* db(InternalApiToken) const { return db_; }
++  bool poisoned(InternalApiToken) const { return poisoned_; }
++
++ private:
+   // Allow test-support code to set/reset error expecter.
+   friend class test::ScopedErrorExpecter;
+ 
+@@ -527,6 +565,8 @@ class SQL_EXPORT Connection {
+   friend class test::ScopedScalarFunction;
+   friend class test::ScopedMockTimeSource;
+ 
++  friend class ConnectionTestPeer;
++
+   FRIEND_TEST_ALL_PREFIXES(SQLConnectionTest, CollectDiagnosticInfo);
+   FRIEND_TEST_ALL_PREFIXES(SQLConnectionTest, GetAppropriateMmapSize);
+   FRIEND_TEST_ALL_PREFIXES(SQLConnectionTest, GetAppropriateMmapSizeAltStatus);
+@@ -540,10 +580,7 @@ class SQL_EXPORT Connection {
+   //
+   // |retry_flag| controls retrying the open if the error callback
+   // addressed errors using RazeAndClose().
+-  enum Retry {
+-    NO_RETRY = 0,
+-    RETRY_ON_POISON
+-  };
++  enum Retry { NO_RETRY = 0, RETRY_ON_POISON };
+   bool OpenInternal(const std::string& file_name, Retry retry_flag);
+ 
+   // Internal close function used by Close() and RazeAndClose().
+@@ -615,7 +652,10 @@ class SQL_EXPORT Connection {
+ 
+     // Check whether the current thread is allowed to make IO calls, but only
+     // if database wasn't open in memory.
+-    void AssertIOAllowed() { if (connection_) connection_->AssertIOAllowed(); }
++    void AssertIOAllowed() {
++      if (connection_)
++        connection_->AssertIOAllowed();
++    }
+ 
+    private:
+     friend class base::RefCounted<StatementRef>;
+@@ -652,15 +692,15 @@ class SQL_EXPORT Connection {
+   int OnSqliteError(int err, Statement* stmt, const char* sql) const;
+ 
+   // Like |Execute()|, but retries if the database is locked.
+-  bool ExecuteWithTimeout(const char* sql, base::TimeDelta ms_timeout)
+-      WARN_UNUSED_RESULT;
++  bool ExecuteWithTimeout(const char* sql,
++                          base::TimeDelta ms_timeout) WARN_UNUSED_RESULT;
+ 
+   // Implementation helper for GetUniqueStatement() and GetUntrackedStatement().
+   // |tracking_db| is the db the resulting ref should register with for
+   // outstanding statement tracking, which should be |this| to track or NULL to
+   // not track.
+-  scoped_refptr<StatementRef> GetStatementImpl(
+-      sql::Connection* tracking_db, const char* sql) const;
++  scoped_refptr<StatementRef> GetStatementImpl(sql::Connection* tracking_db,
++                                               const char* sql) const;
+ 
+   // Helper for implementing const member functions.  Like GetUniqueStatement(),
+   // except the StatementRef is not entered into |open_statements_|, so an
+@@ -669,9 +709,9 @@ class SQL_EXPORT Connection {
+   // |error_callback_| which can close the database.
+   scoped_refptr<StatementRef> GetUntrackedStatement(const char* sql) const;
+ 
+-  bool IntegrityCheckHelper(
+-      const char* pragma_sql,
+-      std::vector<std::string>* messages) WARN_UNUSED_RESULT;
++  bool IntegrityCheckHelper(const char* pragma_sql,
++                            std::vector<std::string>* messages)
++      WARN_UNUSED_RESULT;
+ 
+   // Record time spent executing explicit COMMIT statements.
+   void RecordCommitTime(const base::TimeDelta& delta);
+@@ -698,9 +738,7 @@ class SQL_EXPORT Connection {
+   void RecordTimeAndChanges(const base::TimeDelta& delta, bool read_only);
+ 
+   // Helper to return the current time from the time source.
+-  base::TimeTicks Now() {
+-    return clock_->Now();
+-  }
++  base::TimeTicks Now() { return clock_->Now(); }
+ 
+   // Release page-cache memory if memory-mapped I/O is enabled and the database
+   // was changed.  Passing true for |implicit_change_performed| allows
+@@ -758,7 +796,6 @@ class SQL_EXPORT Connection {
+   int page_size_;
+   int cache_size_;
+   bool exclusive_locking_;
+-  bool restrict_to_user_;
+ 
+   // All cached statements. Keeping a reference to these statements means that
+   // they'll remain active. Using flat_map here because number of cached
+diff --git a/sql/internal_api_token.h b/sql/internal_api_token.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..bb92747426f83c821aad0835ce988f51b3e95505
+--- /dev/null
++++ b/sql/internal_api_token.h
+@@ -0,0 +1,25 @@
++// Copyright 2018 The Chromium Authors. All rights reserved.
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
++#ifndef SQL_INTERNAL_API_TOKEN_H_
++#define SQL_INTERNAL_API_TOKEN_H_
++
++namespace sql {
++
++// Restricts access to APIs internal to the //sql package.
++//
++// This implements Java's package-private via the passkey idiom.
++class InternalApiToken {
++ private:
++  // Must NOT be =default to disallow creation by uniform initialization.
++  InternalApiToken() {}
++  InternalApiToken(const InternalApiToken&) = default;
++
++  friend class ConnectionTestPeer;
++  friend class Recovery;
++};
++
++}  // namespace sql
++
++#endif  // SQL_INTERNAL_API_TOKEN_H_
+diff --git a/sql/recovery.cc b/sql/recovery.cc
+index 6138efb846dd477099dd31031220373e7d5a9acc..8323f4b28933b8c041b56c27ff6782e8e87d1bfb 100644
+--- a/sql/recovery.cc
++++ b/sql/recovery.cc
+@@ -149,19 +149,20 @@ std::unique_ptr<Recovery> Recovery::Begin(Connection* connection,
+   // same recovery.
+   if (!connection->is_open()) {
+     // Warn about API mis-use.
+-    DLOG_IF(FATAL, !connection->poisoned_)
++    DCHECK(connection->poisoned(InternalApiToken()))
+         << "Illegal to recover with closed database";
+     return std::unique_ptr<Recovery>();
+   }
+ 
+-  std::unique_ptr<Recovery> r(new Recovery(connection));
+-  if (!r->Init(db_path)) {
++  // Using `new` to access a non-public constructor
++  std::unique_ptr<Recovery> recovery(new Recovery(connection));
++  if (!recovery->Init(db_path)) {
+     // TODO(shess): Should Init() failure result in Raze()?
+-    r->Shutdown(POISON);
++    recovery->Shutdown(POISON);
+     return std::unique_ptr<Recovery>();
+   }
+ 
+-  return r;
++  return recovery;
+ }
+ 
+ // static
+@@ -186,8 +187,7 @@ Recovery::Recovery(Connection* connection)
+     : db_(connection),
+       recover_db_() {
+   // Result should keep the page size specified earlier.
+-  if (db_->page_size_)
+-    recover_db_.set_page_size(db_->page_size_);
++  recover_db_.set_page_size(db_->page_size());
+ 
+   // Files with I/O errors cannot be safely memory-mapped.
+   recover_db_.set_mmap_disabled();
+@@ -239,7 +239,7 @@ bool Recovery::Init(const base::FilePath& db_path) {
+   }
+ 
+   // Enable the recover virtual table for this connection.
+-  int rc = chrome_sqlite3_recoverVtableInit(recover_db_.db_);
++  int rc = chrome_sqlite3_recoverVtableInit(recover_db_.db(InternalApiToken()));
+   if (rc != SQLITE_OK) {
+     RecordRecoveryEvent(RECOVERY_FAILED_VIRTUAL_TABLE_INIT);
+     LOG(ERROR) << "Failed to initialize recover module: "
+@@ -254,7 +254,7 @@ bool Recovery::Init(const base::FilePath& db_path) {
+     return false;
+   }
+ 
+-  if (!recover_db_.AttachDatabase(db_path, "corrupt")) {
++  if (!recover_db_.AttachDatabase(db_path, "corrupt", InternalApiToken())) {
+     RecordRecoveryEvent(RECOVERY_FAILED_ATTACH);
+     base::UmaHistogramSparse("Sqlite.RecoveryAttachError",
+                              recover_db_.GetErrorCode());
+@@ -301,16 +301,17 @@ bool Recovery::Backup() {
+ 
+   // Backup the original db from the recovered db.
+   const char* kMain = "main";
+-  sqlite3_backup* backup = sqlite3_backup_init(db_->db_, kMain,
+-                                               recover_db_.db_, kMain);
++  sqlite3_backup* backup =
++      sqlite3_backup_init(db_->db(InternalApiToken()), kMain,
++                          recover_db_.db(InternalApiToken()), kMain);
+   if (!backup) {
+     RecordRecoveryEvent(RECOVERY_FAILED_BACKUP_INIT);
+ 
+     // Error code is in the destination database handle.
+-    int err = sqlite3_extended_errcode(db_->db_);
++    int err = sqlite3_extended_errcode(db_->db(InternalApiToken()));
+     base::UmaHistogramSparse("Sqlite.RecoveryHandle", err);
+     LOG(ERROR) << "sqlite3_backup_init() failed: "
+-               << sqlite3_errmsg(db_->db_);
++               << sqlite3_errmsg(db_->db(InternalApiToken()));
+ 
+     return false;
+   }
+@@ -329,7 +330,7 @@ bool Recovery::Backup() {
+     RecordRecoveryEvent(RECOVERY_FAILED_BACKUP_STEP);
+     base::UmaHistogramSparse("Sqlite.RecoveryStep", rc);
+     LOG(ERROR) << "sqlite3_backup_step() failed: "
+-               << sqlite3_errmsg(db_->db_);
++               << sqlite3_errmsg(db_->db(InternalApiToken()));
+   }
+ 
+   // The destination database was locked.  Give up, but leave the data
+@@ -616,7 +617,7 @@ std::unique_ptr<Recovery> Recovery::BeginRecoverDatabase(
+     {
+       Connection probe_db;
+       if (!probe_db.OpenInMemory() ||
+-          probe_db.AttachDatabase(db_path, "corrupt") ||
++          probe_db.AttachDatabase(db_path, "corrupt", InternalApiToken()) ||
+           probe_db.GetErrorCode() != SQLITE_NOTADB) {
+         RecordRecoveryEvent(RECOVERY_FAILED_AUTORECOVERDB_BEGIN);
+         return nullptr;
 diff --git a/sql/statement.cc b/sql/statement.cc
 index 12a7b8623e58588bdeb9a8914300a3a6ca63e1b5..2d8e44ff8d7a7ca8ad8dfc4358688c96b3f2fa54 100644
 --- a/sql/statement.cc
