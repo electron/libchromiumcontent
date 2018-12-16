@@ -3,13 +3,6 @@ From: deepak1556 <hop2deep@gmail.com>
 Date: Thu, 13 Dec 2018 04:13:40 +0530
 Subject: sqlite: Update api in //sql and //third_party/WebKit
 
-Refs https://chromium-review.googlesource.com/c/chromium/src/+/1352694
-Refs https://chromium-review.googlesource.com/c/chromium/src/+/1146280
-Refs https://chromium-review.googlesource.com/c/chromium/src/+/1357825
-Refs https://chromium-review.googlesource.com/c/chromium/src/+/1343789
-Refs https://chromium-review.googlesource.com/c/chromium/src/+/1146295
-Refs https://chromium-review.googlesource.com/c/chromium/src/+/1146768
-
 diff --git a/components/password_manager/core/browser/login_database.cc b/components/password_manager/core/browser/login_database.cc
 index e7726d2484b7..1c1d21358c6c 100644
 --- a/components/password_manager/core/browser/login_database.cc
@@ -1151,6 +1144,18 @@ index 3bc99ed2924b..115895b85019 100644
  
    // These all take a 0-based argument index.
    bool ColumnBool(int col) const;
+diff --git a/third_party/WebKit/Source/modules/webdatabase/DatabaseAuthorizer.cpp b/third_party/WebKit/Source/modules/webdatabase/DatabaseAuthorizer.cpp
+index f9e5d18cc9c0..6435d8d0b6b0 100644
+--- a/third_party/WebKit/Source/modules/webdatabase/DatabaseAuthorizer.cpp
++++ b/third_party/WebKit/Source/modules/webdatabase/DatabaseAuthorizer.cpp
+@@ -73,6 +73,7 @@ const FunctionNameList& WhitelistedFunctions() {
+           // SQLite functions used to help implement some operations
+           // ALTER TABLE helpers
+           "sqlite_rename_table", "sqlite_rename_trigger",
++          "sqlite_rename_column", "sqlite_rename_table", "sqlite_rename_test",
+           // GLOB helpers
+           "glob",
+           // SQLite core functions
 diff --git a/third_party/WebKit/Source/modules/webdatabase/sqlite/SQLiteFileSystem.cpp b/third_party/WebKit/Source/modules/webdatabase/sqlite/SQLiteFileSystem.cpp
 index fa7d9daadd07..fc233a1205a0 100644
 --- a/third_party/WebKit/Source/modules/webdatabase/sqlite/SQLiteFileSystem.cpp
