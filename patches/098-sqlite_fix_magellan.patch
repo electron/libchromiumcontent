@@ -5,7 +5,7 @@ Subject: sqlite: Magellan patch from <https://www.sqlite.org/src/vinfo/d44318f59
 
 
 diff --git a/third_party/sqlite/amalgamation/sqlite3.c b/third_party/sqlite/amalgamation/sqlite3.c
-index ab5a00d68568..606d4bcfb583 100644
+index ab5a00d68568..07f17f1f8b8b 100644
 --- a/third_party/sqlite/amalgamation/sqlite3.c
 +++ b/third_party/sqlite/amalgamation/sqlite3.c
 @@ -148996,7 +148996,7 @@ static int fts3ScanInteriorNode(
@@ -41,7 +41,7 @@ index ab5a00d68568..606d4bcfb583 100644
    pNext += fts3GetVarint32(pNext, &nSuffix);
 -  if( nPrefix<0 || nSuffix<=0
 -   || &pNext[nSuffix]>&pReader->aNode[pReader->nNode]
-+  if( nSuffix<=0 
++  if( nSuffix<=0
 +   || (&pReader->aNode[pReader->nNode] - pNext)<nSuffix
 +   || nPrefix>pReader->nTermAlloc
    ){
@@ -56,7 +56,7 @@ index ab5a00d68568..606d4bcfb583 100644
 +  ** overflow - hence the (i64) casts.  */
 +  if( (i64)nPrefix+nSuffix>(i64)pReader->nTermAlloc ){
 +    i64 nNew = ((i64)nPrefix+nSuffix)*2;
-+    char *zNew = sqlite3_realloc64(pReader->zTerm, nNew);`
++    char *zNew = sqlite3_realloc64(pReader->zTerm, nNew);
      if( !zNew ){
        return SQLITE_NOMEM;
      }
