@@ -513,18 +513,10 @@ index d7477f57dbfc..d9e24556c547 100644
    if (cache_size_ != 0) {
      const std::string sql =
 diff --git a/sql/connection.h b/sql/connection.h
-index 8b9640785e98..45358e6b5ffa 100644
+index 8b9640785e98..7d936384ca65 100644
 --- a/sql/connection.h
 +++ b/sql/connection.h
-@@ -20,6 +20,7 @@
- #include "base/memory/ref_counted.h"
- #include "base/threading/thread_restrictions.h"
- #include "base/time/time.h"
-+#include "sql/internal_api_token.h"
- #include "sql/sql_export.h"
- 
- struct sqlite3;
-@@ -36,7 +37,6 @@ class ProcessMemoryDump;
+@@ -36,7 +36,6 @@ class ProcessMemoryDump;
  namespace sql {
  
  class ConnectionMemoryDumpProvider;
@@ -532,7 +524,7 @@ index 8b9640785e98..45358e6b5ffa 100644
  class Statement;
  
  // To allow some test classes to be friended.
-@@ -93,7 +93,10 @@ class StatementID {
+@@ -93,7 +92,10 @@ class StatementID {
  
  #define SQL_FROM_HERE sql::StatementID(__FILE__, __LINE__)
  
@@ -544,7 +536,7 @@ index 8b9640785e98..45358e6b5ffa 100644
  
  // Abstract the source of timing information for metrics (RecordCommitTime, etc)
  // to allow testing control.
-@@ -124,11 +127,20 @@ class SQL_EXPORT Connection {
+@@ -124,11 +126,20 @@ class SQL_EXPORT Connection {
    // Sets the page size that will be used when creating a new database. This
    // must be called before Init(), and will only have an effect on new
    // databases.
@@ -556,7 +548,7 @@ index 8b9640785e98..45358e6b5ffa 100644
 +  // The page size must be a power of two between 512 and 65536 inclusive.
 +  void set_page_size(int page_size) {
 +    DCHECK(!page_size || (page_size >= 512));
-+    DCHECK(!page_size || !(page_size & (page_size - 1)));
++    DCHECK(!page_size || !(page_size & (page_size - 1)))
 +    DCHECK_GE(page_size, 512);
 +    DCHECK_LE(page_size, 65536);
 +    DCHECK(!(page_size & (page_size - 1)))
@@ -570,7 +562,7 @@ index 8b9640785e98..45358e6b5ffa 100644
  
    // Sets the number of pages that will be cached in memory by sqlite. The
    // total cache size in bytes will be page_size * cache_size. This must be
-@@ -147,12 +159,6 @@ class SQL_EXPORT Connection {
+@@ -147,12 +158,6 @@ class SQL_EXPORT Connection {
    // This must be called before Open() to have an effect.
    void set_exclusive_locking() { exclusive_locking_ = true; }
  
@@ -583,7 +575,7 @@ index 8b9640785e98..45358e6b5ffa 100644
    // Call to use alternative status-tracking for mmap.  Usually this is tracked
    // in the meta table, but some databases have no meta table.
    // TODO(shess): Maybe just have all databases use the alt option?
-@@ -387,16 +393,21 @@ class SQL_EXPORT Connection {
+@@ -387,16 +392,21 @@ class SQL_EXPORT Connection {
  
    // Attached databases---------------------------------------------------------
  
@@ -611,7 +603,7 @@ index 8b9640785e98..45358e6b5ffa 100644
  
    // Statements ----------------------------------------------------------------
  
-@@ -466,6 +477,12 @@ class SQL_EXPORT Connection {
+@@ -466,6 +476,12 @@ class SQL_EXPORT Connection {
    bool DoesViewExist(const char* table_name) const;
  
    // Returns true if a column with the given name exists in the given table.
@@ -624,7 +616,7 @@ index 8b9640785e98..45358e6b5ffa 100644
    bool DoesColumnExist(const char* table_name, const char* column_name) const;
  
    // Returns sqlite's internal ID for the last inserted row. Valid only
-@@ -507,10 +524,49 @@ class SQL_EXPORT Connection {
+@@ -507,10 +523,49 @@ class SQL_EXPORT Connection {
    // crash server.
    void ReportDiagnosticInfo(int extended_error, Statement* stmt);
  
@@ -677,7 +669,7 @@ index 8b9640785e98..45358e6b5ffa 100644
    // Allow test-support code to set/reset error expecter.
    friend class test::ScopedErrorExpecter;
  
-@@ -518,6 +574,8 @@ class SQL_EXPORT Connection {
+@@ -518,6 +573,8 @@ class SQL_EXPORT Connection {
    // (they should go through Statement).
    friend class Statement;
  
@@ -686,7 +678,7 @@ index 8b9640785e98..45358e6b5ffa 100644
    friend class test::ScopedCommitHook;
    friend class test::ScopedScalarFunction;
    friend class test::ScopedMockTimeSource;
-@@ -753,7 +811,6 @@ class SQL_EXPORT Connection {
+@@ -753,7 +810,6 @@ class SQL_EXPORT Connection {
    int page_size_;
    int cache_size_;
    bool exclusive_locking_;
@@ -951,7 +943,7 @@ index 000000000000..bb92747426f8
 +
 +#endif  // SQL_INTERNAL_API_TOKEN_H_
 diff --git a/sql/recovery.cc b/sql/recovery.cc
-index 64eefa51104e..6d4c29d41a1e 100644
+index 64eefa51104e..755d9fb77f9c 100644
 --- a/sql/recovery.cc
 +++ b/sql/recovery.cc
 @@ -154,19 +154,20 @@ std::unique_ptr<Recovery> Recovery::Begin(Connection* connection,
@@ -995,7 +987,7 @@ index 64eefa51104e..6d4c29d41a1e 100644
  
    // Enable the recover virtual table for this connection.
 -  int rc = recoverVtableInit(recover_db_.db_);
-+  int rc = chrome_sqlite3_recoverVtableInit(recover_db_.db(InternalApiToken()));
++  int rc = recoverVtableInit(recover_db_.db(InternalApiToken()));
    if (rc != SQLITE_OK) {
      RecordRecoveryEvent(RECOVERY_FAILED_VIRTUAL_TABLE_INIT);
      LOG(ERROR) << "Failed to initialize recover module: "
