@@ -3,6 +3,7 @@ is_component_build = false
 is_debug = false
 enable_linux_installer = false
 v8_use_snapshot = true
+v8_untrusted_code_mitigations = false
 enable_nacl = false
 if (target_cpu == "arm") {
   v8_snapshot_toolchain="//build/toolchain/linux:clang_arm"
