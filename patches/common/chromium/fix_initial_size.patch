@@ -1,0 +1,14 @@
+diff --git a/ui/views/widget/widget.cc b/ui/views/widget/widget.cc
+index 7054c136dd17..1280fcf35c19 100644
+--- a/ui/views/widget/widget.cc
++++ b/ui/views/widget/widget.cc
+@@ -353,7 +353,9 @@ void Widget::Init(const InitParams& in_params) {
+     UpdateWindowIcon();
+     UpdateWindowTitle();
+     non_client_view_->ResetWindowControls();
++#if !defined(OS_MACOSX)
+     SetInitialBounds(params.bounds);
++#endif
+ 
+     // Perform the initial layout. This handles the case where the size might
+     // not actually change when setting the initial bounds. If it did, child

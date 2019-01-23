@@ -458,3 +458,11 @@ patches:
   description: |
     Update sqlite api for 3.26 in //sql, //content/browser, //third_party/WebKit.
     Backport https://crrev.com/c/1146280/ and https://crrev.com/c/1352694/
+-
+  owners: zcbenz
+  file: fix_initial_size.patch
+  description: |
+    Don't call SetInitialBounds on macOS, since the initial size has already
+    been set by BridgedNativeWidget, and the SetInitialBounds of Widget has bug
+    that will set wrong size.
+    See https://github.com/electron/electron/issues/16015 for more.
