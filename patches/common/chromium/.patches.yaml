@@ -466,3 +466,8 @@ patches:
     been set by BridgedNativeWidget, and the SetInitialBounds of Widget has bug
     that will set wrong size.
     See https://github.com/electron/electron/issues/16015 for more.
+-
+  owners: nornagon
+  file: do_not_allow_impl_side_invalidations_until_frame_sink_is_fully_active.patch
+  description: |
+    Backports a fix for a renderer hang in cc::ProxyMain::BeginMainFrame
