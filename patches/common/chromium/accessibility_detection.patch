@@ -1,0 +1,115 @@
+diff --git a/content/browser/accessibility/browser_accessibility_manager_win.cc b/content/browser/accessibility/browser_accessibility_manager_win.cc
+index ea5cf31..7d8fff5 100644
+--- a/content/browser/accessibility/browser_accessibility_manager_win.cc
++++ b/content/browser/accessibility/browser_accessibility_manager_win.cc
+@@ -19,6 +19,11 @@
+ 
+ namespace content {
+ 
++// See OnScreenReaderHoneyPotQueried, below.
++bool g_screen_reader_honeypot_queried = false;
++bool g_acc_name_called = false;
++
++
+ // static
+ BrowserAccessibilityManager* BrowserAccessibilityManager::Create(
+     const ui::AXTreeUpdate& initial_tree,
+@@ -80,6 +85,31 @@ void BrowserAccessibilityManagerWin::OnIAccessible2Used() {
+       ui::AXMode::kNativeAPIs | ui::AXMode::kWebContents);
+ }
+ 
++void BrowserAccessibilityManagerWin::OnScreenReaderHoneyPotQueried() {
++  // We used to trust this as a signal that a screen reader is running,
++  // but it's been abused. Now only enable accessibility if we also
++  // detect a call to get_accName.
++  if (g_screen_reader_honeypot_queried)
++    return;
++  g_screen_reader_honeypot_queried = true;
++  if (g_acc_name_called) {
++    BrowserAccessibilityStateImpl::GetInstance()->AddAccessibilityModeFlags(
++        ui::AXMode::kNativeAPIs | ui::AXMode::kWebContents);
++  }
++}
++
++void BrowserAccessibilityManagerWin::OnAccNameCalled() {
++  // See OnScreenReaderHoneyPotQueried, above.
++  if (g_acc_name_called)
++    return;
++  g_acc_name_called = true;
++  if (g_screen_reader_honeypot_queried) {
++    BrowserAccessibilityStateImpl::GetInstance()->AddAccessibilityModeFlags(
++        ui::AXMode::kNativeAPIs | ui::AXMode::kWebContents);
++  }
++}
++
++
+ void BrowserAccessibilityManagerWin::UserIsReloading() {
+   if (GetRoot())
+     FireWinAccessibilityEvent(IA2_EVENT_DOCUMENT_RELOAD, GetRoot());
+diff --git a/content/browser/accessibility/browser_accessibility_manager_win.h b/content/browser/accessibility/browser_accessibility_manager_win.h
+index ff982d0..76d3434 100644
+--- a/content/browser/accessibility/browser_accessibility_manager_win.h
++++ b/content/browser/accessibility/browser_accessibility_manager_win.h
+@@ -35,6 +35,8 @@ class CONTENT_EXPORT BrowserAccessibilityManagerWin
+ 
+   // IAccessible2UsageObserver
+   void OnIAccessible2Used() override;
++  void OnScreenReaderHoneyPotQueried() override;
++  void OnAccNameCalled() override;
+ 
+   // BrowserAccessibilityManager methods
+   void UserIsReloading() override;
+diff --git a/content/browser/renderer_host/legacy_render_widget_host_win.cc b/content/browser/renderer_host/legacy_render_widget_host_win.cc
+index 7b880c4..8c72041 100644
+--- a/content/browser/renderer_host/legacy_render_widget_host_win.cc
++++ b/content/browser/renderer_host/legacy_render_widget_host_win.cc
+@@ -177,8 +177,10 @@ LRESULT LegacyRenderWidgetHostHWND::OnGetObject(UINT message,
+     // When an MSAA client has responded to our fake event on this id,
+     // enable basic accessibility support. (Full screen reader support is
+     // detected later when specific more advanced APIs are accessed.)
+-    BrowserAccessibilityStateImpl::GetInstance()->AddAccessibilityModeFlags(
+-        ui::AXMode::kNativeAPIs | ui::AXMode::kWebContents);
++    for (ui::IAccessible2UsageObserver& observer :
++         ui::GetIAccessible2UsageObserverList()) {
++      observer.OnScreenReaderHoneyPotQueried();
++    }
+     return static_cast<LRESULT>(0L);
+   }
+ 
+diff --git a/ui/accessibility/platform/ax_platform_node_win.cc b/ui/accessibility/platform/ax_platform_node_win.cc
+index f266a18..cbe217e 100644
+--- a/ui/accessibility/platform/ax_platform_node_win.cc
++++ b/ui/accessibility/platform/ax_platform_node_win.cc
+@@ -675,6 +675,11 @@ STDMETHODIMP AXPlatformNodeWin::get_accName(
+   WIN_ACCESSIBILITY_API_HISTOGRAM(UMA_API_GET_ACC_NAME);
+   AXPlatformNodeWin* target;
+   COM_OBJECT_VALIDATE_VAR_ID_1_ARG_AND_GET_TARGET(var_id, name, target);
++  
++  for (IAccessible2UsageObserver& observer :
++    GetIAccessible2UsageObserverList()) {
++    observer.OnAccNameCalled();
++  }
+ 
+   HRESULT result =
+       target->GetStringAttributeAsBstr(ax::mojom::StringAttribute::kName, name);
+diff --git a/ui/accessibility/platform/ax_platform_node_win.h b/ui/accessibility/platform/ax_platform_node_win.h
+index 4efab44..d837f7f 100644
+--- a/ui/accessibility/platform/ax_platform_node_win.h
++++ b/ui/accessibility/platform/ax_platform_node_win.h
+@@ -197,11 +197,15 @@ class AXPlatformRelationWin;
+ // A simple interface for a class that wants to be notified when IAccessible2
+ // is used by a client, a strong indication that full accessibility support
+ // should be enabled.
++//
++// TODO(dmazzoni): Rename this to something more general.
+ class AX_EXPORT IAccessible2UsageObserver {
+  public:
+   IAccessible2UsageObserver();
+   virtual ~IAccessible2UsageObserver();
+-  virtual void OnIAccessible2Used() = 0;
++  virtual void OnIAccessible2Used() = 0;  
++  virtual void OnScreenReaderHoneyPotQueried() = 0;
++  virtual void OnAccNameCalled() = 0;
+ };
+ 
+ struct AX_EXPORT AXHypertext {

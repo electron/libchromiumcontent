@@ -471,3 +471,9 @@ patches:
   file: do_not_allow_impl_side_invalidations_until_frame_sink_is_fully_active.patch
   description: |
     Backports a fix for a renderer hang in cc::ProxyMain::BeginMainFrame
+-
+  owners: torycl
+  file: accessibility_detection.patch
+  description: |
+    Backport of chromium accessibility detection (https://chromium-review.googlesource.com/c/chromium/src/+/1192062)
+    Fixes performance issues on Windows touch devices.
