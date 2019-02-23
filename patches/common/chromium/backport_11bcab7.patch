@@ -1,0 +1,49 @@
+Mac: Update sandbox rules that target 10.13 exactly to target 10.13 and higher.
+
+GPU v1 sandbox removes condition since we don't have the os-version variable there (per offline discussion).
+
+Bug: 879646
+Change-Id: I06b29d1c6b4b6fd621a5b2497b0a2b78fe36c85f
+Reviewed-on: https://chromium-review.googlesource.com/1200184
+Reviewed-by: Robert Sesek <rsesek@chromium.org>
+Commit-Queue: Leonard Grey <lgrey@chromium.org>
+Cr-Commit-Position: refs/heads/master@{#588135}
+
+diff --git a/services/service_manager/sandbox/mac/common_v2.sb b/services/service_manager/sandbox/mac/common_v2.sb
+index be20890..9ce0a10 100644
+--- a/services/service_manager/sandbox/mac/common_v2.sb
++++ b/services/service_manager/sandbox/mac/common_v2.sb
+@@ -109,7 +109,7 @@
+   (path "/dev/random")
+   (path "/dev/urandom"))
+
+-(if (= os-version 1013)
++(if (>= os-version 1013)
+   (begin (allow file-read* (subpath "/private/var/db/timezone"))
+          (allow file-read-data (subpath "/usr/share/zoneinfo.default"))))
+
+diff --git a/services/service_manager/sandbox/mac/gpu.sb b/services/service_manager/sandbox/mac/gpu.sb
+index 701ba55..576976f 100644
+--- a/services/service_manager/sandbox/mac/gpu.sb
++++ b/services/service_manager/sandbox/mac/gpu.sb
+@@ -28,5 +28,4 @@
+   (allow file-read* (subpath "/System/Library/Extensions")))
+
+ ; Needed for VideoToolbox usage - https://crbug.com/767037
+-(if (param-true? macos-1013)
+-  (allow mach-lookup (global-name "com.apple.coremedia.videodecoder")))
++(allow mach-lookup (global-name "com.apple.coremedia.videodecoder"))
+\ No newline at end of file
+diff --git a/services/service_manager/sandbox/mac/gpu_v2.sb b/services/service_manager/sandbox/mac/gpu_v2.sb
+index 2fa2a09..49a72cc 100644
+--- a/services/service_manager/sandbox/mac/gpu_v2.sb
++++ b/services/service_manager/sandbox/mac/gpu_v2.sb
+@@ -34,7 +34,7 @@
+   (allow file-read* (subpath "/System/Library/Extensions")))
+
+ ; Needed for VideoToolbox usage - https://crbug.com/767037
+-(if (= os-version 1013)
++(if (>= os-version 1013)
+   (allow mach-lookup (global-name "com.apple.coremedia.videodecoder")))
+
+ (if (> os-version 1009)

@@ -471,3 +471,9 @@ patches:
   file: do_not_allow_impl_side_invalidations_until_frame_sink_is_fully_active.patch
   description: |
     Backports a fix for a renderer hang in cc::ProxyMain::BeginMainFrame
+-
+  owners: miniak
+  file: backport_11bcab7.patch
+  description: |
+    Update sandbox rules that target 10.13 exactly to target 10.13 and higher.
+    Backports https://chromium-review.googlesource.com/c/chromium/src/+/1200184/
