@@ -472,6 +472,12 @@ patches:
   description: |
     Backports a fix for a renderer hang in cc::ProxyMain::BeginMainFrame
 -
+  owners: torycl
+  file: accessibility_detection.patch
+  description: |
+    Backport of chromium accessibility detection (https://chromium-review.googlesource.com/c/chromium/src/+/1192062)
+    Fixes performance issues on Windows touch devices.
+-
   owners: miniak
   file: backport_11bcab7.patch
   description: |
