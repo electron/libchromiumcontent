@@ -477,3 +477,9 @@ patches:
   description: |
     Backport of chromium accessibility detection (https://chromium-review.googlesource.com/c/chromium/src/+/1192062)
     Fixes performance issues on Windows touch devices.
+-
+  owners: miniak
+  file: backport_11bcab7.patch
+  description: |
+    Update sandbox rules that target 10.13 exactly to target 10.13 and higher.
+    Backports https://chromium-review.googlesource.com/c/chromium/src/+/1200184/
