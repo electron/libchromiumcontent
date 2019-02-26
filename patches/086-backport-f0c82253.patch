@@ -22,7 +22,7 @@ index bf3c5530a5d0..f9297fe9f711 100644
    (allow file-read* (subpath "/System/Library/Extensions")))
 +
 +; Needed for VideoToolbox usage - https://crbug.com/767037
-+(allow mach-lookup (global-name "com.apple.coremedia.videodecoder")))
++(allow mach-lookup (global-name "com.apple.coremedia.videodecoder"))
 diff --git a/content/common/common.sb b/content/common/common.sb
 index fbe0ff5c1b6f..f8fe48b2c5b3 100644
 --- a/content/common/common.sb
