@@ -483,3 +483,16 @@ patches:
   description: |
     Update sandbox rules that target 10.13 exactly to target 10.13 and higher.
     Backports https://chromium-review.googlesource.com/c/chromium/src/+/1200184/
+-
+  owners: deepak1556
+  file: add_netlog_details_for_dhcp-based_wpad.patch
+  description: |
+    Adds NetLog instrumentation for how the network adapter list was read on Windows.
+    Backports https://chromium-review.googlesource.com/c/chromium/src/+/876921/
+-
+  owners: deepak1556
+  file: skip_network_adapters.patch
+  description: |
+    Skip network adapters that are not in state IfOperStatusUp when probing for
+    WPAD via DHCP.
+    Backports https://chromium-review.googlesource.com/c/chromium/src/+/946870/
