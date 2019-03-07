@@ -447,3 +447,10 @@ patches:
   description: |
     Update sqlite api for 3.26 in //sql, //content/browser, //third_party/WebKit.
     Backport https://crrev.com/c/1146280/ and https://crrev.com/c/1352694/
+-
+  owners: ppontes
+  file: filereader-make-a-copy-of-the-arraybuffer.patch
+  description: |
+    FileReader: Make a copy of the ArrayBuffer when returning partial results.
+    Backport https://chromium-review.googlesource.com/c/chromium/src/+/1492873
+
