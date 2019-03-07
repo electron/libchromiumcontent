@@ -1,0 +1,755 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Eric Roman <eroman@chromium.org>
+Date: Sat, 3 Mar 2018 00:11:15 +0000
+Subject: Add NetLog details for DHCP-based WPAD.
+
+Adds NetLog instrumentation for how the network adapter list was read on Windows:
+ * The enumerated network adapters
+ * How long it took to schedule the task to worker thread
+ * How long it took to schedule the reply task to origin thread
+ * How long it took to query the adapters
+ * Which "adapter fetcher" won the overall race for WPAD
+
+Subsequent CLS will add more logging for the individual "adapter fetchers".
+
+TBR=stevenjb@chromium.org
+
+Bug: 770201
+Change-Id: I9f704614e4a991e9a56879fc81637d41782dce1f
+Reviewed-on: https://chromium-review.googlesource.com/876921
+Commit-Queue: Eric Roman <eroman@chromium.org>
+Reviewed-by: Eric Roman <eroman@chromium.org>
+Reviewed-by: Steven Bennetts <stevenjb@chromium.org>
+Reviewed-by: Matt Menke <mmenke@chromium.org>
+Cr-Commit-Position: refs/heads/master@{#540693}
+
+diff --git a/chromeos/network/dhcp_pac_file_fetcher_chromeos.cc b/chromeos/network/dhcp_pac_file_fetcher_chromeos.cc
+index ff02714362076d2b11afed66c41fda0ac6aea611..9e1166c597a7b46c422ce1d37aa2a8419d96ef14 100644
+--- a/chromeos/network/dhcp_pac_file_fetcher_chromeos.cc
++++ b/chromeos/network/dhcp_pac_file_fetcher_chromeos.cc
+@@ -45,7 +45,8 @@ DhcpProxyScriptFetcherChromeos::~DhcpProxyScriptFetcherChromeos() = default;
+ 
+ int DhcpProxyScriptFetcherChromeos::Fetch(
+     base::string16* utf16_text,
+-    const net::CompletionCallback& callback) {
++    const net::CompletionCallback& callback,
++    const net::NetLogWithSource& net_log) {
+   if (!network_handler_task_runner_.get())
+     return net::ERR_PAC_NOT_IN_DHCP;
+   CHECK(!callback.is_null());
+diff --git a/chromeos/network/dhcp_pac_file_fetcher_chromeos.h b/chromeos/network/dhcp_pac_file_fetcher_chromeos.h
+index 8c7bd6844933f734fa2cdde587ea23517d4bd9fd..e0039b086319d0b0cee2c206061f594d3f3456b6 100644
+--- a/chromeos/network/dhcp_pac_file_fetcher_chromeos.h
++++ b/chromeos/network/dhcp_pac_file_fetcher_chromeos.h
+@@ -20,6 +20,7 @@ class SingleThreadTaskRunner;
+ 
+ namespace net {
+ class URLRequestContext;
++class NetLogWithSource;
+ class ProxyScriptFetcher;
+ }
+ 
+@@ -37,7 +38,8 @@ class CHROMEOS_EXPORT DhcpProxyScriptFetcherChromeos
+ 
+   // net::DhcpProxyScriptFetcher
+   int Fetch(base::string16* utf16_text,
+-            const net::CompletionCallback& callback) override;
++            const net::CompletionCallback& callback,
++            const net::NetLogWithSource& net_log) override;
+   void Cancel() override;
+   void OnShutdown() override;
+   const GURL& GetPacURL() const override;
+diff --git a/net/log/net_log_event_type_list.h b/net/log/net_log_event_type_list.h
+index e23f2e6e9d9deb5fcd93f39c0e88c63ead47ac87..d8d6ab6ccf22e65eeed841bd368678074d113f21 100644
+--- a/net/log/net_log_event_type_list.h
++++ b/net/log/net_log_event_type_list.h
+@@ -3219,3 +3219,55 @@ EVENT_TYPE(HOST_CACHE_PREF_WRITE)
+ // This event is created when the HostCachePersistenceManager starts the timer
+ // for writing a cache change to prefs.
+ EVENT_TYPE(HOST_CACHE_PERSISTENCE_START_TIMER)
++
++// -----------------------------------------------------------------------------
++// DHCP-based WPAD (Windows)
++// -----------------------------------------------------------------------------
++
++// The start/end of running DHCP based WPAD.
++//
++// The start event contains no parameters, whereas the END event describes
++// which of the "adapter fetchers" was used:
++//  {
++//    "fetcher_index": <Index of the fetcher that "won" the race, or -1 if no
++//                     fetcher won>,
++//    "net_error": <The network error code for the overall result of DHCP
++//                  based auto-discovery>,
++//  }
++EVENT_TYPE(WPAD_DHCP_WIN_FETCH)
++
++// The start/end of getting the list of network adapters.
++//
++// The END event describes all the adapters that were enumerated, as well
++// as how long it took to do the various thread-hops (from origin to worker
++// thread, and then worker thread back to origin thread):
++//  {
++//    "adapters": <List describing each adapter (its name, flags, and
++//                 status)>,
++//    "origin_to_worker_thread_hop_dt": <The time in milliseconds it took
++//                                       for the worker thread task to get
++//                                       scheduled>,
++//    "worker_to_origin_thread_hop_dt": <The time in milliseconds it took
++//                                       for the reply task from worker
++//                                       thread to get scheduled>,
++//    "worker_dt": <The time in milliseconds it took to enumerate network
++//                  adapters on the worker thread>,
++//    "error": <The result code returned by iphlpapi!GetAdaptersAddresses>
++//  }
++EVENT_TYPE(WPAD_DHCP_WIN_GET_ADAPTERS)
++
++// This event logs when one of the "adapter fetchers" completed. (Fetchers
++// may not complete in the order that they were started):
++//  {
++//    "fetcher_index": <Index of the fetcher that completed>,
++//    "net_error": <The network error code returned by the fetcher>,
++//  }
++EVENT_TYPE(WPAD_DHCP_WIN_ON_FETCHER_DONE)
++
++// This event is logged when a timer is started to timeout remaining
++// adapter fetchers. The event has no parameters.
++EVENT_TYPE(WPAD_DHCP_WIN_START_WAIT_TIMER)
++
++// This event is emitted if the wait timer for remaining fetchers fires. It
++// has no parameters.
++EVENT_TYPE(WPAD_DHCP_WIN_ON_WAIT_TIMER)
+diff --git a/net/proxy_resolution/dhcp_pac_file_fetcher.cc b/net/proxy_resolution/dhcp_pac_file_fetcher.cc
+index eda798dedcb19ef1abda9bae5efd498a448adf1d..9a77ceff89667001f761f9249e8e8addf5284e6e 100644
+--- a/net/proxy_resolution/dhcp_pac_file_fetcher.cc
++++ b/net/proxy_resolution/dhcp_pac_file_fetcher.cc
+@@ -20,8 +20,9 @@ DoNothingDhcpProxyScriptFetcher::DoNothingDhcpProxyScriptFetcher() = default;
+ 
+ DoNothingDhcpProxyScriptFetcher::~DoNothingDhcpProxyScriptFetcher() = default;
+ 
+-int DoNothingDhcpProxyScriptFetcher::Fetch(
+-    base::string16* utf16_text, const CompletionCallback& callback) {
++int DoNothingDhcpProxyScriptFetcher::Fetch(base::string16* utf16_text,
++                                           const CompletionCallback& callback,
++                                           const NetLogWithSource& net_log) {
+   return ERR_NOT_IMPLEMENTED;
+ }
+ 
+diff --git a/net/proxy_resolution/dhcp_pac_file_fetcher.h b/net/proxy_resolution/dhcp_pac_file_fetcher.h
+index afd9793e28f574bb83bc71702a0296c90315aafb..c8ef3d7fc13e751ab8edb841b3b492f4d52668e7 100644
+--- a/net/proxy_resolution/dhcp_pac_file_fetcher.h
++++ b/net/proxy_resolution/dhcp_pac_file_fetcher.h
+@@ -15,6 +15,8 @@
+ 
+ namespace net {
+ 
++class NetLogWithSource;
++
+ // Interface for classes that can fetch a proxy script as configured via DHCP.
+ //
+ // The Fetch method on this interface tries to retrieve the most appropriate
+@@ -57,7 +59,8 @@ class NET_EXPORT_PRIVATE DhcpProxyScriptFetcher {
+   //
+   // Only one fetch is allowed to be outstanding at a time.
+   virtual int Fetch(base::string16* utf16_text,
+-                    const CompletionCallback& callback) = 0;
++                    const CompletionCallback& callback,
++                    const NetLogWithSource& net_log) = 0;
+ 
+   // Aborts the in-progress fetch (if any).
+   virtual void Cancel() = 0;
+@@ -91,7 +94,8 @@ class NET_EXPORT_PRIVATE DoNothingDhcpProxyScriptFetcher
+   ~DoNothingDhcpProxyScriptFetcher() override;
+ 
+   int Fetch(base::string16* utf16_text,
+-            const CompletionCallback& callback) override;
++            const CompletionCallback& callback,
++            const NetLogWithSource& net_log) override;
+   void Cancel() override;
+   void OnShutdown() override;
+   const GURL& GetPacURL() const override;
+diff --git a/net/proxy_resolution/dhcp_pac_file_fetcher_win.cc b/net/proxy_resolution/dhcp_pac_file_fetcher_win.cc
+index f80f9ef1450b8704eb74b5adfd25da8472e00679..6f6a8993e139701f4968ad37da3180f3c1423e90 100644
+--- a/net/proxy_resolution/dhcp_pac_file_fetcher_win.cc
++++ b/net/proxy_resolution/dhcp_pac_file_fetcher_win.cc
+@@ -15,12 +15,47 @@
+ #include "base/task_runner.h"
+ #include "base/task_scheduler/post_task.h"
+ #include "base/threading/scoped_blocking_call.h"
++#include "base/values.h"
+ #include "net/base/net_errors.h"
++#include "net/log/net_log.h"
+ #include "net/proxy_resolution/dhcp_pac_file_adapter_fetcher_win.h"
+ 
+ #include <winsock2.h>
+ #include <iphlpapi.h>
+ 
++namespace net {
++
++// This struct contains logging information describing how
++// GetCandidateAdapterNames() performed, for output to NetLog.
++struct DhcpAdapterNamesLoggingInfo {
++  DhcpAdapterNamesLoggingInfo() = default;
++  ~DhcpAdapterNamesLoggingInfo() = default;
++
++  // The error that iphlpapi!GetAdaptersAddresses returned.
++  ULONG error;
++
++  // The adapters list that iphlpapi!GetAdaptersAddresses returned.
++  std::unique_ptr<IP_ADAPTER_ADDRESSES, base::FreeDeleter> adapters;
++
++  // The time immediately before GetCandidateAdapterNames was posted to a worker
++  // thread from the origin thread.
++  base::TimeTicks origin_thread_start_time;
++
++  // The time when GetCandidateAdapterNames began running on the worker thread.
++  base::TimeTicks worker_thread_start_time;
++
++  // The time when GetCandidateAdapterNames completed running on the worker
++  // thread.
++  base::TimeTicks worker_thread_end_time;
++
++  // The time when control returned to the origin thread
++  // (OnGetCandidateAdapterNamesDone)
++  base::TimeTicks origin_thread_end_time;
++
++ private:
++  DISALLOW_COPY_AND_ASSIGN(DhcpAdapterNamesLoggingInfo);
++};
++
+ namespace {
+ 
+ // Maximum number of DHCP lookup tasks running concurrently. This is chosen
+@@ -140,9 +175,75 @@ class TaskRunnerWithCap : public base::TaskRunner {
+   DISALLOW_COPY_AND_ASSIGN(TaskRunnerWithCap);
+ };
+ 
+-}  // namespace
++// Helper to set an integer value into a base::DictionaryValue. Because of
++// C++'s implicit narrowing casts to |int|, this can be called with int64_t and
++// ULONG too.
++void SetInt(base::StringPiece key, int value, base::DictionaryValue* dict) {
++  dict->SetKey(key, base::Value(value));
++}
+ 
+-namespace net {
++std::unique_ptr<base::Value> NetLogGetAdaptersDoneCallback(
++    DhcpAdapterNamesLoggingInfo* info,
++    NetLogCaptureMode /* capture_mode */) {
++  std::unique_ptr<base::DictionaryValue> result =
++      std::make_unique<base::DictionaryValue>();
++
++  // Add information on each of the adapters enumerated (including those that
++  // were subsequently skipped).
++  base::ListValue adapters_value;
++  for (IP_ADAPTER_ADDRESSES* adapter = info->adapters.get(); adapter;
++       adapter = adapter->Next) {
++    base::DictionaryValue adapter_value;
++
++    adapter_value.SetKey("AdapterName", base::Value(adapter->AdapterName));
++    SetInt("IfType", adapter->IfType, &adapter_value);
++    SetInt("Flags", adapter->Flags, &adapter_value);
++    SetInt("OperStatus", adapter->OperStatus, &adapter_value);
++    SetInt("TunnelType", adapter->TunnelType, &adapter_value);
++
++    // "skipped" means the adapter was not ultimately chosen as a candidate for
++    // testing WPAD. This replicates the logic in GetAdapterNames().
++    bool skipped = (adapter->IfType == IF_TYPE_SOFTWARE_LOOPBACK) ||
++                   ((adapter->Flags & IP_ADAPTER_DHCP_ENABLED) == 0);
++    adapter_value.SetKey("skipped", base::Value(skipped));
++
++    adapters_value.GetList().push_back(std::move(adapter_value));
++  }
++  result->SetKey("adapters", std::move(adapters_value));
++
++  SetInt("origin_to_worker_thread_hop_dt",
++         (info->worker_thread_start_time - info->origin_thread_start_time)
++             .InMilliseconds(),
++         result.get());
++  SetInt("worker_to_origin_thread_hop_dt",
++         (info->origin_thread_end_time - info->worker_thread_end_time)
++             .InMilliseconds(),
++         result.get());
++  SetInt("worker_dt",
++         (info->worker_thread_end_time - info->worker_thread_start_time)
++             .InMilliseconds(),
++         result.get());
++
++  if (info->error != ERROR_SUCCESS)
++    SetInt("error", info->error, result.get());
++
++  return result;
++}
++
++std::unique_ptr<base::Value> NetLogFetcherDoneCallback(
++    int fetcher_index,
++    int net_error,
++    NetLogCaptureMode /* capture_mode */) {
++  std::unique_ptr<base::DictionaryValue> result =
++      std::make_unique<base::DictionaryValue>();
++
++  result->SetKey("fetcher_index", base::Value(fetcher_index));
++  result->SetKey("net_error", base::Value(net_error));
++
++  return result;
++}
++
++}  // namespace
+ 
+ DhcpProxyScriptFetcherWin::DhcpProxyScriptFetcherWin(
+     URLRequestContext* url_request_context)
+@@ -161,13 +262,16 @@ DhcpProxyScriptFetcherWin::~DhcpProxyScriptFetcherWin() {
+ }
+ 
+ int DhcpProxyScriptFetcherWin::Fetch(base::string16* utf16_text,
+-                                     const CompletionCallback& callback) {
++                                     const CompletionCallback& callback,
++                                     const NetLogWithSource& net_log) {
+   DCHECK_CALLED_ON_VALID_THREAD(thread_checker_);
+   if (state_ != STATE_START && state_ != STATE_DONE) {
+     NOTREACHED();
+     return ERR_UNEXPECTED;
+   }
+ 
++  net_log_ = net_log;
++
+   if (!url_request_context_)
+     return ERR_CONTEXT_SHUT_DOWN;
+ 
+@@ -175,7 +279,15 @@ int DhcpProxyScriptFetcherWin::Fetch(base::string16* utf16_text,
+   callback_ = callback;
+   destination_string_ = utf16_text;
+ 
++  net_log.BeginEvent(NetLogEventType::WPAD_DHCP_WIN_FETCH);
++
++  // TODO(eroman): This event is not ended in the case of cancellation.
++  net_log.BeginEvent(NetLogEventType::WPAD_DHCP_WIN_GET_ADAPTERS);
++
+   last_query_ = ImplCreateAdapterQuery();
++  last_query_->logging_info()->origin_thread_start_time =
++      base::TimeTicks::Now();
++
+   task_runner_->PostTaskAndReply(
+       FROM_HERE,
+       base::Bind(
+@@ -238,6 +350,13 @@ void DhcpProxyScriptFetcherWin::OnGetCandidateAdapterNamesDone(
+     return;
+   last_query_ = NULL;
+ 
++  DhcpAdapterNamesLoggingInfo* logging_info = query->logging_info();
++  logging_info->origin_thread_end_time = base::TimeTicks::Now();
++
++  net_log_.EndEvent(NetLogEventType::WPAD_DHCP_WIN_GET_ADAPTERS,
++                    base::Bind(&NetLogGetAdaptersDoneCallback,
++                               base::Unretained(logging_info)));
++
+   // Enable unit tests to wait for this to happen; in production this function
+   // call is a no-op.
+   ImplOnGetCandidateAdapterNamesDone();
+@@ -255,14 +374,13 @@ void DhcpProxyScriptFetcherWin::OnGetCandidateAdapterNamesDone(
+     return;
+   }
+ 
+-  for (std::set<std::string>::const_iterator it = adapter_names.begin();
+-       it != adapter_names.end();
+-       ++it) {
++  for (const std::string& adapter_name : adapter_names) {
+     std::unique_ptr<DhcpProxyScriptAdapterFetcher> fetcher(
+         ImplCreateAdapterFetcher());
+-    fetcher->Fetch(
+-        *it, base::Bind(&DhcpProxyScriptFetcherWin::OnFetcherDone,
+-                        base::Unretained(this)));
++    size_t fetcher_index = fetchers_.size();
++    fetcher->Fetch(adapter_name,
++                   base::Bind(&DhcpProxyScriptFetcherWin::OnFetcherDone,
++                              base::Unretained(this), fetcher_index));
+     fetchers_.push_back(std::move(fetcher));
+   }
+   num_pending_fetchers_ = fetchers_.size();
+@@ -280,9 +398,14 @@ const GURL& DhcpProxyScriptFetcherWin::GetPacURL() const {
+   return pac_url_;
+ }
+ 
+-void DhcpProxyScriptFetcherWin::OnFetcherDone(int result) {
++void DhcpProxyScriptFetcherWin::OnFetcherDone(size_t fetcher_index,
++                                              int result) {
+   DCHECK(state_ == STATE_NO_RESULTS || state_ == STATE_SOME_RESULTS);
+ 
++  net_log_.AddEvent(
++      NetLogEventType::WPAD_DHCP_WIN_ON_FETCHER_DONE,
++      base::Bind(&NetLogFetcherDoneCallback, fetcher_index, result));
++
+   if (--num_pending_fetchers_ == 0) {
+     TransitionToDone();
+     return;
+@@ -308,6 +431,7 @@ void DhcpProxyScriptFetcherWin::OnFetcherDone(int result) {
+   // for the rest of the results.
+   if (state_ == STATE_NO_RESULTS) {
+     state_ = STATE_SOME_RESULTS;
++    net_log_.AddEvent(NetLogEventType::WPAD_DHCP_WIN_START_WAIT_TIMER);
+     wait_timer_.Start(FROM_HERE,
+         ImplGetMaxWait(), this, &DhcpProxyScriptFetcherWin::OnWaitTimer);
+   }
+@@ -316,12 +440,14 @@ void DhcpProxyScriptFetcherWin::OnFetcherDone(int result) {
+ void DhcpProxyScriptFetcherWin::OnWaitTimer() {
+   DCHECK_EQ(state_, STATE_SOME_RESULTS);
+ 
++  net_log_.AddEvent(NetLogEventType::WPAD_DHCP_WIN_ON_WAIT_TIMER);
+   TransitionToDone();
+ }
+ 
+ void DhcpProxyScriptFetcherWin::TransitionToDone() {
+   DCHECK(state_ == STATE_NO_RESULTS || state_ == STATE_SOME_RESULTS);
+ 
++  int used_fetcher_index = -1;
+   int result = ERR_PAC_NOT_IN_DHCP;  // Default if no fetchers.
+   if (!fetchers_.empty()) {
+     // Scan twice for the result; once through the whole list for success,
+@@ -329,23 +455,23 @@ void DhcpProxyScriptFetcherWin::TransitionToDone() {
+     // preferring "real" network errors to the ERR_PAC_NOT_IN_DHCP error.
+     // Default to ERR_ABORTED if no fetcher completed.
+     result = ERR_ABORTED;
+-    for (FetcherVector::iterator it = fetchers_.begin();
+-         it != fetchers_.end();
+-         ++it) {
+-      if ((*it)->DidFinish() && (*it)->GetResult() == OK) {
++    for (size_t i = 0; i < fetchers_.size(); ++i) {
++      const auto& fetcher = fetchers_[i];
++      if (fetcher->DidFinish() && fetcher->GetResult() == OK) {
+         result = OK;
+-        *destination_string_ = (*it)->GetPacScript();
+-        pac_url_ = (*it)->GetPacURL();
++        *destination_string_ = fetcher->GetPacScript();
++        pac_url_ = fetcher->GetPacURL();
++        used_fetcher_index = i;
+         break;
+       }
+     }
+     if (result != OK) {
+       destination_string_->clear();
+-      for (FetcherVector::iterator it = fetchers_.begin();
+-           it != fetchers_.end();
+-           ++it) {
+-        if ((*it)->DidFinish()) {
+-          result = (*it)->GetResult();
++      for (size_t i = 0; i < fetchers_.size(); ++i) {
++        const auto& fetcher = fetchers_[i];
++        if (fetcher->DidFinish()) {
++          result = fetcher->GetResult();
++          used_fetcher_index = i;
+           if (result != ERR_PAC_NOT_IN_DHCP) {
+             break;
+           }
+@@ -360,6 +486,10 @@ void DhcpProxyScriptFetcherWin::TransitionToDone() {
+   DCHECK(fetchers_.empty());
+   DCHECK(callback_.is_null());  // Invariant of data.
+ 
++  net_log_.EndEvent(
++      NetLogEventType::WPAD_DHCP_WIN_FETCH,
++      base::Bind(&NetLogFetcherDoneCallback, used_fetcher_index, result));
++
+   // We may be deleted re-entrantly within this outcall.
+   callback.Run(result);
+ }
+@@ -391,7 +521,8 @@ base::TimeDelta DhcpProxyScriptFetcherWin::ImplGetMaxWait() {
+ }
+ 
+ bool DhcpProxyScriptFetcherWin::GetCandidateAdapterNames(
+-    std::set<std::string>* adapter_names) {
++    std::set<std::string>* adapter_names,
++    DhcpAdapterNamesLoggingInfo* info) {
+   DCHECK(adapter_names);
+   adapter_names->clear();
+ 
+@@ -418,6 +549,9 @@ bool DhcpProxyScriptFetcherWin::GetCandidateAdapterNames(
+     ++num_tries;
+   } while (error == ERROR_BUFFER_OVERFLOW && num_tries <= 3);
+ 
++  if (info)
++    info->error = error;
++
+   if (error == ERROR_NO_DATA) {
+     // There are no adapters that we care about.
+     return true;
+@@ -439,14 +573,24 @@ bool DhcpProxyScriptFetcherWin::GetCandidateAdapterNames(
+     adapter_names->insert(adapter->AdapterName);
+   }
+ 
++  // Transfer the buffer containing the adapters, so it can be used later for
++  // emitting NetLog parameters from the origin thread.
++  if (info)
++    info->adapters = std::move(adapters);
+   return true;
+ }
+ 
+-DhcpProxyScriptFetcherWin::AdapterQuery::AdapterQuery() {
+-}
++DhcpProxyScriptFetcherWin::AdapterQuery::AdapterQuery()
++    : logging_info_(new DhcpAdapterNamesLoggingInfo()) {}
+ 
+ void DhcpProxyScriptFetcherWin::AdapterQuery::GetCandidateAdapterNames() {
+-  ImplGetCandidateAdapterNames(&adapter_names_);
++  logging_info_->error = ERROR_NO_DATA;
++  logging_info_->adapters.reset();
++  logging_info_->worker_thread_start_time = base::TimeTicks::Now();
++
++  ImplGetCandidateAdapterNames(&adapter_names_, logging_info_.get());
++
++  logging_info_->worker_thread_end_time = base::TimeTicks::Now();
+ }
+ 
+ const std::set<std::string>&
+@@ -455,8 +599,10 @@ const std::set<std::string>&
+ }
+ 
+ bool DhcpProxyScriptFetcherWin::AdapterQuery::ImplGetCandidateAdapterNames(
+-    std::set<std::string>* adapter_names) {
+-  return DhcpProxyScriptFetcherWin::GetCandidateAdapterNames(adapter_names);
++    std::set<std::string>* adapter_names,
++    DhcpAdapterNamesLoggingInfo* info) {
++  return DhcpProxyScriptFetcherWin::GetCandidateAdapterNames(adapter_names,
++                                                             info);
+ }
+ 
+ DhcpProxyScriptFetcherWin::AdapterQuery::~AdapterQuery() {
+diff --git a/net/proxy_resolution/dhcp_pac_file_fetcher_win.h b/net/proxy_resolution/dhcp_pac_file_fetcher_win.h
+index 3cc16586f087e5d8c55f355bcdd01ac948b45542..a4d33fe7b95757594780c2b845c98a478e8f8bb3 100644
+--- a/net/proxy_resolution/dhcp_pac_file_fetcher_win.h
++++ b/net/proxy_resolution/dhcp_pac_file_fetcher_win.h
+@@ -16,6 +16,7 @@
+ #include "base/time/time.h"
+ #include "base/timer/timer.h"
+ #include "net/base/net_export.h"
++#include "net/log/net_log_with_source.h"
+ #include "net/proxy_resolution/dhcp_pac_file_fetcher.h"
+ 
+ namespace base {
+@@ -24,6 +25,7 @@ class TaskRunner;
+ 
+ namespace net {
+ 
++struct DhcpAdapterNamesLoggingInfo;
+ class DhcpProxyScriptAdapterFetcher;
+ class URLRequestContext;
+ 
+@@ -40,16 +42,19 @@ class NET_EXPORT_PRIVATE DhcpProxyScriptFetcherWin
+ 
+   // DhcpProxyScriptFetcher implementation.
+   int Fetch(base::string16* utf16_text,
+-            const CompletionCallback& callback) override;
++            const CompletionCallback& callback,
++            const NetLogWithSource& net_log) override;
+   void Cancel() override;
+   void OnShutdown() override;
+   const GURL& GetPacURL() const override;
+   std::string GetFetcherName() const override;
+ 
+   // Sets |adapter_names| to contain the name of each network adapter on
+-  // this machine that has DHCP enabled and is not a loop-back adapter. Returns
+-  // false on error.
+-  static bool GetCandidateAdapterNames(std::set<std::string>* adapter_names);
++  // this machine that has DHCP enabled and is not a loop-back adapter. May
++  // optionally update |info| (if non-null) with information for logging.
++  // Returns false on error.
++  static bool GetCandidateAdapterNames(std::set<std::string>* adapter_names,
++                                       DhcpAdapterNamesLoggingInfo* info);
+ 
+  protected:
+   int num_pending_fetchers() const;
+@@ -73,19 +78,23 @@ class NET_EXPORT_PRIVATE DhcpProxyScriptFetcherWin
+     // been run. Its lifetime is scoped by this object.
+     const std::set<std::string>& adapter_names() const;
+ 
++    DhcpAdapterNamesLoggingInfo* logging_info() { return logging_info_.get(); }
++
+    protected:
+     // Virtual method introduced to allow unit testing.
+     virtual bool ImplGetCandidateAdapterNames(
+-        std::set<std::string>* adapter_names);
++        std::set<std::string>* adapter_names,
++        DhcpAdapterNamesLoggingInfo* info);
+ 
+     friend class base::RefCountedThreadSafe<AdapterQuery>;
+     virtual ~AdapterQuery();
+ 
+    private:
+-    // This is constructed on the originating thread, then used on the
++    // These are constructed on the originating thread, then used on the
+     // worker thread, then used again on the originating thread only when
+     // the task has completed on the worker thread. No locking required.
+     std::set<std::string> adapter_names_;
++    std::unique_ptr<DhcpAdapterNamesLoggingInfo> logging_info_;
+ 
+     DISALLOW_COPY_AND_ASSIGN(AdapterQuery);
+   };
+@@ -100,7 +109,7 @@ class NET_EXPORT_PRIVATE DhcpProxyScriptFetcherWin
+   // Event/state transition handlers
+   void CancelImpl();
+   void OnGetCandidateAdapterNamesDone(scoped_refptr<AdapterQuery> query);
+-  void OnFetcherDone(int result);
++  void OnFetcherDone(size_t fetcher_i, int result);
+   void OnWaitTimer();
+   void TransitionToDone();
+ 
+@@ -139,9 +148,6 @@ class NET_EXPORT_PRIVATE DhcpProxyScriptFetcherWin
+     STATE_DONE,
+   };
+ 
+-  // Current state of this state machine.
+-  State state_;
+-
+   // Vector, in Windows' network adapter preference order, of
+   // DhcpProxyScriptAdapterFetcher objects that are or were attempting
+   // to fetch a PAC file based on DHCP configuration.
+@@ -149,12 +155,20 @@ class NET_EXPORT_PRIVATE DhcpProxyScriptFetcherWin
+       std::vector<std::unique_ptr<DhcpProxyScriptAdapterFetcher>>;
+   FetcherVector fetchers_;
+ 
++  // Current state of this state machine.
++  State state_;
++
++  // The following members are associated with the latest call to Fetch().
++
+   // Number of fetchers we are waiting for.
+   int num_pending_fetchers_;
+ 
+   // Lets our client know we're done. Not valid in states START or DONE.
+   CompletionCallback callback_;
+ 
++  // The NetLog to use for the current Fetch().
++  NetLogWithSource net_log_;
++
+   // Pointer to string we will write results to. Not valid in states
+   // START and DONE.
+   base::string16* destination_string_;
+@@ -170,9 +184,6 @@ class NET_EXPORT_PRIVATE DhcpProxyScriptFetcherWin
+   // NULL or the AdapterQuery currently in flight.
+   scoped_refptr<AdapterQuery> last_query_;
+ 
+-  // Time |Fetch()| was last called, 0 if never.
+-  base::TimeTicks fetch_start_time_;
+-
+   // TaskRunner used for all DHCP lookup tasks.
+   const scoped_refptr<base::TaskRunner> task_runner_;
+ 
+diff --git a/net/proxy_resolution/dhcp_pac_file_fetcher_win_unittest.cc b/net/proxy_resolution/dhcp_pac_file_fetcher_win_unittest.cc
+index 3490ef379210348eac4a225e83b2d6c80d21abdd..68dd9782cbbe932aa21fc65ce57a5022e3da7acf 100644
+--- a/net/proxy_resolution/dhcp_pac_file_fetcher_win_unittest.cc
++++ b/net/proxy_resolution/dhcp_pac_file_fetcher_win_unittest.cc
+@@ -36,11 +36,8 @@ TEST(DhcpProxyScriptFetcherWin, AdapterNamesAndPacURLFromDhcp) {
+   // is no crash and no error returned, but does not assert on the number
+   // of interfaces or the information returned via DHCP.
+   std::set<std::string> adapter_names;
+-  DhcpProxyScriptFetcherWin::GetCandidateAdapterNames(&adapter_names);
+-  for (std::set<std::string>::const_iterator it = adapter_names.begin();
+-       it != adapter_names.end();
+-       ++it) {
+-    const std::string& adapter_name = *it;
++  DhcpProxyScriptFetcherWin::GetCandidateAdapterNames(&adapter_names, nullptr);
++  for (const std::string& adapter_name : adapter_names) {
+     DhcpProxyScriptAdapterFetcher::GetPacURLFromDhcp(adapter_name);
+   }
+ }
+@@ -61,7 +58,8 @@ class RealFetchTester {
+   void RunTest() {
+     int result = fetcher_->Fetch(
+         &pac_text_,
+-        base::Bind(&RealFetchTester::OnCompletion, base::Unretained(this)));
++        base::Bind(&RealFetchTester::OnCompletion, base::Unretained(this)),
++        NetLogWithSource());
+     if (result != ERR_IO_PENDING)
+       finished_ = true;
+   }
+@@ -276,9 +274,10 @@ class MockDhcpProxyScriptFetcherWin : public DhcpProxyScriptFetcherWin {
+     }
+ 
+     bool ImplGetCandidateAdapterNames(
+-        std::set<std::string>* adapter_names) override {
+-      adapter_names->insert(
+-          mock_adapter_names_.begin(), mock_adapter_names_.end());
++        std::set<std::string>* adapter_names,
++        DhcpAdapterNamesLoggingInfo* logging) override {
++      adapter_names->insert(mock_adapter_names_.begin(),
++                            mock_adapter_names_.end());
+       return true;
+     }
+ 
+@@ -388,14 +387,16 @@ class FetcherClient {
+   void RunTest() {
+     int result = fetcher_.Fetch(
+         &pac_text_,
+-        base::Bind(&FetcherClient::OnCompletion, base::Unretained(this)));
++        base::Bind(&FetcherClient::OnCompletion, base::Unretained(this)),
++        NetLogWithSource());
+     ASSERT_THAT(result, IsError(ERR_IO_PENDING));
+   }
+ 
+   int RunTestThatMayFailSync() {
+     int result = fetcher_.Fetch(
+         &pac_text_,
+-        base::Bind(&FetcherClient::OnCompletion, base::Unretained(this)));
++        base::Bind(&FetcherClient::OnCompletion, base::Unretained(this)),
++        NetLogWithSource());
+     if (result != ERR_IO_PENDING)
+       result_ = result;
+     return result;
+diff --git a/net/proxy_resolution/pac_file_decider.cc b/net/proxy_resolution/pac_file_decider.cc
+index 29e8413a3e20c127558af34c5cc5c7718a26feb9..544129f5018504875e19a179cf51bea9c5e2521b 100644
+--- a/net/proxy_resolution/pac_file_decider.cc
++++ b/net/proxy_resolution/pac_file_decider.cc
+@@ -327,8 +327,9 @@ int ProxyScriptDecider::DoFetchPacScript() {
+     }
+ 
+     return dhcp_proxy_script_fetcher_->Fetch(
+-        &pac_script_, base::Bind(&ProxyScriptDecider::OnIOCompletion,
+-                                 base::Unretained(this)));
++        &pac_script_,
++        base::Bind(&ProxyScriptDecider::OnIOCompletion, base::Unretained(this)),
++        net_log_);
+   }
+ 
+   if (!proxy_script_fetcher_) {
+diff --git a/net/proxy_resolution/pac_file_decider_unittest.cc b/net/proxy_resolution/pac_file_decider_unittest.cc
+index 4d7a392e0b71feb9d6086b9219ee880aad632327..4cafec3afe38520216f756290712e9912d1b47b9 100644
+--- a/net/proxy_resolution/pac_file_decider_unittest.cc
++++ b/net/proxy_resolution/pac_file_decider_unittest.cc
+@@ -145,7 +145,8 @@ class MockDhcpProxyScriptFetcher : public DhcpProxyScriptFetcher {
+   ~MockDhcpProxyScriptFetcher() override;
+ 
+   int Fetch(base::string16* utf16_text,
+-            const CompletionCallback& callback) override;
++            const CompletionCallback& callback,
++            const NetLogWithSource& net_log) override;
+   void Cancel() override;
+   void OnShutdown() override;
+   const GURL& GetPacURL() const override;
+@@ -166,7 +167,8 @@ MockDhcpProxyScriptFetcher::MockDhcpProxyScriptFetcher() = default;
+ MockDhcpProxyScriptFetcher::~MockDhcpProxyScriptFetcher() = default;
+ 
+ int MockDhcpProxyScriptFetcher::Fetch(base::string16* utf16_text,
+-                                      const CompletionCallback& callback) {
++                                      const CompletionCallback& callback,
++                                      const NetLogWithSource& net_log) {
+   utf16_text_ = utf16_text;
+   callback_ = callback;
+   return ERR_IO_PENDING;
+@@ -673,7 +675,8 @@ class SynchronousSuccessDhcpFetcher : public DhcpProxyScriptFetcher {
+       : gurl_("http://dhcppac/"), expected_text_(expected_text) {}
+ 
+   int Fetch(base::string16* utf16_text,
+-            const CompletionCallback& callback) override {
++            const CompletionCallback& callback,
++            const NetLogWithSource& net_log) override {
+     *utf16_text = expected_text_;
+     return OK;
+   }
+@@ -751,7 +754,8 @@ class AsyncFailDhcpFetcher
+   ~AsyncFailDhcpFetcher() override = default;
+ 
+   int Fetch(base::string16* utf16_text,
+-            const CompletionCallback& callback) override {
++            const CompletionCallback& callback,
++            const NetLogWithSource& net_log) override {
+     callback_ = callback;
+     base::ThreadTaskRunnerHandle::Get()->PostTask(
+         FROM_HERE,
