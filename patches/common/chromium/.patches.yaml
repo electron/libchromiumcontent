@@ -496,3 +496,10 @@ patches:
     Skip network adapters that are not in state IfOperStatusUp when probing for
     WPAD via DHCP.
     Backports https://chromium-review.googlesource.com/c/chromium/src/+/946870/
+-
+  owners: marshallofsound
+  file: filereader-make-a-copy-of-the-arraybuffer.patch
+  description: |
+    FileReader: Make a copy of the ArrayBuffer when returning partial results.
+    Backport https://chromium-review.googlesource.com/c/chromium/src/+/1492873
+
