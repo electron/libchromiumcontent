@@ -310,7 +310,7 @@ jobs:
           command: script/bootstrap
       - run:
           name: Update
-          command: script/update --clean -t $TARGET_ARCH --use-bundled-sccache --use_packaged_src --upload_packaged_src
+          command: script/update --clean -t $TARGET_ARCH
           no_output_timeout: 60m
       - run:
           name: Build shared library
@@ -350,7 +350,7 @@ jobs:
           command: script/bootstrap
       - run:
           name: Update
-          command: script/update --clean -t $TARGET_ARCH --use_packaged_src
+          command: script/update --clean -t $TARGET_ARCH
           no_output_timeout: 20m
       - run:
           name: Build static library
@@ -388,7 +388,7 @@ jobs:
           command: script/bootstrap
       - run:
           name: Update
-          command: script/update --clean -t $TARGET_ARCH --use-bundled-sccache --use_packaged_src
+          command: script/update --clean -t $TARGET_ARCH
           no_output_timeout: 60m
       - run:
           name: Build shared library
