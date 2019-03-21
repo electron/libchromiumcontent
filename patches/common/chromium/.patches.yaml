@@ -502,4 +502,10 @@ patches:
   description: |
     FileReader: Make a copy of the ArrayBuffer when returning partial results.
     Backport https://chromium-review.googlesource.com/c/chromium/src/+/1492873
-
+-
+  owners: marshallofsound
+  file: fix_system_tray_icons_being_cropped_under_kde.patch
+  description: |
+    Fix system tray icons being cropped under KDE when they are larger than
+    22x22
+    Backport https://chromium-review.googlesource.com/c/chromium/src/+/1173235
