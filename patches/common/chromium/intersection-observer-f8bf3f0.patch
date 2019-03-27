@@ -1,0 +1,67 @@
+diff --git a/third_party/WebKit/Source/core/intersection_observer/IntersectionObservation.cpp b/third_party/WebKit/Source/core/intersection_observer/IntersectionObservation.cpp
+index 9b31b29c50b4..2b247f14c56a 100644
+--- a/third_party/WebKit/Source/core/intersection_observer/IntersectionObservation.cpp
++++ b/third_party/WebKit/Source/core/intersection_observer/IntersectionObservation.cpp
+@@ -73,12 +73,12 @@ void IntersectionObservation::ComputeIntersectionObservations(
+   CHECK(new_threshold_index < kMaxThresholdIndex);
+ 
+   if (last_threshold_index_ != new_threshold_index) {
+-    IntRect snapped_root_bounds = geometry.RootIntRect();
+-    IntRect* root_bounds_pointer =
++    FloatRect snapped_root_bounds(geometry.RootRect());
++    FloatRect* root_bounds_pointer =
+         should_report_root_bounds_ ? &snapped_root_bounds : nullptr;
+     IntersectionObserverEntry* new_entry = new IntersectionObserverEntry(
+-        timestamp, new_visible_ratio, geometry.TargetIntRect(),
+-        root_bounds_pointer, geometry.IntersectionIntRect(),
++        timestamp, new_visible_ratio, FloatRect(geometry.TargetRect()),
++        root_bounds_pointer, FloatRect(geometry.IntersectionRect()),
+         geometry.DoesIntersect(), Target());
+     Observer()->EnqueueIntersectionObserverEntry(*new_entry);
+     SetLastThresholdIndex(new_threshold_index);
+diff --git a/third_party/WebKit/Source/core/intersection_observer/IntersectionObserverEntry.cpp b/third_party/WebKit/Source/core/intersection_observer/IntersectionObserverEntry.cpp
+index 86df2fb4913a..0835c425029d 100644
+--- a/third_party/WebKit/Source/core/intersection_observer/IntersectionObserverEntry.cpp
++++ b/third_party/WebKit/Source/core/intersection_observer/IntersectionObserverEntry.cpp
+@@ -11,17 +11,18 @@ namespace blink {
+ IntersectionObserverEntry::IntersectionObserverEntry(
+     DOMHighResTimeStamp time,
+     double intersection_ratio,
+-    const IntRect& bounding_client_rect,
+-    const IntRect* root_bounds,
+-    const IntRect& intersection_rect,
++    const FloatRect& bounding_client_rect,
++    const FloatRect* root_bounds,
++    const FloatRect& intersection_rect,
+     bool is_intersecting,
+     Element* target)
+     : time_(time),
+       intersection_ratio_(intersection_ratio),
+-      bounding_client_rect_(DOMRectReadOnly::FromIntRect(bounding_client_rect)),
+-      root_bounds_(root_bounds ? DOMRectReadOnly::FromIntRect(*root_bounds)
++      bounding_client_rect_(
++          DOMRectReadOnly::FromFloatRect(bounding_client_rect)),
++      root_bounds_(root_bounds ? DOMRectReadOnly::FromFloatRect(*root_bounds)
+                                : nullptr),
+-      intersection_rect_(DOMRectReadOnly::FromIntRect(intersection_rect)),
++      intersection_rect_(DOMRectReadOnly::FromFloatRect(intersection_rect)),
+       target_(target),
+       is_intersecting_(is_intersecting)
+ 
+diff --git a/third_party/WebKit/Source/core/intersection_observer/IntersectionObserverEntry.h b/third_party/WebKit/Source/core/intersection_observer/IntersectionObserverEntry.h
+index 4a7350f565df..e7378ffda557 100644
+--- a/third_party/WebKit/Source/core/intersection_observer/IntersectionObserverEntry.h
++++ b/third_party/WebKit/Source/core/intersection_observer/IntersectionObserverEntry.h
+@@ -21,9 +21,9 @@ class IntersectionObserverEntry final : public ScriptWrappable {
+  public:
+   IntersectionObserverEntry(DOMHighResTimeStamp timestamp,
+                             double intersection_ratio,
+-                            const IntRect& bounding_client_rect,
+-                            const IntRect* root_bounds,
+-                            const IntRect& intersection_rect,
++                            const FloatRect& bounding_client_rect,
++                            const FloatRect* root_bounds,
++                            const FloatRect& intersection_rect,
+                             bool is_intersecting,
+                             Element*);
+ 

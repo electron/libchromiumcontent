@@ -509,3 +509,17 @@ patches:
     Fix system tray icons being cropped under KDE when they are larger than
     22x22
     Backport https://chromium-review.googlesource.com/c/chromium/src/+/1173235
+-
+  owners: miniak
+  file: intersection-observer-f8bf3f0.patch
+  description: |
+    [IntersectionObserver] Don't snap bounding rects
+    These rects should mirror the behavior of getBoundingClientRect, which doesn't snap.
+    Backport https://chromium-review.googlesource.com/c/chromium/src/+/951640
+-
+  owners: miniak
+  file: intersection-observer-c02251d.patch
+  description: |
+    [IntersectionObserver] Report coordinates as CSS pixels.
+    Prior to this patch, IntersectionObserverEntry was reporting coordinates in device pixels.
+    Backport https://chromium-review.googlesource.com/c/chromium/src/+/1250121
