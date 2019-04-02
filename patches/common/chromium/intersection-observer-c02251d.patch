@@ -1,0 +1,85 @@
+diff --git a/third_party/WebKit/Source/core/intersection_observer/IntersectionObservation.cpp b/third_party/WebKit/Source/core/intersection_observer/IntersectionObservation.cpp
+index 2b247f14c56a..9f8c8f0d8bb0 100644
+--- a/third_party/WebKit/Source/core/intersection_observer/IntersectionObservation.cpp
++++ b/third_party/WebKit/Source/core/intersection_observer/IntersectionObservation.cpp
+@@ -73,12 +73,12 @@ void IntersectionObservation::ComputeIntersectionObservations(
+   CHECK(new_threshold_index < kMaxThresholdIndex);
+ 
+   if (last_threshold_index_ != new_threshold_index) {
+-    FloatRect snapped_root_bounds(geometry.RootRect());
++    FloatRect root_bounds(geometry.UnZoomedRootRect());
+     FloatRect* root_bounds_pointer =
+-        should_report_root_bounds_ ? &snapped_root_bounds : nullptr;
++        should_report_root_bounds_ ? &root_bounds : nullptr;
+     IntersectionObserverEntry* new_entry = new IntersectionObserverEntry(
+-        timestamp, new_visible_ratio, FloatRect(geometry.TargetRect()),
+-        root_bounds_pointer, FloatRect(geometry.IntersectionRect()),
++        timestamp, new_visible_ratio, FloatRect(geometry.UnZoomedTargetRect()),
++        root_bounds_pointer, FloatRect(geometry.UnZoomedIntersectionRect()),
+         geometry.DoesIntersect(), Target());
+     Observer()->EnqueueIntersectionObserverEntry(*new_entry);
+     SetLastThresholdIndex(new_threshold_index);
+diff --git a/third_party/WebKit/Source/core/layout/IntersectionGeometry.cpp b/third_party/WebKit/Source/core/layout/IntersectionGeometry.cpp
+index f3ca054d579f..4591fd9fec89 100644
+--- a/third_party/WebKit/Source/core/layout/IntersectionGeometry.cpp
++++ b/third_party/WebKit/Source/core/layout/IntersectionGeometry.cpp
+@@ -8,6 +8,7 @@
+ #include "core/frame/LocalFrameView.h"
+ #include "core/frame/Settings.h"
+ #include "core/html/HTMLFrameOwnerElement.h"
++#include "core/layout/AdjustForAbsoluteZoom.h"
+ #include "core/layout/LayoutBox.h"
+ #include "core/layout/LayoutView.h"
+ #include "core/page/Page.h"
+@@ -220,4 +221,28 @@ void IntersectionGeometry::ComputeGeometry() {
+     MapRootRectToRootFrameCoordinates();
+ }
+ 
++LayoutRect IntersectionGeometry::UnZoomedTargetRect() const {
++  if (!target_)
++    return target_rect_;
++  FloatRect rect(target_rect_);
++  AdjustForAbsoluteZoom::AdjustFloatRect(rect, *target_);
++  return LayoutRect(rect);
++}
++
++LayoutRect IntersectionGeometry::UnZoomedIntersectionRect() const {
++  if (!target_)
++    return intersection_rect_;
++  FloatRect rect(intersection_rect_);
++  AdjustForAbsoluteZoom::AdjustFloatRect(rect, *target_);
++  return LayoutRect(rect);
++}
++
++LayoutRect IntersectionGeometry::UnZoomedRootRect() const {
++  if (!root_)
++    return root_rect_;
++  FloatRect rect(root_rect_);
++  AdjustForAbsoluteZoom::AdjustFloatRect(rect, *root_);
++  return LayoutRect(rect);
++}
++
+ }  // namespace blink
+diff --git a/third_party/WebKit/Source/core/layout/IntersectionGeometry.h b/third_party/WebKit/Source/core/layout/IntersectionGeometry.h
+index 9f5574cb1ce4..e6961353f9e2 100644
+--- a/third_party/WebKit/Source/core/layout/IntersectionGeometry.h
++++ b/third_party/WebKit/Source/core/layout/IntersectionGeometry.h
+@@ -38,12 +38,18 @@ class IntersectionGeometry {
+ 
+   // Client rect in the coordinate system of the frame containing target.
+   LayoutRect TargetRect() const { return target_rect_; }
++  // Target rect in CSS pixels
++  LayoutRect UnZoomedTargetRect() const;
+ 
+   // Client rect in the coordinate system of the frame containing target.
+   LayoutRect IntersectionRect() const { return intersection_rect_; }
++  // Intersection rect in CSS pixels
++  LayoutRect UnZoomedIntersectionRect() const;
+ 
+   // Client rect in the coordinate system of the frame containing root.
+   LayoutRect RootRect() const { return root_rect_; }
++  // Root rect in CSS pixels
++  LayoutRect UnZoomedRootRect() const;
+ 
+   bool DoesIntersect() const { return does_intersect_; }
+ 
