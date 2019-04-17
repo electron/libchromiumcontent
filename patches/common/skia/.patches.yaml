@@ -4,3 +4,14 @@ patches:
   owners: alespergl
   file: dcheck.patch
   description: null
+-
+  owners: miniak
+  file: fix_font_thickness.patch
+  description: |
+    Fix an issue whereby font rendering weight was too thin compared
+    to other fonts present on MacOS Mojave.
+
+    Backports:
+    - https://skia-review.googlesource.com/c/skia/+/117862
+    - https://skia-review.googlesource.com/c/skia/+/157566
+    - https://skia-review.googlesource.com/c/skia/+/177880
