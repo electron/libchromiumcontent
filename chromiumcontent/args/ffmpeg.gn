@@ -16,6 +16,16 @@ if (target_os != "linux") {
 # https://chromium.googlesource.com/chromium/src/+/master/docs/jumbo.md
 use_jumbo_build = true
 
+# This is required by Node.js
+# See https://github.com/nodejs/node/pull/13242
+v8_promise_internal_field_count = 1
+
+# This is required by Node.js
+# Unconditionally force typed arrays to allocate outside the v8 heap. This
+# is to prevent memory pointers from being moved around that are returned by
+# Buffer::Data()
+v8_typed_array_max_size_in_heap = 0
+
 if (target_cpu == "arm64") {
   # Suppress the linking warning for arm64:
   # warning: libfreetype.so.6, needed by ../../build/linux/debian_jessie_arm64-sysroot/usr/lib/aarch64-linux-gnu/libfontconfig.so, may conflict with libfreetype.so.6
